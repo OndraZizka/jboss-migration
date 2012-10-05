@@ -7,6 +7,7 @@ import cz.fi.muni.jboss.Migration.DataSources.DataSources;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourceAS7;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
 import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceAS7;
+import cz.fi.muni.jboss.Migration.Logging.Logger;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityAS5;
@@ -109,10 +110,14 @@ public class main {
 //            for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
 //                cliMigration.createXaDatasource(xaDatasourceAS7);
 //            }
-              ConnectionFactoriesSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
-             for(ConnectionFactoryAS7 connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
-                 cliMigration.createResourceAdapters(connectionFactoryAS7);
-             }
+//              ConnectionFactoriesSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
+//             for(ConnectionFactoryAS7 connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
+//                 cliMigration.createResourceAdapters(connectionFactoryAS7);
+//             }
+            LoggingAS7 loggingAS7 = migration.loggingMigration(loggingAS5);
+            for(Logger logger : loggingAS7.getLoggers()){
+                cliMigration.createLogger(logger);
+            }
 
 
         } catch (JAXBException e) {
