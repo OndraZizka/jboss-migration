@@ -17,6 +17,10 @@ import org.jboss.dmr.ModelNode;
 
 import java.io.Closeable;
 import java.net.InetAddress;
+/**
+ * It seems that this idea is pointless because some changes require restart of the server
+ * So better way is to make file containing scripts for CLI which will run as batch when server is offline
+ */
 
 /**
  * Created with IntelliJ IDEA.
@@ -305,7 +309,36 @@ public class CliMigrationImpl implements CliMigration {
 
     @Override
     public void createLogger(Logger logger) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        ModelNode request = new ModelNode();
+        request.get(ClientConstants.OP).set(ClientConstants.ADD);
+        request.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        request.get(ClientConstants.OP_ADDR).add("logger",logger.getLoggerCategory());
+        updatingRequest(request,"level",logger.getLoggerLevelName());
+        updatingRequest(request, "use-parent-handlers",logger.getUseParentHandlers());
+
+       // updatingRequest(request,"handlers", "\"test\",\"skuska\"");
+        //request.get("handlers").add("[CONSOLE,FILE]");
+
+
+        try {
+            executeRequest(request);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+//        for(String handler : logger.getHandlers()){
+//            ModelNode request2 = new ModelNode();
+//            request2.get(ClientConstants.OP).set(ClientConstants.ADD);
+//            request2.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+//            request2.get(ClientConstants.OP_ADDR).add("logger",logger.getLoggerCategory());
+//            request2.get(ClientConstants.OP_ADDR).add("handlers",);
+////            updatingRequest(request2, "name",handler);
+//            try {
+//                executeRequest(request2);
+//            } catch (Exception e) {
+//                System.out.println(e.toString());
+//            }
+//        }
+
     }
 
     @Override
