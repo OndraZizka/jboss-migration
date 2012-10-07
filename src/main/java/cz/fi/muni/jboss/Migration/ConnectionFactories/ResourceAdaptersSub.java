@@ -12,16 +12,16 @@ import java.util.Collection;
 @XmlRootElement(name = "resource-adapters")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "resource-adapters")
-public class ConnectionFactoriesSub {
+public class ResourceAdaptersSub {
     @XmlElementWrapper(name = "resource-adapters")
     @XmlElements(@XmlElement(name = "resource-adapter"))
-    private Collection<ConnectionFactoryAS7> resourceAdapters;
+    private Collection<ResourceAdapter> resourceAdapters;
 
-    public Collection<ConnectionFactoryAS7> getResourceAdapters() {
+    public Collection<ResourceAdapter> getResourceAdapters() {
         return resourceAdapters;
     }
 
-    public void setResourceAdapters(Collection<ConnectionFactoryAS7> resourceAdapters) {
+    public void setResourceAdapters(Collection<ResourceAdapter> resourceAdapters) {
         this.resourceAdapters = resourceAdapters;
     }
 }

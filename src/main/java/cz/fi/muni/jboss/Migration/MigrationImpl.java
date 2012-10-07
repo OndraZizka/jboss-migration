@@ -185,15 +185,15 @@ public class MigrationImpl implements Migration {
 
    //resource-adapters .... maybe change name in the future?
     @Override
-    public ConnectionFactoriesSub connectionFactoriesMigration(ConnectionFactories connectionFactories) {
-        ConnectionFactoriesSub sub = new ConnectionFactoriesSub();
-        Collection<ConnectionFactoryAS7> collection = new ArrayList<>();
+    public ResourceAdaptersSub connectionFactoriesMigration(ConnectionFactories connectionFactories) {
+        ResourceAdaptersSub sub = new ResourceAdaptersSub();
+        Collection<ResourceAdapter> collection = new ArrayList<>();
         for (ConnectionFactoryAS5 connectionFactoryAS5 : connectionFactories.getConnectionFactories()) {
-            ConnectionFactoryAS7 connectionFactoryAS7 = new ConnectionFactoryAS7();
-            connectionFactoryAS7.setJndiName(connectionFactoryAS5.getJndiName());
-            connectionFactoryAS7.setArchive(connectionFactoryAS5.getRarName());
+            ResourceAdapter resourceAdapter = new ResourceAdapter();
+            resourceAdapter.setJndiName(connectionFactoryAS5.getJndiName());
+            resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
             //TODO: not sure what exactly this element represents and what it is in AS5
-            connectionFactoryAS7.setTransactionSupport("XATransaction");
+            resourceAdapter.setTransactionSupport("XATransaction");
             ConnectionDefinition connectionDefinition = new ConnectionDefinition();
             connectionDefinition.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
             connectionDefinition.setPoolName(connectionFactoryAS5.getJndiName());
@@ -233,8 +233,8 @@ public class MigrationImpl implements Migration {
 
             Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList<>();
             connectionDefinitionCollection.add(connectionDefinition);
-            connectionFactoryAS7.setConnectionDefinitions(connectionDefinitionCollection);
-            collection.add(connectionFactoryAS7);
+            resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
+            collection.add(resourceAdapter);
         }
         sub.setResourceAdapters(collection);
         return sub;

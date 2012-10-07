@@ -14,7 +14,7 @@ import java.util.Collection;
 @XmlRootElement(name = "resource-adapter")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "resource-adapter")
-public class ConnectionFactoryAS7 {
+public class ResourceAdapter {
       private String jndiName;
      @XmlElement(name = "archive")
      private String archive;

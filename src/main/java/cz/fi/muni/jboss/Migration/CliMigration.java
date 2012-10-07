@@ -1,12 +1,11 @@
 package cz.fi.muni.jboss.Migration;
 
-import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoryAS7;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourceAS7;
 import cz.fi.muni.jboss.Migration.DataSources.Driver;
 import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceAS7;
 import cz.fi.muni.jboss.Migration.Logging.Logger;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
-import cz.fi.muni.jboss.Migration.Security.SecurityAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityDomain;
 import cz.fi.muni.jboss.Migration.Server.ConnectorAS7;
 import cz.fi.muni.jboss.Migration.Server.SocketBinding;
@@ -22,7 +21,7 @@ public interface CliMigration {
     public void createDatasource(DatasourceAS7 datasourceAS7);
     public void createXaDatasource(XaDatasourceAS7 xaDatasourceAS7);
     public void createDriver(Driver driver);
-    public void createResourceAdapters(ConnectionFactoryAS7 connectionFactoryAS7);
+    public void createResourceAdapters(ResourceAdapter resourceAdapter);
     public void createHandlers(LoggingAS7 loggingAS7);
     public void createLogger(Logger logger);
     public void createSecurityDomain(SecurityDomain securityDomain);

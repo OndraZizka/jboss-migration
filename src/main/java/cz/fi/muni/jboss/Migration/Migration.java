@@ -1,7 +1,7 @@
 package cz.fi.muni.jboss.Migration;
 
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactories;
-import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoriesSub;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdaptersSub;
 import cz.fi.muni.jboss.Migration.DataSources.*;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
@@ -45,7 +45,7 @@ public interface Migration {
      * @param connectionFactories
      * @return
      */
-    public ConnectionFactoriesSub connectionFactoriesMigration(ConnectionFactories connectionFactories);
+    public ResourceAdaptersSub connectionFactoriesMigration(ConnectionFactories connectionFactories);
 
     /**
      *

@@ -2,7 +2,7 @@ package cz.fi.muni.jboss.Migration;
 
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConfigProperty;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionDefinition;
-import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoryAS7;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.Migration.DataSources.*;
 import cz.fi.muni.jboss.Migration.Logging.Logger;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
@@ -229,23 +229,23 @@ public class CliMigrationImpl implements CliMigration {
     }
 
     @Override
-    public void createResourceAdapters(ConnectionFactoryAS7 connectionFactoryAS7) {
+    public void createResourceAdapters(ResourceAdapter resourceAdapter) {
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
-        request.get(ClientConstants.OP_ADDR).add("resource-adapter",connectionFactoryAS7.getJndiName());
-        updatingRequest(request, "archive", connectionFactoryAS7.getArchive());
-        updatingRequest(request, "pool-name", connectionFactoryAS7.getTransactionSupport());
+        request.get(ClientConstants.OP_ADDR).add("resource-adapter", resourceAdapter.getJndiName());
+        updatingRequest(request, "archive", resourceAdapter.getArchive());
+        updatingRequest(request, "transaction-support", resourceAdapter.getTransactionSupport());
         try {
             executeRequest(request);
         } catch (Exception e) {
             System.out.println(e.toString());
         }
-        for(ConnectionDefinition connectionDefinition : connectionFactoryAS7.getConnectionDefinitions()){
+        for(ConnectionDefinition connectionDefinition : resourceAdapter.getConnectionDefinitions()){
             ModelNode connection = new ModelNode();
             connection.get(ClientConstants.OP).set(ClientConstants.ADD);
             connection.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
-            connection.get(ClientConstants.OP_ADDR).add("resource-adapter",connectionFactoryAS7.getJndiName());
+            connection.get(ClientConstants.OP_ADDR).add("resource-adapter", resourceAdapter.getJndiName());
             connection.get(ClientConstants.OP_ADDR).add("connection-definitions",connectionDefinition.getPoolName());
             updatingRequest(connection, "jndi-name", connectionDefinition.getJndiName());
             updatingRequest(connection, "enabled", connectionDefinition.getEnabled());
@@ -287,7 +287,7 @@ public class CliMigrationImpl implements CliMigration {
                 ModelNode config = new ModelNode();
                 config.get(ClientConstants.OP).set(ClientConstants.ADD);
                 config.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
-                config.get(ClientConstants.OP_ADDR).add("resource-adapter",connectionFactoryAS7.getJndiName());
+                config.get(ClientConstants.OP_ADDR).add("resource-adapter", resourceAdapter.getJndiName());
                 config.get(ClientConstants.OP_ADDR).add("connection-definitions",connectionDefinition.getPoolName());
                 config.get(ClientConstants.OP_ADDR).add("config-properties",configProperty.getConfigPropertyName());
                 updatingRequest(config,"value", configProperty.getConfigProperty());

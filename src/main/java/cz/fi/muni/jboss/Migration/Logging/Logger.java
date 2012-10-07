@@ -20,7 +20,7 @@ public class Logger{
     @XmlPath("level/@name")
     private String loggerLevelName;
     @XmlAttribute(name = "use-parent-handlers")
-    private Boolean useParentHandlers;
+    private String useParentHandlers;
     @XmlPath("handlers/handler/@name")
     private Collection<String> handlers;
 
@@ -40,11 +40,11 @@ public class Logger{
         this.loggerLevelName = loggerLevelName;
     }
 
-    public Boolean getUseParentHandlers() {
+    public String getUseParentHandlers() {
         return useParentHandlers;
     }
 
-    public void setUseParentHandlers(Boolean useParentHandlers) {
+    public void setUseParentHandlers(String useParentHandlers) {
         this.useParentHandlers = useParentHandlers;
     }
 

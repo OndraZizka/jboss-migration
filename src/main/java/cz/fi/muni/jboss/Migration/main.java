@@ -1,8 +1,8 @@
 package cz.fi.muni.jboss.Migration;
 
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactories;
-import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoriesSub;
-import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoryAS7;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdaptersSub;
 import cz.fi.muni.jboss.Migration.DataSources.DataSources;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourceAS7;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
@@ -15,7 +15,6 @@ import cz.fi.muni.jboss.Migration.Security.SecurityAS7;
 import cz.fi.muni.jboss.Migration.Server.ServerAS5;
 import cz.fi.muni.jboss.Migration.Server.ServerSub;
 import cz.fi.muni.jboss.Migration.Server.SocketBindingGroup;
-import sun.nio.ch.DatagramSocketAdaptor;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -38,7 +37,7 @@ public class main {
         try {
             final JAXBContext context = JAXBContext.newInstance(DataSources.class) ;
             final JAXBContext context1 = JAXBContext.newInstance(DatasourcesSub.class);
-            final JAXBContext context2=JAXBContext.newInstance(ConnectionFactoriesSub.class);
+            final JAXBContext context2=JAXBContext.newInstance(ResourceAdaptersSub.class);
             final JAXBContext context3=JAXBContext.newInstance(ConnectionFactories.class);
             final JAXBContext context4=JAXBContext.newInstance(ServerAS5.class);
             final JAXBContext context5=JAXBContext.newInstance(ServerSub.class);
@@ -102,22 +101,24 @@ public class main {
             marshaller3.marshal(migration.connectionFactoriesMigration(connectionFactories) ,writer);
 
             System.out.println(writer.toString());
-            CliMigrationImpl cliMigration= new CliMigrationImpl();
-//            DatasourcesSub datasourcesSub= migration.datasourceSubMigration(dataSourcesCollection);
-//            for(DatasourceAS7 datasourceAS7 : datasourcesSub.getDatasource()){
-//                cliMigration.createDatasource(datasourceAS7);
-//            }
-//            for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
-//                cliMigration.createXaDatasource(xaDatasourceAS7);
-//            }
-//              ConnectionFactoriesSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
-//             for(ConnectionFactoryAS7 connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
-//                 cliMigration.createResourceAdapters(connectionFactoryAS7);
-//             }
+
+            CliScript cliScript= new CliScriptImpl();
+            DatasourcesSub datasourcesSub= migration.datasourceSubMigration(dataSourcesCollection);
+            for(DatasourceAS7 datasourceAS7 : datasourcesSub.getDatasource()){
+                System.out.println(cliScript.createDatasourceScript(datasourceAS7));
+            }
+            for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
+                System.out.println(cliScript.createXaDatasourceScript(xaDatasourceAS7));
+            }
+              ResourceAdaptersSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
+             for(ResourceAdapter connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
+                 System.out.println(cliScript.createResourceAdapterScript(connectionFactoryAS7));
+             }
             LoggingAS7 loggingAS7 = migration.loggingMigration(loggingAS5);
             for(Logger logger : loggingAS7.getLoggers()){
-                cliMigration.createLogger(logger);
+                System.out.println(cliScript.createLoggerScript(logger));
             }
+
 
 
         } catch (JAXBException e) {
