@@ -8,6 +8,8 @@ import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceAS7;
 import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceProperty;
 import cz.fi.muni.jboss.Migration.Logging.Logger;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
+import cz.fi.muni.jboss.Migration.Security.LoginModuleAS7;
+import cz.fi.muni.jboss.Migration.Security.ModuleOptionAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityDomain;
 import cz.fi.muni.jboss.Migration.Server.ConnectorAS7;
 import cz.fi.muni.jboss.Migration.Server.SocketBinding;
@@ -204,7 +206,7 @@ public class CliScriptImpl implements CliScript {
                     for(ConfigProperty configProperty : connectionDefinition.getConfigProperties()){
                         script = script.concat("/subsystems=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
                         script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName());
-                        script = script.concat("/config-properties=" + configProperty.getConfigProperty() + ":add(");
+                        script = script.concat("/config-properties=" + configProperty.getConfigPropertyName() + ":add(");
                         script = script.concat("value=" + configProperty.getConfigProperty() + ")\n");
                     }
                 }
@@ -243,22 +245,122 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createSecurityDomainScript(SecurityDomain securityDomain) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if(securityDomain.getSecurityDomainName() == null){
+
+        }
+        String script = "/subsystems=security/security-domain=";
+        script = script.concat(securityDomain.getSecurityDomainName() + ":add(");
+        script = tmpMethod(script,"cache-type", securityDomain.getCacheType() + ")\n");
+        if(securityDomain.getLoginModules() != null){
+            for(LoginModuleAS7 loginModuleAS7 : securityDomain.getLoginModules()){
+               script = script.concat("/subsystems=security/security-domain=" + securityDomain.getSecurityDomainName());
+                script = script.concat("/authentication=classic:add(login-modules=[{");
+                script = tmpMethod(script, "\"code\"", "\"" + loginModuleAS7.getLoginModuleCode() + "\"");
+                script = tmpMethod(script, ", \"flag\"", "\"" + loginModuleAS7.getLoginModuleFlag() + "\"" );
+
+                if((loginModuleAS7.getModuleOptions() != null) || !loginModuleAS7.getModuleOptions().isEmpty()){
+                    String modules= "";
+                    for(ModuleOptionAS7 moduleOptionAS7 : loginModuleAS7.getModuleOptions()){
+                        modules = modules.concat(", (\"" + moduleOptionAS7.getModuleOptionName() + "\"=");
+                        modules = modules.concat("\"" + moduleOptionAS7.getModuleOptionValue() + "\")");
+                    }
+                    modules = modules.replaceFirst("\\,", "");
+                    modules = modules.replaceFirst(" ", "");
+                    if(!modules.isEmpty()){
+                        script = script.concat(", \"module-option\"=[{" + modules + "}]");
+                    }
+                }
+
+            }
+        }
+        script = script.concat("}])");
+        return script;
     }
 
     @Override
-    public String createConnectorScript(ConnectorAS7 connectorAS7) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public String createConnectorScript(ConnectorAS7 connectorAS7) throws CliScriptException{
+        if(connectorAS7.getScheme() == null){
+           throw new CliScriptException("Error: scheme cannot be null", new NullPointerException()) ;
+        }
+        if(connectorAS7.getSocketBinding() == null){
+            throw new CliScriptException("Error: socket-binding cannot be null", new NullPointerException()) ;
+        }
+        if(connectorAS7.getConnectorName() == null){
+            throw new CliScriptException("Error: connector name be null", new NullPointerException()) ;
+        }
+        String script = "/subsystems=web/connector=";
+        script = script.concat(connectorAS7.getConnectorName() + ":add(");
+        script = tmpMethod(script, "socket-binding", connectorAS7.getSocketBinding());
+        script = tmpMethod(script, ",enable-lookups", connectorAS7.getEnableLookups());
+        script = tmpMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
+        script = tmpMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
+        script = tmpMethod(script, ", max-connections", connectorAS7.getMaxConnections());
+        script = tmpMethod(script, ", protocol", connectorAS7.getProtocol());
+        script = tmpMethod(script, ", proxy-name", connectorAS7.getProxyName());
+        script = tmpMethod(script, ", proxy-port", connectorAS7.getProxyPort());
+        script = tmpMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
+        script = tmpMethod(script, ", scheme", connectorAS7.getScheme());
+        script = tmpMethod(script, ", secure", connectorAS7.getSecure());
+        script = tmpMethod(script, ", enabled", connectorAS7.getEnabled());
+        script = script.concat(")");
+        if(connectorAS7.getScheme().equals("https"))  {
+            script = script.concat("\n/subsystems=web/connector=" + connectorAS7.getConnectorName()
+                      + "/ssl=configuration:add(");
+            script = tmpMethod(script,"name", connectorAS7.getSslName());
+            script = tmpMethod(script,", verify-client", connectorAS7.getVerifyClient());
+            script = tmpMethod(script,", verify-depth", connectorAS7.getVerifyDepth());
+            script = tmpMethod(script,", certificate-key-file", connectorAS7.getCertificateKeyFile());
+            script = tmpMethod(script,", password", connectorAS7.getPassword());
+            script = tmpMethod(script,", protocol", connectorAS7.getProtocol());
+            script = tmpMethod(script,", ciphers", connectorAS7.getCiphers());
+            script = tmpMethod(script,", key-alias", connectorAS7.getKeyAlias());
+            script = tmpMethod(script,", ca-certificate-file", connectorAS7.getCaCertificateFile());
+            script = tmpMethod(script,", session-cache-size", connectorAS7.getSessionCacheSize());
+            script = tmpMethod(script,", session-timeout", connectorAS7.getSessionTimeout());
+            script = script.concat(")");
+        }
+      return script;
+
+
     }
 
     @Override
     public String createVirtualServerScript(VirtualServer virtualServer) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        String script = "/subsystems=web/virtual-server=";
+        script = script.concat(virtualServer.getVirtualServerName() + ":add(");
+        script = tmpMethod(script, "enable-welcome-root",virtualServer.getEnableWelcomeRoot());
+        script = tmpMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
+        if(virtualServer.getAliasName() != null){
+            String aliases = "";
+            for(String alias : virtualServer.getAliasName()){
+                aliases = aliases.concat(", \"" + alias+"\"");
+            }
+            aliases = aliases.replaceFirst("\\, ", "");
+
+            if(!aliases.isEmpty()){
+                script = script.concat(", alias=[" + aliases + "]");
+            }
+        }
+        script = script.concat(")");
+        return script;
+
     }
 
     @Override
-    public String createSocketBinding(SocketBinding socketBinding) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public String createSocketBinding(SocketBinding socketBinding) throws CliScriptException{
+        if(socketBinding.getSocketPort() == null){
+            throw new CliScriptException("Error: port of socket binding cannot be null", new NullPointerException());
+        }
+        if(socketBinding.getSocketName() == null){
+            throw new CliScriptException("Error: name of socket binding cannot be null", new NullPointerException());
+        }
+        String script = "/socket-binding-group=standard-sockets/socket-binding=";
+        script = script.concat(socketBinding.getSocketName() + ":add(");
+        script = script.concat("port=" + socketBinding.getSocketPort());
+        script = tmpMethod(script, ", interface", socketBinding.getSocketInterface());
+        script = script.concat(")");
+        return script;
+
     }
 
 

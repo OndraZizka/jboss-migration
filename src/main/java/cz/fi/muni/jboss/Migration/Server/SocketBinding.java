@@ -17,7 +17,7 @@ public class SocketBinding{
     @XmlAttribute(name = "interface")
     private String socketInterface;
     @XmlAttribute(name = "port")
-    private Integer socketPort;
+    private String socketPort;
 
     public String getSocketName() {
         return socketName;
@@ -35,11 +35,11 @@ public class SocketBinding{
         this.socketInterface = socketInterface;
     }
 
-    public Integer getSocketPort() {
+    public String getSocketPort() {
         return socketPort;
     }
 
-    public void setSocketPort(Integer socketPort) {
+    public void setSocketPort(String socketPort) {
         this.socketPort = socketPort;
     }
 }

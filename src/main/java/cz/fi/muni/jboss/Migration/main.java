@@ -12,9 +12,8 @@ import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityAS5;
 import cz.fi.muni.jboss.Migration.Security.SecurityAS7;
-import cz.fi.muni.jboss.Migration.Server.ServerAS5;
-import cz.fi.muni.jboss.Migration.Server.ServerSub;
-import cz.fi.muni.jboss.Migration.Server.SocketBindingGroup;
+import cz.fi.muni.jboss.Migration.Security.SecurityDomain;
+import cz.fi.muni.jboss.Migration.Server.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -117,8 +116,26 @@ public class main {
             LoggingAS7 loggingAS7 = migration.loggingMigration(loggingAS5);
             for(Logger logger : loggingAS7.getLoggers()){
                 System.out.println(cliScript.createLoggerScript(logger));
-            }
 
+            }
+            SecurityAS7 securityAS7 = migration.securityMigration(securityAS5);
+            for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
+                System.out.println(cliScript.createSecurityDomainScript(securityDomain));
+            }
+            ServerSub serverSub = migration.serverMigration(serverAS5);
+            for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
+                System.out.println(cliScript.createConnectorScript(connectorAS7));
+            }
+            for(VirtualServer virtualServer : serverSub.getVirtualServers()){
+                System.out.println(cliScript.createVirtualServerScript(virtualServer));
+            }
+            SocketBindingGroup socketBindingGroup= migration.getSocketBindingGroup();
+            SocketBinding test = new SocketBinding();
+            test.setSocketName("trala");
+
+            for(SocketBinding socketBinding : socketBindingGroup.getSocketBindings()){
+                System.out.println(cliScript.createSocketBinding(socketBinding));
+            }
 
 
         } catch (JAXBException e) {

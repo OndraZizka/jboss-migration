@@ -17,36 +17,36 @@ public  class ConnectorAS5 {
 
     //Common atributy
     @XmlAttribute(name = "enableLookups")
-    private Boolean enableLookups;
+    private String enableLookups;
     @XmlAttribute(name = "maxPostSize")
-    private Integer maxPostSize;
+    private String maxPostSize;
     @XmlAttribute(name = "maxSavePostSize")
-    private Integer maxSavePostSize;
+    private String maxSavePostSize;
     @XmlAttribute(name = "protocol")
     private String protocol;
     @XmlAttribute(name = "proxyName")
     private String proxyName;
     @XmlAttribute(name = "proxyPort")
-    private Integer proxyPort;
+    private String proxyPort;
     @XmlAttribute(name = "redirectPort")
-    private Integer redirectPort;
+    private String redirectPort;
     @XmlAttribute(name = "SSLEnabled")
-    private Boolean sslEnabled;
+    private String sslEnabled;
     @XmlAttribute(name = "scheme")
     private String scheme;
     @XmlAttribute(name = "secure")
-    private Boolean secure;
+    private String secure;
 
     //standard attributes for HTTP connector
 
     @XmlAttribute(name = "executor")
     private String executor;
     @XmlAttribute(name = "port")
-    private Integer port;
+    private String port;
 
     //SSL attributes
     @XmlAttribute(name = "clientAuth")
-    private Boolean clientAuth;
+    private String clientAuth;
     @XmlAttribute(name = "keystoreFile")
     private String keystoreFile;
     @XmlAttribute(name = "sslProtocol")
@@ -62,27 +62,27 @@ public  class ConnectorAS5 {
     @XmlAttribute(name = "truststorePass")
     private String truststorePass;
 
-    public Boolean getEnableLookups() {
+    public String getEnableLookups() {
         return enableLookups;
     }
 
-    public void setEnableLookups(Boolean enableLookups) {
+    public void setEnableLookups(String enableLookups) {
         this.enableLookups = enableLookups;
     }
 
-    public Integer getMaxPostSize() {
+    public String getMaxPostSize() {
         return maxPostSize;
     }
 
-    public void setMaxPostSize(Integer maxPostSize) {
+    public void setMaxPostSize(String maxPostSize) {
         this.maxPostSize = maxPostSize;
     }
 
-    public Integer getMaxSavePostSize() {
+    public String getMaxSavePostSize() {
         return maxSavePostSize;
     }
 
-    public void setMaxSavePostSize(Integer maxSavePostSize) {
+    public void setMaxSavePostSize(String maxSavePostSize) {
         this.maxSavePostSize = maxSavePostSize;
     }
 
@@ -102,27 +102,27 @@ public  class ConnectorAS5 {
         this.proxyName = proxyName;
     }
 
-    public Integer getProxyPort() {
+    public String getProxyPort() {
         return proxyPort;
     }
 
-    public void setProxyPort(Integer proxyPort) {
+    public void setProxyPort(String proxyPort) {
         this.proxyPort = proxyPort;
     }
 
-    public Integer getRedirectPort() {
+    public String getRedirectPort() {
         return redirectPort;
     }
 
-    public void setRedirectPort(Integer redirectPort) {
+    public void setRedirectPort(String redirectPort) {
         this.redirectPort = redirectPort;
     }
 
-    public Boolean getSslEnabled() {
+    public String getSslEnabled() {
         return sslEnabled;
     }
 
-    public void setSslEnabled(Boolean sslEnabled) {
+    public void setSslEnabled(String sslEnabled) {
         this.sslEnabled = sslEnabled;
     }
 
@@ -134,11 +134,11 @@ public  class ConnectorAS5 {
         this.scheme = scheme;
     }
 
-    public Boolean getSecure() {
+    public String getSecure() {
         return secure;
     }
 
-    public void setSecure(Boolean secure) {
+    public void setSecure(String secure) {
         this.secure = secure;
     }
 
@@ -150,19 +150,19 @@ public  class ConnectorAS5 {
         this.executor = executor;
     }
 
-    public Integer getPort() {
+    public String getPort() {
         return port;
     }
 
-    public void setPort(Integer port) {
+    public void setPort(String port) {
         this.port = port;
     }
 
-    public Boolean getClientAuth() {
+    public String getClientAuth() {
         return clientAuth;
     }
 
-    public void setClientAuth(Boolean clientAuth) {
+    public void setClientAuth(String clientAuth) {
         this.clientAuth = clientAuth;
     }
 

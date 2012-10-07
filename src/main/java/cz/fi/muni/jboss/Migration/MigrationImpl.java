@@ -283,7 +283,7 @@ public class MigrationImpl implements Migration {
 
 
     //yatial prva implementacia na socket binding
-    public String createSocketBinding(Integer port, String name) {
+    public String createSocketBinding(String port, String name) {
         SocketBinding socketBinding = new SocketBinding();
         Collection<SocketBinding> socketBindings = new ArrayList<>();
         if (socketBindingGroup.getSocketBindings() == null) {
@@ -323,7 +323,7 @@ public class MigrationImpl implements Migration {
         for (Service service : serverAS5.getServices()) {
             for (ConnectorAS5 connector : service.getConnectorAS5s()) {
                 ConnectorAS7 connectorAS7 = new ConnectorAS7();
-                connectorAS7.setEnabled(true);
+                connectorAS7.setEnabled("true");
                 connectorAS7.setEnableLookups(connector.getEnableLookups());
                 connectorAS7.setMaxPostSize(connector.getMaxPostSize());
                 connectorAS7.setMaxSavePostSize(connector.getMaxSavePostSize());
@@ -347,7 +347,7 @@ public class MigrationImpl implements Migration {
                     if (connector.getSslEnabled() == null) {
                         connectorAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
                     } else {
-                        if (connector.getSslEnabled()) {
+                        if (connector.getSslEnabled().equals("true")) {
                             connectorAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
                         } else {
                             connectorAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
@@ -359,7 +359,7 @@ public class MigrationImpl implements Migration {
 
 
                 try {
-                    if (connector.getSslEnabled()) {
+                    if (connector.getSslEnabled().equals("true")) {
                         connectorAS7.setScheme("https");
                         connectorAS7.setSecure(connector.getSecure());
 
@@ -391,7 +391,7 @@ public class MigrationImpl implements Migration {
             }
             VirtualServer virtualServer = new VirtualServer();
             virtualServer.setVirtualServerName(service.getEngineName());
-            virtualServer.setEnableWelcomeRoot(true);
+            virtualServer.setEnableWelcomeRoot("true");
             virtualServer.setAliasName(service.getHostNames());
 
             virtualServers.add(virtualServer);
@@ -582,6 +582,7 @@ public class MigrationImpl implements Migration {
             Collection<LoginModuleAS7> loginModules = new ArrayList<>();
             SecurityDomain securityDomain = new SecurityDomain();
             securityDomain.setSecurityDomainName(applicationPolicy.getApplicationPolicyName());
+            securityDomain.setCacheType("default");
 
             for (LoginModuleAS5 loginModuleAS5 : applicationPolicy.getLoginModules()) {
                 Collection<ModuleOptionAS7> moduleOptions = new ArrayList<>();

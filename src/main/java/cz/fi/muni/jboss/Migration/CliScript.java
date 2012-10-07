@@ -20,12 +20,12 @@ public interface CliScript {
     public String createDatasourceScript(DatasourceAS7 datasourceAS7) throws CliScriptException;
     public String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7) throws CliScriptException;
     public String createResourceAdapterScript(ResourceAdapter resourceAdapter) throws CliScriptException;
-    public String createLoggerScript(Logger logger);
-    public String createHandlersScript(LoggingAS7 loggingAS7);
-    public String createSecurityDomainScript(SecurityDomain securityDomain);
-    public String createConnectorScript(ConnectorAS7  connectorAS7);
-    public String createVirtualServerScript(VirtualServer virtualServer);
-    public String createSocketBinding(SocketBinding socketBinding);
+    public String createLoggerScript(Logger logger) throws  CliScriptException;
+    public String createHandlersScript(LoggingAS7 loggingAS7) throws CliScriptException;
+    public String createSecurityDomainScript(SecurityDomain securityDomain) throws CliScriptException;
+    public String createConnectorScript(ConnectorAS7  connectorAS7) throws CliScriptException;
+    public String createVirtualServerScript(VirtualServer virtualServer) throws CliScriptException;
+    public String createSocketBinding(SocketBinding socketBinding) throws  CliScriptException;
 
 
 

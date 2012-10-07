@@ -19,27 +19,27 @@ public class ConnectorAS7{
     @XmlAttribute(name = "socket-binding")
     private String socketBinding;
     @XmlAttribute(name = "enable-lookups")
-    private Boolean enableLookups;
+    private String enableLookups;
     @XmlAttribute(name = "max-post-size")
-    private Integer maxPostSize;
+    private String maxPostSize;
     @XmlAttribute(name = "max-save-post-size")
-    private Integer maxSavePostSize;
+    private String maxSavePostSize;
     @XmlAttribute(name = "max-connections")
-    private Integer maxConnections;
+    private String maxConnections;
     @XmlAttribute(name = "protocol")
     private String protocol;
     @XmlAttribute(name = "proxy-name")
     private String proxyName;
     @XmlAttribute(name = "proxy-port")
-    private Integer proxyPort;
+    private String proxyPort;
     @XmlAttribute(name = "redirect-port")
-    private Integer redirectPort;
+    private String redirectPort;
     @XmlAttribute(name = "scheme")
     private String scheme;
     @XmlAttribute(name = "secure")
-    private Boolean secure;
+    private String secure;
     @XmlAttribute(name = "enabled")
-    private Boolean enabled;
+    private String enabled;
     @XmlAttribute(name = "executor")
     private String executor;
 
@@ -47,9 +47,9 @@ public class ConnectorAS7{
     @XmlPath("/ssl/@name")
     private String sslName;
     @XmlPath("/ssl/@verify-client")
-    private  Boolean verifyClient;
+    private  String verifyClient;
     @XmlPath("/ssl/@verify-depth")
-    private Integer verifyDepth;
+    private String verifyDepth;
     @XmlPath("/ssl/@certificate-key-file")
     private String certificateKeyFile;
     @XmlPath("/ssl/@certificate-file")
@@ -65,9 +65,9 @@ public class ConnectorAS7{
     @XmlPath("/ssl/@ca-certificate-file")
     private String caCertificateFile;
     @XmlPath("/ssl/@session-cache-size")
-    private Integer sessionCacheSize;
+    private String sessionCacheSize;
     @XmlPath("/ssl/@session-timeout")
-    private Integer sessionTimeout;
+    private String sessionTimeout;
 
     public String getConnectorName() {
         return connectorName;
@@ -85,35 +85,35 @@ public class ConnectorAS7{
         this.socketBinding = socketBinding;
     }
 
-    public Boolean getEnableLookups() {
+    public String getEnableLookups() {
         return enableLookups;
     }
 
-    public void setEnableLookups(Boolean enableLookups) {
+    public void setEnableLookups(String enableLookups) {
         this.enableLookups = enableLookups;
     }
 
-    public Integer getMaxPostSize() {
+    public String getMaxPostSize() {
         return maxPostSize;
     }
 
-    public void setMaxPostSize(Integer maxPostSize) {
+    public void setMaxPostSize(String maxPostSize) {
         this.maxPostSize = maxPostSize;
     }
 
-    public Integer getMaxSavePostSize() {
+    public String getMaxSavePostSize() {
         return maxSavePostSize;
     }
 
-    public void setMaxSavePostSize(Integer maxSavePostSize) {
+    public void setMaxSavePostSize(String maxSavePostSize) {
         this.maxSavePostSize = maxSavePostSize;
     }
 
-    public Integer getMaxConnections() {
+    public String getMaxConnections() {
         return maxConnections;
     }
 
-    public void setMaxConnections(Integer maxConnections) {
+    public void setMaxConnections(String maxConnections) {
         this.maxConnections = maxConnections;
     }
 
@@ -133,19 +133,19 @@ public class ConnectorAS7{
         this.proxyName = proxyName;
     }
 
-    public Integer getProxyPort() {
+    public String getProxyPort() {
         return proxyPort;
     }
 
-    public void setProxyPort(Integer proxyPort) {
+    public void setProxyPort(String proxyPort) {
         this.proxyPort = proxyPort;
     }
 
-    public Integer getRedirectPort() {
+    public String getRedirectPort() {
         return redirectPort;
     }
 
-    public void setRedirectPort(Integer redirectPort) {
+    public void setRedirectPort(String redirectPort) {
         this.redirectPort = redirectPort;
     }
 
@@ -157,19 +157,19 @@ public class ConnectorAS7{
         this.scheme = scheme;
     }
 
-    public Boolean getSecure() {
+    public String getSecure() {
         return secure;
     }
 
-    public void setSecure(Boolean secure) {
+    public void setSecure(String secure) {
         this.secure = secure;
     }
 
-    public Boolean getEnabled() {
+    public String getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(String enabled) {
         this.enabled = enabled;
     }
 
@@ -189,19 +189,19 @@ public class ConnectorAS7{
         this.sslName = sslName;
     }
 
-    public Boolean getVerifyClient() {
+    public String getVerifyClient() {
         return verifyClient;
     }
 
-    public void setVerifyClient(Boolean verifyClient) {
+    public void setVerifyClient(String verifyClient) {
         this.verifyClient = verifyClient;
     }
 
-    public Integer getVerifyDepth() {
+    public String getVerifyDepth() {
         return verifyDepth;
     }
 
-    public void setVerifyDepth(Integer verifyDepth) {
+    public void setVerifyDepth(String verifyDepth) {
         this.verifyDepth = verifyDepth;
     }
 
@@ -261,19 +261,19 @@ public class ConnectorAS7{
         this.caCertificateFile = caCertificateFile;
     }
 
-    public Integer getSessionCacheSize() {
+    public String getSessionCacheSize() {
         return sessionCacheSize;
     }
 
-    public void setSessionCacheSize(Integer sessionCacheSize) {
+    public void setSessionCacheSize(String sessionCacheSize) {
         this.sessionCacheSize = sessionCacheSize;
     }
 
-    public Integer getSessionTimeout() {
+    public String getSessionTimeout() {
         return sessionTimeout;
     }
 
-    public void setSessionTimeout(Integer sessionTimeout) {
+    public void setSessionTimeout(String sessionTimeout) {
         this.sessionTimeout = sessionTimeout;
     }
 }

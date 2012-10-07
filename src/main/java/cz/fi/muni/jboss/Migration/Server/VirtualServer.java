@@ -19,7 +19,7 @@ public class VirtualServer{
     @XmlAttribute(name = "name")
     private String virtualServerName;
     @XmlAttribute(name = "enable-welcome-root")
-    private Boolean enableWelcomeRoot;
+    private String enableWelcomeRoot;
     @XmlAttribute(name = "default-web-module")
     private String defaultWebModule;
     @XmlPath("alias/@name")
@@ -33,11 +33,11 @@ public class VirtualServer{
         this.virtualServerName = virtualServerName;
     }
 
-    public Boolean getEnableWelcomeRoot() {
+    public String getEnableWelcomeRoot() {
         return enableWelcomeRoot;
     }
 
-    public void setEnableWelcomeRoot(Boolean enableWelcomeRoot) {
+    public void setEnableWelcomeRoot(String enableWelcomeRoot) {
         this.enableWelcomeRoot = enableWelcomeRoot;
     }
 
