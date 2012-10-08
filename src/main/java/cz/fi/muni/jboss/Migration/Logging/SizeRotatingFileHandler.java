@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.*;
  * Date: 10/2/12
  * Time: 8:23 PM
  */
-@XmlRootElement(name = "size-rotating-file-handler")
+@XmlRootElement(name = "size-rotating-relativeTo-handler")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "size-rotating-file-handler")
+@XmlType(name = "size-rotating-relativeTo-handler")
 public class  SizeRotatingFileHandler{
     @XmlAttribute(name = "name")
     private String name;
@@ -24,17 +24,17 @@ public class  SizeRotatingFileHandler{
     @XmlPath("formatter/pattern-formatter/@pattern")
     private String formatter;
     @XmlAttribute(name = "autoflush")
-    private Boolean autoflush;
+    private String autoflush;
     @XmlPath("append/@value")
     private String append;
-    @XmlPath("file/@relative-to")
-    private String file ;
-    @XmlPath("file/@path")
+    @XmlPath("relativeTo/@relative-to")
+    private String relativeTo;
+    @XmlPath("relativeTo/@path")
     private String path ;
     @XmlPath("rotate-size/@value")
     private String rotateSize;
     @XmlPath("max-backup-index/@value")
-    private Integer maxBackupIndex;
+    private String maxBackupIndex;
 
     public String getName() {
         return name;
@@ -68,11 +68,11 @@ public class  SizeRotatingFileHandler{
         this.formatter = formatter;
     }
 
-    public Boolean getAutoflush() {
+    public String getAutoflush() {
         return autoflush;
     }
 
-    public void setAutoflush(Boolean autoflush) {
+    public void setAutoflush(String autoflush) {
         this.autoflush = autoflush;
     }
 
@@ -84,12 +84,12 @@ public class  SizeRotatingFileHandler{
         this.append = append;
     }
 
-    public String getFile() {
-        return file;
+    public String getRelativeTo() {
+        return relativeTo;
     }
 
-    public void setFile(String file) {
-        this.file = file;
+    public void setRelativeTo(String relativeTo) {
+        this.relativeTo = relativeTo;
     }
 
     public String getPath() {
@@ -108,11 +108,11 @@ public class  SizeRotatingFileHandler{
         this.rotateSize = rotateSize;
     }
 
-    public Integer getMaxBackupIndex() {
+    public String getMaxBackupIndex() {
         return maxBackupIndex;
     }
 
-    public void setMaxBackupIndex(Integer maxBackupIndex) {
+    public void setMaxBackupIndex(String maxBackupIndex) {
         this.maxBackupIndex = maxBackupIndex;
     }
 }

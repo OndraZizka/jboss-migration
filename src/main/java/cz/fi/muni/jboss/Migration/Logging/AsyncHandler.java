@@ -24,7 +24,7 @@ public class  AsyncHandler{
     @XmlPath("formatter/pattern-formatter/@pattern")
     private String formatter;
     @XmlPath("queue-length/@value")
-    private Integer queueLength;
+    private String queueLength;
     @XmlPath("overflow-action/@value")
     private String overflowAction;
     @XmlPath("subhandlers/handler/@name")
@@ -62,11 +62,11 @@ public class  AsyncHandler{
         this.formatter = formatter;
     }
 
-    public Integer getQueueLength() {
+    public String getQueueLength() {
         return queueLength;
     }
 
-    public void setQueueLength(Integer queueLength) {
+    public void setQueueLength(String queueLength) {
         this.queueLength = queueLength;
     }
 

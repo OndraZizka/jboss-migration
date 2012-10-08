@@ -428,6 +428,7 @@ public class MigrationImpl implements Migration {
                             periodic.setAppend(parameter.getParamValue());
                             continue;
                         }
+                        //TODO:
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");
@@ -456,19 +457,24 @@ public class MigrationImpl implements Migration {
                             size.setAppend(parameter.getParamValue());
                             continue;
                         }
+                        //TODO:
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");
 
-                            size.setFile("jboss.server.log.dir");
-                            size.setPath(split[split.length-1]);
+                            size.setRelativeTo("jboss.server.log.dir");
+                            if(split.length>1){
+                                size.setPath(split[split.length-1]);
+                            } else {
+
+                            }
                         }
                         if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
                             size.setRotateSize(parameter.getParamValue());
                             continue;
                         }
                         if (parameter.getParamName().equalsIgnoreCase("MaxBackupIndex")) {
-                            size.setMaxBackupIndex(Integer.valueOf(parameter.getParamValue()));
+                            size.setMaxBackupIndex(parameter.getParamValue());
                             continue;
                         }
                         if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
@@ -500,7 +506,7 @@ public class MigrationImpl implements Migration {
                     asyncHandler.setName(appender.getAppenderName());
                     for (Parameter parameter : appender.getParameters()) {
                         if (parameter.getParamName().equalsIgnoreCase("BufferSize")) {
-                            asyncHandler.setQueueLength(Integer.valueOf(parameter.getParamValue()));
+                            asyncHandler.setQueueLength(parameter.getParamValue());
                             continue;
                         }
                         if (parameter.getParamName().equalsIgnoreCase("Blocking")) {

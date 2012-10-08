@@ -130,12 +130,13 @@ public class main {
                 System.out.println(cliScript.createVirtualServerScript(virtualServer));
             }
             SocketBindingGroup socketBindingGroup= migration.getSocketBindingGroup();
-            SocketBinding test = new SocketBinding();
-            test.setSocketName("trala");
+
 
             for(SocketBinding socketBinding : socketBindingGroup.getSocketBindings()){
                 System.out.println(cliScript.createSocketBinding(socketBinding));
             }
+
+            System.out.println(cliScript.createHandlersScript(loggingAS7));
 
 
         } catch (JAXBException e) {

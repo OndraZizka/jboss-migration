@@ -4,16 +4,18 @@ import cz.fi.muni.jboss.Migration.ConnectionFactories.ConfigProperty;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionDefinition;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.Migration.DataSources.DatasourceAS7;
+import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
 import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceAS7;
 import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceProperty;
-import cz.fi.muni.jboss.Migration.Logging.Logger;
-import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
+import cz.fi.muni.jboss.Migration.Logging.*;
 import cz.fi.muni.jboss.Migration.Security.LoginModuleAS7;
 import cz.fi.muni.jboss.Migration.Security.ModuleOptionAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityDomain;
 import cz.fi.muni.jboss.Migration.Server.ConnectorAS7;
 import cz.fi.muni.jboss.Migration.Server.SocketBinding;
 import cz.fi.muni.jboss.Migration.Server.VirtualServer;
+
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,17 +37,20 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createDatasourceScript(DatasourceAS7 datasourceAS7) throws CliScriptException{
-        if(datasourceAS7.getPoolName() == null){
-              throw new CliScriptException("Error: pool-name cannot be null", new NullPointerException());
+        if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
+              throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
+                      new NullPointerException());
         }
-        if(datasourceAS7.getJndiName() == null){
-            throw new CliScriptException("Error: jndi-name cannot be null", new NullPointerException());
+        if((datasourceAS7.getJndiName() == null) || (datasourceAS7.getJndiName().isEmpty())){
+            throw new CliScriptException("Error: jndi-name of datasource cannot be null or empty",
+                    new NullPointerException());
         }
-        if(datasourceAS7.getConnectionUrl() == null){
-            throw new CliScriptException("Error: connection-url cannot be null", new NullPointerException());
+        if((datasourceAS7.getConnectionUrl() == null) || (datasourceAS7.getConnectionUrl().isEmpty())){
+            throw new CliScriptException("Error: connection-url in datasource cannot be null or empty",
+                    new NullPointerException());
         }
-        if(datasourceAS7.getDriver() == null){
-            throw new CliScriptException("Error: driver-name cannot be null", new NullPointerException());
+        if((datasourceAS7.getDriver() == null) || (datasourceAS7.getDriver().isEmpty())){
+            throw new CliScriptException("Error: driver-name in datasource cannot be null or empty", new NullPointerException());
         }
         String script= "/subsystem=datasources/data-source=";
         script = script.concat(datasourceAS7.getPoolName()+":add(");
@@ -91,14 +96,17 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7) throws  CliScriptException{
-        if(xaDatasourceAS7.getPoolName() == null){
-            throw new CliScriptException("Error: pool-name cannot be null", new NullPointerException());
+        if((xaDatasourceAS7.getPoolName() == null) || (xaDatasourceAS7.getPoolName().isEmpty())){
+            throw new CliScriptException("Error: pool-name of xa-datasource cannot be null or empty",
+                    new NullPointerException());
         }
-        if(xaDatasourceAS7.getJndiName() == null){
-            throw new CliScriptException("Error: jndi-name cannot be null", new NullPointerException());
+        if((xaDatasourceAS7.getJndiName() == null) || (xaDatasourceAS7.getJndiName().isEmpty())){
+            throw new CliScriptException("Error: jndi-name of xa-datasource cannot be null or empty",
+                    new NullPointerException());
         }
-        if(xaDatasourceAS7.getDriver() == null){
-            throw new CliScriptException("Error: driver-name cannot be null", new NullPointerException());
+        if((xaDatasourceAS7.getDriver() == null) || (xaDatasourceAS7.getDriver().isEmpty())){
+            throw new CliScriptException("Error: driver-name in xa-datasource cannot be null",
+                    new NullPointerException());
         }
         String script= "/subsystem=datasources/xa-data-source=";
         script = script.concat(xaDatasourceAS7.getPoolName()+":add(");
@@ -153,25 +161,32 @@ public class CliScriptImpl implements CliScript {
     }
 
     @Override
+    public String createDriverScript(DatasourcesSub datasourcesSub) throws CliScriptException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     public String createResourceAdapterScript(ResourceAdapter resourceAdapter) throws CliScriptException{
-        if(resourceAdapter.getJndiName() == null){
-             throw new CliScriptException("Error: name of resource-adapter cannot be null", new NullPointerException());
+        if((resourceAdapter.getJndiName() == null) || (resourceAdapter.getJndiName().isEmpty())){
+             throw new CliScriptException("Error: name of the resource-adapter cannot be null or empty",
+                     new NullPointerException());
         }
         if((resourceAdapter.getArchive() == null) || (resourceAdapter.getArchive().isEmpty())){
-             throw new CliScriptException("Error: archive in resource-adapter cannot be null", new NullPointerException());
+             throw new CliScriptException("Error: archive in the resource-adapter cannot be null or empty",
+                     new NullPointerException());
         }
-        String script = "/subsystems=resource-adapters/resource-adapter=";
+        String script = "/subsystem=resource-adapters/resource-adapter=";
         script = script.concat(resourceAdapter.getJndiName() + ":add(");
         script = script.concat("archive=" + resourceAdapter.getArchive());
         script = tmpMethod(script, ", transaction-support", resourceAdapter.getTransactionSupport());
         script = script.concat(")\n");
         if(resourceAdapter.getConnectionDefinitions() != null){
             for(ConnectionDefinition connectionDefinition : resourceAdapter.getConnectionDefinitions()){
-                if(connectionDefinition.getClassName() == null){
-                     throw new CliScriptException("Error: class-name in connection definition cannot be null ",
+                if((connectionDefinition.getClassName() == null) || (connectionDefinition.getClassName().isEmpty())){
+                     throw new CliScriptException("Error: class-name in the connection definition cannot be null or empty",
                              new NullPointerException());
                 }
-                script =  script.concat("/subsystems=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
+                script =  script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
                 script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName() + ":add(");
                 script = tmpMethod(script, " jndi-name", connectionDefinition.getJndiName());
                 script = tmpMethod(script, ", enabled", connectionDefinition.getEnabled());
@@ -204,7 +219,7 @@ public class CliScriptImpl implements CliScript {
                 script = script.concat(")\n");
                 if(connectionDefinition.getConfigProperties() != null){
                     for(ConfigProperty configProperty : connectionDefinition.getConfigProperties()){
-                        script = script.concat("/subsystems=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
+                        script = script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
                         script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName());
                         script = script.concat("/config-properties=" + configProperty.getConfigPropertyName() + ":add(");
                         script = script.concat("value=" + configProperty.getConfigProperty() + ")\n");
@@ -216,8 +231,11 @@ public class CliScriptImpl implements CliScript {
     }
 
     @Override
-    public String createLoggerScript(Logger logger) {
-        String script = "/subsystems=logging/logger=" + logger.getLoggerCategory() + ":add(";
+    public String createLoggerScript(Logger logger) throws CliScriptException{
+        if((logger.getLoggerLevelName() == null) || (logger.getLoggerLevelName().isEmpty())){
+            throw new CliScriptException("Error:name of the logger cannot be null of empty", new NullPointerException());
+        }
+        String script = "/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(";
         script = tmpMethod(script, "level", logger.getLoggerLevelName());
         script = tmpMethod(script,", use-parent-handlers", logger.getUseParentHandlers());
         if(logger.getHandlers() != null){
@@ -239,35 +257,185 @@ public class CliScriptImpl implements CliScript {
     }
 
     @Override
-    public String createHandlersScript(LoggingAS7 loggingAS7) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public String createHandlersScript(LoggingAS7 loggingAS7) throws CliScriptException{
+        String handlers = "";
+        for(ConsoleHandler consoleHandler : loggingAS7.getConsoleHandlers()){
+            handlers = handlers.concat(createConsoleHandlerScript(consoleHandler)+ "\n");
+        }
+        for(PeriodicRotatingFileHandler periodic : loggingAS7.getPeriodicRotatingFileHandlers()){
+            handlers = handlers.concat(createPeriodicHandlerScript(periodic) + "\n");
+        }
+        for(SizeRotatingFileHandler size : loggingAS7.getSizeRotatingFileHandlers()){
+            handlers = handlers.concat(createSizeHandlerScript(size)+ "\n");
+        }
+        for(AsyncHandler asyncHandler : loggingAS7.getAsyncHandlers()){
+            handlers = handlers.concat(createAsyncHandlerScript(asyncHandler) +"\n");
+        }
+        for(CustomHandler customHandler : loggingAS7.getCustomHandlers()){
+            handlers = handlers.concat(createCustomHandlerScript(customHandler) + "\n");
+        }
+        return handlers;
+    }
+    @Override
+    public String createPeriodicHandlerScript(PeriodicRotatingFileHandler periodic) throws CliScriptException{
+        if((periodic.getName() ==  null) || (periodic.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the periodic rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((periodic.getSuffix() == null) || (periodic.getSuffix().isEmpty())){
+            throw new CliScriptException("Error: suffix in periodic rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((periodic.getFileRelativeTo() == null) || (periodic.getFileRelativeTo().isEmpty())){
+            throw new CliScriptException("Error: relative-to in <file> in periodic rotating handler"
+                    +"cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((periodic.getPath() == null) || (periodic.getPath().isEmpty())){
+            throw new CliScriptException("Error:  path in <file> in periodic rotating handler cannot"
+                    +" be null or empty", new NullPointerException());
+        }
+        String script = "/subsystem=logging/periodic-rotating-file-handler=";
+        script = script.concat(periodic.getName() + ":add(");
+        script = script.concat("file={\"" + periodic.getFileRelativeTo() + "\"=>\"" + periodic.getPath() + "\"}");
+        script = script.concat(", suffix=" + periodic.getSuffix());
+        script = tmpMethod(script, ", level", periodic.getLevel());
+        script = tmpMethod(script, ", formatter", periodic.getFormatter());
+        script = tmpMethod(script, ", autoflush", periodic.getAutoflush());
+        script = tmpMethod(script, ", append", periodic.getAppend() );
+        script = script.concat(")");
+        return script;
+    }
+    @Override
+    public String createSizeHandlerScript(SizeRotatingFileHandler sizeHandler) throws CliScriptException{
+        if((sizeHandler.getName() == null) || (sizeHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((sizeHandler.getRelativeTo() == null) || (sizeHandler.getPath().isEmpty())){
+            throw new CliScriptException("Error: relative-to in <file> in size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((sizeHandler.getPath() ==  null) || (sizeHandler.getPath().isEmpty())){
+            throw new CliScriptException("Error: path in <file> in size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        String script = "/subsystem=logging/size-rotating-file-handler=";
+        script = script.concat(sizeHandler.getName() + ":add(");
+        script = script.concat("file={\"" + sizeHandler.getRelativeTo() + "\"=>\"" + sizeHandler.getPath() + "\"}");
+        script = tmpMethod(script,", level", sizeHandler.getLevel());
+        script = tmpMethod(script, ", filter",sizeHandler.getFilter());
+        script = tmpMethod(script, ", formatter", sizeHandler.getFormatter());
+        script = tmpMethod(script, ", autoflush", sizeHandler.getAutoflush());
+        script = tmpMethod(script, ", append", sizeHandler.getAppend());
+        script = tmpMethod(script, ", rotate-size", sizeHandler.getRotateSize());
+        script = tmpMethod(script, ", max-backup-index", sizeHandler.getMaxBackupIndex());
+        script = script.concat(")");
+        return script;
+
+    }
+    @Override
+    public String createAsyncHandlerScript(AsyncHandler asyncHandler) throws  CliScriptException{
+        if((asyncHandler.getQueueLength() == null) || (asyncHandler.getQueueLength().isEmpty())){
+            throw new CliScriptException("Error: queue-length in async handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((asyncHandler.getName() == null) || (asyncHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the async handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        String script = "/subsystem=logging/async-handler=";
+        script = script.concat(asyncHandler.getName() + ":add(");
+        script = script.concat("queue-length=" + asyncHandler.getQueueLength());
+        script = tmpMethod(script, ", level", asyncHandler.getLevel());
+        script = tmpMethod(script, ", filter", asyncHandler.getFilter());
+        script = tmpMethod(script, ", formatter", asyncHandler.getFormatter());
+        script = tmpMethod(script, ", overflow-action", asyncHandler.getOverflowAction());
+        if(asyncHandler.getSubhandlers() != null){
+            String handlers = "";
+            for(String subhandler  : asyncHandler.getSubhandlers()){
+                handlers=", \"" + subhandler + "\"";
+            }
+            handlers = handlers.replaceFirst("\\, ", "");
+            if(!handlers.isEmpty()){
+                script = script.concat(", subhandlers=[" + handlers +"]");
+            }
+        }
+        script = script.concat(")");
+        return script;
+
+    }
+     @Override
+    public String createConsoleHandlerScript(ConsoleHandler consoleHandler) throws CliScriptException{
+        if((consoleHandler.getName() == null) || (consoleHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the console handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        String script = "/subsystem=logging/console-handler=";
+        script = script.concat(consoleHandler.getName() + ":add(");
+        script = tmpMethod(script,", level", consoleHandler.getLevel());
+        script = tmpMethod(script, ", filter", consoleHandler.getFilter());
+        script = tmpMethod(script, ", formatter", consoleHandler.getFormatter());
+        script = tmpMethod(script, ", autoflush", consoleHandler.getAutoflush());
+        script = tmpMethod(script, ", target", consoleHandler.getTarget());
+        script = script.concat(")");
+
+        return script;
+    }
+
+    //TODO:problem with adding properties.
+    @Override
+    public String createCustomHandlerScript (CustomHandler customHandler) throws  CliScriptException{
+        if((customHandler.getName() == null) || (customHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((customHandler.getModule() == null) || (customHandler.getModule().isEmpty())){
+            throw new CliScriptException("Error: module in the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        if((customHandler.getClassValue() == null) || (customHandler.getClassValue().isEmpty())){
+            throw new CliScriptException("Error: class in the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+        String script = "/subsystem=logging/custom-handler=";
+        script = script.concat(customHandler.getName() + ":add(");
+        script = tmpMethod(script, ", level", customHandler.getLevel());
+        script = tmpMethod(script, ", filter", customHandler.getFilter());
+        script = tmpMethod(script, ", formatter", customHandler.getFormatter());
+        script = tmpMethod(script, ", class", customHandler.getClassValue());
+        script = tmpMethod(script, ", module", customHandler.getModule());
+        script = script.concat(")");
+
+        return script;
     }
 
     @Override
-    public String createSecurityDomainScript(SecurityDomain securityDomain) {
-        if(securityDomain.getSecurityDomainName() == null){
-
+    public String createSecurityDomainScript(SecurityDomain securityDomain) throws CliScriptException{
+        if((securityDomain.getSecurityDomainName() == null) || (securityDomain.getSecurityDomainName().isEmpty())){
+            throw new CliScriptException("Error: name of the security domain cannot be null or empty",
+                    new NullPointerException());
         }
-        String script = "/subsystems=security/security-domain=";
+        String script = "/subsystem=security/security-domain=";
         script = script.concat(securityDomain.getSecurityDomainName() + ":add(");
         script = tmpMethod(script,"cache-type", securityDomain.getCacheType() + ")\n");
         if(securityDomain.getLoginModules() != null){
             for(LoginModuleAS7 loginModuleAS7 : securityDomain.getLoginModules()){
-               script = script.concat("/subsystems=security/security-domain=" + securityDomain.getSecurityDomainName());
+               script = script.concat("/subsystem=security/security-domain=" + securityDomain.getSecurityDomainName());
                 script = script.concat("/authentication=classic:add(login-modules=[{");
-                script = tmpMethod(script, "\"code\"", "\"" + loginModuleAS7.getLoginModuleCode() + "\"");
-                script = tmpMethod(script, ", \"flag\"", "\"" + loginModuleAS7.getLoginModuleFlag() + "\"" );
+                script = tmpMethod(script, "\"code\"", ">\"" + loginModuleAS7.getLoginModuleCode() + "\"");
+                script = tmpMethod(script, ", \"flag\"", ">\"" + loginModuleAS7.getLoginModuleFlag() + "\"" );
 
                 if((loginModuleAS7.getModuleOptions() != null) || !loginModuleAS7.getModuleOptions().isEmpty()){
                     String modules= "";
                     for(ModuleOptionAS7 moduleOptionAS7 : loginModuleAS7.getModuleOptions()){
-                        modules = modules.concat(", (\"" + moduleOptionAS7.getModuleOptionName() + "\"=");
+                        modules = modules.concat(", (\"" + moduleOptionAS7.getModuleOptionName() + "\"=>");
                         modules = modules.concat("\"" + moduleOptionAS7.getModuleOptionValue() + "\")");
                     }
                     modules = modules.replaceFirst("\\,", "");
                     modules = modules.replaceFirst(" ", "");
                     if(!modules.isEmpty()){
-                        script = script.concat(", \"module-option\"=[{" + modules + "}]");
+                        script = script.concat(", \"module-option\"=>[" + modules + "]");
                     }
                 }
 
@@ -279,16 +447,19 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createConnectorScript(ConnectorAS7 connectorAS7) throws CliScriptException{
-        if(connectorAS7.getScheme() == null){
-           throw new CliScriptException("Error: scheme cannot be null", new NullPointerException()) ;
+        if((connectorAS7.getScheme() == null) || (connectorAS7.getScheme().isEmpty())){
+           throw new CliScriptException("Error: scheme in connector cannot be null or empty", new NullPointerException()) ;
         }
-        if(connectorAS7.getSocketBinding() == null){
-            throw new CliScriptException("Error: socket-binding cannot be null", new NullPointerException()) ;
+        if((connectorAS7.getSocketBinding() == null) || (connectorAS7.getSocketBinding().isEmpty())){
+            throw new CliScriptException("Error: socket-binding in connector cannot be null or empty", new NullPointerException()) ;
         }
-        if(connectorAS7.getConnectorName() == null){
-            throw new CliScriptException("Error: connector name be null", new NullPointerException()) ;
+        if((connectorAS7.getConnectorName() == null) || (connectorAS7.getConnectorName().isEmpty())){
+            throw new CliScriptException("Error: connector name cannot be null or empty", new NullPointerException()) ;
         }
-        String script = "/subsystems=web/connector=";
+        if((connectorAS7.getProtocol() == null) || (connectorAS7.getConnectorName().isEmpty())){
+            throw new CliScriptException("Error: protocol in connector cannot be null or empty", new NullPointerException());
+        }
+        String script = "/subsystem=web/connector=";
         script = script.concat(connectorAS7.getConnectorName() + ":add(");
         script = tmpMethod(script, "socket-binding", connectorAS7.getSocketBinding());
         script = tmpMethod(script, ",enable-lookups", connectorAS7.getEnableLookups());
@@ -304,7 +475,7 @@ public class CliScriptImpl implements CliScript {
         script = tmpMethod(script, ", enabled", connectorAS7.getEnabled());
         script = script.concat(")");
         if(connectorAS7.getScheme().equals("https"))  {
-            script = script.concat("\n/subsystems=web/connector=" + connectorAS7.getConnectorName()
+            script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
                       + "/ssl=configuration:add(");
             script = tmpMethod(script,"name", connectorAS7.getSslName());
             script = tmpMethod(script,", verify-client", connectorAS7.getVerifyClient());
@@ -326,7 +497,7 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createVirtualServerScript(VirtualServer virtualServer) {
-        String script = "/subsystems=web/virtual-server=";
+        String script = "/subsystem=web/virtual-server=";
         script = script.concat(virtualServer.getVirtualServerName() + ":add(");
         script = tmpMethod(script, "enable-welcome-root",virtualServer.getEnableWelcomeRoot());
         script = tmpMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
@@ -348,11 +519,11 @@ public class CliScriptImpl implements CliScript {
 
     @Override
     public String createSocketBinding(SocketBinding socketBinding) throws CliScriptException{
-        if(socketBinding.getSocketPort() == null){
-            throw new CliScriptException("Error: port of socket binding cannot be null", new NullPointerException());
+        if((socketBinding.getSocketPort() == null) || (socketBinding.getSocketPort().isEmpty())){
+            throw new CliScriptException("Error: port in socket binding cannot be null or empty", new NullPointerException());
         }
-        if(socketBinding.getSocketName() == null){
-            throw new CliScriptException("Error: name of socket binding cannot be null", new NullPointerException());
+        if((socketBinding.getSocketName() == null) || (socketBinding.getSocketName().isEmpty())){
+            throw new CliScriptException("Error: name of socket binding cannot be null or empty", new NullPointerException());
         }
         String script = "/socket-binding-group=standard-sockets/socket-binding=";
         script = script.concat(socketBinding.getSocketName() + ":add(");

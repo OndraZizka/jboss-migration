@@ -24,7 +24,7 @@ public  class PeriodicRotatingFileHandler{
     @XmlPath("formatter/pattern-formatter/@pattern")
     private String formatter;
     @XmlAttribute(name = "autoflush")
-    private Boolean autoflush;
+    private String autoflush;
     @XmlPath("append/@value")
     private String append;
     @XmlPath("file/@relative-to")
@@ -66,11 +66,11 @@ public  class PeriodicRotatingFileHandler{
         this.formatter = formatter;
     }
 
-    public Boolean getAutoflush() {
+    public String getAutoflush() {
         return autoflush;
     }
 
-    public void setAutoflush(Boolean autoflush) {
+    public void setAutoflush(String autoflush) {
         this.autoflush = autoflush;
     }
 

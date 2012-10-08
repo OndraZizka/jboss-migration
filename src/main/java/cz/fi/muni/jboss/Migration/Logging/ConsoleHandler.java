@@ -24,7 +24,7 @@ public class ConsoleHandler{
     @XmlPath("formatter/pattern-formatter/@pattern")
     private String formatter;
     @XmlAttribute(name = "autoflush")
-    private Boolean autoflush;
+    private String autoflush;
     @XmlPath("target/@name")
     private String target;
 
@@ -60,11 +60,11 @@ public class ConsoleHandler{
         this.formatter = formatter;
     }
 
-    public Boolean getAutoflush() {
+    public String getAutoflush() {
         return autoflush;
     }
 
-    public void setAutoflush(Boolean autoflush) {
+    public void setAutoflush(String autoflush) {
         this.autoflush = autoflush;
     }
 
