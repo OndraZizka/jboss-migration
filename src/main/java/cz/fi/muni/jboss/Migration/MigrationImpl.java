@@ -31,7 +31,7 @@ public class MigrationImpl implements Migration {
         return socketBindingGroup;
     }
 
-    //Driver is not implemented
+
     //TODO: Security-Domain must reference something what exists in subsystem security...
     @Override
     public Collection<DatasourceAS7> datasourceMigration(Collection<DatasourceAS5> datasources) {
@@ -428,7 +428,6 @@ public class MigrationImpl implements Migration {
                             periodic.setAppend(parameter.getParamValue());
                             continue;
                         }
-                        //TODO:
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");
@@ -457,7 +456,6 @@ public class MigrationImpl implements Migration {
                             size.setAppend(parameter.getParamValue());
                             continue;
                         }
-                        //TODO:
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");

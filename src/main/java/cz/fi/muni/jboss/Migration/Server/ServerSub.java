@@ -12,7 +12,7 @@ import java.util.Collection;
  * Time: 5:03 PM
  */
 
-//TODO:Problem so socket-binding... treba domysliet
+
 @XmlRootElement(name = "subsystem")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "subsystem")

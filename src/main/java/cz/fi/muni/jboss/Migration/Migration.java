@@ -22,56 +22,65 @@ import java.util.Collection;
 public interface Migration {
 
     /**
+     * Method for getting all created socket-bindings
      *
-     * @return
+     * @return  SocketBidningGroup, which contains all Socket-Bindings
      */
     public SocketBindingGroup getSocketBindingGroup();
+
     /**
+     * Method for migrating configuration of datasource from AS5 to AS7
      *
-     * @param datasources
-     * @return
+     * @param datasources collection of datasources from AS5
+     * @return collection of migrated datasources
      */
     public Collection<DatasourceAS7> datasourceMigration(Collection<DatasourceAS5> datasources);
 
     /**
+     * Method for migrating configuration of xa-datasource from AS5 to AS7
      *
-     * @param datasources
-     * @return
+     * @param datasources  collection of xa-datasources from AS5
+     * @return collection of migrated xa-datasources
      */
     public Collection<XaDatasourceAS7> xaDatasourceMigration(Collection<XaDatasourceAS5> datasources);
 
     /**
+     * Method for migrating configuration of connection-factories from AS5 to resource-adapters in AS7
      *
-     * @param connectionFactories
-     * @return
+     * @param connectionFactories object containing parsed connectionFactories from AS5
+     * @return ResourceAdaptersSub, which represents migrated connection-factories
      */
     public ResourceAdaptersSub connectionFactoriesMigration(ConnectionFactories connectionFactories);
 
     /**
+     * Method for migrating all datasource files from AS5, which contain datasource and xa-datasources
      *
-     * @param dataSources
-     * @return
+     * @param dataSources collection of all xa-datasources and datasources
+     * @return  DatasourcesSub, which represents all migrated datasources and xa-datasources
      */
     public DatasourcesSub datasourceSubMigration(Collection<DataSources> dataSources);
 
     /**
+     * Method for migrating configuration of Tomcat from AS5 to AS7 configuration
      *
-     * @param serverAS5
-     * @return
+     * @param serverAS5 object representing configuration file of Tomcat from AS5
+     * @return  ServerSub, which represents migrated Tomcat configuration
      */
     public ServerSub serverMigration(ServerAS5 serverAS5);
 
     /**
+     * Method for migrating configuration of logging from AS5 to AS7
      *
-     * @param loggingAS5
-     * @return
+     * @param loggingAS5  configuration of logging from AS5
+     * @return  LoggingAS7, which represents migrated logging
      */
     public LoggingAS7 loggingMigration(LoggingAS5 loggingAS5);
 
     /**
+     * Method for migrating security configuration from AS5 to AS7
      *
-     * @param securityAS5
-     * @return
+     * @param securityAS5  configuration of security from AS5
+     * @return  SecurityAs7, which represents migrated security
      */
     public SecurityAS7 securityMigration(SecurityAS5 securityAS5);
 }

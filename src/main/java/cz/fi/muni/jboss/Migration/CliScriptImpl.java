@@ -53,7 +53,6 @@ public class CliScriptImpl implements CliScript {
         String script= "/subsystem=datasources/data-source=";
         script = script.concat(datasourceAS7.getPoolName()+":add(");
         script = tmpMethod(script, "jndi-name", datasourceAS7.getJndiName());
-        //TODO:problem with parameter enabled. Not supported in CLI as parameter
         script = tmpMethod(script, ", enabled", datasourceAS7.getEnabled());
         script = tmpMethod(script, ", use-java-context", datasourceAS7.getUseJavaContext());
         script = tmpMethod(script, ", driver-name", datasourceAS7.getDriver());
@@ -110,7 +109,6 @@ public class CliScriptImpl implements CliScript {
         String script= "/subsystem=datasources/xa-data-source=";
         script = script.concat(xaDatasourceAS7.getPoolName()+":add(");
         script = tmpMethod(script, "jndi-name", xaDatasourceAS7.getJndiName());
-        //TODO:problem with parameter enabled. Not supported in CLI as parameter
         script = tmpMethod(script, ", enabled", xaDatasourceAS7.getEnabled());
         script = tmpMethod(script, ", use-java-context", xaDatasourceAS7.getUseJavaContext());
         script = tmpMethod(script, ", driver-name", xaDatasourceAS7.getDriver());
@@ -161,29 +159,24 @@ public class CliScriptImpl implements CliScript {
     }
 
     @Override
-    public String createDriverScript(DatasourcesSub datasourcesSub) throws CliScriptException {
-
-        String script = "";
-        for(Driver driver : datasourcesSub.getDrivers()){
-            if((driver.getDriverModule() == null) || (driver.getDriverModule().isEmpty())){
-                throw new CliScriptException("Error: Driver module in driver cannot be null or empty",
+    public String createDriverScript(Driver driver) throws CliScriptException {
+        if((driver.getDriverModule() == null) || (driver.getDriverModule().isEmpty())){
+            throw new CliScriptException("Error: Driver module in driver cannot be null or empty",
                         new NullPointerException());
-            }
-            if((driver.getDriverName() == null) || (driver.getDriverName().isEmpty())){
-                throw new CliScriptException("Error: Driver name cannot be null or empty",
-                        new NullPointerException());
-            }
-            script = script.concat("/subsystem=data-sources/jdbc-driver=");
-            script = script.concat(driver.getDriverName() + ":add(");
-            script = script.concat("driver-module-name=" + driver.getDriverModule());
-            script = tmpMethod(script, ", driver-class-name", driver.getDriverClass());
-            script = tmpMethod(script, ", driver-xa-datasource-class-name", driver.getXaDatasourceClass());
-            script = tmpMethod(script, ", driver-major-version", driver.getMajorVersion());
-            script = tmpMethod(script, ", driver-minor-version", driver.getMinorVersion());
-            script = script.concat(")\n");
-
-
         }
+        if((driver.getDriverName() == null) || (driver.getDriverName().isEmpty())){
+            throw new CliScriptException("Error: Driver name cannot be null or empty",
+                        new NullPointerException());
+        }
+        String script = "/subsystem=data-sources/jdbc-driver=";
+        script = script.concat(driver.getDriverName() + ":add(");
+        script = script.concat("driver-module-name=" + driver.getDriverModule());
+        script = tmpMethod(script, ", driver-class-name", driver.getDriverClass());
+        script = tmpMethod(script, ", driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+        script = tmpMethod(script, ", driver-major-version", driver.getMajorVersion());
+        script = tmpMethod(script, ", driver-minor-version", driver.getMinorVersion());
+        script = script.concat(")");
+
         return script;
     }
 
@@ -406,7 +399,7 @@ public class CliScriptImpl implements CliScript {
         return script;
     }
 
-    //TODO:problem with adding properties.
+
     @Override
     public String createCustomHandlerScript (CustomHandler customHandler) throws  CliScriptException{
         if((customHandler.getName() == null) || (customHandler.getName().isEmpty())){
@@ -428,6 +421,20 @@ public class CliScriptImpl implements CliScript {
         script = tmpMethod(script, ", formatter", customHandler.getFormatter());
         script = tmpMethod(script, ", class", customHandler.getClassValue());
         script = tmpMethod(script, ", module", customHandler.getModule());
+        if(customHandler.getProperties() != null){
+            String properties = "";
+            for(Property property : customHandler.getProperties()){
+                properties = properties.concat(", \"" + property.getName() + "\"=>");
+                properties = properties.concat("\"" + property.getValue() + "\"");
+            }
+            if(!properties.isEmpty()){
+                properties = properties.replaceFirst("\\, ", "");
+                script = script.concat(", properties={" + properties + "}");
+            }
+        }
+
+
+
         script = script.concat(")");
 
         return script;
