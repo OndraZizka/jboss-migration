@@ -3,10 +3,7 @@ package cz.fi.muni.jboss.Migration;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConfigProperty;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionDefinition;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
-import cz.fi.muni.jboss.Migration.DataSources.DatasourceAS7;
-import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
-import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceAS7;
-import cz.fi.muni.jboss.Migration.DataSources.XaDatasourceProperty;
+import cz.fi.muni.jboss.Migration.DataSources.*;
 import cz.fi.muni.jboss.Migration.Logging.*;
 import cz.fi.muni.jboss.Migration.Security.LoginModuleAS7;
 import cz.fi.muni.jboss.Migration.Security.ModuleOptionAS7;
@@ -15,6 +12,7 @@ import cz.fi.muni.jboss.Migration.Server.ConnectorAS7;
 import cz.fi.muni.jboss.Migration.Server.SocketBinding;
 import cz.fi.muni.jboss.Migration.Server.VirtualServer;
 
+import java.util.Collection;
 
 
 /**
@@ -88,7 +86,8 @@ public class CliScriptImpl implements CliScript {
         script = tmpMethod(script, ", prepared-statement-cache-size", datasourceAS7.getPreparedStatementCacheSize());
         script = tmpMethod(script, ", track-statements", datasourceAS7.getTrackStatements());
         script = tmpMethod(script, ", share-prepared-statements", datasourceAS7.getSharePreparedStatements());
-        script = script.concat(")");
+        script = script.concat(")\n");
+        script = script.concat("data-source enable --name=" + datasourceAS7.getPoolName());
         return script;
 
 
@@ -157,12 +156,35 @@ public class CliScriptImpl implements CliScript {
 
            }
        }
+        script = script.concat("xa-data-source enable --name=" + xaDatasourceAS7.getPoolName());
         return script;
     }
 
     @Override
     public String createDriverScript(DatasourcesSub datasourcesSub) throws CliScriptException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+
+        String script = "";
+        for(Driver driver : datasourcesSub.getDrivers()){
+            if((driver.getDriverModule() == null) || (driver.getDriverModule().isEmpty())){
+                throw new CliScriptException("Error: Driver module in driver cannot be null or empty",
+                        new NullPointerException());
+            }
+            if((driver.getDriverName() == null) || (driver.getDriverName().isEmpty())){
+                throw new CliScriptException("Error: Driver name cannot be null or empty",
+                        new NullPointerException());
+            }
+            script = script.concat("/subsystem=data-sources/jdbc-driver=");
+            script = script.concat(driver.getDriverName() + ":add(");
+            script = script.concat("driver-module-name=" + driver.getDriverModule());
+            script = tmpMethod(script, ", driver-class-name", driver.getDriverClass());
+            script = tmpMethod(script, ", driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+            script = tmpMethod(script, ", driver-major-version", driver.getMajorVersion());
+            script = tmpMethod(script, ", driver-minor-version", driver.getMinorVersion());
+            script = script.concat(")\n");
+
+
+        }
+        return script;
     }
 
     @Override
@@ -297,7 +319,8 @@ public class CliScriptImpl implements CliScript {
         }
         String script = "/subsystem=logging/periodic-rotating-file-handler=";
         script = script.concat(periodic.getName() + ":add(");
-        script = script.concat("file={\"" + periodic.getFileRelativeTo() + "\"=>\"" + periodic.getPath() + "\"}");
+        script = script.concat("file={\"relative-to\"=>\"" + periodic.getFileRelativeTo()+"\"");
+        script = script.concat(", \"path\"=>\"" + periodic.getPath() + "\"}");
         script = script.concat(", suffix=" + periodic.getSuffix());
         script = tmpMethod(script, ", level", periodic.getLevel());
         script = tmpMethod(script, ", formatter", periodic.getFormatter());
@@ -323,7 +346,7 @@ public class CliScriptImpl implements CliScript {
         String script = "/subsystem=logging/size-rotating-file-handler=";
         script = script.concat(sizeHandler.getName() + ":add(");
         script = script.concat("file={\"" + sizeHandler.getRelativeTo() + "\"=>\"" + sizeHandler.getPath() + "\"}");
-        script = tmpMethod(script,", level", sizeHandler.getLevel());
+        script = tmpMethod(script,"level", sizeHandler.getLevel());
         script = tmpMethod(script, ", filter",sizeHandler.getFilter());
         script = tmpMethod(script, ", formatter", sizeHandler.getFormatter());
         script = tmpMethod(script, ", autoflush", sizeHandler.getAutoflush());
@@ -373,7 +396,7 @@ public class CliScriptImpl implements CliScript {
         }
         String script = "/subsystem=logging/console-handler=";
         script = script.concat(consoleHandler.getName() + ":add(");
-        script = tmpMethod(script,", level", consoleHandler.getLevel());
+        script = tmpMethod(script,"level", consoleHandler.getLevel());
         script = tmpMethod(script, ", filter", consoleHandler.getFilter());
         script = tmpMethod(script, ", formatter", consoleHandler.getFormatter());
         script = tmpMethod(script, ", autoflush", consoleHandler.getAutoflush());
@@ -400,7 +423,7 @@ public class CliScriptImpl implements CliScript {
         }
         String script = "/subsystem=logging/custom-handler=";
         script = script.concat(customHandler.getName() + ":add(");
-        script = tmpMethod(script, ", level", customHandler.getLevel());
+        script = tmpMethod(script, "level", customHandler.getLevel());
         script = tmpMethod(script, ", filter", customHandler.getFilter());
         script = tmpMethod(script, ", formatter", customHandler.getFormatter());
         script = tmpMethod(script, ", class", customHandler.getClassValue());

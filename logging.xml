@@ -203,6 +203,8 @@
     <!-- Limit the org.quartz category to INFO as its DEBUG is verbose -->
     <category name="org.quartz">
         <priority value="INFO"/>
+        <priority appender-ref="FILE"/>
+        <priority appender-ref="Console"/>
     </category>
 
     <!-- Limit the com.sun category to INFO as its FINE is verbose -->

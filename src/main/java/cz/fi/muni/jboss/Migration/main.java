@@ -138,6 +138,8 @@ public class main {
 
             System.out.println(cliScript.createHandlersScript(loggingAS7));
 
+            System.out.println(cliScript.createDriverScript(datasourcesSub));
+
 
         } catch (JAXBException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

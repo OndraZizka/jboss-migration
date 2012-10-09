@@ -22,8 +22,7 @@ public class Driver {
     private String minorVersion;
     @XmlElement(name = "driver-class")
     private String driverClass;
-    @XmlElement(name = "datasource-class")
-    private String datasourceClass;
+
     @XmlElement(name = "xa-datasource-class")
     private String xaDatasourceClass;
 
@@ -65,14 +64,6 @@ public class Driver {
 
     public void setDriverClass(String driverClass) {
         this.driverClass = driverClass;
-    }
-
-    public String getDatasourceClass() {
-        return datasourceClass;
-    }
-
-    public void setDatasourceClass(String datasourceClass) {
-        this.datasourceClass = datasourceClass;
     }
 
     public String getXaDatasourceClass() {
