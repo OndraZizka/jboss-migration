@@ -201,7 +201,7 @@ public class MigrationImpl implements Migration {
             connectionDefinition.setUseJavaContext("true");
             connectionDefinition.setEnabled("true");
             //TODO: not sure what will be in attribute class-name
-            connectionDefinition.setClassName("Zatial neviem co tu ma byt");
+            connectionDefinition.setClassName(connectionFactoryAS5.getConnectionDefinition());
             connectionDefinition.setPrefill(connectionFactoryAS5.getPrefill());
 
             for (ConfigProperty configProperty : connectionFactoryAS5.getConfigProperties()) {
@@ -249,8 +249,12 @@ public class MigrationImpl implements Migration {
         Collection<Driver> driverCollection= new ArrayList<>();
         Collection<Driver> xaDatasourceClassCollection = new ArrayList<>();
         for (DataSources dataSources1 : dataSources) {
-            ds7.addAll(datasourceMigration(dataSources1.getLocalDatasourceAS5s()));
-            xads7.addAll(xaDatasourceMigration(dataSources1.getXaDatasourceAS5s()));
+            if(dataSources1.getLocalDatasourceAS5s() != null){
+                ds7.addAll(datasourceMigration(dataSources1.getLocalDatasourceAS5s()));
+            }
+            if(dataSources1.getXaDatasourceAS5s() != null){
+                xads7.addAll(xaDatasourceMigration(dataSources1.getXaDatasourceAS5s()));
+            }
         }
         for(String driverClass : drivers){
             Driver driver = new Driver();
@@ -669,6 +673,7 @@ public class MigrationImpl implements Migration {
                     for (ModuleOptionAS5 moduleOptionAS5 : loginModuleAS5.getModuleOptions()) {
                         ModuleOptionAS7 moduleOptionAS7 = new ModuleOptionAS7();
                         moduleOptionAS7.setModuleOptionName(moduleOptionAS5.getModuleName());
+                        //TODO: problem with module option which use properties files...maybe change path only?
                         moduleOptionAS7.setModuleOptionValue(moduleOptionAS5.getModuleValue());
                         moduleOptions.add(moduleOptionAS7);
                     }

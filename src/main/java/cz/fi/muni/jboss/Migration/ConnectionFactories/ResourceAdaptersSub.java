@@ -13,7 +13,6 @@ import java.util.Collection;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "resource-adapters")
 public class ResourceAdaptersSub {
-    @XmlElementWrapper(name = "resource-adapters")
     @XmlElements(@XmlElement(name = "resource-adapter"))
     private Collection<ResourceAdapter> resourceAdapters;
 

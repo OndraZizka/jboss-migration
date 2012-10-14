@@ -1,4 +1,6 @@
+
 package cz.fi.muni.jboss.Migration.Logging;
+
 
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
@@ -11,9 +13,11 @@ import java.util.Collection;
  * Date: 9/21/12
  * Time: 7:52 PM
  */
-@XmlRootElement(name = "configuration")
+
+
+@XmlRootElement(name = "configuration" )
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "configuration")
+@XmlType(name ="configuration")
 public class LoggingAS5 {
 
     @XmlElements(@XmlElement(name = "appender", type = Appender.class))

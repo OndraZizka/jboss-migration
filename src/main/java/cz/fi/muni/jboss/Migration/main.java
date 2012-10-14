@@ -138,7 +138,7 @@ public class main {
 
             System.out.println(cliScript.createHandlersScript(loggingAS7));
 
-            System.out.println(cliScript.createDriverScript(datasourcesSub));
+
 
 
         } catch (JAXBException e) {

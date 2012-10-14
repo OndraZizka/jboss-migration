@@ -1,9 +1,50 @@
 package cz.fi.muni.jboss.Migration;
 
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactories;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdaptersSub;
+import cz.fi.muni.jboss.Migration.DataSources.DataSources;
+import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
+import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
+import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
+import cz.fi.muni.jboss.Migration.Security.SecurityAS5;
+import cz.fi.muni.jboss.Migration.Security.SecurityAS7;
+import cz.fi.muni.jboss.Migration.Server.ServerAS5;
+import cz.fi.muni.jboss.Migration.Server.ServerSub;
+import cz.fi.muni.jboss.Migration.Server.SocketBindingGroup;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+
 import org.jboss.as.cli.CliInitializationException;
 import org.jboss.as.cli.CommandContext;
 import org.jboss.as.cli.CommandContextFactory;
 import org.jboss.as.cli.CommandLineException;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.*;
+import org.xml.sax.helpers.XMLFilterImpl;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.util.StreamReaderDelegate;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,6 +54,438 @@ import org.jboss.as.cli.CommandLineException;
  */
 public class App {
     public static void main(String[] args) {
+        String home = "";
+        String target =  "";
+        String homeName = "";
+        String subs = "";
+        boolean xml =  true;
+        boolean cli = true;
+        boolean log = false;
+        boolean data = false;
+        boolean security = false;
+        boolean server = false;
+        boolean resource = false;
+        boolean copy = true;
+        boolean subsystem = false;
+        String cmd= "";
+        File directory = new File(".");
+
+
+        try {
+            for(int i = 0; i<args.length; i++){
+                cmd = cmd.concat(args[i]);
+            }
+
+
+            String[] commands = cmd.split("--");
+            if(commands.length == 1){
+                if(commands[0].equals("help")){
+                    System.out.println("help");
+                    return;
+                }
+                if(commands[0].startsWith("target")){
+                    int index = commands[0].indexOf("=");
+                    target = commands[0].substring(index);
+
+                }
+
+            } else{
+                for(int i = 0; i<commands.length; i++){
+                    if(commands[i].isEmpty()){
+                        continue;
+                    }
+                    if(commands[i].startsWith("home=")){
+                        int index = commands[i].indexOf("=");
+                        home = commands[i].substring(index+1);
+                        continue;
+
+                    }
+                    if(commands[i].startsWith("target=")){
+                        int index = commands[i].indexOf("=");
+                        target = commands[i].substring(index+1);
+                        continue;
+
+                    }
+                    if(commands[i].startsWith("home-name=")){
+                        int index = commands[i].indexOf("=");
+                        homeName = commands[i].substring(index+1);
+                        continue;
+
+                    }
+                    if(commands[i].startsWith("only-cli")){
+                        xml = false;
+                        continue;
+                    }
+                    if(commands[i].startsWith("only-xml")){
+                        cli = false;
+                        continue;
+
+                    }
+                    if(commands[i].startsWith("subsystem=")){
+                        subsystem = true;
+                        int index = commands[i].indexOf("=");
+                        subs = commands[i].substring(index+1);
+                        continue;
+                    }
+                    if(commands[i].startsWith("dont-copy-resources")){
+                        copy = false;
+                        continue;
+
+                    }
+                    System.err.println("Error wrong command :" + "--" + commands[i]);
+                    return;
+                }
+            }
+
+            if(target.isEmpty()){
+                System.err.println("No directory for AS7: Directory of AS7 must be specified with parameter \"target=\"");
+                return;
+            }
+            if(home.isEmpty()){
+               home = directory.getCanonicalPath();
+            }
+            if(homeName.isEmpty()){
+                homeName = "standard";
+            }
+            subs = subs.replaceAll(" ", "");
+            String[] subsSplit = subs.split("\\,");
+            // TODO:??
+            if((subsSplit.length > 5) || (subsSplit.length==0)){
+                System.err.println("chyba ");
+            }
+            if (subsystem) {
+                for(int i = 0; i<subsSplit.length; i++){
+                    if(subsSplit[i].equalsIgnoreCase("log")){
+                        log = true;
+                        continue;
+                    }
+                    if(subsSplit[i].equalsIgnoreCase("datasource")){
+                        data = true;
+                        continue;
+                    }
+                    if(subsSplit[i].equalsIgnoreCase("security")){
+                        security = true;
+                        continue;
+                    }
+                    if(subsSplit[i].equalsIgnoreCase("server")){
+                        server = true;
+                        continue;
+                    }
+                    if(subsSplit[i].equalsIgnoreCase("resource")){
+                        resource = true;
+                        continue;
+                    }
+                    System.err.println("Wrong name of subsystem in paramater \"subsystem=\" :" + subsSplit[i]);
+                    return;
+                }
+            }  else {
+                log = true;
+                data = true;
+                security = true;
+                server = true;
+                resource = true;
+            }
+
+            String serverPath = home + File.separator + "server" +File.separator + homeName;
+            Migration migration=new MigrationImpl();
+            LoggingAS7 loggingAS7 =  null;
+            SecurityAS7 securityAS7 = null;
+            ServerSub serverSub = null;
+            DatasourcesSub datasourcesSub = null;
+            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
+            Collection<ConnectionFactories> connectionFactoriesCollection = new ArrayList<>();
+
+
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setFeature("http://apache.org/xml/features/validation/schema", false);
+            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            spf.setNamespaceAware(false);
+
+            XMLReader xmlReader = spf.newSAXParser().getXMLReader();
+
+
+
+
+
+            // The filter class to set the correct namespace
+
+
+
+
+            if(log){
+                BufferedReader br = new BufferedReader(new FileReader(
+                        new File(serverPath + File.separator +"conf" +File.separator + "jboss-log4j.xml")));
+                String line;
+                StringBuilder sb = new StringBuilder();
+
+                while((line=br.readLine())!= null){
+                    sb.append(line.replaceAll("log4j:", ""));
+                }
+
+
+                final JAXBContext logContext= JAXBContext.newInstance(LoggingAS5.class);
+                Unmarshaller unmarshaller = logContext.createUnmarshaller();
+
+
+
+
+
+                 File temp = new File("temp.xml");
+                 FileWriter fileWriter = new FileWriter(temp);
+                 fileWriter.write(sb.toString());
+                 fileWriter.close();
+
+
+
+
+
+                InputSource inputSource = new InputSource(new FileReader("temp.xml"));
+                SAXSource source = new SAXSource(xmlReader, inputSource);
+
+//                File loggingFile = new File(serverPath + File.separator +"conf" +File.separator + "jboss-log4j.xml");
+//                if(loggingFile.canRead()){
+                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(source);
+                    loggingAS7 = migration.loggingMigration(loggingAS5);
+//                }else{
+//                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+//                            +File.separator + "server"+ File.separator+"conf\"");
+//                    return;
+//                }
+            }
+            if(data){
+                final JAXBContext dataContext = JAXBContext.newInstance(DataSources.class);
+                Unmarshaller dataUnmarshaller = dataContext.createUnmarshaller();
+                final JAXBContext resourceContext = JAXBContext.newInstance(DataSources.class);
+                Unmarshaller resourceUnmarshaller = resourceContext.createUnmarshaller();
+
+                File datasourceFiles = new File(serverPath + File.separator + "deploy" );
+
+                if(datasourceFiles.canRead()){
+                    SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+                    List<File> list = (List<File>) FileUtils.listFiles(datasourceFiles,sf,null );
+                    for(int i = 0; i<list.size() ; i++){
+                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder db = dbf.newDocumentBuilder();
+                        Document doc = db.parse( list.get(i) );
+                        Element element =doc.getDocumentElement();
+
+                        if(element.getTagName().equalsIgnoreCase("datasources")){
+                           DataSources dataSources =(DataSources)dataUnmarshaller.unmarshal(list.get(i));
+                            dataSourcesCollection.add(dataSources);
+                        } else {
+                            if(element.getTagName().equalsIgnoreCase("connection-factories")){
+                                if(resource){
+                                    ConnectionFactories connectionFactories =
+                                            (ConnectionFactories)resourceUnmarshaller.unmarshal(list.get(i));
+                                    connectionFactoriesCollection.add(connectionFactories);
+                                }
+                            }  else {
+                                System.err.println("Error: Wrong format of XML files of datasources and connection-factories"
+                                        + "( \"-ds.xml\" files ");
+                                return;
+                            }
+
+                        }
+
+                    }
+                } else {
+                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+                            +File.separator + "server"+ File.separator+"deploy\"");
+                    return;
+                }
+                datasourcesSub = migration.datasourceSubMigration(dataSourcesCollection);
+
+            }
+            if(security){
+                final JAXBContext securityContext = JAXBContext.newInstance(SecurityAS5.class);
+                Unmarshaller unmarshaller = securityContext.createUnmarshaller();
+
+                File securityFile = new File(serverPath + File.separator + "conf" + File.separator + "login-config.xml");
+                if(securityFile.canRead()){
+                    SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(securityFile);
+                    securityAS7 = migration.securityMigration(securityAS5);
+                } else {
+                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+                            +File.separator + "server"+ File.separator+"deploy\"");
+                    return;
+                }
+
+            }
+            if(server){
+               final JAXBContext serverContext = JAXBContext.newInstance(ServerAS5.class );
+               Unmarshaller unmarshaller = serverContext.createUnmarshaller();
+
+               File serverFile = new File(serverPath + File.separator + "deploy" + File.separator
+                       + "jbossweb.sar" + File.separator + "server.xml");
+
+               if(serverFile.canRead()){
+                   ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(new File("lala"));
+                   serverSub = migration.serverMigration(serverAS5);
+               }  else{
+                   System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+                           +File.separator + "server"+ File.separator+"deploy\"");
+                   return;
+               }
+
+            }
+
+
+            if(xml){
+                //                final Comment comment = doc.createComment("This is a comment");
+//
+//                doc.appendChild(comment);
+                final StreamResult streamResult = new StreamResult(System.out);
+                final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                final DocumentBuilder builder = factory.newDocumentBuilder();
+
+                final TransformerFactory tf = TransformerFactory.newInstance();
+                final Transformer serializer = tf.newTransformer();
+                serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+                serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+
+                if(data){
+                    final JAXBContext dataSubContext = JAXBContext.newInstance(DatasourcesSub.class);
+                    final Binder<Node> dataBinder = dataSubContext.createBinder();
+                    final Document docData = builder.getDOMImplementation().createDocument(null, null, null);
+                    dataBinder.marshal(datasourcesSub,docData);
+                    final DOMSource domData = new DOMSource(docData);
+                    serializer.transform(domData, streamResult);
+
+
+                }
+                if(security){
+                    final JAXBContext securitySubContext = JAXBContext.newInstance(SecurityAS7.class);
+                    final Binder<Node> securityBinder = securitySubContext.createBinder();
+                    final Document docSec = builder.getDOMImplementation().createDocument(null, null, null);
+                    securityBinder.marshal(securityAS7,docSec);
+
+                    final DOMSource domSecurity = new DOMSource(docSec);
+                    serializer.transform(domSecurity, streamResult);
+                }
+                if(resource){
+                    final JAXBContext resourceSubContext = JAXBContext.newInstance(ResourceAdaptersSub.class);
+                    final Binder<Node> resourceBinder = resourceSubContext.createBinder();
+                    final Document docResource = builder.getDOMImplementation().createDocument(null, null, null);
+                    Object[] test = connectionFactoriesCollection.toArray();
+                    resourceBinder.marshal(test[0], docResource);
+                    final DOMSource domResource = new DOMSource(docResource);
+                    serializer.transform(domResource, streamResult);
+
+                }
+                if(server){
+                    final JAXBContext serverSubContext = JAXBContext.newInstance(ServerSub.class);
+                    final JAXBContext socketContext = JAXBContext.newInstance(SocketBindingGroup.class);
+
+                    final Binder<Node> socketBinder = socketContext.createBinder();
+                    final Binder<Node> serverBinder = serverSubContext.createBinder();
+
+                    final Document docServer = builder.getDOMImplementation().createDocument(null, null, null);
+                    final Document docSocket = builder.getDOMImplementation().createDocument(null, null, null);
+
+                    serverBinder.marshal(serverSub,docServer);
+                    socketBinder.marshal(migration.getSocketBindingGroup(),docSocket);
+
+
+                    final DOMSource domServer = new DOMSource(docServer);
+                    final DOMSource domSocket = new DOMSource(docSocket);
+
+                    serializer.transform(domServer, streamResult);
+                    serializer.transform(domSocket, streamResult);
+
+
+                }
+                if(log){
+                    final JAXBContext loggingSubContext= JAXBContext.newInstance(LoggingAS7.class);
+                    final Binder<Node> loggingBinder = loggingSubContext.createBinder();
+                    final Document docLog = builder.getDOMImplementation().createDocument(null, null, null);
+                    loggingBinder.marshal(loggingAS7,docLog);
+
+                    final DOMSource domLog = new DOMSource(docLog);
+                    serializer.transform(domLog, streamResult);
+
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }
+            if(cli){
+
+            }
+
+
+
+
+
+
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JAXBException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (SAXException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (TransformerException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
 
     }
+    private static class MyXMLFilter extends XMLFilterImpl {
+
+        public MyXMLFilter(XMLReader xmlReader) {
+            super(xmlReader);
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName,
+                                 Attributes attributes) throws SAXException {
+//            int colonIndex = qName.indexOf(':');
+//            if(colonIndex >= 0) {
+//                qName = qName.substring(colonIndex + 1);
+//            }
+            uri = "log4j"; //to prevent unknown XML element exception, we have to specify the namespace here
+            super.startElement(uri, localName, qName, attributes);
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName)
+                throws SAXException {
+//            int colonIndex = qName.indexOf(':');
+//            if(colonIndex >= 0) {
+//                qName = qName.substring(colonIndex + 1);
+//            }
+            super.endElement(uri, localName, qName);
+        }
+
+    }
+
+
+
 }
