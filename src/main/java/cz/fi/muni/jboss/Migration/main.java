@@ -94,10 +94,10 @@ public class main {
             marshaller10.marshal(migration.securityMigration(securityAS5) ,writer);
             writer.write("\n\n");
 
-            //resource adapters Marshaller
-            Marshaller marshaller3=context2.createMarshaller();
-            marshaller3.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-            marshaller3.marshal(migration.connectionFactoriesMigration(connectionFactories) ,writer);
+//            //resource adapters Marshaller
+//            Marshaller marshaller3=context2.createMarshaller();
+//            marshaller3.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+//            marshaller3.marshal(migration.connectionFactoriesMigration(connectionFactories) ,writer);
 
             System.out.println(writer.toString());
 
@@ -109,10 +109,10 @@ public class main {
             for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
                 System.out.println(cliScript.createXaDatasourceScript(xaDatasourceAS7));
             }
-              ResourceAdaptersSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
-             for(ResourceAdapter connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
-                 System.out.println(cliScript.createResourceAdapterScript(connectionFactoryAS7));
-             }
+//              ResourceAdaptersSub connectionFactoriesSub= migration.connectionFactoriesMigration(connectionFactories);
+//             for(ResourceAdapter connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
+//                 System.out.println(cliScript.createResourceAdapterScript(connectionFactoryAS7));
+//             }
             LoggingAS7 loggingAS7 = migration.loggingMigration(loggingAS5);
             for(Logger logger : loggingAS7.getLoggers()){
                 System.out.println(cliScript.createLoggerScript(logger));

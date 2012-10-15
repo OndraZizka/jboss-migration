@@ -1,13 +1,16 @@
 package cz.fi.muni.jboss.Migration;
 
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactories;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdaptersSub;
-import cz.fi.muni.jboss.Migration.DataSources.DataSources;
-import cz.fi.muni.jboss.Migration.DataSources.DatasourcesSub;
+import cz.fi.muni.jboss.Migration.DataSources.*;
+import cz.fi.muni.jboss.Migration.Logging.Logger;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS7;
 import cz.fi.muni.jboss.Migration.Security.SecurityAS5;
 import cz.fi.muni.jboss.Migration.Security.SecurityAS7;
+import cz.fi.muni.jboss.Migration.Security.SecurityDomain;
+import cz.fi.muni.jboss.Migration.Server.ConnectorAS7;
 import cz.fi.muni.jboss.Migration.Server.ServerAS5;
 import cz.fi.muni.jboss.Migration.Server.ServerSub;
 import cz.fi.muni.jboss.Migration.Server.SocketBindingGroup;
@@ -54,6 +57,7 @@ import java.util.List;
  */
 public class App {
     public static void main(String[] args) {
+        File temp = null;
         String home = "";
         String target =  "";
         String homeName = "";
@@ -192,25 +196,9 @@ public class App {
             SecurityAS7 securityAS7 = null;
             ServerSub serverSub = null;
             DatasourcesSub datasourcesSub = null;
+            ResourceAdaptersSub resourceAdaptersSub = null;
             Collection<DataSources> dataSourcesCollection = new ArrayList<>();
             Collection<ConnectionFactories> connectionFactoriesCollection = new ArrayList<>();
-
-
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setFeature("http://apache.org/xml/features/validation/schema", false);
-            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            spf.setNamespaceAware(false);
-
-            XMLReader xmlReader = spf.newSAXParser().getXMLReader();
-
-
-
-
-
-            // The filter class to set the correct namespace
-
-
-
 
             if(log){
                 BufferedReader br = new BufferedReader(new FileReader(
@@ -219,38 +207,30 @@ public class App {
                 StringBuilder sb = new StringBuilder();
 
                 while((line=br.readLine())!= null){
-                    sb.append(line.replaceAll("log4j:", ""));
+                    if(line.contains("<!DOCTYPE")){
+                        continue;
+                    }
+                    sb.append(line.replaceAll("log4j:", "").replace("xmlns:log4j=\"http://jakarta.apache.org/log4j/\"", "") + "\n");
                 }
-
 
                 final JAXBContext logContext= JAXBContext.newInstance(LoggingAS5.class);
                 Unmarshaller unmarshaller = logContext.createUnmarshaller();
 
-
-
-
-
-                 File temp = new File("temp.xml");
+               temp = new File("temp.xml");
                  FileWriter fileWriter = new FileWriter(temp);
                  fileWriter.write(sb.toString());
                  fileWriter.close();
 
 
+                if(temp.canRead()){
+                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(temp);
 
-
-
-                InputSource inputSource = new InputSource(new FileReader("temp.xml"));
-                SAXSource source = new SAXSource(xmlReader, inputSource);
-
-//                File loggingFile = new File(serverPath + File.separator +"conf" +File.separator + "jboss-log4j.xml");
-//                if(loggingFile.canRead()){
-                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(source);
                     loggingAS7 = migration.loggingMigration(loggingAS5);
-//                }else{
-//                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
-//                            +File.separator + "server"+ File.separator+"conf\"");
-//                    return;
-//                }
+                }else{
+                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+                            +File.separator + "server"+ File.separator+"conf\"");
+                    return;
+                }
             }
             if(data){
                 final JAXBContext dataContext = JAXBContext.newInstance(DataSources.class);
@@ -294,6 +274,9 @@ public class App {
                     return;
                 }
                 datasourcesSub = migration.datasourceSubMigration(dataSourcesCollection);
+                if(resource){
+                    resourceAdaptersSub = migration.resourceAdaptersMigration(connectionFactoriesCollection);
+                }
 
             }
             if(security){
@@ -319,7 +302,7 @@ public class App {
                        + "jbossweb.sar" + File.separator + "server.xml");
 
                if(serverFile.canRead()){
-                   ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(new File("lala"));
+                   ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(serverFile);
                    serverSub = migration.serverMigration(serverAS5);
                }  else{
                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
@@ -363,13 +346,15 @@ public class App {
                     serializer.transform(domSecurity, streamResult);
                 }
                 if(resource){
-                    final JAXBContext resourceSubContext = JAXBContext.newInstance(ResourceAdaptersSub.class);
-                    final Binder<Node> resourceBinder = resourceSubContext.createBinder();
-                    final Document docResource = builder.getDOMImplementation().createDocument(null, null, null);
-                    Object[] test = connectionFactoriesCollection.toArray();
-                    resourceBinder.marshal(test[0], docResource);
-                    final DOMSource domResource = new DOMSource(docResource);
-                    serializer.transform(domResource, streamResult);
+                    if(resourceAdaptersSub != null){
+                        final JAXBContext resourceSubContext = JAXBContext.newInstance(ResourceAdaptersSub.class);
+                        final Binder<Node> resourceBinder = resourceSubContext.createBinder();
+                        final Document docResource = builder.getDOMImplementation().createDocument(null, null, null);
+                        Object[] test = connectionFactoriesCollection.toArray();
+                        resourceBinder.marshal(resourceAdaptersSub, docResource);
+                        final DOMSource domResource = new DOMSource(docResource);
+                        serializer.transform(domResource, streamResult);
+                    }
 
                 }
                 if(server){
@@ -405,33 +390,59 @@ public class App {
 
                 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             }
             if(cli){
+                CliScript cliScript = new CliScriptImpl();
+                if(data){
+                    if(datasourcesSub.getDatasource() != null){
+                        for(DatasourceAS7 datasourceAS7 : datasourcesSub.getDatasource()){
+                            System.out.println(cliScript.createDatasourceScript(datasourceAS7));
+                        }
+                    }
+                    if(datasourcesSub.getXaDatasource() != null){
+                        for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
+                            System.out.println(cliScript.createXaDatasourceScript(xaDatasourceAS7));
+                        }
+                    }
+                    if(datasourcesSub.getDrivers() != null){
+                        for(Driver driver : datasourcesSub.getDrivers()){
+                            System.out.println(cliScript.createDriverScript(driver));
+                        }
+                    }
+                }
+                if(resource){
+                    if(resourceAdaptersSub != null){
+                        for(ResourceAdapter resourceAdapter : resourceAdaptersSub.getResourceAdapters()){
+                            System.out.println(cliScript.createResourceAdapterScript(resourceAdapter));
 
+                        }
+                    }
+
+                }
+                if(security){
+                     if(securityAS7 != null){
+                         for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
+                             System.out.println(cliScript.createSecurityDomainScript(securityDomain));
+                         }
+                     }
+                }
+                if(server){
+                    if(serverSub != null){
+                        for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
+                            System.out.println(cliScript.createConnectorScript(connectorAS7));
+                        }
+                    }
+
+                }
+                if(log){
+                    if(loggingAS7 != null){
+                        System.out.println(cliScript.createHandlersScript(loggingAS7));
+                        for(Logger logger : loggingAS7.getLoggers()){
+                            System.out.println(cliScript.createLoggerScript(logger));
+                        }
+                    }
+
+                }
             }
 
 
@@ -453,36 +464,14 @@ public class App {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (TransformerException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (CliScriptException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            if(temp != null){
+                temp.delete();
+            }
         }
 
-
-    }
-    private static class MyXMLFilter extends XMLFilterImpl {
-
-        public MyXMLFilter(XMLReader xmlReader) {
-            super(xmlReader);
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName,
-                                 Attributes attributes) throws SAXException {
-//            int colonIndex = qName.indexOf(':');
-//            if(colonIndex >= 0) {
-//                qName = qName.substring(colonIndex + 1);
-//            }
-            uri = "log4j"; //to prevent unknown XML element exception, we have to specify the namespace here
-            super.startElement(uri, localName, qName, attributes);
-        }
-
-        @Override
-        public void endElement(String uri, String localName, String qName)
-                throws SAXException {
-//            int colonIndex = qName.indexOf(':');
-//            if(colonIndex >= 0) {
-//                qName = qName.substring(colonIndex + 1);
-//            }
-            super.endElement(uri, localName, qName);
-        }
 
     }
 

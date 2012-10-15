@@ -16,8 +16,8 @@ import java.util.Collection;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "subsystem")
 public class LoggingAS7 {
-    @XmlAttribute(name = "xmlns")
-    private String xmlns = "urn:jboss:domain:logging:1.1";
+//    @XmlAttribute(name = "xmlns")
+//    private String xmlns = "urn:jboss:domain:logging:1.1";
     @XmlElements(@XmlElement(name = "async-handler", type = AsyncHandler.class))
     private Collection<AsyncHandler> asyncHandlers;
     @XmlElements(@XmlElement(name = "console-handler",type = ConsoleHandler.class))
@@ -40,13 +40,13 @@ public class LoggingAS7 {
     @XmlPath("root-logger/filter/@value")
     private String rootLoggerFilterValue;
 
-    public String getXmlns() {
-        return xmlns;
-    }
-
-    public void setXmlns(String xmlns) {
-        this.xmlns = xmlns;
-    }
+//    public String getXmlns() {
+//        return xmlns;
+//    }
+//
+//    public void setXmlns(String xmlns) {
+//        this.xmlns = xmlns;
+//    }
 
     public Collection<AsyncHandler> getAsyncHandlers() {
         return asyncHandlers;

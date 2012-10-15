@@ -13,19 +13,19 @@ import java.util.Collection;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "subsystem")
 public class SecurityAS7 {
-    @XmlAttribute(name = "xmlns")
-    private String xmlns="urn:jboss:domain:security:1.1";
+//    @XmlAttribute(name = "xmlns")
+//    private String xmlns="urn:jboss:domain:security:1.1";
     @XmlElementWrapper(name = "security-domains")
     @XmlElements(@XmlElement(name = "security-domain", type = SecurityDomain.class))
     private Collection<SecurityDomain> securityDomains;
 
-    public String getXmlns() {
-        return xmlns;
-    }
-
-    public void setXmlns(String xmlns) {
-        this.xmlns = xmlns;
-    }
+//    public String getXmlns() {
+//        return xmlns;
+//    }
+//
+//    public void setXmlns(String xmlns) {
+//        this.xmlns = xmlns;
+//    }
 
     public Collection<SecurityDomain> getSecurityDomains() {
         return securityDomains;

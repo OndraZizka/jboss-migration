@@ -185,10 +185,7 @@ public class MigrationImpl implements Migration {
 
    //resource-adapters .... maybe change name in the future?
     @Override
-    public ResourceAdaptersSub connectionFactoriesMigration(ConnectionFactories connectionFactories) {
-        ResourceAdaptersSub sub = new ResourceAdaptersSub();
-        Collection<ResourceAdapter> collection = new ArrayList<>();
-        for (ConnectionFactoryAS5 connectionFactoryAS5 : connectionFactories.getConnectionFactories()) {
+    public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connectionFactoryAS5) {
             ResourceAdapter resourceAdapter = new ResourceAdapter();
             resourceAdapter.setJndiName(connectionFactoryAS5.getJndiName());
             resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
@@ -234,10 +231,25 @@ public class MigrationImpl implements Migration {
             Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList<>();
             connectionDefinitionCollection.add(connectionDefinition);
             resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
-            collection.add(resourceAdapter);
+
+
+        return resourceAdapter;
+    }
+
+    @Override
+    public ResourceAdaptersSub resourceAdaptersMigration(Collection<ConnectionFactories> connectionFactories){
+        if(connectionFactories.isEmpty()){
+            return null;
         }
-        sub.setResourceAdapters(collection);
-        return sub;
+            ResourceAdaptersSub resourceAdaptersSub = new ResourceAdaptersSub();
+            Collection<ResourceAdapter> resourceAdapters = new HashSet<>();
+           for(ConnectionFactories cf: connectionFactories){
+               for(ConnectionFactoryAS5 connectionFactoryAS5 : cf.getConnectionFactories()){
+                    resourceAdapters.add(connectionFactoryMigration(connectionFactoryAS5));
+               }
+           }
+        resourceAdaptersSub.setResourceAdapters(resourceAdapters);
+        return resourceAdaptersSub;
     }
 
 

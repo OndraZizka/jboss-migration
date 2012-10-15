@@ -1,6 +1,8 @@
 package cz.fi.muni.jboss.Migration;
 
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactories;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ConnectionFactoryAS5;
+import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.Migration.ConnectionFactories.ResourceAdaptersSub;
 import cz.fi.muni.jboss.Migration.DataSources.*;
 import cz.fi.muni.jboss.Migration.Logging.LoggingAS5;
@@ -45,12 +47,20 @@ public interface Migration {
     public Collection<XaDatasourceAS7> xaDatasourceMigration(Collection<XaDatasourceAS5> datasources);
 
     /**
-     * Method for migrating configuration of connection-factories from AS5 to resource-adapters in AS7
+     * Method for migrating configuration of connection factory from AS5 to resource-adapter in AS7
      *
-     * @param connectionFactories object containing parsed connectionFactories from AS5
-     * @return ResourceAdaptersSub, which represents migrated connection-factories
+     * @param connectionFactoryAS5 object containing parsed connectionFactories from AS5
+     * @return ResourceAdapter, which represents migrated connection-factory
      */
-    public ResourceAdaptersSub connectionFactoriesMigration(ConnectionFactories connectionFactories);
+    public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connectionFactoryAS5);
+
+    /**'
+     * Method for migrating all connection factories from AS5 to resource-adapter subsystem
+     *
+     * @param connectionFactories  object containing parsed Connection Factories from AS5
+     * @return
+     */
+    public ResourceAdaptersSub resourceAdaptersMigration(Collection<ConnectionFactories> connectionFactories);
 
     /**
      * Method for migrating all datasource files from AS5, which contain datasource and xa-datasources
