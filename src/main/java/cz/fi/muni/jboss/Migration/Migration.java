@@ -30,6 +30,10 @@ public interface Migration {
      */
     public SocketBindingGroup getSocketBindingGroup();
 
+
+
+    public Collection<CopyMemory> getCopyMemories();
+
     /**
      * Method for migrating configuration of datasource from AS5 to AS7
      *

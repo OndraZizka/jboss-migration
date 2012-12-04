@@ -191,7 +191,7 @@ public class App {
             }
 
             String serverPath = home + File.separator + "server" +File.separator + homeName;
-            Migration migration=new MigrationImpl();
+            Migration migration=new MigrationImpl(copy);
             LoggingAS7 loggingAS7 =  null;
             SecurityAS7 securityAS7 = null;
             ServerSub serverSub = null;
@@ -443,6 +443,9 @@ public class App {
                     }
 
                 }
+            }
+            if(copy){
+              Collection<CopyMemory> copyMemories = migration.getCopyMemories();
             }
 
 

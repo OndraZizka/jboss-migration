@@ -60,7 +60,9 @@ public class main {
             LoggingAS5 loggingAS5= (LoggingAS5)unmarshaller7.unmarshal(new File("logging.xml"));
             SecurityAS5 securityAS5=(SecurityAS5)unmarshaller10.unmarshal(new File("security.xml"));
             ConnectionFactories connectionFactories=(ConnectionFactories)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
-            Migration migration=new MigrationImpl();
+            Collection<ConnectionFactories> cont = new ArrayList<>();
+            cont.add(connectionFactories);
+            Migration migration=new MigrationImpl(true);
 
             final StringWriter writer=new StringWriter();
 
@@ -95,9 +97,9 @@ public class main {
             writer.write("\n\n");
 
 //            //resource adapters Marshaller
-//            Marshaller marshaller3=context2.createMarshaller();
-//            marshaller3.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-//            marshaller3.marshal(migration.connectionFactoriesMigration(connectionFactories) ,writer);
+            Marshaller marshaller3=context2.createMarshaller();
+            marshaller3.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+            marshaller3.marshal(migration.resourceAdaptersMigration(cont) ,writer);
 
             System.out.println(writer.toString());
 

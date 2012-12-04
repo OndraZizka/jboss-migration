@@ -7,6 +7,7 @@ import cz.fi.muni.jboss.Migration.Security.*;
 import cz.fi.muni.jboss.Migration.Server.*;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,12 +26,23 @@ public class MigrationImpl implements Migration {
     private SocketBindingGroup socketBindingGroup;
     private Collection<String> drivers = new HashSet<>();
     private Collection<String> xaDatasourceClasses = new HashSet<>();
+    private Collection<CopyMemory> copyMemories = new HashSet<>();
+    private boolean copy;
+
+    MigrationImpl(boolean copy){
+        this.copy=copy;
+    }
+
+
 
     @Override
     public SocketBindingGroup getSocketBindingGroup() {
         return socketBindingGroup;
     }
-
+    @Override
+    public Collection<CopyMemory> getCopyMemories() {
+        return copyMemories;
+    }
 
     //TODO: Security-Domain must reference something what exists in subsystem security...
     @Override
@@ -186,51 +198,57 @@ public class MigrationImpl implements Migration {
    //resource-adapters .... maybe change name in the future?
     @Override
     public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connectionFactoryAS5) {
-            ResourceAdapter resourceAdapter = new ResourceAdapter();
-            resourceAdapter.setJndiName(connectionFactoryAS5.getJndiName());
-            resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
-            //TODO: not sure what exactly this element represents and what it is in AS5
-            resourceAdapter.setTransactionSupport("XATransaction");
-            ConnectionDefinition connectionDefinition = new ConnectionDefinition();
-            connectionDefinition.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
-            connectionDefinition.setPoolName(connectionFactoryAS5.getJndiName());
-            connectionDefinition.setEnabled("true");
-            connectionDefinition.setUseJavaContext("true");
-            connectionDefinition.setEnabled("true");
-            //TODO: not sure what will be in attribute class-name
-            connectionDefinition.setClassName(connectionFactoryAS5.getConnectionDefinition());
-            connectionDefinition.setPrefill(connectionFactoryAS5.getPrefill());
+        ResourceAdapter resourceAdapter = new ResourceAdapter();
+        resourceAdapter.setJndiName(connectionFactoryAS5.getJndiName());
 
-            for (ConfigProperty configProperty : connectionFactoryAS5.getConfigProperties()) {
-                configProperty.setType(null);
-            }
-            connectionDefinition.setConfigProperties(connectionFactoryAS5.getConfigProperties());
+        if(copy){
+            CopyMemory copyMemory = new CopyMemory();
+            copyMemory.setName(connectionFactoryAS5.getRarName());
+            copyMemory.setType("resource");
+            copyMemories.add(copyMemory);
+        }
+        resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
+        //TODO: not sure what exactly this element represents and what it is in AS5
+        resourceAdapter.setTransactionSupport("XATransaction");
+        ConnectionDefinition connectionDefinition = new ConnectionDefinition();
+        connectionDefinition.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
+        connectionDefinition.setPoolName(connectionFactoryAS5.getJndiName());
+        connectionDefinition.setEnabled("true");
+        connectionDefinition.setUseJavaContext("true");
+        connectionDefinition.setEnabled("true");
+        connectionDefinition.setClassName(connectionFactoryAS5.getConnectionDefinition());
+        connectionDefinition.setPrefill(connectionFactoryAS5.getPrefill());
 
-            if (connectionFactoryAS5.getApplicationManagedSecurity() != null) {
-                connectionDefinition.setApplicationManagedSecurity(connectionFactoryAS5.getApplicationManagedSecurity());
-            }
-            if (connectionFactoryAS5.getSecurityDomain() != null) {
-                connectionDefinition.setSecurityDomain(connectionFactoryAS5.getSecurityDomain());
-            }
-            if (connectionFactoryAS5.getSecurityDomainAndApp() != null) {
-                connectionDefinition.setSecurityDomainAndApp(connectionFactoryAS5.getSecurityDomainAndApp());
-            }
+        for (ConfigProperty configProperty : connectionFactoryAS5.getConfigProperties()) {
+            configProperty.setType(null);
+        }
+        connectionDefinition.setConfigProperties(connectionFactoryAS5.getConfigProperties());
 
-            connectionDefinition.setMinPoolSize(connectionFactoryAS5.getMinPoolSize());
-            connectionDefinition.setMaxPoolSize(connectionFactoryAS5.getMaxPoolSize());
+        if (connectionFactoryAS5.getApplicationManagedSecurity() != null) {
+            connectionDefinition.setApplicationManagedSecurity(connectionFactoryAS5.getApplicationManagedSecurity());
+        }
+        if (connectionFactoryAS5.getSecurityDomain() != null) {
+            connectionDefinition.setSecurityDomain(connectionFactoryAS5.getSecurityDomain());
+        }
+        if (connectionFactoryAS5.getSecurityDomainAndApp() != null) {
+            connectionDefinition.setSecurityDomainAndApp(connectionFactoryAS5.getSecurityDomainAndApp());
+        }
 
-            connectionDefinition.setBackgroundValidation(connectionFactoryAS5.getBackgroundValidation());
-            connectionDefinition.setBackgroundValidationMillis(connectionFactoryAS5.getBackgroundValidationMillis());
+        connectionDefinition.setMinPoolSize(connectionFactoryAS5.getMinPoolSize());
+        connectionDefinition.setMaxPoolSize(connectionFactoryAS5.getMaxPoolSize());
 
-            connectionDefinition.setBlockingTimeoutMillis(connectionFactoryAS5.getBlockingTimeoutMillis());
-            connectionDefinition.setIdleTimeoutMinutes(connectionFactoryAS5.getIdleTimeoutMinutes());
-            connectionDefinition.setAllocationRetry(connectionFactoryAS5.getAllocationRetry());
-            connectionDefinition.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
-            connectionDefinition.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
+        connectionDefinition.setBackgroundValidation(connectionFactoryAS5.getBackgroundValidation());
+        connectionDefinition.setBackgroundValidationMillis(connectionFactoryAS5.getBackgroundValidationMillis());
 
-            Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList<>();
-            connectionDefinitionCollection.add(connectionDefinition);
-            resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
+        connectionDefinition.setBlockingTimeoutMillis(connectionFactoryAS5.getBlockingTimeoutMillis());
+        connectionDefinition.setIdleTimeoutMinutes(connectionFactoryAS5.getIdleTimeoutMinutes());
+        connectionDefinition.setAllocationRetry(connectionFactoryAS5.getAllocationRetry());
+        connectionDefinition.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
+        connectionDefinition.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
+
+        Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList<>();
+        connectionDefinitionCollection.add(connectionDefinition);
+        resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
 
 
         return resourceAdapter;
@@ -450,6 +468,12 @@ public class MigrationImpl implements Migration {
 
                             periodic.setFileRelativeTo("jboss.server.log.dir");
                             periodic.setPath(split[split.length-1]);
+                            if(copy){
+                                CopyMemory copyMemory = new CopyMemory();
+                                copyMemory.setName(split[split.length-1]);
+                                copyMemory.setType("log");
+                                copyMemories.add(copyMemory);
+                            }
                         }
                         if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
                             //basic.. neviem co s uvodzovkami
@@ -475,10 +499,16 @@ public class MigrationImpl implements Migration {
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");
-
+                            //TODO: problem with bad parse? same thing in DailyRotating
                             size.setRelativeTo("jboss.server.log.dir");
                             if(split.length>1){
                                 size.setPath(split[split.length-1]);
+                                if(copy){
+                                    CopyMemory copyMemory = new CopyMemory();
+                                    copyMemory.setName(split[split.length-1]);
+                                    copyMemory.setType("log");
+                                    copyMemories.add(copyMemory);
+                                }
                             } else {
 
                             }
@@ -543,6 +573,7 @@ public class MigrationImpl implements Migration {
                 //case "FileAppender" :
 
                 //basic implemenation of Custom Handler
+                //TODO: problem with module
                 default:
                     CustomHandler customHandler = new CustomHandler();
                     customHandler.setName(appender.getAppenderName());
