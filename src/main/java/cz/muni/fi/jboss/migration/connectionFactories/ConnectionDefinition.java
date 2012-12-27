@@ -14,54 +14,75 @@ import java.util.Collection;
 @XmlRootElement(name = "connection-definition")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connection-definition")
-public class ConnectionDefinition{
+public class ConnectionDefinition
+{
+
     @XmlAttribute(name = "class-name")
     private String className;
+
     @XmlAttribute(name = "enabled")
     private String enabled;
+
     @XmlAttribute(name ="jndi-name")
     private String jndiName;
+
     @XmlAttribute(name = "pool-name")
     private String poolName;
+
     @XmlAttribute(name = "use-ccm")
     private String useCcm;
+
     @XmlAttribute(name ="use-java-context")
     private String useJavaContext;
 
     @XmlElements(@XmlElement(name = "config-property" , type = ConfigProperty.class))
     private Collection<ConfigProperty> configProperties;
 
+
     @XmlPath("/pool/prefill/text()")
     private String prefill;
+
     @XmlPath("/pool/use-strict-min/text()")
     private String useStrictMin;
+
     @XmlPath("/pool/flush-strategy/text()")
     private String flushStrategy;
+
     @XmlPath("/pool/min-pool-size/text()")
     private String minPoolSize;
+
     @XmlPath("/pool/max-pool-size/text()")
     private String maxPoolSize;
 
+
     @XmlPath("/security/security-domain/text()")
     private String securityDomain;
+
     @XmlPath("/security/security-domain-and-application/text()")
     private String securityDomainAndApp;
+
     @XmlPath("/security/application-managed-security/text()")
     private String applicationManagedSecurity;
 
     @XmlPath("/validation/background-validation/text()")
     private String backgroundValidation;
+
     @XmlPath("/validation/background-validation-millis/text()")
     private String backgroundValidationMillis;
 
+
     @XmlPath("/timeout/blocking-timeout-millis/text()")
     private String blockingTimeoutMillis;
+
     @XmlPath("/timeout/idle-timeout-minutes/text()")
     private String idleTimeoutMinutes;
+
     @XmlPath("/timeout/allocation-retry/text()")
     private String allocationRetry;
+
     @XmlPath("/timeout/allocation-retry-wait-millis/text()")
     private String allocationRetryWaitMillis;
+
     @XmlPath("/timeout/xa-resource-timeout/text()")
     private String xaResourceTimeout;
 
@@ -240,6 +261,5 @@ public class ConnectionDefinition{
     public void setXaResourceTimeout(String xaResourceTimeout) {
         this.xaResourceTimeout = xaResourceTimeout;
     }
-
 
 }
