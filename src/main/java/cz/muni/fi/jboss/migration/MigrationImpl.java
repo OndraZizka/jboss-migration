@@ -89,7 +89,7 @@ public class MigrationImpl implements Migration {
 
             drivers.add(datasourceAS5.getDriverClass());
 
-            //standalone elements in AS7
+            // Standalone elements in AS7
             datasourceAS7.setJndiName("java:jboss/datasources/" + datasourceAS5.getJndiName());
             datasourceAS7.setPoolName(datasourceAS5.getJndiName());
             datasourceAS7.setEnabled("true");
@@ -104,18 +104,18 @@ public class MigrationImpl implements Migration {
             String[] split = datasourceAS5.getDriverClass().split("\\.");
             datasourceAS7.setDriver(split[1]);
 
-            //elements in element <security> in AS7
+            // Elements in element <security> in AS7
             datasourceAS7.setUserName(datasourceAS5.getUserName());
             datasourceAS7.setPassword(datasourceAS5.getPassword());
-            //TODO:some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
+            // TODO: some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
             datasourceAS7.setSecurityDomain(datasourceAS5.getSecurityDomain());
 
-            //elements in element <pool> in AS7
+            // Elements in element <pool> in AS7
             datasourceAS7.setMinPoolSize(datasourceAS5.getMinPoolSize());
             datasourceAS7.setMaxPoolSize(datasourceAS5.getMaxPoolSize());
             datasourceAS7.setPrefill(datasourceAS5.getPrefill());
 
-            //elements in element <timeout> in AS7
+            // Elements in element <timeout> in AS7
             datasourceAS7.setBlockingTimeoutMillis(datasourceAS5.getBlockingTimeoutMillis());
             datasourceAS7.setIdleTimeoutMinutes(datasourceAS5.getIdleTimeoutMinutes());
             datasourceAS7.setQueryTimeout(datasourceAS5.getQueryTimeout());
@@ -124,27 +124,26 @@ public class MigrationImpl implements Migration {
             datasourceAS7.setSetTxQueryTimeout(datasourceAS5.getSetTxQueryTimeout());
             datasourceAS7.setUseTryLock(datasourceAS5.getUseTryLock());
 
-            //elements in element <validation> in AS7
+            // Elements in element <validation> in AS7
             datasourceAS7.setCheckValidConnectionSql(datasourceAS5.getCheckValidConnectionSql());
             datasourceAS7.setValidateOnMatch(datasourceAS5.getValidateOnMatch());
             datasourceAS7.setBackgroundValidation(datasourceAS5.getBackgroundValidation());
             datasourceAS7.setExceptionSorter(datasourceAS5.getExceptionSorterClassName());
             datasourceAS7.setValidConnectionChecker(datasourceAS5.getValidConnectionCheckerClassName());
             datasourceAS7.setStaleConnectionChecker(datasourceAS5.getStaleConnectionCheckerClassName());
-            //Millis represents Milliseconds?:p
+            // Millis represents Milliseconds?:p
             if (datasourceAS5.getBackgroundValidationMillis() != null) {
-                Integer tmp = Integer.valueOf(datasourceAS5.getBackgroundValidationMillis())/ 60000;
+                Integer tmp = Integer.valueOf(datasourceAS5.getBackgroundValidationMillis()) / 60000;
                 datasourceAS7.setBackgroundValidationMinutes(tmp.toString());
-
             }
 
-            //elements in element <statement> in AS7
+            // Elements in element <statement> in AS7
             datasourceAS7.setTrackStatements(datasourceAS5.getTrackStatements());
             datasourceAS7.setSharePreparedStatements(datasourceAS5.getSharePreparedStatements());
             datasourceAS7.setQueryTimeout(datasourceAS5.getQueryTimeout());
 
-            //Strange element use-fast-fail
-//            datasourceAS7.setUseFastFail(datasourceAS5.gF);
+            // Strange element use-fast-fail
+            //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
             datasourceAS7Collection.add(datasourceAS7);
         }
@@ -163,11 +162,11 @@ public class MigrationImpl implements Migration {
             xaDatasourceAS7.setEnabled("true");
 
 
-             //xa-datasource-class should be declared in drivers no in datasource.
-            //xa-datasource tehn reference xa-datasource-class with element name
-//            xaDatasourceAS7.setXaDatasourceClass(xaDatasourceAS5.getXaDatasourceClass());
+            // xa-datasource-class should be declared in drivers no in datasource.
+            // xa-datasource then reference xa-datasource-class with element name
+            //xaDatasourceAS7.setXaDatasourceClass(xaDatasourceAS5.getXaDatasourceClass());
             xaDatasourceClasses.add(xaDatasourceAS5.getXaDatasourceClass());
-            String[] split =xaDatasourceAS5.getXaDatasourceClass().split("\\.");
+            String[] split = xaDatasourceAS5.getXaDatasourceClass().split("\\.");
             xaDatasourceAS7.setDriver(split[1]);
 
             xaDatasourceAS7.setXaDatasourceProperties(xaDatasourceAS5.getXaDatasourceProperties());
@@ -221,7 +220,6 @@ public class MigrationImpl implements Migration {
 
             //Strange element use-fast-fail
 //            datasourceAS7.setUseFastFail(datasourceAS5.gF);
-
 
             xaDatasourceAS7Collection.add(xaDatasourceAS7);
         }
@@ -602,7 +600,7 @@ public class MigrationImpl implements Migration {
                     asyncHandler.setFormatter(appender.getLayoutParamValue());
                     asyncHandlers.add(asyncHandler);
                     break;
-                //TODO: There is not such thing as FileAppnder in AS5. Only sizeRotating or dailyRotating
+                //TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
                 //TODO: so i think that FileAppneder in AS7 is then useless?
                 // THINK !!
 
@@ -654,7 +652,6 @@ public class MigrationImpl implements Migration {
          */
         loggingAS7.setRootLoggerLevel("INFO");
         loggingAS7.setRootLoggerHandlers(loggingAS5.getRootAppenderRefs());
-
 
         return loggingAS7;
     }

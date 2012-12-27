@@ -12,20 +12,26 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "driver")
 public class Driver {
+
     @XmlAttribute(name = "name")
     private String driverName;
+
     @XmlAttribute(name = "module")
     private String driverModule;
+
     @XmlAttribute(name = "major-version")
     private String majorVersion;
+
     @XmlAttribute(name = "minor-version")
     private String minorVersion;
+
     @XmlElement(name = "driver-class")
     private String driverClass;
 
     @XmlElement(name = "xa-datasource-class")
     private String xaDatasourceClass;
 
+    
     public String getDriverName() {
         return driverName;
     }

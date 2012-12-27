@@ -16,40 +16,52 @@ import java.util.Collection;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "datasource")
 public class DatasourceAS7 {
+
     //basic elements in datasource element
     @XmlPath("@jndi-name")
     private String jndiName;
+
     @XmlPath("@pool-name")
     private String poolName;
+
     @XmlPath("@enabled")
     private String enabled;
+
     @XmlPath("@use-java-context")
     private String useJavaContext;
 
     @XmlElement(name = "url-delimeter")
     private String urlDelimeter;
+
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelector;
+
     @XmlElement(name = "connection-url")
     private String connectionUrl;
+
     @XmlElement(name = "driver")
     private String driver;
+
     @XmlElement(name = "transaction-isolation")
     private String transactionIsolation;
+
     @XmlElement(name = "new-connection-sql")
     private String newConnectionSql;
+
     @XmlElements(@XmlElement(name ="connection-property", type=ConnectionProperty.class))
     private Collection<ConnectionProperty> connectionProperties;
 
-    //elements in pool element
+    // Elements in pool element
     @XmlPath("/pool/prefill/text()")
     private String prefill;
+
     @XmlPath("/pool/min-pool-size/text()")
     private String minPoolSize;
+
     @XmlPath("/pool/max-pool-size/text()")
     private String maxPoolSize;
 
-    //elements in security element
+    // Elements in security element
     @XmlPath("/security/password/text()")
     private String password;
     @XmlPath("/security/user-name/text()")
@@ -60,42 +72,57 @@ public class DatasourceAS7 {
     //elements in validation element
     @XmlPath("/validation/check-valid-connection-sql/text()")
     private String checkValidConnectionSql;
+
     @XmlPath("/validation/validate-on-match/text()")
     private String validateOnMatch;
+
     @XmlPath("/validation/background-validation/text()")
     private String backgroundValidation;
+
     @XmlPath("/validation/background-validation-minutes/text()")
     private String backgroundValidationMinutes;
+
     @XmlPath("/validation/use-fast-fail/text()")
     private String useFastFail;
+
     @XmlPath("/validation/exception-sorter/text()")
     private String exceptionSorter;
+
     @XmlPath("/validation/valid-connection-checker/text()")
     private String validConnectionChecker;
+
     @XmlPath("/validation/stale-connection-checker/text()")
     private String staleConnectionChecker;
 
     //elements in timeout element
     @XmlPath("/timeout/blocking-timeout-millis/text()")
     private String blockingTimeoutMillis;
+
     @XmlPath("/timeout/idle-timeout-minutes/text()")
     private String idleTimeoutMinutes;
+
     @XmlPath("/timeout/set-tx-query-timeout/text()")
     private String setTxQueryTimeout;
+
     @XmlPath("/timeout/query-timeout/text()")
     private String queryTimeout;
+
     @XmlPath("/timeout/allocation-retry/text()")
     private String allocationRetry;
+
     @XmlPath("/timeout/allocation-retry-wait-millis/text()")
     private String allocationRetryWaitMillis;
+
     @XmlPath("/timeout/use-try-lock/text()")
     private String useTryLock;
 
     //elements in statement element
     @XmlPath("/statement/prepared-statement-cache-size/text()")
     private String preparedStatementCacheSize;
+
     @XmlPath("/statement/track-statements/text()")
     private String trackStatements;
+
     @XmlPath("/statement/share-prepared-statements/text()")
     private String sharePreparedStatements;
 
