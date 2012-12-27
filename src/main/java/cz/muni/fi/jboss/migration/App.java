@@ -185,8 +185,8 @@ public class App {
             ServerSub serverSub = null;
             DatasourcesSub datasourcesSub = null;
             ResourceAdaptersSub resourceAdaptersSub = null;
-            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
-            Collection<ConnectionFactories> connectionFactoriesCollection = new ArrayList<>();
+            Collection<DataSources> dataSourcesCollection = new ArrayList();
+            Collection<ConnectionFactories> connectionFactoriesCollection = new ArrayList();
 
             if(log){
                 BufferedReader br = new BufferedReader(new FileReader(

@@ -60,9 +60,9 @@ public class MigrationImpl implements Migration {
     private Integer randomSocket = 1;
     private Integer randomConnector =1 ;
     private SocketBindingGroup socketBindingGroup;
-    private Collection<String> drivers = new HashSet<>();
-    private Collection<String> xaDatasourceClasses = new HashSet<>();
-    private Collection<CopyMemory> copyMemories = new HashSet<>();
+    private Collection<String> drivers = new HashSet();
+    private Collection<String> xaDatasourceClasses = new HashSet();
+    private Collection<CopyMemory> copyMemories = new HashSet();
     private boolean copy;
 
     MigrationImpl(boolean copy){
@@ -83,7 +83,7 @@ public class MigrationImpl implements Migration {
     //TODO: Security-Domain must reference something what exists in subsystem security...
     @Override
     public Collection<DatasourceAS7> datasourceMigration(Collection<DatasourceAS5> datasources) {
-        Collection<DatasourceAS7> datasourceAS7Collection = new ArrayList<>();
+        Collection<DatasourceAS7> datasourceAS7Collection = new ArrayList();
         for (DatasourceAS5 datasourceAS5 : datasources) {
             DatasourceAS7 datasourceAS7 = new DatasourceAS7();
 
@@ -152,7 +152,7 @@ public class MigrationImpl implements Migration {
 
     @Override
     public Collection<XaDatasourceAS7> xaDatasourceMigration(Collection<XaDatasourceAS5> datasources) {
-        Collection<XaDatasourceAS7> xaDatasourceAS7Collection = new ArrayList<>();
+        Collection<XaDatasourceAS7> xaDatasourceAS7Collection = new ArrayList();
         for (XaDatasourceAS5 xaDatasourceAS5 : datasources) {
             XaDatasourceAS7 xaDatasourceAS7 = new XaDatasourceAS7();
 
@@ -280,7 +280,7 @@ public class MigrationImpl implements Migration {
         connectionDefinition.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
         connectionDefinition.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
 
-        Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList<>();
+        Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList();
         connectionDefinitionCollection.add(connectionDefinition);
         resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
 
@@ -294,7 +294,7 @@ public class MigrationImpl implements Migration {
             return null;
         }
             ResourceAdaptersSub resourceAdaptersSub = new ResourceAdaptersSub();
-            Collection<ResourceAdapter> resourceAdapters = new HashSet<>();
+            Collection<ResourceAdapter> resourceAdapters = new HashSet();
            for(ConnectionFactories cf: connectionFactories){
                for(ConnectionFactoryAS5 connectionFactoryAS5 : cf.getConnectionFactories()){
                     resourceAdapters.add(connectionFactoryMigration(connectionFactoryAS5));
@@ -308,10 +308,10 @@ public class MigrationImpl implements Migration {
     @Override
     public DatasourcesSub datasourceSubMigration(Collection<DataSources> dataSources) {
         DatasourcesSub datasourcesSub = new DatasourcesSub();
-        Collection<DatasourceAS7> ds7 = new ArrayList<>();
-        Collection<XaDatasourceAS7> xads7 = new ArrayList<>();
-        Collection<Driver> driverCollection= new ArrayList<>();
-        Collection<Driver> xaDatasourceClassCollection = new ArrayList<>();
+        Collection<DatasourceAS7> ds7 = new ArrayList();
+        Collection<XaDatasourceAS7> xads7 = new ArrayList();
+        Collection<Driver> driverCollection= new ArrayList();
+        Collection<Driver> xaDatasourceClassCollection = new ArrayList();
         for (DataSources dataSources1 : dataSources) {
             if(dataSources1.getLocalDatasourceAS5s() != null){
                 ds7.addAll(datasourceMigration(dataSources1.getLocalDatasourceAS5s()));
@@ -353,7 +353,7 @@ public class MigrationImpl implements Migration {
     //yatial prva implementacia na socket binding
     public String createSocketBinding(String port, String name) {
         SocketBinding socketBinding = new SocketBinding();
-        Collection<SocketBinding> socketBindings = new ArrayList<>();
+        Collection<SocketBinding> socketBindings = new ArrayList();
         if (socketBindingGroup.getSocketBindings() == null) {
             socketBinding.setSocketName(name);
             socketBinding.setSocketPort(port);
@@ -386,8 +386,8 @@ public class MigrationImpl implements Migration {
     public ServerSub serverMigration(ServerAS5 serverAS5) {
         socketBindingGroup = new SocketBindingGroup();
         ServerSub serverSub = new ServerSub();
-        Collection<ConnectorAS7> subConnectors = new ArrayList<>();
-        Collection<VirtualServer> virtualServers = new ArrayList<>();
+        Collection<ConnectorAS7> subConnectors = new ArrayList();
+        Collection<VirtualServer> virtualServers = new ArrayList();
         for (Service service : serverAS5.getServices()) {
             for (ConnectorAS5 connector : service.getConnectorAS5s()) {
                 ConnectorAS7 connectorAS7 = new ConnectorAS7();
@@ -477,12 +477,12 @@ public class MigrationImpl implements Migration {
     @Override
     public LoggingAS7 loggingMigration(LoggingAS5 loggingAS5) {
         LoggingAS7 loggingAS7 = new LoggingAS7();
-        Collection<AsyncHandler> asyncHandlers = new ArrayList<>();
-        Collection<SizeRotatingFileHandler> sizeRotatingFileHandlers = new ArrayList<>();
-        Collection<FileHandler> fileHandlers = new ArrayList<>();
-        Collection<PeriodicRotatingFileHandler> periodicRotatingFileHandlers = new ArrayList<>();
-        Collection<ConsoleHandler> consoleHandlers = new ArrayList<>();
-        Collection<CustomHandler> customHandlers = new ArrayList<>();
+        Collection<AsyncHandler> asyncHandlers = new ArrayList();
+        Collection<SizeRotatingFileHandler> sizeRotatingFileHandlers = new ArrayList();
+        Collection<FileHandler> fileHandlers = new ArrayList();
+        Collection<PeriodicRotatingFileHandler> periodicRotatingFileHandlers = new ArrayList();
+        Collection<ConsoleHandler> consoleHandlers = new ArrayList();
+        Collection<CustomHandler> customHandlers = new ArrayList();
         for (Appender appender : loggingAS5.getAppenders()) {
             String type = appender.getAppenderClass();
             String[] strings = type.split("\\.");
@@ -592,7 +592,7 @@ public class MigrationImpl implements Migration {
                             continue;
                         }
                     }
-                    Collection<String> appendersRef = new ArrayList<>();
+                    Collection<String> appendersRef = new ArrayList();
                     for (String ref : appender.getAppenderRefs()) {
                         appendersRef.add(ref);
                     }
@@ -612,7 +612,7 @@ public class MigrationImpl implements Migration {
                     CustomHandler customHandler = new CustomHandler();
                     customHandler.setName(appender.getAppenderName());
                     customHandler.setClassValue(appender.getAppenderClass());
-                    Collection<Property> properties = new ArrayList<>();
+                    Collection<Property> properties = new ArrayList();
                     for (Parameter parameter : appender.getParameters()) {
                         if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
                             customHandler.setLevel(parameter.getParamValue());
@@ -637,7 +637,7 @@ public class MigrationImpl implements Migration {
         loggingAS7.setPeriodicRotatingFileHandlers(periodicRotatingFileHandlers);
         loggingAS7.setSizeRotatingFileHandlers(sizeRotatingFileHandlers);
 
-        Collection<Logger> loggers = new ArrayList<>();
+        Collection<Logger> loggers = new ArrayList();
         for (Category category : loggingAS5.getCategories()) {
             Logger logger = new Logger();
             logger.setLoggerCategory(category.getCategoryName());
@@ -660,16 +660,16 @@ public class MigrationImpl implements Migration {
     @Override
     public SecurityAS7 securityMigration(SecurityAS5 securityAS5) {
         SecurityAS7 securityAS7 = new SecurityAS7();
-        Collection<SecurityDomain> securityDomains = new ArrayList<>();
+        Collection<SecurityDomain> securityDomains = new ArrayList();
 
         for (ApplicationPolicy applicationPolicy : securityAS5.getApplicationPolicies()) {
-            Collection<LoginModuleAS7> loginModules = new ArrayList<>();
+            Collection<LoginModuleAS7> loginModules = new ArrayList();
             SecurityDomain securityDomain = new SecurityDomain();
             securityDomain.setSecurityDomainName(applicationPolicy.getApplicationPolicyName());
             securityDomain.setCacheType("default");
 
             for (LoginModuleAS5 loginModuleAS5 : applicationPolicy.getLoginModules()) {
-                Collection<ModuleOptionAS7> moduleOptions = new ArrayList<>();
+                Collection<ModuleOptionAS7> moduleOptions = new ArrayList();
                 LoginModuleAS7 loginModuleAS7 = new LoginModuleAS7();
                 loginModuleAS7.setLoginModuleFlag(loginModuleAS5.getLoginModuleFlag());
 

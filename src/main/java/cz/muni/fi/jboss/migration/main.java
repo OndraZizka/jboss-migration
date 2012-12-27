@@ -56,7 +56,7 @@ public class main {
             Unmarshaller unmarshaller7=context7.createUnmarshaller();
             Unmarshaller unmarshaller10=context10.createUnmarshaller();
 
-            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
+            Collection<DataSources> dataSourcesCollection = new ArrayList();
 
             DataSources dataSources=(DataSources)unmarshaller.unmarshal(new File("datasources.xml"));
             dataSourcesCollection.add(dataSources);
@@ -64,7 +64,7 @@ public class main {
             LoggingAS5 loggingAS5= (LoggingAS5)unmarshaller7.unmarshal(new File("logging.xml"));
             SecurityAS5 securityAS5=(SecurityAS5)unmarshaller10.unmarshal(new File("security.xml"));
             ConnectionFactories connectionFactories=(ConnectionFactories)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
-            Collection<ConnectionFactories> cont = new ArrayList<>();
+            Collection<ConnectionFactories> cont = new ArrayList();
             cont.add(connectionFactories);
             Migration migration=new MigrationImpl(true);
 
