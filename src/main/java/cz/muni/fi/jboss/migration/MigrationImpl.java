@@ -47,6 +47,8 @@ import cz.muni.fi.jboss.migration.dataSources.XaDatasourceAS7;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -60,9 +62,9 @@ public class MigrationImpl implements Migration {
     private Integer randomSocket = 1;
     private Integer randomConnector =1 ;
     private SocketBindingGroup socketBindingGroup;
-    private Collection<String> drivers = new HashSet();
-    private Collection<String> xaDatasourceClasses = new HashSet();
-    private Collection<CopyMemory> copyMemories = new HashSet();
+    private Set<String> drivers = new HashSet();
+    private Set<String> xaDatasourceClasses = new HashSet();
+    private Set<CopyMemory> copyMemories = new HashSet();
     private boolean copy;
 
     MigrationImpl(boolean copy){
@@ -76,7 +78,7 @@ public class MigrationImpl implements Migration {
         return socketBindingGroup;
     }
     @Override
-    public Collection<CopyMemory> getCopyMemories() {
+    public Set<CopyMemory> getCopyMemories() {
         return copyMemories;
     }
 
@@ -151,8 +153,8 @@ public class MigrationImpl implements Migration {
     }
 
     @Override
-    public Collection<XaDatasourceAS7> xaDatasourceMigration(Collection<XaDatasourceAS5> datasources) {
-        Collection<XaDatasourceAS7> xaDatasourceAS7Collection = new ArrayList();
+    public List<XaDatasourceAS7> xaDatasourceMigration(Collection<XaDatasourceAS5> datasources) {
+        List<XaDatasourceAS7> xaDatasourceAS7Collection = new ArrayList();
         for (XaDatasourceAS5 xaDatasourceAS5 : datasources) {
             XaDatasourceAS7 xaDatasourceAS7 = new XaDatasourceAS7();
 
@@ -244,44 +246,44 @@ public class MigrationImpl implements Migration {
         resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
         // TODO:  not sure what exactly this element represents and what it is in AS5
         resourceAdapter.setTransactionSupport("XATransaction");
-        ConnectionDefinition connectionDefinition = new ConnectionDefinition();
-        connectionDefinition.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
-        connectionDefinition.setPoolName(connectionFactoryAS5.getJndiName());
-        connectionDefinition.setEnabled("true");
-        connectionDefinition.setUseJavaContext("true");
-        connectionDefinition.setEnabled("true");
-        connectionDefinition.setClassName(connectionFactoryAS5.getConnectionDefinition());
-        connectionDefinition.setPrefill(connectionFactoryAS5.getPrefill());
+        ConnectionDefinition connDef = new ConnectionDefinition();
+        connDef.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
+        connDef.setPoolName(connectionFactoryAS5.getJndiName());
+        connDef.setEnabled("true");
+        connDef.setUseJavaContext("true");
+        connDef.setEnabled("true");
+        connDef.setClassName(connectionFactoryAS5.getConnectionDefinition());
+        connDef.setPrefill(connectionFactoryAS5.getPrefill());
 
         for (ConfigProperty configProperty : connectionFactoryAS5.getConfigProperties()) {
             configProperty.setType(null);
         }
-        connectionDefinition.setConfigProperties(connectionFactoryAS5.getConfigProperties());
+        connDef.setConfigProperties(connectionFactoryAS5.getConfigProperties());
 
         if (connectionFactoryAS5.getApplicationManagedSecurity() != null) {
-            connectionDefinition.setApplicationManagedSecurity(connectionFactoryAS5.getApplicationManagedSecurity());
+            connDef.setApplicationManagedSecurity(connectionFactoryAS5.getApplicationManagedSecurity());
         }
         if (connectionFactoryAS5.getSecurityDomain() != null) {
-            connectionDefinition.setSecurityDomain(connectionFactoryAS5.getSecurityDomain());
+            connDef.setSecurityDomain(connectionFactoryAS5.getSecurityDomain());
         }
         if (connectionFactoryAS5.getSecurityDomainAndApp() != null) {
-            connectionDefinition.setSecurityDomainAndApp(connectionFactoryAS5.getSecurityDomainAndApp());
+            connDef.setSecurityDomainAndApp(connectionFactoryAS5.getSecurityDomainAndApp());
         }
 
-        connectionDefinition.setMinPoolSize(connectionFactoryAS5.getMinPoolSize());
-        connectionDefinition.setMaxPoolSize(connectionFactoryAS5.getMaxPoolSize());
+        connDef.setMinPoolSize(connectionFactoryAS5.getMinPoolSize());
+        connDef.setMaxPoolSize(connectionFactoryAS5.getMaxPoolSize());
 
-        connectionDefinition.setBackgroundValidation(connectionFactoryAS5.getBackgroundValidation());
-        connectionDefinition.setBackgroundValidationMillis(connectionFactoryAS5.getBackgroundValidationMillis());
+        connDef.setBackgroundValidation(connectionFactoryAS5.getBackgroundValidation());
+        connDef.setBackgroundValidationMillis(connectionFactoryAS5.getBackgroundValidationMillis());
 
-        connectionDefinition.setBlockingTimeoutMillis(connectionFactoryAS5.getBlockingTimeoutMillis());
-        connectionDefinition.setIdleTimeoutMinutes(connectionFactoryAS5.getIdleTimeoutMinutes());
-        connectionDefinition.setAllocationRetry(connectionFactoryAS5.getAllocationRetry());
-        connectionDefinition.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
-        connectionDefinition.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
+        connDef.setBlockingTimeoutMillis(connectionFactoryAS5.getBlockingTimeoutMillis());
+        connDef.setIdleTimeoutMinutes(connectionFactoryAS5.getIdleTimeoutMinutes());
+        connDef.setAllocationRetry(connectionFactoryAS5.getAllocationRetry());
+        connDef.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
+        connDef.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
 
         Collection<ConnectionDefinition> connectionDefinitionCollection = new ArrayList();
-        connectionDefinitionCollection.add(connectionDefinition);
+        connectionDefinitionCollection.add(connDef);
         resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
 
 
