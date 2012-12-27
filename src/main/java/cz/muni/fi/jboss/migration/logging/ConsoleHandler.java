@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.*;
 public class ConsoleHandler{
     @XmlAttribute(name = "name")
     private String name;
-    //TODO: @XmlPath("encoding")
+    // TODO:  @XmlPath("encoding")
     @XmlPath("level/@name")
     private String level;
     @XmlPath("filter/@value")

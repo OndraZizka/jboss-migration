@@ -18,7 +18,7 @@ public class ConnectionFactories {
 
 
     //No idea for now what is this. But it can be a element in AS5
-    //TODO: find more about this element. Can it be transform to As7?
+    // TODO:  find more about this element. Can it be transform to As7?
     @XmlElement(name = "no-tx-connection-factory")
     private String pom;
 

@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.*;
 public  class PeriodicRotatingFileHandler{
     @XmlAttribute(name = "name")
     private String name;
-    //TODO:encoding...
+    // TODO: encoding...
     @XmlPath("level/@name")
     private String level;
     @XmlPath("filter/@value")

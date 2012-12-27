@@ -21,7 +21,7 @@ public class ServerSub {
     private String defaultVirtualServer;
     @XmlAttribute(name = "native")
     private Boolean nativeAttr;
-    //TODO:elements jsp-configuration and static-resources not implemented yet
+    // TODO: elements jsp-configuration and static-resources not implemented yet
 
     @XmlElements(@XmlElement(name = "connector", type =ConnectorAS7.class))
     private Collection<ConnectorAS7> connectors;

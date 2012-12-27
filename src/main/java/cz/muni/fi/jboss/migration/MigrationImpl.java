@@ -80,7 +80,7 @@ public class MigrationImpl implements Migration {
         return copyMemories;
     }
 
-    //TODO: Security-Domain must reference something what exists in subsystem security...
+    // TODO:  Security-Domain must reference something what exists in subsystem security...
     @Override
     public Collection<DatasourceAS7> datasourceMigration(Collection<DatasourceAS5> datasources) {
         Collection<DatasourceAS7> datasourceAS7Collection = new ArrayList();
@@ -186,7 +186,7 @@ public class MigrationImpl implements Migration {
             // Elements in element <security> in AS7
             xaDatasourceAS7.setUserName(xaDatasourceAS5.getUserName());
             xaDatasourceAS7.setPassword(xaDatasourceAS5.getPassword());
-            //TODO:same problem as in datasourceMigration()
+            // TODO: same problem as in datasourceMigration()
             xaDatasourceAS7.setSecurityDomain(xaDatasourceAS5.getSecurityDomain());
 
             // Elements in element <validation> in AS7
@@ -218,8 +218,8 @@ public class MigrationImpl implements Migration {
             xaDatasourceAS7.setSharePreparedStatements(xaDatasourceAS5.getSharePreparedStatements());
 
 
-            //Strange element use-fast-fail
-//            datasourceAS7.setUseFastFail(datasourceAS5.gF);
+            // Strange element use-fast-fail
+            //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
             xaDatasourceAS7Collection.add(xaDatasourceAS7);
         }
@@ -229,7 +229,7 @@ public class MigrationImpl implements Migration {
 
 
 
-   //resource-adapters .... maybe change name in the future?
+    // Resource-adapters .... maybe change name in the future?
     @Override
     public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connectionFactoryAS5) {
         ResourceAdapter resourceAdapter = new ResourceAdapter();
@@ -242,7 +242,7 @@ public class MigrationImpl implements Migration {
             copyMemories.add(copyMemory);
         }
         resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
-        //TODO: not sure what exactly this element represents and what it is in AS5
+        // TODO:  not sure what exactly this element represents and what it is in AS5
         resourceAdapter.setTransactionSupport("XATransaction");
         ConnectionDefinition connectionDefinition = new ConnectionDefinition();
         connectionDefinition.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
@@ -325,7 +325,7 @@ public class MigrationImpl implements Migration {
             String[] split = driverClass.split("\\.");
             driver.setDriverClass(driverClass);
             driver.setDriverName(split[1]);
-            //TODO: not sure how to set module.. only test
+            // TODO:  not sure how to set module.. only test
             driver.setDriverModule("module");
             driverCollection.add(driver);
         }
@@ -334,7 +334,7 @@ public class MigrationImpl implements Migration {
             String[] split = xaDatasourceClass.split("\\.");
             driver.setXaDatasourceClass(xaDatasourceClass);
             driver.setDriverName(split[1]);
-            //TODO: not sure how to set module.. only test
+            // TODO:  not sure how to set module.. only test
             driver.setDriverModule("module");
             xaDatasourceClassCollection.add(driver);
         }
@@ -380,7 +380,7 @@ public class MigrationImpl implements Migration {
     }
 
 
-    //TODO:
+    // TODO: 
     //Basic ...
     @Override
     public ServerSub serverMigration(ServerAS5 serverAS5) {
@@ -400,8 +400,8 @@ public class MigrationImpl implements Migration {
                 connectorAS7.setProxyPort(connector.getProxyPort());
                 connectorAS7.setRedirectPort(connector.getRedirectPort());
 
-                //TODO:getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
-                //TODO: only solution is http?
+                // TODO: getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
+                // TODO:  only solution is http?
                 connectorAS7.setScheme("http");
 
 
@@ -433,11 +433,11 @@ public class MigrationImpl implements Migration {
 
                         connectorAS7.setSslName("ssl");
                         connectorAS7.setVerifyClient(connector.getClientAuth());
-                        //TODO:problem with place of the file
+                        // TODO: problem with place of the file
                         connectorAS7.setCertificateKeyFile(connector.getKeystoreFile());
 
 
-                        //TODO: no sure which protocols can be in AS5
+                        // TODO:  no sure which protocols can be in AS5
                         if (connector.getSslProtocol().equals("TLS")) {
                             connectorAS7.setSslProtocol("TLSv1");
                         }
@@ -533,7 +533,7 @@ public class MigrationImpl implements Migration {
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
                             String[] split = value.split("\\/");
-                            //TODO: problem with bad parse? same thing in DailyRotating
+                            // TODO:  problem with bad parse? same thing in DailyRotating
                             size.setRelativeTo("jboss.server.log.dir");
                             if(split.length>1){
                                 size.setPath(split[split.length-1]);
@@ -600,14 +600,14 @@ public class MigrationImpl implements Migration {
                     asyncHandler.setFormatter(appender.getLayoutParamValue());
                     asyncHandlers.add(asyncHandler);
                     break;
-                //TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
-                //TODO: so i think that FileAppneder in AS7 is then useless?
+                // TODO:  There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
+                // TODO:  so i think that FileAppneder in AS7 is then useless?
                 // THINK !!
 
                 //case "FileAppender" :
 
                 //basic implemenation of Custom Handler
-                //TODO: problem with module
+                // TODO:  problem with module
                 default:
                     CustomHandler customHandler = new CustomHandler();
                     customHandler.setName(appender.getAppenderName());
@@ -749,7 +749,7 @@ public class MigrationImpl implements Migration {
                     for (ModuleOptionAS5 moduleOptionAS5 : loginModuleAS5.getModuleOptions()) {
                         ModuleOptionAS7 moduleOptionAS7 = new ModuleOptionAS7();
                         moduleOptionAS7.setModuleOptionName(moduleOptionAS5.getModuleName());
-                        //TODO: problem with module option which use properties files...maybe change path only?
+                        // TODO:  problem with module option which use properties files...maybe change path only?
                         moduleOptionAS7.setModuleOptionValue(moduleOptionAS5.getModuleValue());
                         moduleOptions.add(moduleOptionAS7);
                     }

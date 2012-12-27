@@ -17,7 +17,7 @@ import java.util.Collection;
 public class CustomHandler{
     @XmlAttribute(name = "name")
     private String name;
-    //TODO:encoding...
+    // TODO: encoding...
     @XmlPath("level/@name")
     private String level;
     @XmlPath("filter/@value")
