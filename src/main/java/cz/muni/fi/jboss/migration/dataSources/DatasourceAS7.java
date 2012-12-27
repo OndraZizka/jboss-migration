@@ -69,7 +69,7 @@ public class DatasourceAS7 {
     @XmlPath("/security/security-domain/text()")
     private String securityDomain;
 
-    //elements in validation element
+    // Elements in validation element
     @XmlPath("/validation/check-valid-connection-sql/text()")
     private String checkValidConnectionSql;
 
@@ -94,7 +94,7 @@ public class DatasourceAS7 {
     @XmlPath("/validation/stale-connection-checker/text()")
     private String staleConnectionChecker;
 
-    //elements in timeout element
+    // Elements in timeout element
     @XmlPath("/timeout/blocking-timeout-millis/text()")
     private String blockingTimeoutMillis;
 
@@ -116,7 +116,7 @@ public class DatasourceAS7 {
     @XmlPath("/timeout/use-try-lock/text()")
     private String useTryLock;
 
-    //elements in statement element
+    // Elements in statement element
     @XmlPath("/statement/prepared-statement-cache-size/text()")
     private String preparedStatementCacheSize;
 

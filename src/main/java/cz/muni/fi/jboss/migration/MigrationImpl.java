@@ -175,7 +175,7 @@ public class MigrationImpl implements Migration {
             xaDatasourceAS7.setTransactionIsolation(xaDatasourceAS5.getTransactionIsolation());
             xaDatasourceAS7.setNewConnectionSql(xaDatasourceAS5.getNewConnectionSql());
 
-            //elements in element <xa-pool> in AS7
+            // Elements in element <xa-pool> in AS7
             xaDatasourceAS7.setMinPoolSize(xaDatasourceAS5.getMinPoolSize());
             xaDatasourceAS7.setMaxPoolSize(xaDatasourceAS5.getMaxPoolSize());
             xaDatasourceAS7.setPrefill(xaDatasourceAS5.getPrefill());
@@ -183,13 +183,13 @@ public class MigrationImpl implements Migration {
             xaDatasourceAS7.setInterleaving(xaDatasourceAS5.getInterleaving());
             xaDatasourceAS7.setNoTxSeparatePools(xaDatasourceAS5.getNoTxSeparatePools());
 
-            //elements in element <security> in AS7
+            // Elements in element <security> in AS7
             xaDatasourceAS7.setUserName(xaDatasourceAS5.getUserName());
             xaDatasourceAS7.setPassword(xaDatasourceAS5.getPassword());
             //TODO:same problem as in datasourceMigration()
             xaDatasourceAS7.setSecurityDomain(xaDatasourceAS5.getSecurityDomain());
 
-            //elements in element <validation> in AS7
+            // Elements in element <validation> in AS7
             xaDatasourceAS7.setCheckValidConnectionSql(xaDatasourceAS5.getCheckValidConnectionSql());
             xaDatasourceAS7.setValidateOnMatch(xaDatasourceAS5.getValidateOnMatch());
             xaDatasourceAS7.setBackgroundValidation(xaDatasourceAS5.getBackgroundValidation());
@@ -202,7 +202,7 @@ public class MigrationImpl implements Migration {
                 xaDatasourceAS7.setBackgroundValidationMinutes(tmp.toString());
             }
 
-            //elements in element <timeout> in AS7
+            // Elements in element <timeout> in AS7
             xaDatasourceAS7.setBlockingTimeoutMillis(xaDatasourceAS5.getBlockingTimeoutMillis());
             xaDatasourceAS7.setIdleTimeoutMinutes(xaDatasourceAS5.getIdletimeoutMinutes());
             xaDatasourceAS7.setQueryTimeout(xaDatasourceAS5.getQueryTimeout());
@@ -212,7 +212,7 @@ public class MigrationImpl implements Migration {
             xaDatasourceAS7.setUseTryLock(xaDatasourceAS5.getUseTryLock());
             xaDatasourceAS7.setXaResourceTimeout(xaDatasourceAS5.getXaResourceTimeout());
 
-            //elements in element <statement> in AS7
+            // Elements in element <statement> in AS7
             xaDatasourceAS7.setPreparedStatementCacheSize(xaDatasourceAS5.getPreparedStatementCacheSize());
             xaDatasourceAS7.setTrackStatements(xaDatasourceAS5.getTrackStatements());
             xaDatasourceAS7.setSharePreparedStatements(xaDatasourceAS5.getSharePreparedStatements());

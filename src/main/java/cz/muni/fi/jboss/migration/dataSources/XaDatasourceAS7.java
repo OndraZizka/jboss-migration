@@ -41,7 +41,7 @@ public class XaDatasourceAS7 {
     @XmlElements(@XmlElement(name = "xa-datasource-property", type= XaDatasourceProperty.class))
     private Collection<XaDatasourceProperty> xaDatasourceProperties;
 
-    //elements in pool element
+    // Elements in pool element
     @XmlPath("/xa-pool/prefill/text()")
     private String prefill;
     @XmlPath("/xa-pool/min-pool-size/text()")
@@ -57,7 +57,7 @@ public class XaDatasourceAS7 {
     @XmlPath("/xa-pool/no-tx-separate-pools/text()")
     private String noTxSeparatePools;
 
-    //elements in security element
+    // Elements in security element
     @XmlPath("/security/password/text()")
     private String password;
     @XmlPath("/security/user-name/text()")
@@ -65,7 +65,7 @@ public class XaDatasourceAS7 {
     @XmlPath("/security/security-domain/text()")
     private String securityDomain;
 
-    //elements in validation element
+    // Elements in validation element
     @XmlPath("/validation/check-valid-connection-sql/text()")
     private String checkValidConnectionSql;
     @XmlPath("/validation/validate-on-match/text()")
@@ -101,7 +101,7 @@ public class XaDatasourceAS7 {
     @XmlPath("/timeout/xa-resource-timeout/text()")
     private String xaResourceTimeout;
 
-    //elements in statement element
+    // Elements in statement element
     @XmlPath("/statement/prepared-statement-cache-size/text()")
     private String preparedStatementCacheSize;
     @XmlPath("/statement/track-statements/text()")
