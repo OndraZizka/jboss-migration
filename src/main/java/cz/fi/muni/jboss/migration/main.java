@@ -7,7 +7,6 @@ import cz.fi.muni.jboss.migration.server.ServerAS5;
 import cz.fi.muni.jboss.migration.server.SocketBindingGroup;
 import cz.fi.muni.jboss.migration.server.ConnectorAS7;
 import cz.fi.muni.jboss.migration.connectionFactories.ConnectionFactories;
-import cz.fi.muni.jboss.migration.connectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.migration.connectionFactories.ResourceAdaptersSub;
 import cz.fi.muni.jboss.migration.dataSources.DataSources;
 import cz.fi.muni.jboss.migration.dataSources.DatasourceAS7;

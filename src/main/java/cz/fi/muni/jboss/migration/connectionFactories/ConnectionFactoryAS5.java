@@ -2,7 +2,6 @@ package cz.fi.muni.jboss.migration.connectionFactories;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.

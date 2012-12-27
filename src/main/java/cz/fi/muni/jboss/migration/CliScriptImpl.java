@@ -22,7 +22,6 @@ import cz.fi.muni.jboss.migration.server.ConnectorAS7;
 import cz.fi.muni.jboss.migration.server.SocketBinding;
 import cz.fi.muni.jboss.migration.server.VirtualServer;
 
-import java.util.Collection;
 
 
 /**

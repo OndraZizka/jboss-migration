@@ -1,7 +1,5 @@
 package cz.fi.muni.jboss.migration.server;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 

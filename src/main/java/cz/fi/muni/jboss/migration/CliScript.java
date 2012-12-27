@@ -9,14 +9,12 @@ import cz.fi.muni.jboss.migration.logging.Logger;
 import cz.fi.muni.jboss.migration.logging.AsyncHandler;
 import cz.fi.muni.jboss.migration.connectionFactories.ResourceAdapter;
 import cz.fi.muni.jboss.migration.dataSources.DatasourceAS7;
-import cz.fi.muni.jboss.migration.dataSources.DatasourcesSub;
 import cz.fi.muni.jboss.migration.dataSources.Driver;
 import cz.fi.muni.jboss.migration.dataSources.XaDatasourceAS7;
 import cz.fi.muni.jboss.migration.security.SecurityDomain;
 import cz.fi.muni.jboss.migration.server.ConnectorAS7;
 import cz.fi.muni.jboss.migration.server.SocketBinding;
 import cz.fi.muni.jboss.migration.server.VirtualServer;
-import org.jboss.logmanager.handlers.PeriodicSizeRotatingFileHandler;
 
 /**
  * Created with IntelliJ IDEA.

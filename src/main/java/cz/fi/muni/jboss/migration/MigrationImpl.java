@@ -44,7 +44,6 @@ import cz.fi.muni.jboss.migration.dataSources.DatasourcesSub;
 import cz.fi.muni.jboss.migration.dataSources.XaDatasourceAS7;
 
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
