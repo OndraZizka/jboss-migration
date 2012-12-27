@@ -4,8 +4,8 @@ import javax.xml.bind.annotation.*;
 import java.util.Collection;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 8/28/12
  * Time: 3:27 PM
  */

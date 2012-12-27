@@ -3,8 +3,8 @@ package cz.fi.muni.jboss.migration.server;
 import javax.xml.bind.annotation.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 10/2/12
  * Time: 9:14 PM
  */

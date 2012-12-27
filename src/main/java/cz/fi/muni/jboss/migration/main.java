@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 8/26/12
  * Time: 3:15 PM
  */
@@ -148,9 +148,9 @@ public class main {
 
 
         } catch (JAXBException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
     }
 }

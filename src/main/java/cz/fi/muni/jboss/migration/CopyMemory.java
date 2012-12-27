@@ -1,8 +1,8 @@
 package cz.fi.muni.jboss.migration;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 11/12/12
  * Time: 3:13 PM
  */

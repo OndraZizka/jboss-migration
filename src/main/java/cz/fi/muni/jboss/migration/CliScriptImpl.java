@@ -25,8 +25,8 @@ import cz.fi.muni.jboss.migration.server.VirtualServer;
 
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 10/7/12
  * Time: 2:29 PM
  */

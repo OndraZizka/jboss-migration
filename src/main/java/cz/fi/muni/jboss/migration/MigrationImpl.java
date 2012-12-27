@@ -49,8 +49,8 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 8/28/12
  * Time: 5:59 PM
  */

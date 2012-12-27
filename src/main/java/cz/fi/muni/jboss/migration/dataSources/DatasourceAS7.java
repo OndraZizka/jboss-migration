@@ -7,8 +7,8 @@ import java.util.Collection;
 
 
 /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 8/27/12
  * Time: 1:29 PM
  */

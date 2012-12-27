@@ -1,6 +1,6 @@
 package cz.fi.muni.jboss.migration.dataSources; /**
- * Created with IntelliJ IDEA.
- * User: Roman Jakubco
+ * 
+ * @author  Roman Jakubco
  * Date: 8/26/12
  * Time: 2:17 PM
  */
