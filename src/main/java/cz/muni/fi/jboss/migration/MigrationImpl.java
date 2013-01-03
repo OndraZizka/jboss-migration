@@ -235,59 +235,58 @@ public class MigrationImpl implements Migration {
 
     // Resource-adapters .... maybe change name in the future?
     @Override
-    public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connectionFactoryAS5) {
+    public ResourceAdapter connectionFactoryMigration(ConnectionFactoryAS5 connFactAS5) {
         ResourceAdapter resourceAdapter = new ResourceAdapter();
-        resourceAdapter.setJndiName(connectionFactoryAS5.getJndiName());
+        resourceAdapter.setJndiName(connFactAS5.getJndiName());
 
         if(copy){
             CopyMemory copyMemory = new CopyMemory();
-            copyMemory.setName(connectionFactoryAS5.getRarName());
+            copyMemory.setName(connFactAS5.getRarName());
             copyMemory.setType("resource");
             copyMemories.add(copyMemory);
         }
-        resourceAdapter.setArchive(connectionFactoryAS5.getRarName());
+        resourceAdapter.setArchive(connFactAS5.getRarName());
         // TODO:  not sure what exactly this element represents and what it is in AS5
         resourceAdapter.setTransactionSupport("XATransaction");
         ConnectionDefinition connDef = new ConnectionDefinition();
-        connDef.setJndiName("java:jboss/" + connectionFactoryAS5.getJndiName());
-        connDef.setPoolName(connectionFactoryAS5.getJndiName());
+        connDef.setJndiName("java:jboss/" + connFactAS5.getJndiName());
+        connDef.setPoolName(connFactAS5.getJndiName());
         connDef.setEnabled("true");
         connDef.setUseJavaContext("true");
         connDef.setEnabled("true");
-        connDef.setClassName(connectionFactoryAS5.getConnectionDefinition());
-        connDef.setPrefill(connectionFactoryAS5.getPrefill());
+        connDef.setClassName(connFactAS5.getConnectionDefinition());
+        connDef.setPrefill(connFactAS5.getPrefill());
 
-        for (ConfigProperty configProperty : connectionFactoryAS5.getConfigProperties()) {
+        for (ConfigProperty configProperty : connFactAS5.getConfigProperties()) {
             configProperty.setType(null);
         }
-        connDef.setConfigProperties(connectionFactoryAS5.getConfigProperties());
+        connDef.setConfigProperties(connFactAS5.getConfigProperties());
 
-        if (connectionFactoryAS5.getApplicationManagedSecurity() != null) {
-            connDef.setApplicationManagedSecurity(connectionFactoryAS5.getApplicationManagedSecurity());
+        if (connFactAS5.getApplicationManagedSecurity() != null) {
+            connDef.setApplicationManagedSecurity(connFactAS5.getApplicationManagedSecurity());
         }
-        if (connectionFactoryAS5.getSecurityDomain() != null) {
-            connDef.setSecurityDomain(connectionFactoryAS5.getSecurityDomain());
+        if (connFactAS5.getSecurityDomain() != null) {
+            connDef.setSecurityDomain(connFactAS5.getSecurityDomain());
         }
-        if (connectionFactoryAS5.getSecurityDomainAndApp() != null) {
-            connDef.setSecurityDomainAndApp(connectionFactoryAS5.getSecurityDomainAndApp());
+        if (connFactAS5.getSecurityDomainAndApp() != null) {
+            connDef.setSecurityDomainAndApp(connFactAS5.getSecurityDomainAndApp());
         }
 
-        connDef.setMinPoolSize(connectionFactoryAS5.getMinPoolSize());
-        connDef.setMaxPoolSize(connectionFactoryAS5.getMaxPoolSize());
+        connDef.setMinPoolSize(connFactAS5.getMinPoolSize());
+        connDef.setMaxPoolSize(connFactAS5.getMaxPoolSize());
 
-        connDef.setBackgroundValidation(connectionFactoryAS5.getBackgroundValidation());
-        connDef.setBackgroundValidationMillis(connectionFactoryAS5.getBackgroundValidationMillis());
+        connDef.setBackgroundValidation(connFactAS5.getBackgroundValidation());
+        connDef.setBackgroundValidationMillis(connFactAS5.getBackgroundValidationMillis());
 
-        connDef.setBlockingTimeoutMillis(connectionFactoryAS5.getBlockingTimeoutMillis());
-        connDef.setIdleTimeoutMinutes(connectionFactoryAS5.getIdleTimeoutMinutes());
-        connDef.setAllocationRetry(connectionFactoryAS5.getAllocationRetry());
-        connDef.setAllocationRetryWaitMillis(connectionFactoryAS5.getAllocationRetryWaitMillis());
-        connDef.setXaResourceTimeout(connectionFactoryAS5.getXaResourceTimeout());
+        connDef.setBlockingTimeoutMillis(connFactAS5.getBlockingTimeoutMillis());
+        connDef.setIdleTimeoutMinutes(connFactAS5.getIdleTimeoutMinutes());
+        connDef.setAllocationRetry(connFactAS5.getAllocationRetry());
+        connDef.setAllocationRetryWaitMillis(connFactAS5.getAllocationRetryWaitMillis());
+        connDef.setXaResourceTimeout(connFactAS5.getXaResourceTimeout());
 
         List<ConnectionDefinition> connectionDefinitionCollection = new ArrayList();
         connectionDefinitionCollection.add(connDef);
         resourceAdapter.setConnectionDefinitions(connectionDefinitionCollection);
-
 
         return resourceAdapter;
     }
@@ -452,13 +451,12 @@ public class MigrationImpl implements Migration {
                         connectorAS7.setKeyAlias(connectorAS7.getKeyAlias());
 
 
-                        //problem s heslami.. treba to premysliet  kedze password zastresuje aj keystorePass aj truststorePass
+                        // TODO: password covers both keystorePass and truststorePass?
                         connectorAS7.setPassword(connector.getKeysotrePass());
                     }
 
-
                 } catch (NullPointerException ex) {
-
+                    throw ex; // TODO: Should not happen. Handle null values properly.
                 }
                 subConnectors.add(connectorAS7);
             }
@@ -468,7 +466,6 @@ public class MigrationImpl implements Migration {
             virtualServer.setAliasName(service.getHostNames());
 
             virtualServers.add(virtualServer);
-
         }
 
         //tu treba zistit ci treba zadat aj default-host napr prvy virtualny server alebo nech si to dopisu sami
@@ -478,7 +475,7 @@ public class MigrationImpl implements Migration {
 
     }
 
-    //basic...Todo:
+    // Basic... TODO:
     @Override
     public LoggingAS7 loggingMigration(LoggingAS5 loggingAS5) {
         LoggingAS7 loggingAS7 = new LoggingAS7();
