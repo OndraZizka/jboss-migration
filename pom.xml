@@ -23,7 +23,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <mainClass>cz.fi.muni.jboss.Migration.main</mainClass>
+                    <mainClass>cz.muni.fi.jboss.Migration.main</mainClass>
                 </configuration>
             </plugin>
 
@@ -58,6 +58,11 @@
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
             <version>7.1.2.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
         </dependency>
     </dependencies>
 
