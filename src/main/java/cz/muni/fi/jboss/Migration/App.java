@@ -45,26 +45,32 @@ public class App {
             IOException, SAXException, TransformerException {
 
         NodeList parents = doc.getElementsByTagName("subsystem");
-
         for(int i = 0; i < parents.getLength(); i++){
             if( !(parents.item(i) instanceof Element)) {
                 continue;
             }
+
             Node parent = parents.item(i);
             NamedNodeMap atts = parent.getAttributes();
+
             for(int k = 0; k < atts.getLength(); k++){
                 String nameSpace = atts.item(k).getNodeValue();
+
                 if(nameSpace.contains(name) && !nameSpace.contains("webservices")){
                     NodeList appenders = node.getChildNodes();
                     for(int j = 0; j < appenders.getLength(); j++){
                         if( !(appenders.item(j) instanceof Element)) {
                             continue;
                         }
+
                         Node appender = appenders.item(j);
+
                         if(appender.getNodeName().equals("drivers") || appender.getNodeName().equals("root-logger")){
                             continue;
                         }
+
                         Node adopted = doc.adoptNode(appender.cloneNode(true));
+
                         if(name.equals("datasource") || name.equals("security")){
                             parent = parents.item(i).getFirstChild();
                             while( !(parent instanceof Element)) {
@@ -77,6 +83,7 @@ public class App {
                             parent.insertBefore(adopted, lastNode);
                             continue;
                         }
+
                         if(name.equals("web")){
                             Node lastNode = parent.getLastChild();
                             while(!(lastNode instanceof Element)){
@@ -85,6 +92,7 @@ public class App {
                             parent.insertBefore(adopted, lastNode);
                             continue;
                         }
+
                         parent.appendChild(adopted);
 
 
@@ -102,21 +110,20 @@ public class App {
             if( !(drivers.item(i) instanceof Element)) {
                 continue;
             }
+
             NodeList appenders = node.getChildNodes();
+
             for(int j = 0; j < appenders.getLength(); j++){
                 if( !(appenders.item(j) instanceof Element)) {
                     continue;
                 }
+
                 Node appender = appenders.item(j);
                 Node adopted = doc.adoptNode(appender.cloneNode(true));
                 drivers.item(i).appendChild(adopted);
             }
         }
-
     }
-
-
-
 
     public static void main(String[] args) {
         File temp = null;
@@ -138,7 +145,6 @@ public class App {
         File directory = new File(".");
         BufferedWriter out = null;
         String xmlOut = "outXml.xml";
-
 
         try {
             for(int i = 0; i < args.length; i++){
@@ -573,6 +579,7 @@ public class App {
                 File homedir = new File(System.getProperty("user.home"));
                 File fileToRead = new File(homedir, "Programing/standalone.xml");
 
+                // at this moment input of migrated XMLs from helping file xmlOut.xml (xmlOut) for testing purposes
                 Document xmlDoc = builder.parse(new File(xmlOut));
                 Document doc = builder.parse(fileToRead);
 
@@ -609,6 +616,7 @@ public class App {
                 DOMSource source = new DOMSource(doc);
                 transformer.transform(source, result);
 
+                // Output to sout at this moment for testing
                 String xmlOutput = result.getWriter().toString();
                 System.out.println(xmlOutput);
             }
@@ -617,27 +625,22 @@ public class App {
               Collection<CopyMemory> copyMemories = migration.getCopyMemories();
             }
 
-
-
-
-
-
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (JAXBException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (NullPointerException e){
             e.printStackTrace();
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (SAXException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (TransformerConfigurationException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (TransformerException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (CliScriptException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } finally {
             if(temp != null){
                 temp.delete();
