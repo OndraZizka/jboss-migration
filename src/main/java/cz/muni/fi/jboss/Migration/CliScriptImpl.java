@@ -14,6 +14,8 @@ import cz.muni.fi.jboss.Migration.Server.VirtualServer;
 
 
 /**
+ * Class for creating CLI scripts of migrated configuration of AS5. Implementation of interface CliScript
+ *
  * @author  Roman Jakubco
  * Date: 10/7/12
  * Time: 2:29 PM

@@ -3,6 +3,8 @@ package cz.muni.fi.jboss.Migration.Server;
 import javax.xml.bind.annotation.*;
 
 /**
+ * Class for unmarshalling and representing connector in AS5 (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 9:12 PM

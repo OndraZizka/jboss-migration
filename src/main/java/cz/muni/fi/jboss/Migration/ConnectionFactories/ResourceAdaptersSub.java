@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing resource-adapters subsystem (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 8/28/12
  * Time: 3:27 PM

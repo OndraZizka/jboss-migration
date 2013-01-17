@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing logging configuration (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 9/21/12
  * Time: 7:52 PM
@@ -17,7 +19,7 @@ import java.util.Set;
 
 @XmlRootElement(name = "configuration" )
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name ="configuration")
+@XmlType(name = "configuration")
 
 public class LoggingAS5 {
 

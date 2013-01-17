@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.*;
 import java.util.*;
 
 /**
+ * Class for unmarshalling and representing local-tx-datasource (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 8/26/12
  * Time: 2:17 PM
@@ -88,7 +90,7 @@ public class DatasourceAS5 {
     private String sharePreStatements;
 
     // special class for storing connection-property
-    @XmlElements(@XmlElement(name ="connection-property", type=ConnectionProperty.class))
+    @XmlElements(@XmlElement(name = "connection-property", type = ConnectionProperty.class))
     private List<ConnectionProperty> connectionProperties;
 
 

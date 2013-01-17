@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.Migration.Logging;
 
-import cz.muni.fi.jboss.Migration.DataSources.XaDatasourceAS5;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -9,6 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing async-handler  (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 8:14 PM

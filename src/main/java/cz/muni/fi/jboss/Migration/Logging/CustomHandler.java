@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing custom-handler (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 8:24 PM

@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing xa-datasource in AS5 (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 8/26/12
  * Time: 2:17 PM
@@ -30,7 +32,7 @@ public class XaDatasourceAS5 {
     @XmlElement(name = "xa-datasource-class")
     private String xaDatasourceClass;
 
-    @XmlElements(@XmlElement(name ="xa-datasource-property", type= XaDatasourceProperty.class))
+    @XmlElements(@XmlElement(name = "xa-datasource-property", type = XaDatasourceProperty.class))
     private Set<XaDatasourceProperty> xaDatasourceProps;
 
 

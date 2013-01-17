@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing security policy (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 9/23/12
  * Time: 6:28 PM

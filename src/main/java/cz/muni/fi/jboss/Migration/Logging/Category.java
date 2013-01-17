@@ -8,10 +8,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing category (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 8:10 PM
  */
+
 @XmlRootElement(name = "category")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "category")

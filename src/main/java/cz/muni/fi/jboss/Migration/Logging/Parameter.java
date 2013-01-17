@@ -3,6 +3,8 @@ package cz.muni.fi.jboss.Migration.Logging;
 import javax.xml.bind.annotation.*;
 
 /**
+ * Class for unmarshalling and representing parameter (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 8:08 PM

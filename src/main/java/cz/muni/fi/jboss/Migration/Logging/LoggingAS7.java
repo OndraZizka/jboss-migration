@@ -8,20 +8,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing logging subsystem (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 9/21/12
  * Time: 9:06 PM
  */
-  // TODO:len provizorne kopa nejasnosti
 
-@XmlRootElement(name = "subsystem")
+@XmlRootElement(name = "logging")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "subsystem")
 
 public class LoggingAS7 {
 
-//    @XmlAttribute(name = "xmlns")
-//    private String xmlns = "urn:jboss:domain:logging:1.1";
     @XmlElements(@XmlElement(name = "async-handler", type = AsyncHandler.class))
     private Set<AsyncHandler> asyncHandlers;
     @XmlElements(@XmlElement(name = "console-handler", type = ConsoleHandler.class))
@@ -43,14 +42,6 @@ public class LoggingAS7 {
     private Set<String> rootLoggerHandlers;
     @XmlPath("root-logger/filter/@value")
     private String rootLogFilValue;
-
-//    public String getXmlns() {
-//        return xmlns;
-//    }
-//
-//    public void setXmlns(String xmlns) {
-//        this.xmlns = xmlns;
-//    }
 
     public Set<AsyncHandler> getAsyncHandlers() {
         return asyncHandlers;

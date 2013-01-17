@@ -10,6 +10,8 @@ import java.util.Set;
 
 
 /**
+ * Class for marshalling and representing datasource in AS7 (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 8/27/12
  * Time: 1:29 PM
@@ -42,7 +44,7 @@ public class DatasourceAS7 {
     private String transIsolation;
     @XmlElement(name = "new-connection-sql")
     private String newConnectionSql;
-    @XmlElements(@XmlElement(name ="connection-property", type=ConnectionProperty.class))
+    @XmlElements(@XmlElement(name ="connection-property", type = ConnectionProperty.class))
     private Set<ConnectionProperty> connectionProperties;
 
     // elements in pool element

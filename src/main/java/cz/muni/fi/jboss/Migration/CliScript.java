@@ -11,6 +11,8 @@ import cz.muni.fi.jboss.Migration.Server.SocketBinding;
 import cz.muni.fi.jboss.Migration.Server.VirtualServer;
 
 /**
+ * Interface for creating CLI scripts
+ *
  * @author  Roman Jakubco
  * Date: 10/7/12
  * Time: 2:28 PM

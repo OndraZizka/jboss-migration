@@ -2,8 +2,12 @@ package cz.muni.fi.jboss.Migration.ConnectionFactories;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
+ * Class for marshalling and representing resource-adapter (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 8/28/12
  * Time: 3:27 PM
@@ -24,8 +28,8 @@ public class ResourceAdapter {
      private String transactionSupport;
 
     @XmlElementWrapper(name = "connection-definitions")
-    @XmlElement(name = "connection-definition" ,type=ConnectionDefinition.class)
-    private Collection<ConnectionDefinition> connectionDefinitions;
+    @XmlElement(name = "connection-definition", type = ConnectionDefinition.class)
+    private Set<ConnectionDefinition> connectionDefinitions;
 
     public String getArchive() {
         return archive;
@@ -43,12 +47,14 @@ public class ResourceAdapter {
         this.transactionSupport = transactionSupport;
     }
 
-    public Collection<ConnectionDefinition> getConnectionDefinitions() {
+    public Set<ConnectionDefinition> getConnectionDefinitions() {
         return connectionDefinitions;
     }
 
     public void setConnectionDefinitions(Collection<ConnectionDefinition> connectionDefinitions) {
-        this.connectionDefinitions = connectionDefinitions;
+        Set<ConnectionDefinition> temp = new HashSet();
+        temp.addAll(connectionDefinitions);
+        this.connectionDefinitions = temp;
     }
 
     public String getJndiName() {

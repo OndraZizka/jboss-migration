@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing login-module (AS5)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 9:04 PM

@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for unmarshalling and representing server (AS5)
+ *
  * @uathor: Roman Jakubco
  * Date: 8/30/12
  * Time: 4:54 PM
@@ -17,7 +19,7 @@ import java.util.Set;
 
 public class ServerAS5 {
 
-    @XmlElements(@XmlElement(name = "Service", type =Service.class))
+    @XmlElements(@XmlElement(name = "Service", type = Service.class))
     private Set<Service> services;
 
     public Set<Service> getServices() {

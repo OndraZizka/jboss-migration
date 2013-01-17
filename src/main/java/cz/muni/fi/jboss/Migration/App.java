@@ -17,9 +17,8 @@ import cz.muni.fi.jboss.Migration.Server.SocketBindingGroup;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 
-import org.w3c.dom.Document;
+import org.w3c.dom.*;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.*;
 
 import javax.xml.bind.*;
@@ -41,11 +40,89 @@ import java.util.*;
  */
 
 public class App {
+
+    public static Document insertIntoXml(Document doc, Node node, String name) throws  ParserConfigurationException,
+            IOException, SAXException, TransformerException {
+
+        NodeList parents = doc.getElementsByTagName("subsystem");
+
+        for(int i = 0; i < parents.getLength(); i++){
+            if( !(parents.item(i) instanceof Element)) {
+                continue;
+            }
+            Node parent = parents.item(i);
+            NamedNodeMap atts = parent.getAttributes();
+            for(int k = 0; k < atts.getLength(); k++){
+                String nameSpace = atts.item(k).getNodeValue();
+                if(nameSpace.contains(name) && !nameSpace.contains("webservices")){
+                    NodeList appenders = node.getChildNodes();
+                    for(int j = 0; j < appenders.getLength(); j++){
+                        if( !(appenders.item(j) instanceof Element)) {
+                            continue;
+                        }
+                        Node appender = appenders.item(j);
+                        if(appender.getNodeName().equals("drivers") || appender.getNodeName().equals("root-logger")){
+                            continue;
+                        }
+                        Node adopted = doc.adoptNode(appender.cloneNode(true));
+                        if(name.equals("datasource") || name.equals("security")){
+                            parent = parents.item(i).getFirstChild();
+                            while( !(parent instanceof Element)) {
+                                parent = parents.item(i).getFirstChild().getNextSibling();
+                            }
+                            Node lastNode = parent.getLastChild();
+                            while(!(lastNode instanceof Element)){
+                                 lastNode = parent.getLastChild().getPreviousSibling();
+                            }
+                            parent.insertBefore(adopted, lastNode);
+                            continue;
+                        }
+                        if(name.equals("web")){
+                            Node lastNode = parent.getLastChild();
+                            while(!(lastNode instanceof Element)){
+                                lastNode = parent.getLastChild().getPreviousSibling();
+                            }
+                            parent.insertBefore(adopted, lastNode);
+                            continue;
+                        }
+                        parent.appendChild(adopted);
+
+
+                    }
+                }
+            }
+        }
+       return  doc;
+    }
+
+    public static void  insertDriver(Document doc, Node node) throws  ParserConfigurationException,
+            IOException, SAXException, TransformerException{
+        NodeList  drivers = doc.getElementsByTagName("drivers");
+        for(int i = 0; i < drivers.getLength(); i++){
+            if( !(drivers.item(i) instanceof Element)) {
+                continue;
+            }
+            NodeList appenders = node.getChildNodes();
+            for(int j = 0; j < appenders.getLength(); j++){
+                if( !(appenders.item(j) instanceof Element)) {
+                    continue;
+                }
+                Node appender = appenders.item(j);
+                Node adopted = doc.adoptNode(appender.cloneNode(true));
+                drivers.item(i).appendChild(adopted);
+            }
+        }
+
+    }
+
+
+
+
     public static void main(String[] args) {
         File temp = null;
         String home = "";
         String target =  "";
-        String homeName = "";
+        String serverName = "";
         String subs = "";
         boolean xml =  true;
         boolean cli = true;
@@ -56,8 +133,11 @@ public class App {
         boolean resource = false;
         boolean copy = true;
         boolean subsystem = false;
+        boolean merge = false;
         String cmd = "";
         File directory = new File(".");
+        BufferedWriter out = null;
+        String xmlOut = "outXml.xml";
 
 
         try {
@@ -89,21 +169,24 @@ public class App {
                         int index = commands[i].indexOf("=");
                         home = commands[i].substring(index+1);
                         continue;
-
                     }
 
                     if(commands[i].startsWith("target=")){
                         int index = commands[i].indexOf("=");
                         target = commands[i].substring(index+1);
                         continue;
-
                     }
 
-                    if(commands[i].startsWith("home-name=")){
-                        int index = commands[i].indexOf("=");
-                        homeName = commands[i].substring(index+1);
+                    if(commands[i].startsWith("merge")){
+                        merge = true;
                         continue;
+                    }
 
+
+                    if(commands[i].startsWith("server-name=")){
+                        int index = commands[i].indexOf("=");
+                        serverName = commands[i].substring(index+1);
+                        continue;
                     }
 
                     if(commands[i].startsWith("only-cli")){
@@ -144,8 +227,8 @@ public class App {
                home = directory.getCanonicalPath();
             }
 
-            if(homeName.isEmpty()){
-                homeName = "standard";
+            if(serverName.isEmpty()){
+                serverName = "standard";
             }
 
             subs = subs.replaceAll(" ", "");
@@ -193,7 +276,7 @@ public class App {
                 resource = true;
             }
 
-            String serverPath = home + File.separator + "server" +File.separator + homeName;
+            String serverPath = home + File.separator + "server" +File.separator + serverName;
             Migration migration = new MigrationImpl(copy);
             LoggingAS7 loggingAS7 =  null;
             SecurityAS7 securityAS7 = null;
@@ -325,7 +408,14 @@ public class App {
                 //doc.appendChild(comment);
 
                 // to systemout at this moment for testing
-                final StreamResult streamResult = new StreamResult(System.out);
+                //final StreamResult streamResult = new StreamResult(System.out);
+                //final StreamResult streamResult = new StreamResult(new File("testxml.xml"));
+
+                StringWriter writer= new StringWriter();
+                final StreamResult streamResult = new StreamResult(writer);
+                writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
+                writer.write("<migration>\n");
+
                 final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 final DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -333,6 +423,9 @@ public class App {
                 final Transformer serializer = tf.newTransformer();
                 serializer.setOutputProperty(OutputKeys.INDENT, "yes");
                 serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+                serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+
 
                 if(data){
                     final JAXBContext dataSubContext = JAXBContext.newInstance(DatasourcesSub.class);
@@ -341,6 +434,7 @@ public class App {
                     dataBinder.marshal(dsSub,docData);
                     final DOMSource domData = new DOMSource(docData);
                     serializer.transform(domData, streamResult);
+
                 }
 
                 if(security){
@@ -358,7 +452,7 @@ public class App {
                         final JAXBContext resourceSubContext = JAXBContext.newInstance(ResourceAdaptersSub.class);
                         final Binder<Node> resourceBinder = resourceSubContext.createBinder();
                         final Document docResource = builder.getDOMImplementation().createDocument(null, null, null);
-                        Object[] test = connFacColl.toArray();
+                        //Object[] test = connFacColl.toArray();
                         resourceBinder.marshal(resAdapSub, docResource);
                         final DOMSource domResource = new DOMSource(docResource);
                         serializer.transform(domResource, streamResult);
@@ -375,6 +469,8 @@ public class App {
 
                     final Document docServer = builder.getDOMImplementation().createDocument(null, null, null);
                     final Document docSocket = builder.getDOMImplementation().createDocument(null, null, null);
+
+                    serverBinder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
                     serverBinder.marshal(serverSub,docServer);
                     socketBinder.marshal(migration.getSocketBindingGroup(),docSocket);
@@ -399,6 +495,11 @@ public class App {
                     serializer.transform(domLog, streamResult);
 
                 }
+                writer.write("</migration>");
+                FileWriter fstream = new FileWriter(xmlOut);
+                out = new BufferedWriter(fstream);
+                out.write(writer.toString());
+                out.close();
 
             }
 
@@ -462,6 +563,54 @@ public class App {
                     }
 
                 }
+            }
+
+            if(merge){
+                DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+                domFactory.setIgnoringComments(true);
+                DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+                File homedir = new File(System.getProperty("user.home"));
+                File fileToRead = new File(homedir, "Programing/standalone.xml");
+
+                Document xmlDoc = builder.parse(new File(xmlOut));
+                Document doc = builder.parse(fileToRead);
+
+                NodeList nodeList = xmlDoc.getDocumentElement().getChildNodes();
+
+                for(int i = 0; i < nodeList.getLength(); i++){
+                    if (nodeList.item(i) instanceof Element == false) continue;
+                    switch(nodeList.item(i).getNodeName()){
+                        case("datasources"): {
+                            doc = insertIntoXml(doc, nodeList.item(i),"datasource");
+                            NodeList drivers = nodeList.item(i).getChildNodes();
+                            for(int j = 0; j < drivers.getLength(); j++){
+                                if(drivers.item(j) instanceof Element == false) continue;
+                                if(drivers.item(j).getNodeName() == "drivers"){
+                                    insertDriver(doc, drivers.item(j));
+                                    break;
+                                }
+                            }
+                        } break;
+                        case("logging"):  doc = insertIntoXml(doc, nodeList.item(i),"logging");  break;
+                        case("security-domains"): doc = insertIntoXml(doc, nodeList.item(i),"security");  break;
+                        case("socket-binding-group"):  doc = insertIntoXml(doc, nodeList.item(i),"socket-binding-group");  break;
+                        case("server"):    doc = insertIntoXml(doc, nodeList.item(i),"web");  break;
+                        case("resource-adapters"): doc = insertIntoXml(doc, nodeList.item(i),"resource-adapter");  break;
+                        // TODO: Maybe file was edited or app did something wrong?
+                        default: throw new IOException("Error: XML file contains unknown element for merge!");
+                    }
+
+                }
+                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+                StreamResult result = new StreamResult(new StringWriter());
+                DOMSource source = new DOMSource(doc);
+                transformer.transform(source, result);
+
+                String xmlOutput = result.getWriter().toString();
+                System.out.println(xmlOutput);
             }
 
             if(copy){

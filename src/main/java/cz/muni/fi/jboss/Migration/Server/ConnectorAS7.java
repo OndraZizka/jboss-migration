@@ -5,6 +5,8 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import javax.xml.bind.annotation.*;
 
 /**
+ * Class for marshalling and representing connector in AS7 (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 10/2/12
  * Time: 9:13 PM

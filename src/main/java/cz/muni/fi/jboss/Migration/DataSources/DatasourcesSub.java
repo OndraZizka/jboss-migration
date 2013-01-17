@@ -6,10 +6,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing datasource subsystem (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 8/27/12
  * Time: 6:25 PM
  */
+
 @XmlRootElement(name = "datasources")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "datasources")

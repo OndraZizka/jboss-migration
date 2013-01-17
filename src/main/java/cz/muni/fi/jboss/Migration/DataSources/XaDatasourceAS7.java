@@ -8,10 +8,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class for marshalling and representing xa-datasource in AS7 (AS7)
+ *
  * @author: Roman Jakubco
  * Date: 8/27/12
  * Time: 6:25 PM
  */
+
 @XmlRootElement(name = "xa-datasource")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "xa-datasource")
@@ -41,7 +44,7 @@ public class XaDatasourceAS7 {
     @XmlElement(name = "xa-datasource-class")
     private String xaDatasourceClass;
 
-    @XmlElements(@XmlElement(name = "xa-datasource-property", type= XaDatasourceProperty.class))
+    @XmlElements(@XmlElement(name = "xa-datasource-property", type = XaDatasourceProperty.class))
     private Set<XaDatasourceProperty> xaDatasourceProps;
 
     // elements in pool element

@@ -24,10 +24,44 @@ public class MigrationImpl implements Migration {
     private Set<String> drivers = new HashSet();
     private Set<String> xaDatasourceClasses = new HashSet();
     private Set<CopyMemory> copyMemories = new HashSet();
+    Set<SocketBinding> socketTemp = new HashSet();
     private boolean copy;
 
     MigrationImpl(boolean copy){
-        this.copy=copy;
+        this.copy = copy;
+    }
+
+    private void createDefaultSockets(){
+        /*
+        <socket-binding name="ajp" port="8009"/>
+     <socket-binding name="http" port="8080"/>
+     <socket-binding name="https" port="8443"/>
+     <socket-binding name="remoting" port="4447"/>
+     <socket-binding name="txn-recovery-environment" port="4712"/>
+     <socket-binding name="txn-status-manager" port="4713"/>
+         */
+
+        SocketBinding sb1 = new SocketBinding();
+        sb1.setSocketName("ajp");
+        sb1.setSocketPort("8009");
+        socketTemp.add(sb1);
+
+        SocketBinding sb2 = new SocketBinding();
+        sb2.setSocketName("http");
+        sb2.setSocketPort("8080");
+        socketTemp.add(sb2);
+
+        SocketBinding sb3 = new SocketBinding();
+        sb3.setSocketName("https");
+        sb3.setSocketPort("8443");
+        socketTemp.add(sb3);
+
+        SocketBinding sb4 = new SocketBinding();
+        sb4.setSocketName("remoting");
+        sb4.setSocketPort("4712");
+        socketTemp.add(sb4);
+
+
     }
 
     @Override
@@ -323,8 +357,15 @@ public class MigrationImpl implements Migration {
 
     // TODO:first implementation of socket binding..
     public String createSocketBinding(String port, String name) {
+        createDefaultSockets();
         SocketBinding socketBinding = new SocketBinding();
         Set<SocketBinding> socketBindings = new HashSet();
+
+        for (SocketBinding sb : socketTemp) {
+            if (sb.getSocketPort().equals(port)) {
+                return sb.getSocketName();
+            }
+        }
 
         if (socketBindingGroup.getSocketBindings() == null) {
             socketBinding.setSocketName(name);
@@ -356,7 +397,7 @@ public class MigrationImpl implements Migration {
     }
 
 
-    // TODO: Basic server implementation
+
     @Override
     public ServerSub serverMigration(ServerAS5 serverAS5) {
         socketBindingGroup = new SocketBindingGroup();
@@ -401,7 +442,9 @@ public class MigrationImpl implements Migration {
                 }
 
 
-                try {
+                if(connector.getSslEnabled() == null){
+
+                } else{
                     if (connector.getSslEnabled().equals("true")) {
                         connAS7.setScheme("https");
                         connAS7.setSecure(connector.getSecure());
@@ -425,11 +468,8 @@ public class MigrationImpl implements Migration {
                         //problem s heslami.. treba to premysliet  kedze password zastresuje aj keystorePass aj truststorePass
                         connAS7.setPassword(connector.getKeystorePass());
                     }
-
-
-                } catch (NullPointerException ex) {
-
                 }
+
                 subConnectors.add(connAS7);
             }
 
@@ -450,7 +490,6 @@ public class MigrationImpl implements Migration {
 
     }
 
-    // TODO: basic logging implementation
     @Override
     public LoggingAS7 loggingMigration(LoggingAS5 loggingAS5) {
         LoggingAS7 loggingAS7 = new LoggingAS7();
@@ -490,7 +529,7 @@ public class MigrationImpl implements Migration {
                             }
                         }
                         if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
-                            // basic.. neviem co s uvodzovkami
+                            // TODO:basic.. neviem co s uvodzovkami
                             periodic.setSuffix(parameter.getParamValue());
                             continue;
                         }
@@ -657,7 +696,6 @@ public class MigrationImpl implements Migration {
         return loggingAS7;
     }
 
-    // TODO:basic implementation
     @Override
     public SecurityAS7 securityMigration(SecurityAS5 securityAS5) {
         SecurityAS7 securityAS7 = new SecurityAS7();
@@ -748,7 +786,7 @@ public class MigrationImpl implements Migration {
                     for (ModuleOptionAS5 moAS5 : lmAS5.getModuleOptions()) {
                         ModuleOptionAS7 moAS7 = new ModuleOptionAS7();
                         moAS7.setModuleOptionName(moAS5.getModuleName());
-                        // TODO: problem with module option which use properties files...maybe change path only?
+                        // TODO: problem with module option which use properties files...maybe only change path?
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());
                         moduleOptions.add(moAS7);
                     }
