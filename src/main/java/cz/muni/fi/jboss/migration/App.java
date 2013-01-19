@@ -284,9 +284,9 @@ public class App {
 
             subs = subs.replaceAll(" ", "");
             String[] subsParts = subs.split("\\,");
-            // TODO:??
+            // TODO: ??
             if((subsParts.length > 5) || (subsParts.length==0)){
-                System.err.println("chyba ");
+                System.err.println("Error");
             }
 
             if (subsystem) {

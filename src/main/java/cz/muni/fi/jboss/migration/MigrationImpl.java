@@ -104,7 +104,7 @@ public class MigrationImpl implements Migration {
             // Elements in element <security> in AS7
             datasourceAS7.setUserName(datasourceAS5.getUserName());
             datasourceAS7.setPassword(datasourceAS5.getPassword());
-            // TODO:some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
+            // TODO: Some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
             datasourceAS7.setSecurityDomain(datasourceAS5.getSecurityDomain());
 
             // Elements in element <pool> in AS7
@@ -186,7 +186,7 @@ public class MigrationImpl implements Migration {
             // Elements in element <security> in AS7
             xaDataAS7.setUserName(xaDataAS5.getUserName());
             xaDataAS7.setPassword(xaDataAS5.getPassword());
-            // TODO:same problem as in datasourceMigration()
+            // TODO: Same problem as in datasourceMigration()
             xaDataAS7.setSecurityDomain(xaDataAS5.getSecurityDomain());
 
             // Elements in element <validation> in AS7
@@ -245,7 +245,7 @@ public class MigrationImpl implements Migration {
         }
         resAdapter.setArchive(connFactoryAS5.getRarName());
 
-        // TODO: not sure what exactly this element represents and what it is in AS5
+        // TODO: Not sure what exactly this element represents and what it is in AS5
         resAdapter.setTransactionSupport("XATransaction");
 
         ConnectionDefinition connDef = new ConnectionDefinition();
@@ -333,7 +333,7 @@ public class MigrationImpl implements Migration {
             Driver driver = new Driver();
             driver.setDriverClass(driverClass);
             driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
-            // TODO: not sure how to set module.. only test
+            // TODO: Not sure how to set module.. only test
             driver.setDriverModule("module");
             driverColl.add(driver);
         }
@@ -342,7 +342,7 @@ public class MigrationImpl implements Migration {
             Driver driver = new Driver();
             driver.setXaDatasourceClass(xaDsClass);
             driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
-            // TODO: not sure how to set module.. only test
+            // TODO: Not sure how to set module.. only test
             driver.setDriverModule("module");
             xaDataClassColl.add(driver);
         }
@@ -356,7 +356,7 @@ public class MigrationImpl implements Migration {
     }
 
 
-    // TODO:first implementation of socket binding..
+    // TODO: First implementation of socket binding..
     public String createSocketBinding(String port, String name) {
         createDefaultSockets();
         SocketBinding socketBinding = new SocketBinding();
@@ -418,8 +418,8 @@ public class MigrationImpl implements Migration {
                 connAS7.setProxyPort(connector.getProxyPort());
                 connAS7.setRedirectPort(connector.getRedirectPort());
 
-                // TODO:getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
-                // TODO: only solution is http?
+                // TODO: Getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
+                // TODO: Only solution is http?
                 connAS7.setScheme("http");
 
 
@@ -452,11 +452,11 @@ public class MigrationImpl implements Migration {
 
                         connAS7.setSslName("ssl");
                         connAS7.setVerifyClient(connector.getClientAuth());
-                        // TODO:problem with place of the file
+                        // TODO: Problem with place of the file
                         connAS7.setCertifKeyFile(connector.getKeystoreFile());
 
 
-                        // TODO: no sure which protocols can be in AS5
+                        // TODO: No sure which protocols can be in AS5
                         if (connector.getSslProtocol().equals("TLS")) {
                             connAS7.setSslProtocol("TLSv1");
                         }
@@ -466,7 +466,7 @@ public class MigrationImpl implements Migration {
                         connAS7.setKeyAlias(connAS7.getKeyAlias());
 
 
-                        // TODO:problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+                        // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
                         connAS7.setPassword(connector.getKeystorePass());
                     }
                 }
@@ -482,7 +482,7 @@ public class MigrationImpl implements Migration {
             virtualServers.add(virtualServer);
         }
 
-        // TODO:Set first virtual server as default or it will be done by user?
+        // TODO: Set first virtual server as default or it will be done by user?
         serverSub.setConnectors(subConnectors);
         serverSub.setVirtualServers(virtualServers);
 
@@ -529,7 +529,7 @@ public class MigrationImpl implements Migration {
                             }
                         }
                         if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
-                            // TODO: basic for now. Don't know what to do with apostrophes
+                            // TODO: Basic for now. Don't know what to do with apostrophes
                             periodic.setSuffix(parameter.getParamValue());
                             continue;
                         }
@@ -555,7 +555,7 @@ public class MigrationImpl implements Migration {
                         if (parameter.getParamName().equals("File")) {
                             String value = parameter.getParamValue();
 
-                            //TODO: problem with bad parse? same thing in DailyRotating
+                            //TODO: Problem with bad parse? same thing in DailyRotating
                             size.setRelativeTo("jboss.server.log.dir");
                             size.setPath(StringUtils.substringAfterLast(value, "/"));
 
@@ -635,13 +635,13 @@ public class MigrationImpl implements Migration {
                 }
                 break;
                 // TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
-                // TODO: so i think that FileAppender in AS7 is then useless?
+                // TODO: So i think that FileAppender in AS7 is then useless?
                 // THINK !!
 
                 //case "FileAppender" :
 
                 // Basic implementation of Custom Handler
-                //TODO: problem with module
+                //TODO: Problem with module
                 default: {
                     CustomHandler customHandler = new CustomHandler();
                     customHandler.setName(appender.getAppenderName());
@@ -687,7 +687,7 @@ public class MigrationImpl implements Migration {
 
         loggingAS7.setLoggers(loggers);
         /*
-        TODO:problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
+        TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
            for now only default INFO
          */
         loggingAS7.setRootLoggerLevel("INFO");
@@ -786,7 +786,7 @@ public class MigrationImpl implements Migration {
                     for (ModuleOptionAS5 moAS5 : lmAS5.getModuleOptions()) {
                         ModuleOptionAS7 moAS7 = new ModuleOptionAS7();
                         moAS7.setModuleOptionName(moAS5.getModuleName());
-                        // TODO: problem with module option which use properties files...maybe only change path?
+                        // TODO: Problem with module option which use properties files...maybe only change path?
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());
                         moduleOptions.add(moAS7);
                     }
