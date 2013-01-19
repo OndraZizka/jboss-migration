@@ -4,9 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>Migration</groupId>
-    <artifactId>Migration</artifactId>
+    <groupId>cz.muni.jboss.as.migration</groupId>
+    <artifactId>AsMigration</artifactId>
     <version>1.0</version>
+
+    <name>JBoss AS 5 to 7 Config Migration</name>
+
     <build>
         <plugins>
             <!-- Java language version -->
@@ -23,10 +26,9 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <mainClass>cz.muni.fi.jboss.Migration.main</mainClass>
+                    <mainClass>cz.muni.fi.jboss.migration.main</mainClass>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
@@ -36,37 +38,42 @@
             <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
         </repository>
     </repositories>
+
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
         </dependency>
+
+        <!-- JAXB impl -->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.moxy</artifactId>
             <version>2.4.0</version>
             <scope>compile</scope>
         </dependency>
+
+        <!--
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
             <version>7.1.2.Final</version>
         </dependency>
+        -->
+
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
+
+        <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <version>4.10</version>
+             <scope>test</scope>
+        </dependency>
     </dependencies>
-
-
-
 
 </project>
