@@ -38,6 +38,29 @@ public class CopyMemory {
     }
 
     public String driverModuleGen(String name){
-        return null;
+        String module = "";
+        if(name.contains("mysql")){
+
+        }
+        // Mssql
+        if(name.contains("microsoft")){
+
+        }
+        if(name.contains("sybase")){
+
+        }
+        if(name.contains("postgresql")){
+
+        }
+        if(name.contains("oracle")){
+
+        }
+        if(name.contains("hsqldb")){
+
+        }
+        if(name.contains("db2")){
+
+        }
+        return module;
     }
 }
