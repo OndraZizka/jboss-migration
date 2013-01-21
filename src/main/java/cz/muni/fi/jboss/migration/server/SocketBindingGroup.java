@@ -33,6 +33,13 @@ public class SocketBindingGroup {
         this.socketBindings = temp;
     }
 
+    public boolean isEmpty(){
+        if(socketBindings == null){
+            return true;
+        }
+        return socketBindings.isEmpty();
+    }
+
 
 
 

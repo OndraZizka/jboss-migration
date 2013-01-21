@@ -11,7 +11,10 @@ package cz.muni.fi.jboss.migration;
 public class CopyMemory {
     private String name;
     private String type;
-    private String path;
+    private String targetPath;
+    private String homePath;
+    // Only if it is driver
+    private String module;
 
     public String getName() {
         return name;
@@ -21,12 +24,12 @@ public class CopyMemory {
         this.name = name;
     }
 
-    public String getPath() {
-        return path;
+    public String getTargetPath() {
+        return targetPath;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setTargetPath(String targetPath) {
+        this.targetPath = targetPath;
     }
 
     public String getType() {
@@ -37,8 +40,24 @@ public class CopyMemory {
         this.type = type;
     }
 
-    public String driverModuleGen(String name){
-        String module = "";
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
+    }
+
+    public String getHomePath() {
+        return homePath;
+    }
+
+    public void setHomePath(String homePath) {
+        this.homePath = homePath;
+    }
+
+    public String driverModuleGen(){
+
         if(name.contains("mysql")){
 
         }
@@ -61,6 +80,8 @@ public class CopyMemory {
         if(name.contains("db2")){
 
         }
-        return module;
+
+        //return module;
+        return "module";
     }
 }

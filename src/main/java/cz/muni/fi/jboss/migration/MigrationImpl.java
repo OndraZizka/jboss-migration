@@ -27,6 +27,10 @@ public class MigrationImpl implements Migration {
     Set<SocketBinding> socketTemp = new HashSet();
     private boolean copy;
 
+    MigrationImpl(){
+        this.copy = false;
+    }
+
     MigrationImpl(boolean copy){
         this.copy = copy;
     }
@@ -60,8 +64,6 @@ public class MigrationImpl implements Migration {
         sb4.setSocketName("remoting");
         sb4.setSocketPort("4712");
         socketTemp.add(sb4);
-
-
     }
 
     @Override
@@ -99,6 +101,7 @@ public class MigrationImpl implements Migration {
             datasourceAS7.setTransIsolation(datasourceAS5.getTransIsolation());
             datasourceAS7.setNewConnectionSql(datasourceAS5.getNewConnectionSql());
 
+            // TODO: First implementation.
             datasourceAS7.setDriver(StringUtils.substringAfter(datasourceAS5.getDriverClass(), "."));
 
             // Elements in element <security> in AS7
@@ -237,12 +240,11 @@ public class MigrationImpl implements Migration {
         ResourceAdapter resAdapter = new ResourceAdapter();
         resAdapter.setJndiName(connFactoryAS5.getJndiName());
 
-        if(copy){
-            CopyMemory copyMemory = new CopyMemory();
-            copyMemory.setName(connFactoryAS5.getRarName());
-            copyMemory.setType("resource");
-            copyMemories.add(copyMemory);
-        }
+        CopyMemory copyMemory = new CopyMemory();
+        copyMemory.setName(connFactoryAS5.getRarName());
+        copyMemory.setType("resource");
+        copyMemories.add(copyMemory);
+
         resAdapter.setArchive(connFactoryAS5.getRarName());
 
         // TODO: Not sure what exactly this element represents and what it is in AS5
@@ -333,8 +335,14 @@ public class MigrationImpl implements Migration {
             Driver driver = new Driver();
             driver.setDriverClass(driverClass);
             driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
-            // TODO: Not sure how to set module.. only test
-            driver.setDriverModule("module");
+
+            // TODO: Problem with copy memory class and setting name for Driver so it can be find in server dir
+            CopyMemory cp = new CopyMemory();
+            cp.setName(StringUtils.substringAfter(driverClass, "."));
+            cp.setType("driver");
+            copyMemories.add(cp);
+            driver.setDriverModule(cp.driverModuleGen());
+
             driverColl.add(driver);
         }
 
@@ -342,8 +350,14 @@ public class MigrationImpl implements Migration {
             Driver driver = new Driver();
             driver.setXaDatasourceClass(xaDsClass);
             driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
-            // TODO: Not sure how to set module.. only test
-            driver.setDriverModule("module");
+
+            // TODO: Problem with copy memory class and setting name for Driver so it can be find in server dir
+            CopyMemory cp = new CopyMemory();
+            cp.setName(StringUtils.substringAfter(xaDsClass, "."));
+            cp.setType("driver");
+            copyMemories.add(cp);
+            driver.setDriverModule(cp.driverModuleGen());
+
             xaDataClassColl.add(driver);
         }
 
@@ -358,7 +372,9 @@ public class MigrationImpl implements Migration {
 
     // TODO: First implementation of socket binding..
     public String createSocketBinding(String port, String name) {
-        createDefaultSockets();
+        if(socketTemp.isEmpty()){
+            createDefaultSockets();
+        }
         SocketBinding socketBinding = new SocketBinding();
         Set<SocketBinding> socketBindings = new HashSet();
 
@@ -521,18 +537,18 @@ public class MigrationImpl implements Migration {
                             periodic.setFileRelativeTo("jboss.server.log.dir");
                             periodic.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                            if(copy){
-                                CopyMemory copyMemory = new CopyMemory();
-                                copyMemory.setName(StringUtils.substringAfterLast(value, "/"));
-                                copyMemory.setType("log");
-                                copyMemories.add(copyMemory);
-                            }
+                            CopyMemory copyMemory = new CopyMemory();
+                            copyMemory.setName(StringUtils.substringAfterLast(value, "/"));
+                            copyMemory.setType("log");
+                            copyMemories.add(copyMemory);
                         }
+
                         if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
                             // TODO: Basic for now. Don't know what to do with apostrophes
                             periodic.setSuffix(parameter.getParamValue());
                             continue;
                         }
+
                         if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
                             periodic.setLevel(parameter.getParamValue());
                             continue;
@@ -559,13 +575,10 @@ public class MigrationImpl implements Migration {
                             size.setRelativeTo("jboss.server.log.dir");
                             size.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                            if(copy){
-                               CopyMemory copyMemory = new CopyMemory();
-                               copyMemory.setName(StringUtils.substringAfterLast(value, "/"));
-                               copyMemory.setType("log");
-                               copyMemories.add(copyMemory);
-                            }
-
+                            CopyMemory copyMemory = new CopyMemory();
+                            copyMemory.setName(StringUtils.substringAfterLast(value, "/"));
+                            copyMemory.setType("log");
+                            copyMemories.add(copyMemory);
                         }
 
                         if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
@@ -786,8 +799,24 @@ public class MigrationImpl implements Migration {
                     for (ModuleOptionAS5 moAS5 : lmAS5.getModuleOptions()) {
                         ModuleOptionAS7 moAS7 = new ModuleOptionAS7();
                         moAS7.setModuleOptionName(moAS5.getModuleName());
-                        // TODO: Problem with module option which use properties files...maybe only change path?
-                        moAS7.setModuleOptionValue(moAS5.getModuleValue());
+
+                        // TODO: Module-option using file can only use .properties?
+                        if(moAS5.getModuleValue().contains("properties")){
+                            String value;
+                            if(moAS5.getModuleValue().contains("/")){
+                                value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
+                            } else{
+                                value = moAS5.getModuleValue();
+                            }
+                            moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
+
+                            CopyMemory cp = new CopyMemory();
+                            cp.setName(value);
+                            cp.setType("security");
+                            copyMemories.add(cp);
+                        }
+
+
                         moduleOptions.add(moAS7);
                     }
                 }

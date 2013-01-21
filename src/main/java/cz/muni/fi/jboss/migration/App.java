@@ -10,11 +10,11 @@ import cz.muni.fi.jboss.migration.logging.LoggingAS7;
 import cz.muni.fi.jboss.migration.security.SecurityAS5;
 import cz.muni.fi.jboss.migration.security.SecurityAS7;
 import cz.muni.fi.jboss.migration.security.SecurityDomain;
-import cz.muni.fi.jboss.migration.server.ConnectorAS7;
-import cz.muni.fi.jboss.migration.server.ServerAS5;
-import cz.muni.fi.jboss.migration.server.ServerSub;
-import cz.muni.fi.jboss.migration.server.SocketBindingGroup;
+import cz.muni.fi.jboss.migration.server.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 
 import org.w3c.dom.*;
@@ -41,9 +41,8 @@ import java.util.*;
 
 public class App {
 
-    private static Document insertIntoXml(Document doc, Node node, String name) throws  ParserConfigurationException,
+    private static void insertIntoXml(Document doc, Node node, String name) throws  ParserConfigurationException,
             IOException, SAXException, TransformerException {
-
         NodeList parents = doc.getElementsByTagName("subsystem");
         for(int i = 0; i < parents.getLength(); i++){
             if( !(parents.item(i) instanceof Element)) {
@@ -117,35 +116,116 @@ public class App {
                         }
 
                         parent.appendChild(adopted);
-
-
                     }
                 }
             }
         }
-       return  doc;
     }
 
-    private static void  insertDriver(Document doc, Node node) throws  ParserConfigurationException,
+    private static void insertNonSubsystems(Document doc, Node node, String name) throws  ParserConfigurationException,
             IOException, SAXException, TransformerException{
-        NodeList  drivers = doc.getElementsByTagName("drivers");
-        for(int i = 0; i < drivers.getLength(); i++){
-            if( !(drivers.item(i) instanceof Element)) {
+        NodeList parents;
+        if(name.equals("drivers")){
+            parents = doc.getElementsByTagName("drivers");
+        } else{
+            parents = doc.getElementsByTagName("socket-binding-group");
+        }
+
+        for(int i = 0; i < parents.getLength(); i++){
+            if( !(parents.item(i) instanceof Element)) {
                 continue;
             }
-
+            Node parent = parents.item(i);
             NodeList appenders = node.getChildNodes();
 
             for(int j = 0; j < appenders.getLength(); j++){
                 if( !(appenders.item(j) instanceof Element)) {
                     continue;
                 }
-
                 Node appender = appenders.item(j);
                 Node adopted = doc.adoptNode(appender.cloneNode(true));
-                drivers.item(i).appendChild(adopted);
+                if(name.equals("socket-binding")){
+                    Node lastNode = parent.getLastChild();
+
+                    while(!(lastNode instanceof Element)){
+                        lastNode = parent.getLastChild().getPreviousSibling();
+                    }
+                    parent.insertBefore(adopted, lastNode);
+                } else{
+                    parent.appendChild(adopted);
+                }
             }
         }
+    }
+
+    // Method for creating module.xml for drivers.
+    private static Document createModuleXML(CopyMemory cp) throws ParserConfigurationException, TransformerException{
+
+        /**
+         * Example of module xml,
+         *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
+                <resources>
+                   <resource-root path="h2-1.3.168.jar"/>
+                   <!-- Insert resources here -->
+                </resources>
+                <dependencies>
+                    <module name="javax.api"/>
+                    <module name="javax.transaction.api"/>
+                    <module name="javax.servlet.api" optional="true"/>
+                </dependencies>
+          </module>
+         */
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+        Document doc =  builder.getDOMImplementation().createDocument(null, null, null);
+
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+
+        StringWriter writer = new StringWriter();
+        final StreamResult streamResult = new StreamResult(writer);
+
+
+
+        Element root = doc.createElement("module");
+        doc.appendChild(root);
+
+        root.setAttribute("xmlns", "urn:jboss:module:1.1");
+        root.setAttribute("module", cp.getModule());
+
+        Element resources = doc.createElement("resources");
+        root.appendChild(resources);
+
+        Element resource = doc.createElement("resource-root");
+        resource.setAttribute("path", cp.getName());
+        resources.appendChild(resource);
+
+        Element dependecies = doc.createElement("dependencies");
+        Element module1 = doc.createElement("module");
+        module1.setAttribute("name", "javax.api");
+        Element module2 = doc.createElement("module");
+        module2.setAttribute("name", "javax.transaction.api");
+        Element module3 = doc.createElement("module");
+        module3.setAttribute("name", "javax.servlet.api");
+        module3.setAttribute("optional", "true");
+
+        dependecies.appendChild(module1);
+        dependecies.appendChild(module2);
+        dependecies.appendChild(module3);
+
+        root.appendChild(dependecies);
+
+        // Testing
+        //DOMSource source = new DOMSource(doc);
+        //transformer.transform(source, streamResult);
+        //String xml = streamResult.getWriter().toString();
+        //System.out.println(xml);
+
+        return doc;
     }
 
 
@@ -279,7 +359,7 @@ public class App {
             }
 
             if(serverName.isEmpty()){
-                serverName = "standard";
+                serverName = "default";
             }
 
             subs = subs.replaceAll(" ", "");
@@ -600,6 +680,11 @@ public class App {
                             System.out.println(cliScript.createConnectorScript(connectorAS7));
                         }
                     }
+                    if(!(migration.getSocketBindingGroup().isEmpty())){
+                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
+                            System.out.println(cliScript.createSocketBinding(sb));
+                        }
+                    }
                 }
 
                 if(log){
@@ -632,30 +717,30 @@ public class App {
                     if (!(nodeList.item(i) instanceof Element)) continue;
                     switch(nodeList.item(i).getNodeName()){
                         case("datasources"): {
-                            doc = insertIntoXml(doc, nodeList.item(i),"datasource");
+                            insertIntoXml(doc, nodeList.item(i),"datasource");
                             NodeList drivers = nodeList.item(i).getChildNodes();
                             for(int j = 0; j < drivers.getLength(); j++){
                                 if(!(drivers.item(j) instanceof Element)) continue;
                                 if(drivers.item(j).getNodeName().equals("drivers")){
-                                    insertDriver(doc, drivers.item(j));
+                                    insertNonSubsystems(doc, drivers.item(j), "drivers");
                                     break;
                                 }
                             }
                         } break;
                         case("logging"): {
-                            doc = insertIntoXml(doc, nodeList.item(i),"logging");
+                            insertIntoXml(doc, nodeList.item(i),"logging");
                         }break;
                         case("security-domains"):{
-                            doc = insertIntoXml(doc, nodeList.item(i),"security");
+                            insertIntoXml(doc, nodeList.item(i),"security");
                         }  break;
                         case("socket-binding-group"):{
-                            doc = insertIntoXml(doc, nodeList.item(i),"socket-binding-group");
+                            insertNonSubsystems(doc, nodeList.item(i),"socket-binding");
                         }  break;
                         case("server"):{
-                            doc = insertIntoXml(doc, nodeList.item(i),"web");
+                            insertIntoXml(doc, nodeList.item(i),"web");
                         }break;
                         case("resource-adapters"):{
-                            doc = insertIntoXml(doc, nodeList.item(i),"resource-adapter");
+                            insertIntoXml(doc, nodeList.item(i),"resource-adapter");
                         }  break;
                         // TODO: Maybe file was edited or app did something wrong?
                         default: throw new IOException("Error: XML file contains unknown element for merge!");
@@ -678,7 +763,80 @@ public class App {
             }
 
             if(copy){
-              Collection<CopyMemory> copyMemories = migration.getCopyMemories();
+                Collection<CopyMemory> copyMemories = migration.getCopyMemories();
+                for(CopyMemory cp : copyMemories){
+                   if(cp.getName() == null || cp.getName().isEmpty()){
+                       throw new NullPointerException();
+                   }
+                   String targetPath = target;
+                   File dir = new File(serverPath);
+                   NameFileFilter nff = new NameFileFilter(cp.getName());
+                   //NameFileFilter nff = new NameFileFilter("postgresql-9.2-1002.jdbc4.jar", IOCase.INSENSITIVE);
+                   List<File> list = (List<File>) FileUtils.listFiles(dir,nff, FileFilterUtils.makeCVSAware(null));
+                   switch(cp.getType()){
+                       case "driver":{
+                           // TODO:Can there be only one jar of selected driver or many different versions?
+                           if(list.isEmpty()){
+                               // TODO: Maybe define special exception for specific fails in App?
+                                throw  new FileNotFoundException("Cannot locate driver jar for driver:" + cp.getName() + "!");
+                           } else{
+                              cp.setHomePath(list.get(0).getAbsolutePath());
+                              cp.setName(list.get(0).getName());
+                              String module = "";
+                              if(cp.getModule() != null){
+                                   String[] parts = cp.getModule().split("\\.");
+                                   for(String s : parts){
+                                       module = module + File.separator;
+                                   }
+                                   cp.setTargetPath(target + File.separator + module  + "main");
+                              } else{
+                                  // TODO: Probabaly define new exception...
+                                  throw new NullPointerException();
+                              }
+
+                           }
+                       } break;
+                       case "log":{
+                           if(list.isEmpty()){
+                               throw  new NullPointerException("Cannot locate log file: " + cp.getName() + "!");
+                           } else{
+                               cp.setHomePath(list.get(0).getAbsolutePath());
+                               cp.setTargetPath(target + File.separator + "standalone" + File.separator +"log" );
+                           }
+                       } break;
+                       case "security":{
+                           if(list.isEmpty()){
+                               // TODO: Maybe define special exception for specific fails in App?
+                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
+                           } else{
+                               cp.setHomePath(list.get(0).getAbsolutePath());
+                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "configuration");
+                           }
+                       } break;
+                       case "resource":{
+                           if(list.isEmpty()){
+                               // TODO: Maybe define special exception for specific fails in App?
+                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
+                           } else{
+                               cp.setHomePath(list.get(0).getAbsolutePath());
+                               // TODO:
+                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "deployments");
+                           }
+                       } break;
+                   }
+                }
+
+
+
+
+
+
+
+//                CopyMemory cp = new CopyMemory();
+//                cp.setName("h2-1.3.168.jar");
+//                cp.setType("driver");
+//                cp.setModule("com.h2database.h2");
+//                createModuleXML(cp);
             }
 
         } catch (IOException e) {
