@@ -1,0 +1,21 @@
+Concole UI
+==========
+
+Usage:
+
+     java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>
+
+Options:
+
+    as5.profile=<name>
+        Path to AS 5 profile.
+        Default: "default"
+
+    as7.confPath=<path>
+        Path to AS 7 config file.
+        Default: "standalone/conf/standalone.xml"
+
+    conf.<module>.<property>=<value>  := Module-specific options.
+
+        <module> := Name of one of modules. E.g. datasource, jaas, security, ...
+        <property> := Name of the property to set. Specific per module. May occur multiple times.
