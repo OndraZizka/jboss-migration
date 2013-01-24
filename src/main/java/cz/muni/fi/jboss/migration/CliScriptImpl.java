@@ -1,16 +1,18 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.connectionFactories.ConfigProperty;
-import cz.muni.fi.jboss.migration.connectionFactories.ConnectionDefinition;
-import cz.muni.fi.jboss.migration.connectionFactories.ResourceAdapter;
-import cz.muni.fi.jboss.migration.dataSources.*;
-import cz.muni.fi.jboss.migration.logging.*;
-import cz.muni.fi.jboss.migration.security.LoginModuleAS7;
-import cz.muni.fi.jboss.migration.security.ModuleOptionAS7;
-import cz.muni.fi.jboss.migration.security.SecurityDomain;
-import cz.muni.fi.jboss.migration.server.ConnectorAS7;
-import cz.muni.fi.jboss.migration.server.SocketBinding;
-import cz.muni.fi.jboss.migration.server.VirtualServer;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConfigProperty;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionDefinition;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
+import cz.muni.fi.jboss.migration.migrators.dataSources.*;
+import cz.muni.fi.jboss.migration.migrators.logging.*;
+import cz.muni.fi.jboss.migration.migrators.security.LoginModuleAS7;
+import cz.muni.fi.jboss.migration.migrators.security.ModuleOptionAS7;
+import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
+import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
+import cz.muni.fi.jboss.migration.migrators.server.SocketBinding;
+import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
+import cz.muni.fi.jboss.migration.old.CliScript;
 
 
 /**
@@ -34,7 +36,7 @@ public class CliScriptImpl implements CliScript {
 
 
     @Override
-    public String createDatasourceScript(DatasourceAS7 datasourceAS7) throws CliScriptException{
+    public String createDatasourceScript(DatasourceAS7 datasourceAS7) throws CliScriptException {
         if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
               throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
                       new NullPointerException());
