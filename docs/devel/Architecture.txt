@@ -1,0 +1,108 @@
+Packages
+********
+
+org.jboss.as.migrator57 or cz.muni.fi.jboss.migration, doesn't matter right now.
+
+org.jboss.as.migrator57
+    MigratorApp
+    Migrator
+    config classes
+org.jboss.as.migrator57.spi (service provider interface - "internal API")
+    interfaces
+
+org.jboss.as.migrator57.ex
+    exceptions
+
+org.jboss.as.migrator57.migrators
+    Implementations of IMigrator, and ILoadedData
+    package per one, i.e.:
+
+org.jboss.as.migrator57.migrators.datasource
+org.jboss.as.migrator57.migrators.security
+org.jboss.as.migrator57.migrators.resAdapter
+org.jboss.as.migrator57.migrators....
+
+
+Application architecture
+************************
+
+class MigratorApp - main class.
+
+   * Processes the user input, creates the Configuration and MigrationContext object.
+
+// Performs the whole process. This is the "X" on the picture.
+class Migrator {
+
+    private Configuration config;
+    private MigrationContext ctx;
+
+    private List<IMigrator> migrators = createMigrators();
+
+    // This way it will be simpler than instantiating from Class... We can add that later.
+    private static List<IMigrator> createMigrators(){
+        List<IMigrator> migrators = new LinkedList();
+        migrators.add( new DatasourceMigrator( 
+                this.config.getGlobal(),
+                this.config.getForMigrator(DatasourceMigrator.class)
+        ) );
+        migrators.add( ... );
+        migrators.add( ... );
+        return migrators;
+    }
+
+
+    public Migrator( Configuration config, MigrationContext ctx ){ ... }
+
+
+    public void init(){
+    }
+
+    public void loadAS5Data() throws LoadMigrationException {
+        for( IMigrator mig : this.migrators ){
+            mig.loadAS5Data( this.ctx );
+        }
+    }
+
+    public void apply() ApplyMigrationException {
+        for( IMigrator mig : this.migrators ){
+            mig.apply( this.ctx );
+        }
+    }
+
+    public List<DOMElement> generateDomElements(){ ... }
+
+    public List<String> generateCliCommands(){ ... }
+
+}
+
+// Keeps the data parsed from user input (arguments, eventual .properties etc.)
+class Configuration {
+
+    // Has a class member per option.
+    private GlobalConfiguration options;
+
+    // Per-module options
+    private Map<Class<T extends IMigrator>, List<Pair<String,String>>>
+
+}
+
+// Keeps everything else
+class MigrationContext {
+
+    Map<Class<T extends IMigrator>, IMigrator> migrators;
+
+    Map<Class<T extends IMigrator>, MigrationData> migrationData;
+}
+
+class MigrationData {
+
+    List<ILoadedData> loadedData - keeps the domain objects, filled with data parsed from AS 5.
+
+    //List<DomElement>  domElements - DOM elements will be created on-the-fly.
+
+    //List<String>      cliCommands - CLI commands will be created on-the-fly.
+}
+
+class MigrationException extends Exception { ... }
+class LoadMigrationException extends MigrationException { ... }
+class ApplyMigrationException extends MigrationException { ... }
