@@ -2,9 +2,12 @@ package cz.muni.fi.jboss.migration.spi;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 /**
  * @author Roman Jakubco
@@ -17,5 +20,7 @@ public interface IMigrator {
 
     public void apply(MigrationContext ctx);
 
-    public void migrate(MigrationContext ctx);
+    public List<Node> generateDomElements(MigrationContext ctx);
+
+    public List<String> generateCliScripts(MigrationContext ctx);
 }

@@ -1,7 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,8 +35,8 @@ public class LoggingAS7 {
     @XmlElements(@XmlElement(name = "periodic-rotating-file-handler", type = PerRotFileHandler.class))
     private Set<PerRotFileHandler> perRotFileHandlers;
 
-    @XmlElements(@XmlElement(name = "size-rotating-file-handler", type = SizeRotatingFileHandler.class))
-    private Set<SizeRotatingFileHandler> sizeRotFileHandlers;
+    @XmlElements(@XmlElement(name = "size-rotating-file-handler", type = SizeRotFileHandler.class))
+    private Set<SizeRotFileHandler> sizeRotFileHandlers;
 
     @XmlElements(@XmlElement(name = "custom-handler", type = CustomHandler.class))
     private Set<CustomHandler> customHandlers;
@@ -89,12 +87,12 @@ public class LoggingAS7 {
         this.perRotFileHandlers = temp;
     }
 
-    public Set<SizeRotatingFileHandler> getSizeRotFileHandlers() {
+    public Set<SizeRotFileHandler> getSizeRotFileHandlers() {
         return sizeRotFileHandlers;
     }
 
-    public void setSizeRotFileHandlers(Collection<SizeRotatingFileHandler> sizeRotFileHandlers) {
-        Set<SizeRotatingFileHandler> temp = new HashSet();
+    public void setSizeRotFileHandlers(Collection<SizeRotFileHandler> sizeRotFileHandlers) {
+        Set<SizeRotFileHandler> temp = new HashSet();
         temp.addAll(sizeRotFileHandlers);
         this.sizeRotFileHandlers = temp;
     }

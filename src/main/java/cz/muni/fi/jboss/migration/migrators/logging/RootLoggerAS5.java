@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -19,7 +19,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "root")
 
-public class RootLoggerAS5 implements ILoadedData{
+public class RootLoggerAS5 implements IConfigFragment {
 
     @XmlPath("priority/@value")
     private String rootPriorityValue;

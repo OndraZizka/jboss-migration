@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -20,7 +20,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "category")
 
-public class Category implements ILoadedData {
+public class Category implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String categoryName;

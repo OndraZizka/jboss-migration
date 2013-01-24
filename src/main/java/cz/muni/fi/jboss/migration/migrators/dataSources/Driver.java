@@ -1,7 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
-
 import javax.xml.bind.annotation.*;
 
 /**
@@ -16,7 +14,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "driver")
 
-public class Driver implements IMigratedData {
+public class Driver {
 
     @XmlAttribute(name = "name")
     private String driverName;

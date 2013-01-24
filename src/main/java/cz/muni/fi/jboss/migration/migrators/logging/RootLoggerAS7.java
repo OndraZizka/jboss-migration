@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -19,7 +18,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "root-logger")
 
-public class RootLoggerAS7 implements IMigratedData {
+public class RootLoggerAS7 {
 
     @XmlPath("level/@name")
     private String rootLoggerLevel;

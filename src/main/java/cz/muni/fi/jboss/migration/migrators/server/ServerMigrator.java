@@ -4,8 +4,11 @@ import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -40,45 +43,6 @@ public class ServerMigrator implements IMigrator {
         this.config =  config;
     }
 
-    @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
-        try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
-
-            // Or maybe use FileUtils and list all files with that name?
-            File file = new File(globalConfig.getDirAS5() + File.separator + "deploy" + File.separator
-                    + "jbossweb.sar" + File.separator + "server.xml");
-
-            if(file.canRead()){
-                ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(file);
-
-                MigrationData mData = new MigrationData();
-                for(Service s : serverAS5.getServices()){
-                    mData.getLoadedData().add(s);
-                    mData.getLoadedData().addAll(s.getConnectorAS5s());
-                }
-
-                ctx.getMigrationData().put(ServerMigrator.class, mData);
-
-            } else{
-                 throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
-            }
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
-        }
-
-    }
-
-    @Override
-    public void apply(MigrationContext ctx) {
-
-    }
-
-    @Override
-    public void migrate(MigrationContext ctx) {
-
-    }
-
     public SocketBindingGroup getSocketBindingGroup() {
         return socketBindingGroup;
     }
@@ -110,6 +74,127 @@ public class ServerMigrator implements IMigrator {
     public void setConfig(List<Pair<String, String>> config) {
         this.config = config;
     }
+
+    @Override
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
+        try {
+            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
+
+            // Or maybe use FileUtils and list all files with that name?
+            File file = new File(globalConfig.getDirAS5() + File.separator + "deploy" + File.separator
+                    + "jbossweb.sar" + File.separator + "server.xml");
+
+            if(file.canRead()){
+                ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(file);
+
+                MigrationData mData = new MigrationData();
+                for(Service s : serverAS5.getServices()){
+                    mData.getConfigFragment().add(s.getEngine());
+                    mData.getConfigFragment().addAll(s.getConnectorAS5s());
+                }
+
+                ctx.getMigrationData().put(ServerMigrator.class, mData);
+
+            } else{
+                 throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
+            }
+        } catch (JAXBException e) {
+            throw new LoadMigrationException(e);
+        }
+    }
+
+    @Override
+    public void apply(MigrationContext ctx) {
+
+    }
+
+    @Override
+    public List<Node> generateDomElements(MigrationContext ctx) {
+        return null;
+    }
+
+    @Override
+    public List<String> generateCliScripts(MigrationContext ctx) {
+        return null;
+    }
+
+//    public void migrate(MigrationContext ctx) throws MigrationException{
+//        MigratedData migratedData =  new MigratedData();
+//        for(IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()){
+//            if(data instanceof ConnectorAS5){
+//                ConnectorAS5 connector = (ConnectorAS5) data;
+//                ConnectorAS7 connAS7 = new ConnectorAS7();
+//                connAS7.setEnabled("true");
+//                connAS7.setEnableLookups(connector.getEnableLookups());
+//                connAS7.setMaxPostSize(connector.getMaxPostSize());
+//                connAS7.setMaxSavePostSize(connector.getMaxSavePostSize());
+//                connAS7.setProtocol(connector.getProtocol());
+//                connAS7.setProxyName(connector.getProxyName());
+//                connAS7.setProxyPort(connector.getProxyPort());
+//                connAS7.setRedirectPort(connector.getRedirectPort());
+//
+//                // TODO: Getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
+//                // TODO: Only solution is http?
+//                connAS7.setScheme("http");
+//
+//                connAS7.setConnectorName("connector" + randomConnector);
+//                randomConnector++;
+//
+//                // sSocket-binding.. first try
+//                if (connector.getProtocol().equals("HTTP/1.1")) {
+//
+//                    if (connector.getSslEnabled() == null) {
+//                        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+//                    } else {
+//                        if (connector.getSslEnabled().equals("true")) {
+//                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
+//                        } else {
+//                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+//                        }
+//                    }
+//                } else {
+//                    connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
+//                }
+//
+//                if(connector.getSslEnabled() != null){
+//                    if (connector.getSslEnabled().equals("true")) {
+//                        connAS7.setScheme("https");
+//                        connAS7.setSecure(connector.getSecure());
+//
+//                        connAS7.setSslName("ssl");
+//                        connAS7.setVerifyClient(connector.getClientAuth());
+//                        // TODO: Problem with place of the file
+//                        connAS7.setCertifKeyFile(connector.getKeystoreFile());
+//
+//                        // TODO: No sure which protocols can be in AS5
+//                        if (connector.getSslProtocol().equals("TLS")) {
+//                            connAS7.setSslProtocol("TLSv1");
+//                        }
+//                        connAS7.setSslProtocol(connector.getSslProtocol());
+//
+//                        connAS7.setCiphers(connector.getCiphers());
+//                        connAS7.setKeyAlias(connAS7.getKeyAlias());
+//
+//                        // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+//                        connAS7.setPassword(connector.getKeystorePass());
+//                    }
+//                }
+//                migratedData.getMigratedData().add(connAS7);
+//            }
+//            if(data instanceof Engine){
+//                Engine eng = (Engine) data;
+//                VirtualServer virtualServer = new VirtualServer();
+//                virtualServer.setVirtualServerName(eng.getEngineName());
+//                virtualServer.setEnableWelcomeRoot("true");
+//                virtualServer.setAliasName(eng.getHostNames());
+//
+//                migratedData.getMigratedData().add(virtualServer);
+//            }
+//        }
+//
+//        ctx.getMigratedData().put(ServerMigrator.class, migratedData);
+//
+//    }
 
     private void createDefaultSockets(){
         /*

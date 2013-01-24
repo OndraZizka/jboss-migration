@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -17,7 +16,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "periodic-rotating-file-handler")
 
-public  class PerRotFileHandler implements IMigratedData {
+public  class PerRotFileHandler {
 
     @XmlAttribute(name = "name")
     private String name;

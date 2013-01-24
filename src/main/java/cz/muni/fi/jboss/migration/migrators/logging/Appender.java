@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -20,7 +20,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "appender")
 
-public class Appender implements ILoadedData{
+public class Appender implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String appenderName;

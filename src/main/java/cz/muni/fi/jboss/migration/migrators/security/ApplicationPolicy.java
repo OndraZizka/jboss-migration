@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -19,7 +19,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "application-policy")
 
-public  class ApplicationPolicy implements ILoadedData {
+public  class ApplicationPolicy implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String applicationPolicyName;

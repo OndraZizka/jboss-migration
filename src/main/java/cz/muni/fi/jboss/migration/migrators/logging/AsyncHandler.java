@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -20,7 +19,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "async-handler")
 
-public class  AsyncHandler implements IMigratedData{
+public class  AsyncHandler {
 
     @XmlAttribute(name = "name")
     private String name;

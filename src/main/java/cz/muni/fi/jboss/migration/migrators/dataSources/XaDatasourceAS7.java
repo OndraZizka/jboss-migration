@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -20,7 +19,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "xa-datasource")
 
-public class XaDatasourceAS7 implements IMigratedData {
+public class XaDatasourceAS7  {
 
     private String linkedSecurity;
 

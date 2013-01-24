@@ -307,7 +307,7 @@ public class CliScriptImpl implements CliScript {
             handlers = handlers.concat(createPerHandlerScript(periodic) + "\n");
         }
 
-        for(SizeRotatingFileHandler size : loggingAS7.getSizeRotFileHandlers()){
+        for(SizeRotFileHandler size : loggingAS7.getSizeRotFileHandlers()){
             handlers = handlers.concat(createSizeHandlerScript(size)+ "\n");
         }
 
@@ -358,7 +358,7 @@ public class CliScriptImpl implements CliScript {
         return script;
     }
     @Override
-    public String createSizeHandlerScript(SizeRotatingFileHandler sizeHandler) throws CliScriptException{
+    public String createSizeHandlerScript(SizeRotFileHandler sizeHandler) throws CliScriptException{
         if((sizeHandler.getName() == null) || (sizeHandler.getName().isEmpty())){
             throw new CliScriptException("Error: name of the size rotating handler cannot be null or empty",
                     new NullPointerException());

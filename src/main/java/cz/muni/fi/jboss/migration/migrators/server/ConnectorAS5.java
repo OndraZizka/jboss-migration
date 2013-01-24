@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
 
@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connector")
 
-public  class ConnectorAS5 implements ILoadedData{
+public  class ConnectorAS5 implements IConfigFragment {
     // Only attributes which can be migrated to AS7
     // AJP+ HTTP ... similar attributes
 

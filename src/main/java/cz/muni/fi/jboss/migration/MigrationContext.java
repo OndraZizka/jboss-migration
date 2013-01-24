@@ -2,7 +2,7 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Roman Jakubco
@@ -20,11 +20,11 @@ import java.util.Map;
 
 public class MigrationContext {
 
-    Map<Class<? extends IMigrator>, IMigrator> migrators;
+    private Map<Class<? extends IMigrator>, IMigrator> migrators = new HashMap();
 
-    Map<Class<? extends IMigrator>, MigrationData> migrationData;
+    private Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
 
-    Map<Class<? extends IMigrator>, MigratedData> migratedData;
+    private Set<CopyMemory> copyMemories = new HashSet();
 
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() {
         return migrators;
@@ -42,11 +42,11 @@ public class MigrationContext {
         this.migrationData = migrationData;
     }
 
-    public Map<Class<? extends IMigrator>, MigratedData> getMigratedData() {
-        return migratedData;
+    public Set<CopyMemory> getCopyMemories() {
+        return copyMemories;
     }
 
-    public void setMigratedData(Map<Class<? extends IMigrator>, MigratedData> migratedData) {
-        this.migratedData = migratedData;
+    public void setCopyMemories(Set<CopyMemory> copyMemories) {
+        this.copyMemories = copyMemories;
     }
 }

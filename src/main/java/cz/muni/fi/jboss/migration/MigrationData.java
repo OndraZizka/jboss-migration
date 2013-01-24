@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +23,14 @@ import java.util.List;
 
 public class MigrationData {
 
-    List<ILoadedData> loadedData = new ArrayList();
+    List<IConfigFragment> configFragment = new ArrayList();
 
-    public List<ILoadedData> getLoadedData() {
-        return loadedData;
+    public List<IConfigFragment> getConfigFragment() {
+        return configFragment;
     }
 
-    public void setLoadedData(List<ILoadedData> loadedData) {
-        this.loadedData = loadedData;
+    public void setConfigFragment(List<IConfigFragment> configFragment) {
+        this.configFragment = configFragment;
     }
 
 }

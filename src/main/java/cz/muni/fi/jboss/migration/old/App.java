@@ -410,7 +410,7 @@ public class App {
             }
 
             String serverPath = home + File.separator + "server" +File.separator + serverName;
-            Migration migration = new MigrationImpl(copy);
+            //Migration migration = new MigrationImpl(copy);
 
             LoggingAS7 loggingAS7 =  null;
             SecurityAS7 securityAS7 = null;
@@ -446,7 +446,7 @@ public class App {
 
                 if(temp.canRead()){
                     LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(temp);
-                    loggingAS7 = migration.loggingMigration(loggingAS5);
+                    //loggingAS7 = migration.loggingMigration(loggingAS5);
                 }else{
                     System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
                             +File.separator + "server"+ File.separator+"conf\"");
@@ -496,10 +496,10 @@ public class App {
                     return;
                 }
 
-                dsSub = migration.datasourceSubMigration(dsColl);
+               // dsSub = migration.datasourceSubMigration(dsColl);
 
                 if(resource){
-                    resAdapSub = migration.resourceAdaptersMigration(connFacColl);
+                   // resAdapSub = migration.resourceAdaptersMigration(connFacColl);
                 }
 
             }
@@ -512,7 +512,7 @@ public class App {
 
                 if(securityFile.canRead()){
                     SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(securityFile);
-                    securityAS7 = migration.securityMigration(securityAS5);
+                   // securityAS7 = migration.securityMigration(securityAS5);
                 } else {
                     System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
                             +File.separator + "server"+ File.separator+"deploy\"");
@@ -529,7 +529,7 @@ public class App {
 
                if(serverFile.canRead()){
                    ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(serverFile);
-                   serverSub = migration.serverMigration(serverAS5);
+                   //serverSub = migration.serverMigration(serverAS5);
                } else{
                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
                            +File.separator + "server"+ File.separator+"deploy\"");
@@ -607,7 +607,7 @@ public class App {
                     serverBinder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
                     serverBinder.marshal(serverSub,docServer);
-                    socketBinder.marshal(migration.getSocketBindingGroup(),docSocket);
+                    //socketBinder.marshal(migration.getSocketBindingGroup(),docSocket);
 
 
                     final DOMSource domServer = new DOMSource(docServer);
@@ -683,11 +683,11 @@ public class App {
                             System.out.println(cliScript.createConnectorScript(connectorAS7));
                         }
                     }
-                    if(!(migration.getSocketBindingGroup().isEmpty())){
-                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
-                            System.out.println(cliScript.createSocketBinding(sb));
-                        }
-                    }
+//                    if(!(migration.getSocketBindingGroup().isEmpty())){
+//                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
+//                            System.out.println(cliScript.createSocketBinding(sb));
+//                        }
+//                    }
                 }
 
                 if(log){
@@ -766,68 +766,68 @@ public class App {
             }
 
             if(copy){
-                Collection<CopyMemory> copyMemories = migration.getCopyMemories();
-                for(CopyMemory cp : copyMemories){
-                   if(cp.getName() == null || cp.getName().isEmpty()){
-                       throw new NullPointerException();
-                   }
-                   String targetPath = target;
-                   File dir = new File(serverPath);
-                   NameFileFilter nff = new NameFileFilter(cp.getName());
-                   //NameFileFilter nff = new NameFileFilter("postgresql-9.2-1002.jdbc4.jar", IOCase.INSENSITIVE);
-                   List<File> list = (List<File>) FileUtils.listFiles(dir,nff, FileFilterUtils.makeCVSAware(null));
-                   switch(cp.getType()){
-                       case "driver":{
-                           // TODO:Can there be only one jar of selected driver or many different versions?
-                           if(list.isEmpty()){
-                               // TODO: Maybe define special exception for specific fails in App?
-                                throw  new FileNotFoundException("Cannot locate driver jar for driver:" + cp.getName() + "!");
-                           } else{
-                              cp.setHomePath(list.get(0).getAbsolutePath());
-                              cp.setName(list.get(0).getName());
-                              String module = "";
-                              if(cp.getModule() != null){
-                                   String[] parts = cp.getModule().split("\\.");
-                                   for(String s : parts){
-                                       module = module + File.separator;
-                                   }
-                                   cp.setTargetPath(target + File.separator + module  + "main");
-                              } else{
-                                  // TODO: Probabaly define new exception...
-                                  throw new NullPointerException();
-                              }
-
-                           }
-                       } break;
-                       case "log":{
-                           if(list.isEmpty()){
-                               throw  new NullPointerException("Cannot locate log file: " + cp.getName() + "!");
-                           } else{
-                               cp.setHomePath(list.get(0).getAbsolutePath());
-                               cp.setTargetPath(target + File.separator + "standalone" + File.separator +"log" );
-                           }
-                       } break;
-                       case "security":{
-                           if(list.isEmpty()){
-                               // TODO: Maybe define special exception for specific fails in App?
-                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
-                           } else{
-                               cp.setHomePath(list.get(0).getAbsolutePath());
-                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "configuration");
-                           }
-                       } break;
-                       case "resource":{
-                           if(list.isEmpty()){
-                               // TODO: Maybe define special exception for specific fails in App?
-                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
-                           } else{
-                               cp.setHomePath(list.get(0).getAbsolutePath());
-                               // TODO:
-                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "deployments");
-                           }
-                       } break;
-                   }
-                }
+                //Collection<CopyMemory> copyMemories = migration.getCopyMemories();
+//                for(CopyMemory cp : copyMemories){
+//                   if(cp.getName() == null || cp.getName().isEmpty()){
+//                       throw new NullPointerException();
+//                   }
+//                   String targetPath = target;
+//                   File dir = new File(serverPath);
+//                   NameFileFilter nff = new NameFileFilter(cp.getName());
+//                   //NameFileFilter nff = new NameFileFilter("postgresql-9.2-1002.jdbc4.jar", IOCase.INSENSITIVE);
+//                   List<File> list = (List<File>) FileUtils.listFiles(dir,nff, FileFilterUtils.makeCVSAware(null));
+//                   switch(cp.getType()){
+//                       case "driver":{
+//                           // TODO:Can there be only one jar of selected driver or many different versions?
+//                           if(list.isEmpty()){
+//                               // TODO: Maybe define special exception for specific fails in App?
+//                                throw  new FileNotFoundException("Cannot locate driver jar for driver:" + cp.getName() + "!");
+//                           } else{
+//                              cp.setHomePath(list.get(0).getAbsolutePath());
+//                              cp.setName(list.get(0).getName());
+//                              String module = "";
+//                              if(cp.getModule() != null){
+//                                   String[] parts = cp.getModule().split("\\.");
+//                                   for(String s : parts){
+//                                       module = module + File.separator;
+//                                   }
+//                                   cp.setTargetPath(target + File.separator + module  + "main");
+//                              } else{
+//                                  // TODO: Probabaly define new exception...
+//                                  throw new NullPointerException();
+//                              }
+//
+//                           }
+//                       } break;
+//                       case "log":{
+//                           if(list.isEmpty()){
+//                               throw  new NullPointerException("Cannot locate log file: " + cp.getName() + "!");
+//                           } else{
+//                               cp.setHomePath(list.get(0).getAbsolutePath());
+//                               cp.setTargetPath(target + File.separator + "standalone" + File.separator +"log" );
+//                           }
+//                       } break;
+//                       case "security":{
+//                           if(list.isEmpty()){
+//                               // TODO: Maybe define special exception for specific fails in App?
+//                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
+//                           } else{
+//                               cp.setHomePath(list.get(0).getAbsolutePath());
+//                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "configuration");
+//                           }
+//                       } break;
+//                       case "resource":{
+//                           if(list.isEmpty()){
+//                               // TODO: Maybe define special exception for specific fails in App?
+//                               throw  new FileNotFoundException("Cannot locate security file: " + cp.getName() + "!");
+//                           } else{
+//                               cp.setHomePath(list.get(0).getAbsolutePath());
+//                               // TODO:
+//                               cp.setTargetPath(target + File.separator + "standalone" + File.separator + "deployments");
+//                           }
+//                       } break;
+//                   }
+                //}
 
 
 

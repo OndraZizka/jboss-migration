@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -17,7 +16,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connector")
 
-public class ConnectorAS7 implements IMigratedData{
+public class ConnectorAS7 {
 
     @XmlAttribute(name = "name")
     private String connectorName;

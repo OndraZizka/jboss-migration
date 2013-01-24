@@ -1,7 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
-
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +17,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "security-domain")
 
-public class SecurityDomain implements IMigratedData{
+public class SecurityDomain{
 
     @XmlAttribute(name = "name")
     private String securityDomainName;

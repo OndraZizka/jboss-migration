@@ -1,7 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
-
 import javax.xml.bind.annotation.*;
 
 /**
@@ -16,7 +14,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "socket-binding")
 
-public class SocketBinding implements IMigratedData{
+public class SocketBinding {
 
     @XmlAttribute(name = "name")
     private String socketName;

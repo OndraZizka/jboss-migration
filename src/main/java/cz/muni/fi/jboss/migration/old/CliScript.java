@@ -128,7 +128,7 @@ public interface CliScript {
      * @return String containing CLI commands for creating size-rotating-handler
      * @throws CliScriptException if one of required attributes is null or empty
      */
-    public String createSizeHandlerScript(SizeRotatingFileHandler size) throws CliScriptException;
+    public String createSizeHandlerScript(SizeRotFileHandler size) throws CliScriptException;
 
     /**
      * Method for generating CLI script for creating size-rotating-file-handler

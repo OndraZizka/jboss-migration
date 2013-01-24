@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
 import java.util.*;
@@ -18,7 +18,7 @@ import java.util.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "local-tx-datasource")
 
-public class DatasourceAS5 implements ILoadedData {
+public class DatasourceAS5 implements IConfigFragment {
 
     @XmlElement(name = "jndi-name")
     private String jndiName;

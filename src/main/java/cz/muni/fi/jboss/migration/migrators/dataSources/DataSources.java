@@ -1,8 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
-
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;

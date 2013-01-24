@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -17,7 +16,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "file-handler")
 
-public class  FileHandler implements IMigratedData {
+public class  FileHandler{
 
     @XmlAttribute(name = "name")
     private String name;

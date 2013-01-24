@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.spi.IMigratedData;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
@@ -20,7 +19,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "virtual-server")
 
-public class VirtualServer implements IMigratedData{
+public class VirtualServer {
 
     // Basic
     @XmlAttribute(name = "name")

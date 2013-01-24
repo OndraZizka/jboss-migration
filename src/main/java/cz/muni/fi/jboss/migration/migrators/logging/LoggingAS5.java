@@ -2,7 +2,7 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
 
-import cz.muni.fi.jboss.migration.spi.ILoadedData;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -21,7 +21,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "configuration")
 
-public class LoggingAS5 implements ILoadedData {
+public class LoggingAS5 implements IConfigFragment {
 
     @XmlElements(@XmlElement(name = "appender", type = Appender.class))
     Set<Appender> appenders;

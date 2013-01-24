@@ -4,13 +4,13 @@ import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DataSources;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
@@ -75,7 +75,7 @@ public class ResAdapterMigrator implements IMigrator {
             MigrationData mData = new MigrationData();
 
             for(ConnectionFactories cf : connFactories){
-                mData.getLoadedData().addAll(cf.getConnectionFactories());
+                mData.getConfigFragment().addAll(cf.getConnectionFactories());
             }
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, mData);
@@ -97,6 +97,15 @@ public class ResAdapterMigrator implements IMigrator {
     }
 
     @Override
+    public List<Node> generateDomElements(MigrationContext ctx) {
+        return null;
+    }
+
+    @Override
+    public List<String> generateCliScripts(MigrationContext ctx) {
+        return null;
+    }
+
     public void migrate(MigrationContext ctx) {
 
     }
