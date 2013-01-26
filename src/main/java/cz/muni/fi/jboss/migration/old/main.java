@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.old;
 
-import cz.muni.fi.jboss.migration.CliScriptImpl;
+import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdaptersSub;
 import cz.muni.fi.jboss.migration.migrators.dataSources.DataSources;
@@ -14,6 +14,7 @@ import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS7;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
 import cz.muni.fi.jboss.migration.migrators.server.*;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Roman Jakubco
@@ -63,6 +65,22 @@ public class main {
 
             Collection<ConnectionFactories> cont = new ArrayList<>();
             cont.add(connectionFactories);
+
+            Configuration conf = new Configuration();
+            GlobalConfiguration global = new GlobalConfiguration();
+            global.setDirAS5("/home/Reon/Programing/jboss-5.1.0.GA/server/default");
+            conf.setOptions(global);
+            MigrationContext ctx = new MigrationContext();
+            ctx.createBuilder();
+            ServerMigrator migrator = new ServerMigrator(global, null);
+            migrator.loadAS5Data(ctx);
+
+            List<Node> nodeList = migrator.generateDomElements(ctx);
+
+            for(Node n : nodeList){
+                System.out.println(n.toString());
+            }
+
 
 //            Migration migration=new MigrationImpl(true);
 //

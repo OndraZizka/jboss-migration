@@ -3,16 +3,20 @@ package cz.muni.fi.jboss.migration.migrators.logging;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,8 +72,111 @@ public class LoggingMigrator implements IMigrator {
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) {
-        return null;
+    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+        try {
+            JAXBContext loggerCtx = JAXBContext.newInstance(Logger.class);
+            JAXBContext rootLogCtx = JAXBContext.newInstance(RootLoggerAS7.class);
+            JAXBContext sizeHandlerCtx = JAXBContext.newInstance(SizeRotFileHandler.class);
+            JAXBContext asyncHandlerCtx = JAXBContext.newInstance(AsyncHandler.class);
+            JAXBContext perHandlerCtx = JAXBContext.newInstance(PerRotFileHandler.class);
+            JAXBContext consoleHandlerCtx = JAXBContext.newInstance(ConsoleHandler.class);
+            JAXBContext customHandlerCtx = JAXBContext.newInstance(CustomHandler.class);
+            List<Node> nodeList = new ArrayList();
+            Marshaller logMarshaller = loggerCtx.createMarshaller();
+            Marshaller rootLogMarshaller = rootLogCtx.createMarshaller();
+            Marshaller perHandMarshaller = perHandlerCtx.createMarshaller();
+            Marshaller cusHandMarshaller = customHandlerCtx.createMarshaller();
+            Marshaller asyHandMarshaller = asyncHandlerCtx.createMarshaller();
+            Marshaller sizeHandMarshaller = sizeHandlerCtx.createMarshaller();
+            Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
+
+            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
+                if(fragment instanceof Appender){
+                    Appender appender = (Appender) fragment;
+                    String type = appender.getAppenderClass();
+
+                    switch (StringUtils.substringAfterLast(type, ".")) {
+                        case "DailyRollingFileAppender": {
+                            Document doc = ctx.getDocBuilder().newDocument();
+                            perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc);
+                            nodeList.add(doc.getDocumentElement());
+                        }
+                        break;
+                        case "RollingFileAppender": {
+                            Document doc = ctx.getDocBuilder().newDocument();
+                            perHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc);
+                            nodeList.add(doc.getDocumentElement());
+                        }
+                        break;
+                        case "ConsoleAppender": {
+                            Document doc = ctx.getDocBuilder().newDocument();
+                            perHandMarshaller.marshal(createConsoleHandler(appender), doc);
+                            nodeList.add(doc.getDocumentElement());
+                        }
+                        break;
+                        case "AsyncAppender":{
+                            Document doc = ctx.getDocBuilder().newDocument();
+                            perHandMarshaller.marshal(createAsyncHandler(appender), doc);
+                            nodeList.add(doc.getDocumentElement());
+                        }
+                        break;
+                        // TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
+                        // TODO: So i think that FileAppender in AS7 is then useless?
+                        // THINK !!
+
+                        //case "FileAppender" :
+
+                        // Basic implementation of Custom Handler
+                        //TODO: Problem with module
+                        default: {
+                            Document doc = ctx.getDocBuilder().newDocument();
+                            perHandMarshaller.marshal(createCustomHandler(appender), doc);
+                            nodeList.add(doc.getDocumentElement());
+                        }
+                        break;
+                    }
+                    continue;
+                }
+
+                if(fragment instanceof Category){
+                    Category category = (Category) fragment;
+                    Logger logger = new Logger();
+                    logger.setLoggerCategory(category.getCategoryName());
+                    logger.setLoggerLevelName(category.getCategoryValue());
+                    logger.setHandlers(category.getAppenderRef());
+
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    logMarshaller.marshal(logger, doc);
+                    nodeList.add(doc.getDocumentElement());
+
+                    continue;
+                }
+
+                if(fragment instanceof RootLoggerAS5){
+                    RootLoggerAS5 root =  (RootLoggerAS5) fragment;
+                    RootLoggerAS7 rootLoggerAS7 = new RootLoggerAS7();
+                    /*
+                    TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
+                    for now only default INFO
+                    */
+                    rootLoggerAS7.setRootLoggerLevel("INFO");
+                    rootLoggerAS7.setRootLoggerHandlers(root.getRootAppenderRefs());
+
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    rootLogMarshaller.marshal(rootLoggerAS7, doc);
+                    nodeList.add(doc.getDocumentElement());
+
+                    continue;
+                }
+
+                throw new MigrationException("Error: Object is not part of Logging migration!");
+            }
+
+            return nodeList;
+
+        } catch (Exception e) {
+            throw new MigrationException(e);
+        }
     }
 
     @Override

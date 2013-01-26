@@ -2,6 +2,9 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
 
 /**
@@ -26,6 +29,8 @@ public class MigrationContext {
 
     private Set<CopyMemory> copyMemories = new HashSet();
 
+    private DocumentBuilder docBuilder;
+
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() {
         return migrators;
     }
@@ -48,5 +53,14 @@ public class MigrationContext {
 
     public void setCopyMemories(Set<CopyMemory> copyMemories) {
         this.copyMemories = copyMemories;
+    }
+
+    public void createBuilder() throws ParserConfigurationException{
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+       docBuilder = dbf.newDocumentBuilder();
+    }
+
+    public DocumentBuilder getDocBuilder() {
+        return docBuilder;
     }
 }

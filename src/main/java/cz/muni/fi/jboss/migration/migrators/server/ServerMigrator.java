@@ -8,13 +8,16 @@ import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -109,8 +112,96 @@ public class ServerMigrator implements IMigrator {
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) {
-        return null;
+    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+        try {
+            JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7.class);
+            JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServer.class);
+            List<Node> nodeList = new ArrayList();
+            Marshaller connMarshaller = connCtx.createMarshaller();
+            Marshaller virSerMarshaller = virSerCtx.createMarshaller();
+
+            for(IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()){
+                if(data instanceof ConnectorAS5){
+                    ConnectorAS5 connector = (ConnectorAS5) data;
+                    ConnectorAS7 connAS7 = new ConnectorAS7();
+                    connAS7.setEnabled("true");
+                    connAS7.setEnableLookups(connector.getEnableLookups());
+                    connAS7.setMaxPostSize(connector.getMaxPostSize());
+                    connAS7.setMaxSavePostSize(connector.getMaxSavePostSize());
+                    connAS7.setProtocol(connector.getProtocol());
+                    connAS7.setProxyName(connector.getProxyName());
+                    connAS7.setProxyPort(connector.getProxyPort());
+                    connAS7.setRedirectPort(connector.getRedirectPort());
+
+                    // TODO: Getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
+                    // TODO: Only solution is http?
+                    connAS7.setScheme("http");
+
+                    connAS7.setConnectorName("connector" + randomConnector);
+                    randomConnector++;
+
+                    // Socket-binding.. first try
+                    if (connector.getProtocol().equals("HTTP/1.1")) {
+
+                        if (connector.getSslEnabled() == null) {
+                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+                        } else {
+                            if (connector.getSslEnabled().equals("true")) {
+                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
+                            } else {
+                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+                            }
+                        }
+                    } else {
+                        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
+                    }
+
+                    if(connector.getSslEnabled() != null){
+                        if (connector.getSslEnabled().equals("true")) {
+                            connAS7.setScheme("https");
+                            connAS7.setSecure(connector.getSecure());
+
+                            connAS7.setSslName("ssl");
+                            connAS7.setVerifyClient(connector.getClientAuth());
+                            // TODO: Problem with place of the file
+                            connAS7.setCertifKeyFile(connector.getKeystoreFile());
+
+                            // TODO: No sure which protocols can be in AS5
+                            if (connector.getSslProtocol().equals("TLS")) {
+                                connAS7.setSslProtocol("TLSv1");
+                            }
+                            connAS7.setSslProtocol(connector.getSslProtocol());
+
+                            connAS7.setCiphers(connector.getCiphers());
+                            connAS7.setKeyAlias(connAS7.getKeyAlias());
+
+                            // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+                            connAS7.setPassword(connector.getKeystorePass());
+                        }
+                    }
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    connMarshaller.marshal(connAS7,doc);
+                    nodeList.add(doc.getDocumentElement());
+
+                }
+                if(data instanceof Engine){
+                    Engine eng = (Engine) data;
+                    VirtualServer virtualServer = new VirtualServer();
+                    virtualServer.setVirtualServerName(eng.getEngineName());
+                    virtualServer.setEnableWelcomeRoot("true");
+                    virtualServer.setAliasName(eng.getHostNames());
+
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    virSerMarshaller.marshal(virtualServer, doc);
+                    nodeList.add(doc.getDocumentElement());
+                }
+            }
+
+            return nodeList;
+
+        } catch (JAXBException e) {
+            throw new MigrationException(e);
+        }
     }
 
     @Override

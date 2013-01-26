@@ -1,9 +1,12 @@
 package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
+import cz.muni.fi.jboss.migration.CopyMemory;
 import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.io.FileUtils;
@@ -15,6 +18,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,7 +26,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Roman Jakubco
@@ -97,8 +103,80 @@ public class ResAdapterMigrator implements IMigrator {
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) {
-        return null;
+    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+        try {
+            JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapter.class);
+            List<Node> nodeList = new ArrayList();
+            Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
+
+            for(IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()){
+                if(!(fragment instanceof ConnectionFactoryAS5)){
+                    throw new MigrationException("Error: Object is not part of resource-adapter(connection-factories) migration!");
+                }
+                ConnectionFactoryAS5 connFactoryAS5 = (ConnectionFactoryAS5) fragment;
+                ResourceAdapter resAdapter = new ResourceAdapter();
+                resAdapter.setJndiName(connFactoryAS5.getJndiName());
+
+                CopyMemory copyMemory = new CopyMemory();
+                copyMemory.setName(connFactoryAS5.getRarName());
+                copyMemory.setType("resource");
+                ctx.getCopyMemories().add(copyMemory);
+
+                resAdapter.setArchive(connFactoryAS5.getRarName());
+
+                // TODO: Not sure what exactly this element represents and what it is in AS5
+                resAdapter.setTransactionSupport("XATransaction");
+
+                ConnectionDefinition connDef = new ConnectionDefinition();
+                connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
+                connDef.setPoolName(connFactoryAS5.getJndiName());
+                connDef.setEnabled("true");
+                connDef.setUseJavaCont("true");
+                connDef.setEnabled("true");
+                connDef.setClassName(connFactoryAS5.getConnectionDefinition());
+                connDef.setPrefill(connFactoryAS5.getPrefill());
+
+                for (ConfigProperty configProperty : connFactoryAS5.getConfigProperties()) {
+                    configProperty.setType(null);
+                }
+                connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
+
+                if (connFactoryAS5.getApplicationManagedSecurity() != null) {
+                    connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
+                }
+                if (connFactoryAS5.getSecurityDomain() != null) {
+                    connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
+                }
+                if (connFactoryAS5.getSecDomainAndApp() != null) {
+                    connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
+                }
+
+                connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
+                connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
+
+                connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
+                connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
+
+                connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
+                connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
+                connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
+                connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
+                connDef.setXaResourceTimeout(connFactoryAS5.getXaResourceTimeout());
+
+                Set<ConnectionDefinition> connDefColl = new HashSet();
+                connDefColl.add(connDef);
+                resAdapter.setConnectionDefinitions(connDefColl);
+
+                Document doc = ctx.getDocBuilder().newDocument();
+                resAdapMarshaller.marshal(resAdapter, doc);
+                nodeList.add(doc.getDocumentElement());
+            }
+
+            return nodeList;
+
+        } catch (Exception e) {
+            throw new MigrationException(e);
+        }
     }
 
     @Override
@@ -106,7 +184,5 @@ public class ResAdapterMigrator implements IMigrator {
         return null;
     }
 
-    public void migrate(MigrationContext ctx) {
 
-    }
 }

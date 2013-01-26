@@ -19,7 +19,7 @@ import java.util.Set;
  * Same problem as in ServerSub
  */
 @XmlType(name = "", propOrder = {"loggers", "perRotFileHandlers", "consoleHandlers", "asyncHandlers", "fileHandlers",
-        "sizeRotFileHandlers", "customHandlers"})
+        "sizeRotFileHandlers", "customHandlers", "rootLogger"})
 
 public class LoggingAS7 {
 

@@ -20,7 +20,7 @@ public interface IMigrator {
 
     public void apply(MigrationContext ctx);
 
-    public List<Node> generateDomElements(MigrationContext ctx);
+    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException;
 
     public List<String> generateCliScripts(MigrationContext ctx);
 }
