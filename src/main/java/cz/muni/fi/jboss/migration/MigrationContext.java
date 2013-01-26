@@ -63,4 +63,13 @@ public class MigrationContext {
     public DocumentBuilder getDocBuilder() {
         return docBuilder;
     }
+
+    public String checkingMethod(String script, String name, String setter){
+        if(setter != null){
+            if (!setter.isEmpty()) {
+                script = script.concat(name + "=" + setter);
+            }
+        }
+        return script;
+    }
 }

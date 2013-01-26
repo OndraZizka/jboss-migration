@@ -4,8 +4,12 @@ import cz.muni.fi.jboss.migration.CopyMemory;
 import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceAS7;
+import cz.muni.fi.jboss.migration.migrators.dataSources.Driver;
+import cz.muni.fi.jboss.migration.migrators.dataSources.XaDatasourceAS7;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
@@ -180,8 +184,95 @@ public class ResAdapterMigrator implements IMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) {
-        return null;
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+        try {
+            List<String> list = new ArrayList();
+            Unmarshaller resUnmarshaller = JAXBContext.newInstance(ResourceAdapter.class).createUnmarshaller();
+
+            for(Node node : generateDomElements(ctx)){
+                ResourceAdapter resAdapter = (ResourceAdapter) resUnmarshaller.unmarshal(node);
+                list.add(createResAdapterScript(resAdapter, ctx));
+            }
+
+            return list;
+        } catch (MigrationException e) {
+            throw new CliScriptException(e);
+        } catch (JAXBException e) {
+            throw new CliScriptException(e);
+        }
+    }
+
+    private String createResAdapterScript(ResourceAdapter resourceAdapter, MigrationContext ctx) throws CliScriptException{
+        if((resourceAdapter.getJndiName() == null) || (resourceAdapter.getJndiName().isEmpty())){
+            throw new CliScriptException("Error: name of the resource-adapter cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((resourceAdapter.getArchive() == null) || (resourceAdapter.getArchive().isEmpty())){
+            throw new CliScriptException("Error: archive in the resource-adapter cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=resource-adapters/resource-adapter=";
+        script = script.concat(resourceAdapter.getJndiName() + ":add(");
+        script = script.concat("archive=" + resourceAdapter.getArchive());
+        script = ctx.checkingMethod(script, ", transaction-support", resourceAdapter.getTransactionSupport());
+        script = script.concat(")\n");
+
+        if(resourceAdapter.getConnectionDefinitions() != null){
+            for(ConnectionDefinition connectionDefinition : resourceAdapter.getConnectionDefinitions()){
+                if((connectionDefinition.getClassName() == null) || (connectionDefinition.getClassName().isEmpty())){
+                    throw new CliScriptException("Error: class-name in the connection definition cannot be null or empty",
+                            new NullPointerException());
+                }
+
+                script =  script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
+                script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName() + ":add(");
+                script = ctx.checkingMethod(script, " jndi-name", connectionDefinition.getJndiName());
+                script = ctx.checkingMethod(script, ", enabled", connectionDefinition.getEnabled());
+                script = ctx.checkingMethod(script, ", use-java-context", connectionDefinition.getUseJavaCont());
+                script = ctx.checkingMethod(script, ", class-name", connectionDefinition.getClassName());
+                script = ctx.checkingMethod(script, ", use-ccm", connectionDefinition.getUseCcm());
+                script = ctx.checkingMethod(script, ", prefill", connectionDefinition.getPrefill());
+                script = ctx.checkingMethod(script, ", use-strict-min", connectionDefinition.getUseStrictMin());
+                script = ctx.checkingMethod(script, ", flush-strategy", connectionDefinition.getFlushStrategy());
+                script = ctx.checkingMethod(script, ", min-pool-size", connectionDefinition.getMinPoolSize());
+                script = ctx.checkingMethod(script, ", max-pool-size", connectionDefinition.getMaxPoolSize());
+
+                if(connectionDefinition.getSecurityDomain() != null){
+                    script = ctx.checkingMethod(script, ", security-domain", connectionDefinition.getSecurityDomain());
+                }
+
+                if(connectionDefinition.getSecDomainAndApp() != null){
+                    script = ctx.checkingMethod(script, ", security-domain-and-application",
+                            connectionDefinition.getSecDomainAndApp());
+                }
+
+                if(connectionDefinition.getAppManagedSec() != null){
+                    script = ctx.checkingMethod(script, ", application-managed-security",
+                            connectionDefinition.getAppManagedSec());
+                }
+
+                script = ctx.checkingMethod(script, ", background-validation", connectionDefinition.getBackgroundValidation());
+                script = ctx.checkingMethod(script, ", background-validation-millis", connectionDefinition.getBackgroundValiMillis());
+                script = ctx.checkingMethod(script, ", blocking-timeout-millis", connectionDefinition.getBackgroundValiMillis());
+                script = ctx.checkingMethod(script, ", idle-timeout-minutes", connectionDefinition.getIdleTimeoutMinutes());
+                script = ctx.checkingMethod(script, ", allocation-retry", connectionDefinition.getAllocationRetry());
+                script = ctx.checkingMethod(script, ", allocation-retry-wait-millis", connectionDefinition.getAllocRetryWaitMillis());
+                script = ctx.checkingMethod(script, ", xa-resource-timeout", connectionDefinition.getXaResourceTimeout());
+                script = script.concat(")\n");
+
+                if(connectionDefinition.getConfigProperties() != null){
+                    for(ConfigProperty configProperty : connectionDefinition.getConfigProperties()){
+                        script = script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
+                        script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName());
+                        script = script.concat("/config-properties=" + configProperty.getConfigPropertyName() + ":add(");
+                        script = script.concat("value=" + configProperty.getConfigProperty() + ")\n");
+                    }
+                }
+            }
+        }
+        return script;
     }
 
 

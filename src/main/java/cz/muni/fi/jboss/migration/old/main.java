@@ -2,18 +2,20 @@ package cz.muni.fi.jboss.migration.old;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdaptersSub;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DataSources;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceAS7;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourcesSub;
-import cz.muni.fi.jboss.migration.migrators.dataSources.XaDatasourceAS7;
+import cz.muni.fi.jboss.migration.migrators.dataSources.*;
 import cz.muni.fi.jboss.migration.migrators.logging.Logger;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS5;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS7;
+import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS7;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
+import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.*;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
+import javafx.util.Pair;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
@@ -22,9 +24,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Roman Jakubco
@@ -35,51 +35,67 @@ public class main {
     public static void main(String[] args) {
         // Basic implementation for testing
         try {
-            final JAXBContext context = JAXBContext.newInstance(DataSources.class) ;
-            final JAXBContext context1 = JAXBContext.newInstance(DatasourcesSub.class);
-            final JAXBContext context2=JAXBContext.newInstance(ResourceAdaptersSub.class);
-            final JAXBContext context3=JAXBContext.newInstance(ConnectionFactories.class);
-            final JAXBContext context4=JAXBContext.newInstance(ServerAS5.class);
-            final JAXBContext context5=JAXBContext.newInstance(ServerSub.class);
-            final JAXBContext context6=JAXBContext.newInstance(SocketBindingGroup.class);
-            final JAXBContext context7=JAXBContext.newInstance(LoggingAS5.class);
-            final JAXBContext context8=JAXBContext.newInstance(LoggingAS7.class);
-            final JAXBContext context9=JAXBContext.newInstance(SecurityAS7.class);
-            final JAXBContext context10=JAXBContext.newInstance(SecurityAS5.class);
+//            final JAXBContext context = JAXBContext.newInstance(DataSources.class) ;
+//            final JAXBContext context1 = JAXBContext.newInstance(DatasourcesSub.class);
+//            final JAXBContext context2=JAXBContext.newInstance(ResourceAdaptersSub.class);
+//            final JAXBContext context3=JAXBContext.newInstance(ConnectionFactories.class);
+//            final JAXBContext context4=JAXBContext.newInstance(ServerAS5.class);
+//            final JAXBContext context5=JAXBContext.newInstance(ServerSub.class);
+//            final JAXBContext context6=JAXBContext.newInstance(SocketBindingGroup.class);
+//            final JAXBContext context7=JAXBContext.newInstance(LoggingAS5.class);
+//            final JAXBContext context8=JAXBContext.newInstance(LoggingAS7.class);
+//            final JAXBContext context9=JAXBContext.newInstance(SecurityAS7.class);
+//            final JAXBContext context10=JAXBContext.newInstance(SecurityAS5.class);
+//
+//            Unmarshaller unmarshaller=context.createUnmarshaller();
+//            Unmarshaller unmarshaller3=context3.createUnmarshaller();
+//            Unmarshaller unmarshaller4=context4.createUnmarshaller();
+//            Unmarshaller unmarshaller7=context7.createUnmarshaller();
+//            Unmarshaller unmarshaller10=context10.createUnmarshaller();
+//
+//            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
+//
+//            DataSources dataSources=(DataSources)unmarshaller.unmarshal(new File("datasources.xml"));
+//            dataSourcesCollection.add(dataSources);
+//
+//            ServerAS5 serverAS5=(ServerAS5)unmarshaller4.unmarshal(new File("server.xml"));
+//            LoggingAS5 loggingAS5= (LoggingAS5)unmarshaller7.unmarshal(new File("logging.xml"));
+//            SecurityAS5 securityAS5=(SecurityAS5)unmarshaller10.unmarshal(new File("security.xml"));
+//            ConnectionFactories connectionFactories=(ConnectionFactories)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
 
-            Unmarshaller unmarshaller=context.createUnmarshaller();
-            Unmarshaller unmarshaller3=context3.createUnmarshaller();
-            Unmarshaller unmarshaller4=context4.createUnmarshaller();
-            Unmarshaller unmarshaller7=context7.createUnmarshaller();
-            Unmarshaller unmarshaller10=context10.createUnmarshaller();
-
-            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
-
-            DataSources dataSources=(DataSources)unmarshaller.unmarshal(new File("datasources.xml"));
-            dataSourcesCollection.add(dataSources);
-
-            ServerAS5 serverAS5=(ServerAS5)unmarshaller4.unmarshal(new File("server.xml"));
-            LoggingAS5 loggingAS5= (LoggingAS5)unmarshaller7.unmarshal(new File("logging.xml"));
-            SecurityAS5 securityAS5=(SecurityAS5)unmarshaller10.unmarshal(new File("security.xml"));
-            ConnectionFactories connectionFactories=(ConnectionFactories)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
-
-            Collection<ConnectionFactories> cont = new ArrayList<>();
-            cont.add(connectionFactories);
+//            Collection<ConnectionFactories> cont = new ArrayList<>();
+//            cont.add(connectionFactories);
 
             Configuration conf = new Configuration();
             GlobalConfiguration global = new GlobalConfiguration();
             global.setDirAS5("/home/Reon/Programing/jboss-5.1.0.GA/server/default");
+
+            Map<Class<? extends IMigrator>, List<Pair<String, String>>> moduleOtions = new HashMap<>();
+            List<Pair<String,String>> temp = new ArrayList<>();
+            moduleOtions.put(DatasourceMigrator.class, temp);
+            moduleOtions.put(ServerMigrator.class, temp);
+            moduleOtions.put(LoggingMigrator.class, temp);
+            moduleOtions.put(SecurityMigrator.class, temp);
+            moduleOtions.put(ResAdapterMigrator.class, temp);
+
+
+            conf.setModuleOtions(moduleOtions);
             conf.setOptions(global);
             MigrationContext ctx = new MigrationContext();
             ctx.createBuilder();
-            ServerMigrator migrator = new ServerMigrator(global, null);
-            migrator.loadAS5Data(ctx);
+            Migrator migrator = new Migrator(conf, ctx);
 
-            List<Node> nodeList = migrator.generateDomElements(ctx);
+            migrator.loadAS5Data();
 
-            for(Node n : nodeList){
-                System.out.println(n.toString());
+            for(String s : migrator.getCLIScripts() ) {
+                System.out.println(s);
             }
+
+            //List<Node> nodeList = migrator.generateDomElements(ctx);
+
+//            for(Node n : nodeList){
+//                System.out.println(n.toString());
+//            }
 
 
 //            Migration migration=new MigrationImpl(true);
@@ -163,8 +179,8 @@ public class main {
 
 
 
-        } catch (JAXBException e) {
-            e.printStackTrace();
+//        } catch (JAXBException e) {
+//            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }

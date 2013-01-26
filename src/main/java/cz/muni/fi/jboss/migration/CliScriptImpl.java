@@ -25,10 +25,10 @@ import cz.muni.fi.jboss.migration.old.CliScript;
 
 public class CliScriptImpl implements CliScript {
 
-    private String tmpMethod(String script, String name, String setter){
+    private String checkingMethod(String script, String name, String setter){
         if(setter != null){
             if (!setter.isEmpty()) {
-                script = script.concat(name+"="+setter);
+                script = script.concat(name + "=" + setter);
             }
         }
         return script;
@@ -59,45 +59,43 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=datasources/data-source=";
         script = script.concat(datasourceAS7.getPoolName()+":add(");
-        script = tmpMethod(script, "jndi-name", datasourceAS7.getJndiName());
-        script = tmpMethod(script, ", enabled", datasourceAS7.getEnabled());
-        script = tmpMethod(script, ", use-java-context", datasourceAS7.getUseJavaContext());
-        script = tmpMethod(script, ", driver-name", datasourceAS7.getDriver());
-        script = tmpMethod(script, ", connection-url", datasourceAS7.getConnectionUrl());
-        script = tmpMethod(script, ", url-delimeter", datasourceAS7.getUrlDelimeter());
-        script = tmpMethod(script, ", url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
-        script = tmpMethod(script, ", transaction-isolation", datasourceAS7.getTransIsolation());
-        script = tmpMethod(script, ", new-connection-sql", datasourceAS7.getNewConnectionSql());
-        script = tmpMethod(script, ", prefill", datasourceAS7.getPrefill());
-        script = tmpMethod(script, ", min-pool-size", datasourceAS7.getMinPoolSize());
-        script = tmpMethod(script, ", max-pool-size", datasourceAS7.getMaxPoolSize());
-        script = tmpMethod(script, ", password", datasourceAS7.getPassword());
-        script = tmpMethod(script, ", user-name", datasourceAS7.getUserName());
-        script = tmpMethod(script, ", security-domain", datasourceAS7.getSecurityDomain());
-        script = tmpMethod(script, ", check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
-        script = tmpMethod(script, ", validate-on-match", datasourceAS7.getValidateOnMatch());
-        script = tmpMethod(script, ", background-validation", datasourceAS7.getBackgroundValid());
-        script = tmpMethod(script, ", background-validation-minutes", datasourceAS7.getBackgroundValidMin());
-        script = tmpMethod(script, ", use-fast-fail", datasourceAS7.getUseFastFail());
-        script = tmpMethod(script, ", exception-sorter-class-name", datasourceAS7.getExceptionSorter());
-        script = tmpMethod(script, ", valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
-        script = tmpMethod(script, ", stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
-        script = tmpMethod(script, ", blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
-        script = tmpMethod(script, ", idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
-        script = tmpMethod(script, ", set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
-        script = tmpMethod(script, ", query-timeout", datasourceAS7.getQueryTimeout());
-        script = tmpMethod(script, ", allocation-retry", datasourceAS7.getAllocationRetry());
-        script = tmpMethod(script, ", allocation-retry-wait-millis", datasourceAS7.getAllocRetryWaitMillis());
-        script = tmpMethod(script, ", use-try-lock", datasourceAS7.getUseTryLock());
-        script = tmpMethod(script, ", prepared-statement-cache-size", datasourceAS7.getPreStatementCacheSize());
-        script = tmpMethod(script, ", track-statements", datasourceAS7.getTrackStatements());
-        script = tmpMethod(script, ", share-prepared-statements", datasourceAS7.getSharePreStatements());
+        script = checkingMethod(script, "jndi-name", datasourceAS7.getJndiName());
+        script = checkingMethod(script, ", enabled", datasourceAS7.getEnabled());
+        script = checkingMethod(script, ", use-java-context", datasourceAS7.getUseJavaContext());
+        script = checkingMethod(script, ", driver-name", datasourceAS7.getDriver());
+        script = checkingMethod(script, ", connection-url", datasourceAS7.getConnectionUrl());
+        script = checkingMethod(script, ", url-delimeter", datasourceAS7.getUrlDelimeter());
+        script = checkingMethod(script, ", url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
+        script = checkingMethod(script, ", transaction-isolation", datasourceAS7.getTransIsolation());
+        script = checkingMethod(script, ", new-connection-sql", datasourceAS7.getNewConnectionSql());
+        script = checkingMethod(script, ", prefill", datasourceAS7.getPrefill());
+        script = checkingMethod(script, ", min-pool-size", datasourceAS7.getMinPoolSize());
+        script = checkingMethod(script, ", max-pool-size", datasourceAS7.getMaxPoolSize());
+        script = checkingMethod(script, ", password", datasourceAS7.getPassword());
+        script = checkingMethod(script, ", user-name", datasourceAS7.getUserName());
+        script = checkingMethod(script, ", security-domain", datasourceAS7.getSecurityDomain());
+        script = checkingMethod(script, ", check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
+        script = checkingMethod(script, ", validate-on-match", datasourceAS7.getValidateOnMatch());
+        script = checkingMethod(script, ", background-validation", datasourceAS7.getBackgroundValid());
+        script = checkingMethod(script, ", background-validation-minutes", datasourceAS7.getBackgroundValidMin());
+        script = checkingMethod(script, ", use-fast-fail", datasourceAS7.getUseFastFail());
+        script = checkingMethod(script, ", exception-sorter-class-name", datasourceAS7.getExceptionSorter());
+        script = checkingMethod(script, ", valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
+        script = checkingMethod(script, ", stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
+        script = checkingMethod(script, ", blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
+        script = checkingMethod(script, ", idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
+        script = checkingMethod(script, ", set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
+        script = checkingMethod(script, ", query-timeout", datasourceAS7.getQueryTimeout());
+        script = checkingMethod(script, ", allocation-retry", datasourceAS7.getAllocationRetry());
+        script = checkingMethod(script, ", allocation-retry-wait-millis", datasourceAS7.getAllocRetryWaitMillis());
+        script = checkingMethod(script, ", use-try-lock", datasourceAS7.getUseTryLock());
+        script = checkingMethod(script, ", prepared-statement-cache-size", datasourceAS7.getPreStatementCacheSize());
+        script = checkingMethod(script, ", track-statements", datasourceAS7.getTrackStatements());
+        script = checkingMethod(script, ", share-prepared-statements", datasourceAS7.getSharePreStatements());
         script = script.concat(")\n");
         script = script.concat("data-source enable --name=" + datasourceAS7.getPoolName());
 
         return script;
-
-
     }
 
     @Override
@@ -119,42 +117,42 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=datasources/xa-data-source=";
         script = script.concat(xaDatasourceAS7.getPoolName()+":add(");
-        script = tmpMethod(script, "jndi-name", xaDatasourceAS7.getJndiName());
-        script = tmpMethod(script, ", enabled", xaDatasourceAS7.getEnabled());
-        script = tmpMethod(script, ", use-java-context", xaDatasourceAS7.getUseJavaContext());
-        script = tmpMethod(script, ", driver-name", xaDatasourceAS7.getDriver());
-        script = tmpMethod(script, ", url-delimeter", xaDatasourceAS7.getUrlDelimeter());
-        script = tmpMethod(script, ", url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
-        script = tmpMethod(script, ", transaction-isolation", xaDatasourceAS7.getTransIsolation());
-        script = tmpMethod(script, ", new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
-        script = tmpMethod(script, ", prefill", xaDatasourceAS7.getPrefill());
-        script = tmpMethod(script, ", min-pool-size", xaDatasourceAS7.getMinPoolSize());
-        script = tmpMethod(script, ", max-pool-size", xaDatasourceAS7.getMaxPoolSize());
-        script = tmpMethod(script, ", is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
-        script = tmpMethod(script, ", interleaving", xaDatasourceAS7.getInterleaving());
-        script = tmpMethod(script, ", no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
-        script = tmpMethod(script, ", password", xaDatasourceAS7.getPassword());
-        script = tmpMethod(script, ", user-name", xaDatasourceAS7.getUserName());
-        script = tmpMethod(script, ", security-domain", xaDatasourceAS7.getSecurityDomain());
-        script = tmpMethod(script, ", check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
-        script = tmpMethod(script, ", validate-on-match", xaDatasourceAS7.getValidateOnMatch());
-        script = tmpMethod(script, ", background-validation", xaDatasourceAS7.getBackgroundValid());
-        script = tmpMethod(script, ", background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
-        script = tmpMethod(script, ", use-fast-fail", xaDatasourceAS7.getUseFastFail());
-        script = tmpMethod(script, ", exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
-        script = tmpMethod(script, ", valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
-        script = tmpMethod(script, ", stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
-        script = tmpMethod(script, ", blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
-        script = tmpMethod(script, ", idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMinutes());
-        script = tmpMethod(script, ", set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
-        script = tmpMethod(script, ", query-timeout", xaDatasourceAS7.getQueryTimeout());
-        script = tmpMethod(script, ", allocation-retry", xaDatasourceAS7.getAllocationRetry());
-        script = tmpMethod(script, ", allocation-retry-wait-millis", xaDatasourceAS7.getAllocRetryWaitMillis());
-        script = tmpMethod(script, ", use-try-lock", xaDatasourceAS7.getUseTryLock());
-        script = tmpMethod(script, ", xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
-        script = tmpMethod(script, ", prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
-        script = tmpMethod(script, ", track-statements", xaDatasourceAS7.getTrackStatements());
-        script = tmpMethod(script, ", share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
+        script = checkingMethod(script, "jndi-name", xaDatasourceAS7.getJndiName());
+        script = checkingMethod(script, ", enabled", xaDatasourceAS7.getEnabled());
+        script = checkingMethod(script, ", use-java-context", xaDatasourceAS7.getUseJavaContext());
+        script = checkingMethod(script, ", driver-name", xaDatasourceAS7.getDriver());
+        script = checkingMethod(script, ", url-delimeter", xaDatasourceAS7.getUrlDelimeter());
+        script = checkingMethod(script, ", url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
+        script = checkingMethod(script, ", transaction-isolation", xaDatasourceAS7.getTransIsolation());
+        script = checkingMethod(script, ", new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
+        script = checkingMethod(script, ", prefill", xaDatasourceAS7.getPrefill());
+        script = checkingMethod(script, ", min-pool-size", xaDatasourceAS7.getMinPoolSize());
+        script = checkingMethod(script, ", max-pool-size", xaDatasourceAS7.getMaxPoolSize());
+        script = checkingMethod(script, ", is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
+        script = checkingMethod(script, ", interleaving", xaDatasourceAS7.getInterleaving());
+        script = checkingMethod(script, ", no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
+        script = checkingMethod(script, ", password", xaDatasourceAS7.getPassword());
+        script = checkingMethod(script, ", user-name", xaDatasourceAS7.getUserName());
+        script = checkingMethod(script, ", security-domain", xaDatasourceAS7.getSecurityDomain());
+        script = checkingMethod(script, ", check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
+        script = checkingMethod(script, ", validate-on-match", xaDatasourceAS7.getValidateOnMatch());
+        script = checkingMethod(script, ", background-validation", xaDatasourceAS7.getBackgroundValid());
+        script = checkingMethod(script, ", background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
+        script = checkingMethod(script, ", use-fast-fail", xaDatasourceAS7.getUseFastFail());
+        script = checkingMethod(script, ", exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
+        script = checkingMethod(script, ", valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
+        script = checkingMethod(script, ", stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
+        script = checkingMethod(script, ", blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
+        script = checkingMethod(script, ", idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMinutes());
+        script = checkingMethod(script, ", set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
+        script = checkingMethod(script, ", query-timeout", xaDatasourceAS7.getQueryTimeout());
+        script = checkingMethod(script, ", allocation-retry", xaDatasourceAS7.getAllocationRetry());
+        script = checkingMethod(script, ", allocation-retry-wait-millis", xaDatasourceAS7.getAllocRetryWaitMillis());
+        script = checkingMethod(script, ", use-try-lock", xaDatasourceAS7.getUseTryLock());
+        script = checkingMethod(script, ", xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
+        script = checkingMethod(script, ", prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
+        script = checkingMethod(script, ", track-statements", xaDatasourceAS7.getTrackStatements());
+        script = checkingMethod(script, ", share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
         script = script.concat(")\n");
 
        if(xaDatasourceAS7.getXaDatasourceProps() != null){
@@ -184,10 +182,10 @@ public class CliScriptImpl implements CliScript {
         String script = "/subsystem=data-sources/jdbc-driver=";
         script = script.concat(driver.getDriverName() + ":add(");
         script = script.concat("driver-module-name=" + driver.getDriverModule());
-        script = tmpMethod(script, ", driver-class-name", driver.getDriverClass());
-        script = tmpMethod(script, ", driver-xa-datasource-class-name", driver.getXaDatasourceClass());
-        script = tmpMethod(script, ", driver-major-version", driver.getMajorVersion());
-        script = tmpMethod(script, ", driver-minor-version", driver.getMinorVersion());
+        script = checkingMethod(script, ", driver-class-name", driver.getDriverClass());
+        script = checkingMethod(script, ", driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+        script = checkingMethod(script, ", driver-major-version", driver.getMajorVersion());
+        script = checkingMethod(script, ", driver-minor-version", driver.getMinorVersion());
         script = script.concat(")");
 
         return script;
@@ -208,7 +206,7 @@ public class CliScriptImpl implements CliScript {
         String script = "/subsystem=resource-adapters/resource-adapter=";
         script = script.concat(resourceAdapter.getJndiName() + ":add(");
         script = script.concat("archive=" + resourceAdapter.getArchive());
-        script = tmpMethod(script, ", transaction-support", resourceAdapter.getTransactionSupport());
+        script = checkingMethod(script, ", transaction-support", resourceAdapter.getTransactionSupport());
         script = script.concat(")\n");
 
         if(resourceAdapter.getConnectionDefinitions() != null){
@@ -220,38 +218,38 @@ public class CliScriptImpl implements CliScript {
 
                 script =  script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());
                 script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName() + ":add(");
-                script = tmpMethod(script, " jndi-name", connectionDefinition.getJndiName());
-                script = tmpMethod(script, ", enabled", connectionDefinition.getEnabled());
-                script = tmpMethod(script, ", use-java-context", connectionDefinition.getUseJavaCont());
-                script = tmpMethod(script, ", class-name", connectionDefinition.getClassName());
-                script = tmpMethod(script, ", use-ccm", connectionDefinition.getUseCcm());
-                script = tmpMethod(script, ", prefill", connectionDefinition.getPrefill());
-                script = tmpMethod(script, ", use-strict-min", connectionDefinition.getUseStrictMin());
-                script = tmpMethod(script, ", flush-strategy", connectionDefinition.getFlushStrategy());
-                script = tmpMethod(script, ", min-pool-size", connectionDefinition.getMinPoolSize());
-                script = tmpMethod(script, ", max-pool-size", connectionDefinition.getMaxPoolSize());
+                script = checkingMethod(script, " jndi-name", connectionDefinition.getJndiName());
+                script = checkingMethod(script, ", enabled", connectionDefinition.getEnabled());
+                script = checkingMethod(script, ", use-java-context", connectionDefinition.getUseJavaCont());
+                script = checkingMethod(script, ", class-name", connectionDefinition.getClassName());
+                script = checkingMethod(script, ", use-ccm", connectionDefinition.getUseCcm());
+                script = checkingMethod(script, ", prefill", connectionDefinition.getPrefill());
+                script = checkingMethod(script, ", use-strict-min", connectionDefinition.getUseStrictMin());
+                script = checkingMethod(script, ", flush-strategy", connectionDefinition.getFlushStrategy());
+                script = checkingMethod(script, ", min-pool-size", connectionDefinition.getMinPoolSize());
+                script = checkingMethod(script, ", max-pool-size", connectionDefinition.getMaxPoolSize());
 
                 if(connectionDefinition.getSecurityDomain() != null){
-                    script = tmpMethod(script, ", security-domain", connectionDefinition.getSecurityDomain());
+                    script = checkingMethod(script, ", security-domain", connectionDefinition.getSecurityDomain());
                 }
 
                 if(connectionDefinition.getSecDomainAndApp() != null){
-                    script = tmpMethod(script, ", security-domain-and-application",
+                    script = checkingMethod(script, ", security-domain-and-application",
                             connectionDefinition.getSecDomainAndApp());
                 }
 
                 if(connectionDefinition.getAppManagedSec() != null){
-                    script = tmpMethod(script, ", application-managed-security",
+                    script = checkingMethod(script, ", application-managed-security",
                             connectionDefinition.getAppManagedSec());
                 }
 
-                script = tmpMethod(script, ", background-validation", connectionDefinition.getBackgroundValidation());
-                script = tmpMethod(script, ", background-validation-millis", connectionDefinition.getBackgroundValiMillis());
-                script = tmpMethod(script, ", blocking-timeout-millis", connectionDefinition.getBackgroundValiMillis());
-                script = tmpMethod(script, ", idle-timeout-minutes", connectionDefinition.getIdleTimeoutMinutes());
-                script = tmpMethod(script, ", allocation-retry", connectionDefinition.getAllocationRetry());
-                script = tmpMethod(script, ", allocation-retry-wait-millis", connectionDefinition.getAllocRetryWaitMillis());
-                script = tmpMethod(script, ", xa-resource-timeout", connectionDefinition.getXaResourceTimeout());
+                script = checkingMethod(script, ", background-validation", connectionDefinition.getBackgroundValidation());
+                script = checkingMethod(script, ", background-validation-millis", connectionDefinition.getBackgroundValiMillis());
+                script = checkingMethod(script, ", blocking-timeout-millis", connectionDefinition.getBackgroundValiMillis());
+                script = checkingMethod(script, ", idle-timeout-minutes", connectionDefinition.getIdleTimeoutMinutes());
+                script = checkingMethod(script, ", allocation-retry", connectionDefinition.getAllocationRetry());
+                script = checkingMethod(script, ", allocation-retry-wait-millis", connectionDefinition.getAllocRetryWaitMillis());
+                script = checkingMethod(script, ", xa-resource-timeout", connectionDefinition.getXaResourceTimeout());
                 script = script.concat(")\n");
 
                 if(connectionDefinition.getConfigProperties() != null){
@@ -274,8 +272,8 @@ public class CliScriptImpl implements CliScript {
         }
 
         String script = "/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(";
-        script = tmpMethod(script, "level", logger.getLoggerLevelName());
-        script = tmpMethod(script,", use-parent-handlers", logger.getUseParentHandlers());
+        script = checkingMethod(script, "level", logger.getLoggerLevelName());
+        script = checkingMethod(script, ", use-parent-handlers", logger.getUseParentHandlers());
 
         if(logger.getHandlers() != null){
             String handlers = "";
@@ -349,10 +347,10 @@ public class CliScriptImpl implements CliScript {
         script = script.concat("file={\"relative-to\"=>\"" + periodic.getFileRelativeTo()+"\"");
         script = script.concat(", \"path\"=>\"" + periodic.getPath() + "\"}");
         script = script.concat(", suffix=" + periodic.getSuffix());
-        script = tmpMethod(script, ", level", periodic.getLevel());
-        script = tmpMethod(script, ", formatter", periodic.getFormatter());
-        script = tmpMethod(script, ", autoflush", periodic.getAutoflush());
-        script = tmpMethod(script, ", append", periodic.getAppend() );
+        script = checkingMethod(script, ", level", periodic.getLevel());
+        script = checkingMethod(script, ", formatter", periodic.getFormatter());
+        script = checkingMethod(script, ", autoflush", periodic.getAutoflush());
+        script = checkingMethod(script, ", append", periodic.getAppend());
         script = script.concat(")");
 
         return script;
@@ -377,13 +375,13 @@ public class CliScriptImpl implements CliScript {
         String script = "/subsystem=logging/size-rotating-file-handler=";
         script = script.concat(sizeHandler.getName() + ":add(");
         script = script.concat("file={\"" + sizeHandler.getRelativeTo() + "\"=>\"" + sizeHandler.getPath() + "\"}");
-        script = tmpMethod(script,"level", sizeHandler.getLevel());
-        script = tmpMethod(script, ", filter",sizeHandler.getFilter());
-        script = tmpMethod(script, ", formatter", sizeHandler.getFormatter());
-        script = tmpMethod(script, ", autoflush", sizeHandler.getAutoflush());
-        script = tmpMethod(script, ", append", sizeHandler.getAppend());
-        script = tmpMethod(script, ", rotate-size", sizeHandler.getRotateSize());
-        script = tmpMethod(script, ", max-backup-index", sizeHandler.getMaxBackupIndex());
+        script = checkingMethod(script, "level", sizeHandler.getLevel());
+        script = checkingMethod(script, ", filter", sizeHandler.getFilter());
+        script = checkingMethod(script, ", formatter", sizeHandler.getFormatter());
+        script = checkingMethod(script, ", autoflush", sizeHandler.getAutoflush());
+        script = checkingMethod(script, ", append", sizeHandler.getAppend());
+        script = checkingMethod(script, ", rotate-size", sizeHandler.getRotateSize());
+        script = checkingMethod(script, ", max-backup-index", sizeHandler.getMaxBackupIndex());
         script = script.concat(")");
 
         return script;
@@ -405,10 +403,10 @@ public class CliScriptImpl implements CliScript {
         String script = "/subsystem=logging/async-handler=";
         script = script.concat(asyncHandler.getName() + ":add(");
         script = script.concat("queue-length=" + asyncHandler.getQueueLength());
-        script = tmpMethod(script, ", level", asyncHandler.getLevel());
-        script = tmpMethod(script, ", filter", asyncHandler.getFilter());
-        script = tmpMethod(script, ", formatter", asyncHandler.getFormatter());
-        script = tmpMethod(script, ", overflow-action", asyncHandler.getOverflowAction());
+        script = checkingMethod(script, ", level", asyncHandler.getLevel());
+        script = checkingMethod(script, ", filter", asyncHandler.getFilter());
+        script = checkingMethod(script, ", formatter", asyncHandler.getFormatter());
+        script = checkingMethod(script, ", overflow-action", asyncHandler.getOverflowAction());
 
         if(asyncHandler.getSubhandlers() != null){
             String handlers = "";
@@ -435,11 +433,11 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=logging/console-handler=";
         script = script.concat(consoleHandler.getName() + ":add(");
-        script = tmpMethod(script,"level", consoleHandler.getLevel());
-        script = tmpMethod(script, ", filter", consoleHandler.getFilter());
-        script = tmpMethod(script, ", formatter", consoleHandler.getFormatter());
-        script = tmpMethod(script, ", autoflush", consoleHandler.getAutoflush());
-        script = tmpMethod(script, ", target", consoleHandler.getTarget());
+        script = checkingMethod(script, "level", consoleHandler.getLevel());
+        script = checkingMethod(script, ", filter", consoleHandler.getFilter());
+        script = checkingMethod(script, ", formatter", consoleHandler.getFormatter());
+        script = checkingMethod(script, ", autoflush", consoleHandler.getAutoflush());
+        script = checkingMethod(script, ", target", consoleHandler.getTarget());
         script = script.concat(")");
 
         return script;
@@ -465,11 +463,11 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=logging/custom-handler=";
         script = script.concat(customHandler.getName() + ":add(");
-        script = tmpMethod(script, "level", customHandler.getLevel());
-        script = tmpMethod(script, ", filter", customHandler.getFilter());
-        script = tmpMethod(script, ", formatter", customHandler.getFormatter());
-        script = tmpMethod(script, ", class", customHandler.getClassValue());
-        script = tmpMethod(script, ", module", customHandler.getModule());
+        script = checkingMethod(script, "level", customHandler.getLevel());
+        script = checkingMethod(script, ", filter", customHandler.getFilter());
+        script = checkingMethod(script, ", formatter", customHandler.getFormatter());
+        script = checkingMethod(script, ", class", customHandler.getClassValue());
+        script = checkingMethod(script, ", module", customHandler.getModule());
 
         if(customHandler.getProperties() != null){
             String properties = "";
@@ -498,14 +496,14 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=security/security-domain=";
         script = script.concat(securityDomain.getSecurityDomainName() + ":add(");
-        script = tmpMethod(script,"cache-type", securityDomain.getCacheType() + ")\n");
+        script = checkingMethod(script, "cache-type", securityDomain.getCacheType() + ")\n");
 
         if(securityDomain.getLoginModules() != null){
             for(LoginModuleAS7 loginModuleAS7 : securityDomain.getLoginModules()){
                script = script.concat("/subsystem=security/security-domain=" + securityDomain.getSecurityDomainName());
                 script = script.concat("/authentication=classic:add(login-modules=[{");
-                script = tmpMethod(script, "\"code\"", ">\"" + loginModuleAS7.getLoginModuleCode() + "\"");
-                script = tmpMethod(script, ", \"flag\"", ">\"" + loginModuleAS7.getLoginModuleFlag() + "\"" );
+                script = checkingMethod(script, "\"code\"", ">\"" + loginModuleAS7.getLoginModuleCode() + "\"");
+                script = checkingMethod(script, ", \"flag\"", ">\"" + loginModuleAS7.getLoginModuleFlag() + "\"");
 
                 if((loginModuleAS7.getModuleOptions() != null) || !loginModuleAS7.getModuleOptions().isEmpty()){
                     String modules= "";
@@ -549,34 +547,34 @@ public class CliScriptImpl implements CliScript {
 
         String script = "/subsystem=web/connector=";
         script = script.concat(connectorAS7.getConnectorName() + ":add(");
-        script = tmpMethod(script, "socket-binding", connectorAS7.getSocketBinding());
-        script = tmpMethod(script, ",enable-lookups", connectorAS7.getEnableLookups());
-        script = tmpMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
-        script = tmpMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
-        script = tmpMethod(script, ", max-connections", connectorAS7.getMaxConnections());
-        script = tmpMethod(script, ", protocol", connectorAS7.getProtocol());
-        script = tmpMethod(script, ", proxy-name", connectorAS7.getProxyName());
-        script = tmpMethod(script, ", proxy-port", connectorAS7.getProxyPort());
-        script = tmpMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
-        script = tmpMethod(script, ", scheme", connectorAS7.getScheme());
-        script = tmpMethod(script, ", secure", connectorAS7.getSecure());
-        script = tmpMethod(script, ", enabled", connectorAS7.getEnabled());
+        script = checkingMethod(script, "socket-binding", connectorAS7.getSocketBinding());
+        script = checkingMethod(script, ",enable-lookups", connectorAS7.getEnableLookups());
+        script = checkingMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
+        script = checkingMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
+        script = checkingMethod(script, ", max-connections", connectorAS7.getMaxConnections());
+        script = checkingMethod(script, ", protocol", connectorAS7.getProtocol());
+        script = checkingMethod(script, ", proxy-name", connectorAS7.getProxyName());
+        script = checkingMethod(script, ", proxy-port", connectorAS7.getProxyPort());
+        script = checkingMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
+        script = checkingMethod(script, ", scheme", connectorAS7.getScheme());
+        script = checkingMethod(script, ", secure", connectorAS7.getSecure());
+        script = checkingMethod(script, ", enabled", connectorAS7.getEnabled());
         script = script.concat(")");
 
         if(connectorAS7.getScheme().equals("https"))  {
             script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
                       + "/ssl=configuration:add(");
-            script = tmpMethod(script,"name", connectorAS7.getSslName());
-            script = tmpMethod(script,", verify-client", connectorAS7.getVerifyClient());
-            script = tmpMethod(script,", verify-depth", connectorAS7.getVerifyDepth());
-            script = tmpMethod(script,", certificate-key-file", connectorAS7.getCertifKeyFile());
-            script = tmpMethod(script,", password", connectorAS7.getPassword());
-            script = tmpMethod(script,", protocol", connectorAS7.getProtocol());
-            script = tmpMethod(script,", ciphers", connectorAS7.getCiphers());
-            script = tmpMethod(script,", key-alias", connectorAS7.getKeyAlias());
-            script = tmpMethod(script,", ca-certificate-file", connectorAS7.getCaCertifFile());
-            script = tmpMethod(script,", session-cache-size", connectorAS7.getSessionCacheSize());
-            script = tmpMethod(script,", session-timeout", connectorAS7.getSessionTimeout());
+            script = checkingMethod(script, "name", connectorAS7.getSslName());
+            script = checkingMethod(script, ", verify-client", connectorAS7.getVerifyClient());
+            script = checkingMethod(script, ", verify-depth", connectorAS7.getVerifyDepth());
+            script = checkingMethod(script, ", certificate-key-file", connectorAS7.getCertifKeyFile());
+            script = checkingMethod(script, ", password", connectorAS7.getPassword());
+            script = checkingMethod(script, ", protocol", connectorAS7.getProtocol());
+            script = checkingMethod(script, ", ciphers", connectorAS7.getCiphers());
+            script = checkingMethod(script, ", key-alias", connectorAS7.getKeyAlias());
+            script = checkingMethod(script, ", ca-certificate-file", connectorAS7.getCaCertifFile());
+            script = checkingMethod(script, ", session-cache-size", connectorAS7.getSessionCacheSize());
+            script = checkingMethod(script, ", session-timeout", connectorAS7.getSessionTimeout());
             script = script.concat(")");
         }
 
@@ -589,8 +587,8 @@ public class CliScriptImpl implements CliScript {
     public String createVirtualServerScript(VirtualServer virtualServer) {
         String script = "/subsystem=web/virtual-server=";
         script = script.concat(virtualServer.getVirtualServerName() + ":add(");
-        script = tmpMethod(script, "enable-welcome-root",virtualServer.getEnableWelcomeRoot());
-        script = tmpMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
+        script = checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
+        script = checkingMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
 
         if(virtualServer.getAliasName() != null){
             String aliases = "";
@@ -623,7 +621,7 @@ public class CliScriptImpl implements CliScript {
         String script = "/socket-binding-group=standard-sockets/socket-binding=";
         script = script.concat(socketBinding.getSocketName() + ":add(");
         script = script.concat("port=" + socketBinding.getSocketPort());
-        script = tmpMethod(script, ", interface", socketBinding.getSocketInterface());
+        script = checkingMethod(script, ", interface", socketBinding.getSocketInterface());
         script = script.concat(")");
 
         return script;

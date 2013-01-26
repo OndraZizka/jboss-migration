@@ -1,9 +1,13 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
+import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
+import cz.muni.fi.jboss.migration.migrators.server.SocketBinding;
+import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
@@ -104,19 +108,19 @@ public class LoggingMigrator implements IMigrator {
                         break;
                         case "RollingFileAppender": {
                             Document doc = ctx.getDocBuilder().newDocument();
-                            perHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc);
+                            sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc);
                             nodeList.add(doc.getDocumentElement());
                         }
                         break;
                         case "ConsoleAppender": {
                             Document doc = ctx.getDocBuilder().newDocument();
-                            perHandMarshaller.marshal(createConsoleHandler(appender), doc);
+                            conHandMarshaller.marshal(createConsoleHandler(appender), doc);
                             nodeList.add(doc.getDocumentElement());
                         }
                         break;
                         case "AsyncAppender":{
                             Document doc = ctx.getDocBuilder().newDocument();
-                            perHandMarshaller.marshal(createAsyncHandler(appender), doc);
+                            asyHandMarshaller.marshal(createAsyncHandler(appender), doc);
                             nodeList.add(doc.getDocumentElement());
                         }
                         break;
@@ -130,7 +134,7 @@ public class LoggingMigrator implements IMigrator {
                         //TODO: Problem with module
                         default: {
                             Document doc = ctx.getDocBuilder().newDocument();
-                            perHandMarshaller.marshal(createCustomHandler(appender), doc);
+                            cusHandMarshaller.marshal(createCustomHandler(appender), doc);
                             nodeList.add(doc.getDocumentElement());
                         }
                         break;
@@ -180,82 +184,65 @@ public class LoggingMigrator implements IMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) {
-        return null;
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+        try {
+            List<String> list = new ArrayList();
+            Unmarshaller logUnmarshaller = JAXBContext.newInstance(Logger.class).createUnmarshaller();
+            Unmarshaller rootUnmarshaller = JAXBContext.newInstance(RootLoggerAS7.class).createUnmarshaller();
+            Unmarshaller perHandUnmarshaller = JAXBContext.newInstance(PerRotFileHandler.class).createUnmarshaller();
+            Unmarshaller sizeHandUnmarshaller = JAXBContext.newInstance(SizeRotFileHandler.class).createUnmarshaller();
+            Unmarshaller asyHandUnmarshaller = JAXBContext.newInstance(AsyncHandler.class).createUnmarshaller();
+            Unmarshaller cusHandUnmarshaller = JAXBContext.newInstance(CustomHandler.class).createUnmarshaller();
+            Unmarshaller conHandUnmarshaller = JAXBContext.newInstance(ConsoleHandler.class).createUnmarshaller();
+
+            for(Node node : generateDomElements(ctx)){
+                if(node.getNodeName().equals("logger")){
+                    Logger log = (Logger) logUnmarshaller.unmarshal(node);
+                    list.add(createLoggerScript(log, ctx));
+                    continue;
+                }
+                // TODO: Check how add root-logger or change with CLI then implement
+//                if(node.getNodeName().equals("root-logger")){
+//                    RootLoggerAS7 root = (RootLoggerAS7) rootUnmarshaller.unmarshal(node);
+//                    list.add(cr(virtual, ctx));
+//                    continue;
+//                }
+                if(node.getNodeName().equals("size-rotating-handler")){
+                    SizeRotFileHandler sizeHandler = (SizeRotFileHandler) sizeHandUnmarshaller.unmarshal(node);
+                    list.add(createSizeHandlerScript(sizeHandler, ctx));
+                    continue;
+                }
+                if(node.getNodeName().equals("periodic-rotating-file-handler")){
+                    PerRotFileHandler perHandler = (PerRotFileHandler) perHandUnmarshaller.unmarshal(node);
+                    list.add(createPerHandlerScript(perHandler, ctx));
+                    continue;
+                }
+                if(node.getNodeName().equals("custom-handler")){
+                    CustomHandler cusHandler = (CustomHandler) cusHandUnmarshaller.unmarshal(node);
+                    list.add(createCustomHandlerScript(cusHandler, ctx));
+                    continue;
+                }
+                if(node.getNodeName().equals("async-handler")){
+                    AsyncHandler asyncHandler = (AsyncHandler) asyHandUnmarshaller.unmarshal(node);
+                    list.add(createAsyncHandlerScript(asyncHandler, ctx));
+                    continue;
+                }
+                if(node.getNodeName().equals("console-handler")){
+                    ConsoleHandler conHandler = (ConsoleHandler) conHandUnmarshaller.unmarshal(node);
+                    list.add(createConsoleHandlerScript(conHandler, ctx));
+                    continue;
+                }
+            }
+
+            return list;
+        } catch (MigrationException e) {
+            throw new CliScriptException(e);
+        } catch (JAXBException e) {
+            throw new CliScriptException(e);
+        }
     }
 
-//    public void migrate(MigrationContext ctx) throws MigrationException{
-//        MigratedData migratedData = new MigratedData();
-//
-//        for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
-//            if(fragment instanceof Appender){
-//                Appender appender = (Appender) fragment;
-//                String type = appender.getAppenderClass();
-//
-//                switch (StringUtils.substringAfterLast(type, ".")) {
-//                    case "DailyRollingFileAppender": {
-//                        migratedData.getMigratedData().add(createPerRotFileHandler(appender,ctx));
-//                    }
-//                    break;
-//                    case "RollingFileAppender": {
-//                        migratedData.getMigratedData().add(createSizeRotFileHandler(appender,ctx));
-//                    }
-//                    break;
-//                    case "ConsoleAppender": {
-//                          migratedData.getMigratedData().add(createConsoleHandler(appender));
-//                    }
-//                    break;
-//                    case "AsyncAppender":{
-//                          migratedData.getMigratedData().add(createAsyncHandler(appender));
-//                    }
-//                    break;
-//                    // TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
-//                    // TODO: So i think that FileAppender in AS7 is then useless?
-//                    // THINK !!
-//
-//                    //case "FileAppender" :
-//
-//                    // Basic implementation of Custom Handler
-//                    //TODO: Problem with module
-//                    default: {
-//                       migratedData.getMigratedData().add(createCustomHandler(appender));
-//                    }
-//                    break;
-//                }
-//                continue;
-//            }
-//
-//            if(fragment instanceof Category){
-//                Category category = (Category) fragment;
-//                Logger logger = new Logger();
-//                logger.setLoggerCategory(category.getCategoryName());
-//                logger.setLoggerLevelName(category.getCategoryValue());
-//                logger.setHandlers(category.getAppenderRef());
-//
-//                migratedData.getMigratedData().add(logger);
-//                continue;
-//            }
-//
-//            if(fragment instanceof RootLoggerAS5){
-//                RootLoggerAS5 root =  (RootLoggerAS5) fragment;
-//                RootLoggerAS7 rootLoggerAS7 = new RootLoggerAS7();
-//                /*
-//                TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
-//                for now only default INFO
-//                */
-//                rootLoggerAS7.setRootLoggerLevel("INFO");
-//                rootLoggerAS7.setRootLoggerHandlers(root.getRootAppenderRefs());
-//                migratedData.getMigratedData().add(rootLoggerAS7);
-//                continue;
-//            }
-//
-//            throw new MigrationException("Error: Object is not part of Logging migration!");
-//        }
-//
-//        ctx.getMigratedData().put(LoggingMigrator.class, migratedData);
-//    }
-
-    private PerRotFileHandler createPerRotFileHandler(Appender appender, MigrationContext ctx){
+    public PerRotFileHandler createPerRotFileHandler(Appender appender, MigrationContext ctx){
         PerRotFileHandler handler = new PerRotFileHandler();
         handler.setName(appender.getAppenderName());
 
@@ -293,7 +280,7 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
-    private SizeRotFileHandler createSizeRotFileHandler(Appender appender, MigrationContext ctx){
+    public SizeRotFileHandler createSizeRotFileHandler(Appender appender, MigrationContext ctx){
         SizeRotFileHandler handler = new SizeRotFileHandler();
         handler.setName(appender.getAppenderName());
 
@@ -336,7 +323,7 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
-    private AsyncHandler createAsyncHandler(Appender appender){
+    public AsyncHandler createAsyncHandler(Appender appender){
         AsyncHandler handler = new AsyncHandler();
         handler.setName(appender.getAppenderName());
         for (Parameter parameter : appender.getParameters()) {
@@ -362,7 +349,7 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
-    private ConsoleHandler createConsoleHandler(Appender appender){
+    public ConsoleHandler createConsoleHandler(Appender appender){
         ConsoleHandler handler = new ConsoleHandler();
         handler.setName(appender.getAppenderName());
 
@@ -382,7 +369,7 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
-    private CustomHandler createCustomHandler(Appender appender){
+    public CustomHandler createCustomHandler(Appender appender){
         CustomHandler handler = new CustomHandler();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
@@ -405,8 +392,201 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
-    private FileHandler createFileHandler(Appender appender){
+    public FileHandler createFileHandler(Appender appender){
         return null;
     }
+
+    public String createLoggerScript(Logger logger, MigrationContext ctx) throws CliScriptException{
+        if((logger.getLoggerLevelName() == null) || (logger.getLoggerLevelName().isEmpty())){
+            throw new CliScriptException("Error:name of the logger cannot be null of empty", new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(";
+        script = ctx.checkingMethod(script, "level", logger.getLoggerLevelName());
+        script = ctx.checkingMethod(script, ", use-parent-handlers", logger.getUseParentHandlers());
+
+        if(logger.getHandlers() != null){
+            String handlers = "";
+            for(String handler : logger.getHandlers()){
+                handlers = handlers.concat(",\"" + handler + "\"");
+            }
+            if(!handlers.isEmpty()){
+                handlers = handlers.replaceFirst("\\,","");
+                script = script.concat(", handlers=[" + handlers +"])");
+            } else{
+                script = script.concat(")");
+            }
+        } else {
+            script = script.concat(")");
+        }
+        return script;
+
+    }
+
+    public String createPerHandlerScript(PerRotFileHandler periodic, MigrationContext ctx) throws CliScriptException{
+        if((periodic.getName() ==  null) || (periodic.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the periodic rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((periodic.getSuffix() == null) || (periodic.getSuffix().isEmpty())){
+            throw new CliScriptException("Error: suffix in periodic rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((periodic.getFileRelativeTo() == null) || (periodic.getFileRelativeTo().isEmpty())){
+            throw new CliScriptException("Error: relative-to in <file> in periodic rotating handler"
+                    +"cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((periodic.getPath() == null) || (periodic.getPath().isEmpty())){
+            throw new CliScriptException("Error:  path in <file> in periodic rotating handler cannot"
+                    +" be null or empty", new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/periodic-rotating-file-handler=";
+        script = script.concat(periodic.getName() + ":add(");
+        script = script.concat("file={\"relative-to\"=>\"" + periodic.getFileRelativeTo()+"\"");
+        script = script.concat(", \"path\"=>\"" + periodic.getPath() + "\"}");
+        script = script.concat(", suffix=" + periodic.getSuffix());
+        script = ctx.checkingMethod(script, ", level", periodic.getLevel());
+        script = ctx.checkingMethod(script, ", formatter", periodic.getFormatter());
+        script = ctx.checkingMethod(script, ", autoflush", periodic.getAutoflush());
+        script = ctx.checkingMethod(script, ", append", periodic.getAppend());
+        script = script.concat(")");
+
+        return script;
+    }
+
+    public String createSizeHandlerScript(SizeRotFileHandler sizeHandler, MigrationContext ctx) throws CliScriptException{
+        if((sizeHandler.getName() == null) || (sizeHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((sizeHandler.getRelativeTo() == null) || (sizeHandler.getPath().isEmpty())){
+            throw new CliScriptException("Error: relative-to in <file> in size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((sizeHandler.getPath() ==  null) || (sizeHandler.getPath().isEmpty())){
+            throw new CliScriptException("Error: path in <file> in size rotating handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/size-rotating-file-handler=";
+        script = script.concat(sizeHandler.getName() + ":add(");
+        script = script.concat("file={\"" + sizeHandler.getRelativeTo() + "\"=>\"" + sizeHandler.getPath() + "\"}");
+        script = ctx.checkingMethod(script, "level", sizeHandler.getLevel());
+        script = ctx.checkingMethod(script, ", filter", sizeHandler.getFilter());
+        script = ctx.checkingMethod(script, ", formatter", sizeHandler.getFormatter());
+        script = ctx.checkingMethod(script, ", autoflush", sizeHandler.getAutoflush());
+        script = ctx.checkingMethod(script, ", append", sizeHandler.getAppend());
+        script = ctx.checkingMethod(script, ", rotate-size", sizeHandler.getRotateSize());
+        script = ctx.checkingMethod(script, ", max-backup-index", sizeHandler.getMaxBackupIndex());
+        script = script.concat(")");
+
+        return script;
+
+    }
+
+
+    public String createAsyncHandlerScript(AsyncHandler asyncHandler, MigrationContext ctx) throws  CliScriptException{
+        if((asyncHandler.getQueueLength() == null) || (asyncHandler.getQueueLength().isEmpty())){
+            throw new CliScriptException("Error: queue-length in async handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((asyncHandler.getName() == null) || (asyncHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the async handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/async-handler=";
+        script = script.concat(asyncHandler.getName() + ":add(");
+        script = script.concat("queue-length=" + asyncHandler.getQueueLength());
+        script = ctx.checkingMethod(script, ", level", asyncHandler.getLevel());
+        script = ctx.checkingMethod(script, ", filter", asyncHandler.getFilter());
+        script = ctx.checkingMethod(script, ", formatter", asyncHandler.getFormatter());
+        script = ctx.checkingMethod(script, ", overflow-action", asyncHandler.getOverflowAction());
+
+        if(asyncHandler.getSubhandlers() != null){
+            String handlers = "";
+            for(String subhandler  : asyncHandler.getSubhandlers()){
+                handlers=", \"" + subhandler + "\"";
+            }
+            handlers = handlers.replaceFirst("\\, ", "");
+            if(!handlers.isEmpty()){
+                script = script.concat(", subhandlers=[" + handlers +"]");
+            }
+        }
+
+        script = script.concat(")");
+
+        return script;
+
+    }
+
+    public String createConsoleHandlerScript(ConsoleHandler consoleHandler, MigrationContext ctx) throws CliScriptException{
+        if((consoleHandler.getName() == null) || (consoleHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the console handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/console-handler=";
+        script = script.concat(consoleHandler.getName() + ":add(");
+        script = ctx.checkingMethod(script, "level", consoleHandler.getLevel());
+        script = ctx.checkingMethod(script, ", filter", consoleHandler.getFilter());
+        script = ctx.checkingMethod(script, ", formatter", consoleHandler.getFormatter());
+        script = ctx.checkingMethod(script, ", autoflush", consoleHandler.getAutoflush());
+        script = ctx.checkingMethod(script, ", target", consoleHandler.getTarget());
+        script = script.concat(")");
+
+        return script;
+    }
+
+    public String createCustomHandlerScript (CustomHandler customHandler, MigrationContext ctx) throws  CliScriptException{
+        if((customHandler.getName() == null) || (customHandler.getName().isEmpty())){
+            throw new CliScriptException("Error: name of the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((customHandler.getModule() == null) || (customHandler.getModule().isEmpty())){
+            throw new CliScriptException("Error: module in the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((customHandler.getClassValue() == null) || (customHandler.getClassValue().isEmpty())){
+            throw new CliScriptException("Error: class in the custom handler cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=logging/custom-handler=";
+        script = script.concat(customHandler.getName() + ":add(");
+        script = ctx.checkingMethod(script, "level", customHandler.getLevel());
+        script = ctx.checkingMethod(script, ", filter", customHandler.getFilter());
+        script = ctx.checkingMethod(script, ", formatter", customHandler.getFormatter());
+        script = ctx.checkingMethod(script, ", class", customHandler.getClassValue());
+        script = ctx.checkingMethod(script, ", module", customHandler.getModule());
+
+        if(customHandler.getProperties() != null){
+            String properties = "";
+            for(Property property : customHandler.getProperties()){
+                properties = properties.concat(", \"" + property.getName() + "\"=>");
+                properties = properties.concat("\"" + property.getValue() + "\"");
+            }
+
+            if(!properties.isEmpty()){
+                properties = properties.replaceFirst("\\, ", "");
+                script = script.concat(", properties={" + properties + "}");
+            }
+        }
+
+        script = script.concat(")");
+
+        return script;
+    }
+
 }
 

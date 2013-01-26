@@ -1,8 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
 import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
 import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
@@ -206,135 +208,63 @@ public class SecurityMigrator implements IMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) {
-        return null;
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+        try {
+            List<String> list = new ArrayList();
+            Unmarshaller secUnmarshaller = JAXBContext.newInstance(SecurityDomain.class).createUnmarshaller();
+
+            for(Node node : generateDomElements(ctx)){
+                SecurityDomain securityDomain = (SecurityDomain) secUnmarshaller.unmarshal(node);
+                list.add(createSecurityDomainScript(securityDomain, ctx));
+            }
+
+            return list;
+        } catch (MigrationException e) {
+            throw new CliScriptException(e);
+        } catch (JAXBException e) {
+            throw new CliScriptException(e);
+        }
     }
 
-//    public void migrate(MigrationContext ctx) throws MigrationException{
-//        SecurityAS7 securityAS7 = new SecurityAS7();
-//        Set<SecurityDomain> securityDomains = new HashSet();
-//
-//        for (IConfigFragment data : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
-//            if(!(data instanceof ApplicationPolicy)){
-//                throw new MigrationException("Error: Object is not part of Security migration!");
-//            }
-//            ApplicationPolicy appPolicy = (ApplicationPolicy) data;
-//
-//            Set<LoginModuleAS7> loginModules = new HashSet();
-//            SecurityDomain securityDomain = new SecurityDomain();
-//            securityDomain.setSecurityDomainName(appPolicy.getApplicationPolicyName());
-//            securityDomain.setCacheType("default");
-//
-//            for (LoginModuleAS5 lmAS5 : appPolicy.getLoginModules()) {
-//                Set<ModuleOptionAS7> moduleOptions = new HashSet();
-//                LoginModuleAS7 lmAS7 = new LoginModuleAS7();
-//                lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
-//
-//                switch (StringUtils.substringAfterLast(lmAS5.getLoginModule(), ".")) {
-//                    case "ClientLoginModule":
-//                        lmAS7.setLoginModuleCode("Client");
-//                        break;
-//                    //*
-//                    case "BaseCertLoginModule":
-//                        lmAS7.setLoginModuleCode("Certificate");
-//                        break;
-//                    case "CertRolesLoginModule":
-//                        lmAS7.setLoginModuleCode("CertificateRoles");
-//                        break;
-//                    //*
-//                    case "DatabaseServerLoginModule":
-//                        lmAS7.setLoginModuleCode("Database");
-//                        break;
-//                    case "DatabaseCertLoginModule":
-//                        lmAS7.setLoginModuleCode("DatabaseCertificate");
-//                        break;
-//                    case "IdentityLoginModule":
-//                        lmAS7.setLoginModuleCode("Identity");
-//                        break;
-//                    case "LdapLoginModule":
-//                        lmAS7.setLoginModuleCode("Ldap");
-//                        break;
-//                    case "LdapExtLoginModule":
-//                        lmAS7.setLoginModuleCode("LdapExtended");
-//                        break;
-//                    case "RoleMappingLoginModule":
-//                        lmAS7.setLoginModuleCode("RoleMapping");
-//                        break;
-//                    case "RunAsLoginModule":
-//                        lmAS7.setLoginModuleCode("RunAs");
-//                        break;
-//                    case "SimpleServerLoginModule":
-//                        lmAS7.setLoginModuleCode("Simple");
-//                        break;
-//                    case "ConfiguredIdentityLoginModule":
-//                        lmAS7.setLoginModuleCode("ConfiguredIdentity");
-//                        break;
-//                    case "SecureIdentityLoginModule":
-//                        lmAS7.setLoginModuleCode("SecureIdentity");
-//                        break;
-//                    case "PropertiesUsersLoginModule":
-//                        lmAS7.setLoginModuleCode("PropertiesUsers");
-//                        break;
-//                    case "SimpleUsersLoginModule":
-//                        lmAS7.setLoginModuleCode("SimpleUsers");
-//                        break;
-//                    case "LdapUsersLoginModule":
-//                        lmAS7.setLoginModuleCode("LdapUsers");
-//                        break;
-//                    case "Krb5loginModule":
-//                        lmAS7.setLoginModuleCode("Kerberos");
-//                        break;
-//                    case "SPNEGOLoginModule":
-//                        lmAS7.setLoginModuleCode("SPNEGOUsers");
-//                        break;
-//                    case "AdvancedLdapLoginModule":
-//                        lmAS7.setLoginModuleCode("AdvancedLdap");
-//                        break;
-//                    case "AdvancedADLoginModule":
-//                        lmAS7.setLoginModuleCode("AdvancedADldap");
-//                        break;
-//                    case "UsersRolesLoginModule":
-//                        lmAS7.setLoginModuleCode("UsersRoles");
-//                        break;
-//                    default:
-//                        lmAS7.setLoginModuleCode(lmAS5.getLoginModule());
-//                }
-//
-//                if (lmAS5.getModuleOptions() != null) {
-//                    for (ModuleOptionAS5 moAS5 : lmAS5.getModuleOptions()) {
-//                        ModuleOptionAS7 moAS7 = new ModuleOptionAS7();
-//                        moAS7.setModuleOptionName(moAS5.getModuleName());
-//
-//                        // TODO: Module-option using file can only use .properties?
-//                        if(moAS5.getModuleValue().contains("properties")){
-//                            String value;
-//                            if(moAS5.getModuleValue().contains("/")){
-//                                value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
-//                            } else{
-//                                value = moAS5.getModuleValue();
-//                            }
-//                            moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
-//
-//                            CopyMemory cp = new CopyMemory();
-//                            cp.setName(value);
-//                            cp.setType("security");
-//                            ctx.getCopyMemories().add(cp);
-//                        } else{
-//                            moAS7.setModuleOptionValue(moAS5.getModuleValue());
-//                        }
-//
-//                        moduleOptions.add(moAS7);
-//                    }
-//                }
-//
-//                lmAS7.setModuleOptions(moduleOptions);
-//                loginModules.add(lmAS7);
-//            }
-//
-//            securityDomain.setLoginModules(loginModules);
-//            migratedData.getMigratedData().add(securityDomain);
-//        }
-//
-//        ctx.getMigratedData().put(SecurityMigrator.class, migratedData);
-//    }
+    public String createSecurityDomainScript(SecurityDomain securityDomain, MigrationContext ctx) throws CliScriptException{
+        if((securityDomain.getSecurityDomainName() == null) || (securityDomain.getSecurityDomainName().isEmpty())){
+            throw new CliScriptException("Error: name of the security domain cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "/subsystem=security/security-domain=";
+        script = script.concat(securityDomain.getSecurityDomainName() + ":add(");
+        script = ctx.checkingMethod(script, "cache-type", securityDomain.getCacheType() + ")\n");
+
+        if(securityDomain.getLoginModules() != null){
+            for(LoginModuleAS7 loginModuleAS7 : securityDomain.getLoginModules()){
+                script = script.concat("/subsystem=security/security-domain=" + securityDomain.getSecurityDomainName());
+                script = script.concat("/authentication=classic:add(login-modules=[{");
+                script = ctx.checkingMethod(script, "\"code\"", ">\"" + loginModuleAS7.getLoginModuleCode() + "\"");
+                script = ctx.checkingMethod(script, ", \"flag\"", ">\"" + loginModuleAS7.getLoginModuleFlag() + "\"");
+
+                if(loginModuleAS7.getModuleOptions() != null){
+                    if(!loginModuleAS7.getModuleOptions().isEmpty()) {
+                        String modules= "";
+                        for(ModuleOptionAS7 moduleOptionAS7 : loginModuleAS7.getModuleOptions()){
+                            modules = modules.concat(", (\"" + moduleOptionAS7.getModuleOptionName() + "\"=>");
+                            modules = modules.concat("\"" + moduleOptionAS7.getModuleOptionValue() + "\")");
+                        }
+
+                        modules = modules.replaceFirst("\\,", "");
+                        modules = modules.replaceFirst(" ", "");
+
+                        if(!modules.isEmpty()){
+                            script = script.concat(", \"module-option\"=>[" + modules + "]");
+                        }
+                    }
+
+                }
+            }
+        }
+
+        script = script.concat("}])");
+
+        return script;
+    }
 }
