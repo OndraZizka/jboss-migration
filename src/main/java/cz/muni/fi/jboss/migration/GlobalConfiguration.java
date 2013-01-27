@@ -1,5 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
+import java.io.File;
+
 /**
  * @author Roman Jakubco
  *         Date: 1/24/13
@@ -14,6 +16,8 @@ public class GlobalConfiguration {
     private String profile;
 
     private String confAS7;
+
+    private String standaloneFilePath;
 
     public String getConfAS7() {
         return confAS7;
@@ -45,5 +49,20 @@ public class GlobalConfiguration {
 
     public void setDirAS5(String dirAS5) {
         this.dirAS5 = dirAS5;
+    }
+
+    public String getStandaloneFilePath() {
+        return standaloneFilePath;
+    }
+
+    public void setStandalonePath() {
+        if(getProfile() == null){
+            standaloneFilePath = getDirAS7() + File.separator + "standalone" +
+                    File.separator + "configuration" + File.separator + "standalone.xml";
+        } else {
+            standaloneFilePath = getDirAS7() + File.separator + "standalone"
+                    + File.separator + "configuration" + File.separator + getProfile();
+        }
+
     }
 }

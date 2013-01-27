@@ -1,25 +1,30 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
-import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
-import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +71,38 @@ public class SecurityMigrator implements IMigrator {
     }
 
     @Override
-    public void apply(MigrationContext ctx) {
+    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+        try {
+            File standalone = new File(globalConfig.getStandaloneFilePath());
+            Document doc = ctx.getDocBuilder().parse(standalone);
+            NodeList subsystems = doc.getElementsByTagName("subsystem");
+            for(int i = 0; i < subsystems.getLength(); i++){
+                if(!(subsystems.item(i) instanceof Element)){
+                    continue;
+                }
+                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("security")){
+                    Node parent = subsystems.item(i).getFirstChild();
+                    while(!(parent instanceof Element)){
+                        parent = parent.getNextSibling();
+                    }
+
+                    for(Node node : generateDomElements(ctx)){
+                        Node adopted = doc.adoptNode(node.cloneNode(true));
+                        parent.appendChild(adopted);
+                    }
+                    break;
+                }
+            }
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            StreamResult result = new StreamResult(standalone);
+            DOMSource source = new DOMSource(doc);
+            transformer.transform(source, result);
+
+        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+            throw new ApplyMigrationException(e);
+        }
 
     }
 
@@ -219,9 +255,7 @@ public class SecurityMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException e) {
-            throw new CliScriptException(e);
-        } catch (JAXBException e) {
+        } catch (MigrationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }

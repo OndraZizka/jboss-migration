@@ -69,6 +69,8 @@ public class main {
             Configuration conf = new Configuration();
             GlobalConfiguration global = new GlobalConfiguration();
             global.setDirAS5("/home/Reon/Programing/jboss-5.1.0.GA/server/default");
+            global.setDirAS7("/home/Reon/Programing/jboss-as-7.2.0.Alpha1-SNAPSHOT");
+            global.setStandalonePath();
 
             Map<Class<? extends IMigrator>, List<Pair<String, String>>> moduleOtions = new HashMap<>();
             List<Pair<String,String>> temp = new ArrayList<>();
@@ -81,15 +83,18 @@ public class main {
 
             conf.setModuleOtions(moduleOtions);
             conf.setOptions(global);
+
             MigrationContext ctx = new MigrationContext();
             ctx.createBuilder();
             Migrator migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
-
-            for(String s : migrator.getCLIScripts() ) {
+            migrator.apply();
+            for (String s : migrator.getCLIScripts()){
                 System.out.println(s);
             }
+
+
 
             //List<Node> nodeList = migrator.generateDomElements(ctx);
 

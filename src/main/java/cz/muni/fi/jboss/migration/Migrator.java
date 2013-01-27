@@ -3,6 +3,7 @@ package cz.muni.fi.jboss.migration;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
@@ -89,7 +90,7 @@ public class Migrator {
         migrators.add( new DatasourceMigrator(this.config.getGlobal(), this.config.getForMigrator(DatasourceMigrator.class)));
         migrators.add( new ResAdapterMigrator(this.config.getGlobal(), this.config.getForMigrator(ResAdapterMigrator.class)));
         migrators.add( new SecurityMigrator(this.config.getGlobal(), this.config.getForMigrator(SecurityMigrator.class)));
-        //migrators.add( new LoggingMigrator(this.config.getGlobal(), this.config.getForMigrator(LoggingMigrator.class)));
+        migrators.add( new LoggingMigrator(this.config.getGlobal(), this.config.getForMigrator(LoggingMigrator.class)));
         migrators.add( new ServerMigrator(this.config.getGlobal(), this.config.getForMigrator(ServerMigrator.class)));
 
         return migrators;
@@ -104,9 +105,7 @@ public class Migrator {
             for(IMigrator mig : migrators){
                 mig.loadAS5Data(this.ctx);
             }
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
-        } catch (FileNotFoundException e){
+        } catch (JAXBException | FileNotFoundException e) {
             throw new LoadMigrationException(e);
         }
     }
@@ -117,19 +116,28 @@ public class Migrator {
           }
     }
 
-    public List<Element> getDOMElements(){
-        return null;
+    // TODO: Can it be list of Nodes not Elements?
+    public List<Node> getDOMElements(){
+        List<Node> elements = new ArrayList<>();
+        try {
+            for(IMigrator mig : migrators){
+                elements.addAll(mig.generateDomElements(this.ctx));
+            }
+        } catch (MigrationException e) {
+            e.printStackTrace();
+        }
+        return elements;
     }
 
     public List<String> getCLIScripts(){
-        List<String> temp = new ArrayList<>();
+        List<String> scripts = new ArrayList<>();
         try {
             for(IMigrator mig : migrators){
-                temp.addAll(mig.generateCliScripts(this.ctx));
+                scripts.addAll(mig.generateCliScripts(this.ctx));
             }
         } catch (CliScriptException e) {
             e.printStackTrace();
         }
-        return temp;
+        return scripts;
     }
 }

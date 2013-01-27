@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration.spi;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -19,7 +20,7 @@ public interface IMigrator {
 
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException;
 
-    public void apply(MigrationContext ctx);
+    public void apply(MigrationContext ctx) throws ApplyMigrationException;
 
     public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException;
 

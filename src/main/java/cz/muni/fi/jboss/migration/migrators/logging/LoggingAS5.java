@@ -17,7 +17,7 @@ import java.util.Set;
  * Time: 7:52 PM
  */
 
-@XmlRootElement(name = "configuration" )
+@XmlRootElement(name = "configuration" , namespace = "http://jakarta.apache.org/log4j/")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "configuration")
 

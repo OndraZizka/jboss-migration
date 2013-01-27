@@ -1,24 +1,38 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
-import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
-import cz.muni.fi.jboss.migration.migrators.server.SocketBinding;
-import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
+
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,13 +59,18 @@ public class LoggingMigrator implements IMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5.class).createUnmarshaller();
-
             File file = new File(globalConfig.getDirAS5() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
+
+            XMLInputFactory xif = XMLInputFactory.newFactory();
+            xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(file));
+
+
 
             LoggingAS5 loggingAS5;
 
             if(file.canRead()){
-               loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(file);
+               loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(xsr);
             }else{
                 throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
             }
@@ -67,12 +86,62 @@ public class LoggingMigrator implements IMigrator {
 
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
+        } catch (XMLStreamException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public void apply(MigrationContext ctx) {
+    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+        try {
+            File standalone = new File(globalConfig.getStandaloneFilePath());
+            Document doc = ctx.getDocBuilder().parse(standalone);
+            NodeList subsystems = doc.getElementsByTagName("subsystem");
+            for(int i = 0; i < subsystems.getLength(); i++){
+                if(!(subsystems.item(i) instanceof Element)){
+                    continue;
+                }
+                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("logging")){
+                    Node parent = subsystems.item(i);
+                    Node lastNode = parent.getLastChild();
+                    Node firstNode = parent.getFirstChild();
 
+                    while(!(lastNode instanceof Element)){
+                        lastNode = lastNode.getPreviousSibling();
+                    }
+                    while(!(firstNode instanceof Element)){
+                        firstNode = firstNode.getNextSibling();
+                    }
+
+                    for(Node node : generateDomElements(ctx)){
+                        Node adopted = doc.adoptNode(node.cloneNode(true));
+                        if(node.getNodeName().contains("handler")){
+                            parent.insertBefore(adopted, firstNode);
+                            continue;
+                        }
+                        if(node.getNodeName().equals("logger")){
+                            parent.insertBefore(adopted, lastNode);
+                            continue;
+                        }
+                        // TODO: Only for testing. Need change!
+                        if(node.getNodeName().equals("root-logger")){
+                            parent.appendChild(adopted);
+                        }
+                    }
+                    break;
+
+                }
+            }
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            StreamResult result = new StreamResult(standalone);
+            DOMSource source = new DOMSource(doc);
+            transformer.transform(source, result);
+
+        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+            throw new ApplyMigrationException(e);
+        }
     }
 
     @Override
