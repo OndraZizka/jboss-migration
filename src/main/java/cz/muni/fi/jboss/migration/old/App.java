@@ -183,10 +183,10 @@ public class App {
 
         Document doc =  builder.getDOMImplementation().createDocument(null, null, null);
 
-        final TransformerFactory tf = TransformerFactory.newInstance();
-        final Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+//        final TransformerFactory tf = TransformerFactory.newInstance();
+//        final Transformer transformer = tf.newTransformer();
+//        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
         StringWriter writer = new StringWriter();
         final StreamResult streamResult = new StreamResult(writer);
@@ -766,7 +766,7 @@ public class App {
             }
 
             if(copy){
-                //Collection<CopyMemory> copyMemories = migration.getCopyMemories();
+//                Collection<CopyMemory> copyMemories = migration.getCopyMemories();
 //                for(CopyMemory cp : copyMemories){
 //                   if(cp.getName() == null || cp.getName().isEmpty()){
 //                       throw new NullPointerException();
@@ -827,7 +827,7 @@ public class App {
 //                           }
 //                       } break;
 //                   }
-                //}
+//                }
 
 
 

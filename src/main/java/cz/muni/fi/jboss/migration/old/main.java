@@ -22,6 +22,11 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.*;
@@ -68,8 +73,9 @@ public class main {
 
             Configuration conf = new Configuration();
             GlobalConfiguration global = new GlobalConfiguration();
-            global.setDirAS5("/home/Reon/Programing/jboss-5.1.0.GA/server/default");
+            global.setDirAS5("/home/Reon/Programing/jboss-5.1.0.GA/server/");
             global.setDirAS7("/home/Reon/Programing/jboss-as-7.2.0.Alpha1-SNAPSHOT");
+
             global.setStandalonePath();
 
             Map<Class<? extends IMigrator>, List<Pair<String, String>>> moduleOtions = new HashMap<>();
@@ -89,18 +95,23 @@ public class main {
             Migrator migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
-            migrator.apply();
+            //migrator.apply();
             for (String s : migrator.getCLIScripts()){
                 System.out.println(s);
             }
 
 
 
-            //List<Node> nodeList = migrator.generateDomElements(ctx);
+            List<Node> nodeList = migrator.getDOMElements();
+            for(Node n : nodeList){
+                StringWriter out = new StringWriter();
+                Transformer xform = TransformerFactory.newInstance().newTransformer();
+                xform.setOutputProperty(OutputKeys.INDENT, "yes");
+                xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                xform.transform(new DOMSource(n), new StreamResult(out));
+                System.out.println(out.toString());
+            }
 
-//            for(Node n : nodeList){
-//                System.out.println(n.toString());
-//            }
 
 
 //            Migration migration=new MigrationImpl(true);

@@ -57,6 +57,7 @@ public class MigrationContext {
 
     public void createBuilder() throws ParserConfigurationException{
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(false);
        docBuilder = dbf.newDocumentBuilder();
     }
 

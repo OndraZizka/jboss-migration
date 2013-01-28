@@ -87,7 +87,7 @@ public class ServerMigrator implements IMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            File file = new File(globalConfig.getDirAS5() + File.separator + "deploy" + File.separator
+            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy" + File.separator
                     + "jbossweb.sar" + File.separator + "server.xml");
 
             if(file.canRead()){

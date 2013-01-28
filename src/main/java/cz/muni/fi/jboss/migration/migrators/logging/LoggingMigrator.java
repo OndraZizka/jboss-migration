@@ -59,7 +59,8 @@ public class LoggingMigrator implements IMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5.class).createUnmarshaller();
-            File file = new File(globalConfig.getDirAS5() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
+            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator +
+                    "conf" + File.separator + "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);

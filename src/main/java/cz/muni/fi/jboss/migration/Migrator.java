@@ -1,21 +1,26 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.persistence.exceptions.JAXBException;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.FileAlreadyExistsException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -111,33 +116,107 @@ public class Migrator {
     }
 
     public void apply() throws ApplyMigrationException {
-          for(IMigrator mig : migrators){
-              mig.apply(this.ctx);
-          }
+        for(IMigrator mig : migrators){
+            mig.apply(this.ctx);
+        }
     }
 
     // TODO: Can it be list of Nodes not Elements?
-    public List<Node> getDOMElements(){
+    public List<Node> getDOMElements() throws MigrationException{
         List<Node> elements = new ArrayList<>();
-        try {
-            for(IMigrator mig : migrators){
-                elements.addAll(mig.generateDomElements(this.ctx));
-            }
-        } catch (MigrationException e) {
-            e.printStackTrace();
+        for(IMigrator mig : migrators){
+            elements.addAll(mig.generateDomElements(this.ctx));
         }
+
         return elements;
     }
 
-    public List<String> getCLIScripts(){
+    public List<String> getCLIScripts() throws CliScriptException{
         List<String> scripts = new ArrayList<>();
-        try {
-            for(IMigrator mig : migrators){
-                scripts.addAll(mig.generateCliScripts(this.ctx));
-            }
-        } catch (CliScriptException e) {
-            e.printStackTrace();
+        for(IMigrator mig : migrators){
+            scripts.addAll(mig.generateCliScripts(this.ctx));
         }
+
         return scripts;
+    }
+
+    public void copyItems() throws CopyException{
+        String targetPath = config.getGlobal().getDirAS7();
+        File dir = new File(config.getGlobal().getDirAS5() + File.separator + config.getGlobal().getProfileAS5());
+        for(CopyMemory cp : ctx.getCopyMemories()){
+            if(cp.getName() == null || cp.getName().isEmpty()){
+                throw new NullPointerException();
+            }
+            // TODO: NameFileFilter doesnt work without specifying full name and type of file.. what is really strange
+            //NameFileFilter nff = new NameFileFilter(cp.getName());
+            NameFileFilter nff = new NameFileFilter("jms-ra", IOCase.INSENSITIVE);
+            List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
+            switch(cp.getType()){
+                case "driver":{
+                    // TODO:Can there be only one jar of selected driver or many different versions?
+                    if(list.isEmpty()){
+                        throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() + "!",
+                                new FileNotFoundException(cp.getName()));
+                    } else{
+                        cp.setHomePath(list.get(0).getAbsolutePath());
+                        cp.setName(list.get(0).getName());
+                        String module = "";
+                        if(cp.getModule() != null){
+                            String[] parts = cp.getModule().split("\\.");
+                            for(String s : parts){
+                                module = module + File.separator;
+                            }
+                            cp.setTargetPath(targetPath + File.separator + module  + "main");
+                        } else{
+                            throw new CopyException("Error: Module for driver is null!");
+                        }
+                    }
+                } break;
+                case "log":{
+                    if(list.isEmpty()){
+                        throw  new NullPointerException("Cannot locate log file: " + cp.getName() + "!");
+                    } else{
+                        cp.setHomePath(list.get(0).getAbsolutePath());
+                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator +"log" );
+                    }
+                } break;
+                case "security":{
+                    if(list.isEmpty()){
+                        throw  new CopyException("Cannot locate security file: " + cp.getName() + "!",
+                                new FileNotFoundException(cp.getName()));
+                    } else{
+                        cp.setHomePath(list.get(0).getAbsolutePath());
+                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "configuration");
+                    }
+                } break;
+                case "resource":{
+                    if(list.isEmpty()){
+                        throw  new CopyException("Cannot locate security file: " + cp.getName() + "!",
+                                new FileNotFoundException(cp.getName()));
+                    } else{
+                        cp.setHomePath(list.get(0).getAbsolutePath());
+                        // TODO:
+                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "deployments");
+                    }
+                } break;
+            }
+        }
+
+        try {
+            final TransformerFactory tf = TransformerFactory.newInstance();
+            final Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+
+            for(CopyMemory cp : ctx.getCopyMemories()){
+                if(cp.getType().equals("driver")){
+                    transformer.transform(new DOMSource(cp.createModuleXML()),
+                            new StreamResult(new File(cp.getTargetPath() + "module.xml")));
+                }
+                FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
+            }
+        } catch (IOException | ParserConfigurationException | TransformerException e) {
+            throw new CopyException(e);
+        }
     }
 }

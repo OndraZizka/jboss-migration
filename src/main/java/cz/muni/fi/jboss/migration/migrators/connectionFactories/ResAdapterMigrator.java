@@ -64,7 +64,7 @@ public class ResAdapterMigrator implements IMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactories.class).createUnmarshaller();
             List<ConnectionFactories> connFactories = new ArrayList();
 
-            File dsFiles = new File(globalConfig.getDirAS5() + File.separator + "deploy" );
+            File dsFiles = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy");
 
             if(dsFiles.canRead()){
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");

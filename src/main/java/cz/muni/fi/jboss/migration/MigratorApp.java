@@ -1,6 +1,24 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.CopyException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
+import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
+import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
+import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
+import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
+import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Roman Jakubco
@@ -32,21 +50,117 @@ import org.apache.commons.lang.StringUtils;
 
 public class MigratorApp {
     public static void main(String[] args) {
+        if(args.length == 0){
+            System.out.println("help");
+        }
         GlobalConfiguration global = new GlobalConfiguration();
+        Configuration configuration = new Configuration();
 
+        Map< Class<? extends IMigrator>,List<Pair<String, String>>> moduleOptions = new HashMap();
+        moduleOptions.put(SecurityMigrator.class, new ArrayList());
+        moduleOptions.put(ServerMigrator.class, new ArrayList());
+        moduleOptions.put(DatasourceMigrator.class, new ArrayList());
+        moduleOptions.put(ResAdapterMigrator.class, new ArrayList());
+        moduleOptions.put(LoggingMigrator.class, new ArrayList());
 
-// Process arguments...
         for( int i = 0; i < args.length; i++ ) {
-
-            // Jednoduch**é **- be**z parametru*
-            if( "-xml".equals(args[i]) ) {
-
-            }
-            //**S parametrem*
             if( args[i].contains("as5.dir") ) {
-                  global.setDirAS5(StringUtils.substringAfter(args[i],"="));
+                global.setDirAS5(StringUtils.substringAfter(args[i], "=") + File.separator + "server" + File.separator);
+                continue;
             }
 
+            if( args[i].contains("as7.dir") ) {
+                global.setDirAS7(StringUtils.substringAfter(args[i], "="));
+                continue;
+            }
+
+            if( args[i].contains("as5.profile") ) {
+                global.setProfileAS5(StringUtils.substringAfter(args[i], "="));
+                continue;
+            }
+
+            if( args[i].contains("as7.confPath") ) {
+                global.setProfileAS7(StringUtils.substringAfter(args[i], "="));
+                continue;
+            }
+
+            if( args[i].contains("conf") ) {
+                switch (StringUtils.substringAfter(args[i], ".")){
+                     case "datasource":{
+                         String property = StringUtils.substringAfterLast(args[i], ".");
+                         String value =    StringUtils.substringAfter(args[i], "=");
+                         moduleOptions.get(DatasourceMigrator.class).add(new Pair(property, value));
+                     }
+                     break;
+                     case "logging":{
+                         String property = StringUtils.substringAfterLast(args[i], ".");
+                         String value =    StringUtils.substringAfter(args[i], "=");
+                         moduleOptions.get(LoggingMigrator.class).add(new Pair(property, value));
+                     }
+                     break;
+                     case "security":{
+                         String property = StringUtils.substringAfterLast(args[i], ".");
+                         String value =    StringUtils.substringAfter(args[i], "=");
+                         moduleOptions.get(SecurityMigrator.class).add(new Pair(property, value));
+                     }
+                     break;
+                     case "resource-adapter":{
+                         String property = StringUtils.substringAfterLast(args[i], ".");
+                         String value =    StringUtils.substringAfter(args[i], "=");
+                         moduleOptions.get(ResAdapterMigrator.class).add(new Pair(property, value));
+                     }
+                     break;
+                     case "server":{
+                         String property = StringUtils.substringAfterLast(args[i], ".");
+                         String value =    StringUtils.substringAfter(args[i], "=");
+                         moduleOptions.get(ServerMigrator.class).add(new Pair(property, value));
+                     }
+                     default:{
+                         System.err.println("Error: Wrong command : " + args[i] + " !");
+                         writeHelp();
+                         return;
+                     }
+                }
+                continue;
+            }
+
+            System.err.println("Error: Wrong command : " + args[i] + " !");
+            writeHelp();
+            return;
+        }
+        global.setStandalonePath();
+        configuration.setModuleOtions(moduleOptions);
+        configuration.setOptions(global);
+
+        try {
+            MigrationContext ctx = new MigrationContext();
+            ctx.createBuilder();
+            Migrator migrator = new Migrator(configuration, ctx);
+
+            migrator.loadAS5Data();
+            migrator.apply();
+            migrator.copyItems();
+            for(String s : migrator.getCLIScripts()){
+                System.out.println(s);
+            }
+
+
+        } catch (LoadMigrationException | CliScriptException | ApplyMigrationException | CopyException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } finally {
+            // Reverse copying
         }
     }
+
+    public static void writeHelp(){
+
+    }
+
+    // TODO: Name of the oracle driver is ojdbc.jar. What is problem. Check all others drivers.
+    // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
+
+
 }
+

@@ -51,7 +51,8 @@ public class SecurityMigrator implements IMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5.class).createUnmarshaller();
 
-            File file = new File(globalConfig.getDirAS5() + File.separator + "conf" + File.separator + "login-config.xml");
+            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator +
+                    "conf" + File.separator + "login-config.xml");
 
             if(file.canRead()){
                 SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(file);

@@ -66,7 +66,7 @@ public class DatasourceMigrator implements IMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DataSources.class).createUnmarshaller();
             List<DataSources> dsColl = new ArrayList();
 
-            File dsFiles = new File(globalConfig.getDirAS5() + File.separator + "deploy" );
+            File dsFiles = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy");
 
             if(dsFiles.canRead()){
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
@@ -191,7 +191,8 @@ public class DatasourceMigrator implements IMigrator {
 
                 // TODO: Problem with copy memory class and setting name for Driver so it can be find in server dir
                 CopyMemory cp = new CopyMemory();
-                cp.setName(StringUtils.substringAfter(driverClass, "."));
+                String name = StringUtils.substringAfter(driverClass, ".");
+                cp.setName(StringUtils.substringBefore(name, "."));
                 cp.setType("driver");
                 driver.setDriverModule(cp.driverModuleGen());
 
