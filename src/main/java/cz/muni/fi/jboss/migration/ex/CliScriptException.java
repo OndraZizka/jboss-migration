@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.ex;
 
 /**
- * Class for expression which will be thrown in case of error in CliScriptImpl
+ * Exception representing error in methods for generating CLI scripts.
  *
  * @author Roman Jakubco
  * Date: 10/7/12

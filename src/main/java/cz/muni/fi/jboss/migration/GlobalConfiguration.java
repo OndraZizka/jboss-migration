@@ -3,6 +3,8 @@ package cz.muni.fi.jboss.migration;
 import java.io.File;
 
 /**
+ * Class for storing global information needed for migration. Like dir of AS7, AS5, and profiles
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:48 AM

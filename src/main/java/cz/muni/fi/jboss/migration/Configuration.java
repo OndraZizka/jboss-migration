@@ -12,18 +12,6 @@ import java.util.Map;
  *         Time: 10:36 AM
  */
 
-
-//// Keeps the data parsed from user input (arguments, eventual .properties etc.)
-//class Configuration {
-//
-//    // Has a class member per option.
-//    private GlobalConfiguration options;
-//
-//    // Per-module options
-//    private Map<Class<T extends IMigrator>, List<Pair<String,String>>>
-//
-//}
-
 public class Configuration {
 
     private GlobalConfiguration options;
