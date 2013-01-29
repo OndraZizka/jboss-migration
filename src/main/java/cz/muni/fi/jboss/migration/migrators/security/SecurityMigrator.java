@@ -13,24 +13,23 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * Migrator of security subsystem implementing IMigrator
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:42 AM
@@ -47,7 +46,7 @@ public class SecurityMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5.class).createUnmarshaller();
 
@@ -63,7 +62,8 @@ public class SecurityMigrator implements IMigrator {
                 ctx.getMigrationData().put(SecurityMigrator.class, mData);
 
             } else {
-                throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
+                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                        FileNotFoundException());
             }
 
         } catch (JAXBException e) {
@@ -74,8 +74,7 @@ public class SecurityMigrator implements IMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
         try {
-            File standalone = new File(globalConfig.getStandaloneFilePath());
-            Document doc = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for(int i = 0; i < subsystems.getLength(); i++){
                 if(!(subsystems.item(i) instanceof Element)){
@@ -94,17 +93,9 @@ public class SecurityMigrator implements IMigrator {
                     break;
                 }
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(standalone);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-
-        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+        } catch ( MigrationException e) {
             throw new ApplyMigrationException(e);
         }
-
     }
 
     @Override
@@ -261,9 +252,17 @@ public class SecurityMigrator implements IMigrator {
         }
     }
 
+    /**
+     * Creating CLI script for adding security-domain to AS7
+     *
+     * @param securityDomain object representing migrated security-domain
+     * @param ctx migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createSecurityDomainScript(SecurityDomain securityDomain, MigrationContext ctx) throws CliScriptException{
         if((securityDomain.getSecurityDomainName() == null) || (securityDomain.getSecurityDomainName().isEmpty())){
-            throw new CliScriptException("Error: name of the security domain cannot be null or empty",
+            throw new CliScriptException("Error: Name of the security domain cannot be null or empty",
                     new NullPointerException());
         }
 

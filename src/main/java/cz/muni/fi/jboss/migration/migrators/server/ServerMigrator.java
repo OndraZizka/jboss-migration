@@ -14,31 +14,27 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * Migrator of server subsystem implementing IMigrator.
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:42 AM
  */
+
 public class ServerMigrator implements IMigrator {
 
     private GlobalConfiguration globalConfig;
@@ -46,6 +42,7 @@ public class ServerMigrator implements IMigrator {
     private List<Pair<String,String>> config;
 
     private Set<SocketBinding> socketTemp = new HashSet();
+
     private Set<SocketBinding> socketBindings = new HashSet();
 
     private Integer randomSocket = 1;
@@ -82,13 +79,13 @@ public class ServerMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy" + File.separator
-                    + "jbossweb.sar" + File.separator + "server.xml");
+            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy"
+                    + File.separator + "jbossweb.sar" + File.separator + "server.xml");
 
             if(file.canRead()){
                 ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(file);
@@ -102,7 +99,8 @@ public class ServerMigrator implements IMigrator {
                 ctx.getMigrationData().put(ServerMigrator.class, mData);
 
             } else{
-                 throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
+                 throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                         FileNotFoundException());
             }
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
@@ -112,8 +110,7 @@ public class ServerMigrator implements IMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
         try {
-            File standalone = new File(globalConfig.getStandaloneFilePath());
-            Document doc = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for(int i = 0; i < subsystems.getLength(); i++){
                 if(!(subsystems.item(i) instanceof Element)){
@@ -140,14 +137,7 @@ public class ServerMigrator implements IMigrator {
                     }
                 }
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(standalone);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-
-        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+        } catch (MigrationException e) {
             throw new ApplyMigrationException(e);
         }
     }
@@ -289,6 +279,9 @@ public class ServerMigrator implements IMigrator {
         }
     }
 
+    /**
+     * Method for creating socket-bindings, which are already in fresh standalone files.
+     */
     private void createDefaultSockets(){
         /*
         <socket-binding name="ajp" port="8009"/>
@@ -320,6 +313,13 @@ public class ServerMigrator implements IMigrator {
         socketTemp.add(sb4);
     }
 
+    /**
+     * Method for creating socket-binding if it doesn't already exists.
+     *
+     * @param port port of the connector, which will be converted to socket-binding
+     * @param name  name of the protocol which is used by connector (ajp/http/https)
+     * @return name of the socket-binding so it cant be referenced in connector
+     */
     private String createSocketBinding(String port, String name) {
         if(socketTemp.isEmpty()){
             createDefaultSockets();
@@ -362,21 +362,29 @@ public class ServerMigrator implements IMigrator {
         return name;
     }
 
-    private String createConnectorScript(ConnectorAS7 connectorAS7, MigrationContext ctx) throws CliScriptException{
+    /**
+     * Creating CLI script for adding connector to AS7 from migrated connector.
+     *
+     * @param connectorAS7 object of migrated connector
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createConnectorScript(ConnectorAS7 connectorAS7, MigrationContext ctx) throws CliScriptException{
         if((connectorAS7.getScheme() == null) || (connectorAS7.getScheme().isEmpty())){
-            throw new CliScriptException("Error: scheme in connector cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Error: Scheme in connector cannot be null or empty", new NullPointerException()) ;
         }
 
         if((connectorAS7.getSocketBinding() == null) || (connectorAS7.getSocketBinding().isEmpty())){
-            throw new CliScriptException("Error: socket-binding in connector cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Error: Socket-binding in connector cannot be null or empty", new NullPointerException()) ;
         }
 
         if((connectorAS7.getConnectorName() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Error: connector name cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Error: Connector name cannot be null or empty", new NullPointerException()) ;
         }
 
         if((connectorAS7.getProtocol() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Error: protocol in connector cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Error: Protocol in connector cannot be null or empty", new NullPointerException());
         }
 
         String script = "/subsystem=web/connector=";
@@ -417,8 +425,14 @@ public class ServerMigrator implements IMigrator {
 
     }
 
-
-    private String createVirtualServerScript(VirtualServer virtualServer, MigrationContext ctx) {
+    /**
+     * Creating CLI script for adding virtual-server to AS7
+     *
+     * @param virtualServer object representing migrated virtual-server
+     * @param ctx migration context
+     * @return string containing created CLI script
+     */
+    public String createVirtualServerScript(VirtualServer virtualServer, MigrationContext ctx) {
         String script = "/subsystem=web/virtual-server=";
         script = script.concat(virtualServer.getVirtualServerName() + ":add(");
         script = ctx.checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
@@ -442,14 +456,21 @@ public class ServerMigrator implements IMigrator {
         return script;
     }
 
-
-    private String createSocketBindingScript(SocketBinding socketBinding, MigrationContext ctx) throws CliScriptException{
+    /**
+     * Creating CLI script for adding socket-binding to AS7
+     *
+     * @param socketBinding object representing socket-binding
+     * @param ctx migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createSocketBindingScript(SocketBinding socketBinding, MigrationContext ctx) throws CliScriptException{
         if((socketBinding.getSocketPort() == null) || (socketBinding.getSocketPort().isEmpty())){
-            throw new CliScriptException("Error: port in socket binding cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Error: Port in socket binding cannot be null or empty", new NullPointerException());
         }
 
         if((socketBinding.getSocketName() == null) || (socketBinding.getSocketName().isEmpty())){
-            throw new CliScriptException("Error: name of socket binding cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Error: Name of socket binding cannot be null or empty", new NullPointerException());
         }
 
         String script = "/socket-binding-group=standard-sockets/socket-binding=";

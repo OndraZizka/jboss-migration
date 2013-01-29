@@ -3,20 +3,15 @@ package cz.muni.fi.jboss.migration.old;
 import cz.muni.fi.jboss.migration.CopyMemory;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdaptersSub;
 import cz.muni.fi.jboss.migration.migrators.dataSources.*;
 import cz.muni.fi.jboss.migration.migrators.logging.Logger;
-import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS5;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS7;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS7;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
 import cz.muni.fi.jboss.migration.migrators.server.*;
-import cz.muni.fi.jboss.migration.CliScriptImpl;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 
 import org.w3c.dom.*;
@@ -421,38 +416,38 @@ public class App {
             Set<DataSources> dsColl = new HashSet();
             Set<ConnectionFactories> connFacColl = new HashSet();
 
-            if(log){
-                BufferedReader br = new BufferedReader(new FileReader(
-                        new File(serverPath + File.separator +"conf" +File.separator + "jboss-log4j.xml")));
-                String line;
-                StringBuilder sb = new StringBuilder();
-
-                while((line = br.readLine()) != null){
-                    if(line.contains("<!DOCTYPE")){
-                        continue;
-                    }
-
-                    sb.append(line.replaceAll("log4j:", "").replace("xmlns:log4j=\"http://jakarta.apache.org/log4j/\"", "") + "\n");
-                }
-
-                final JAXBContext logContext = JAXBContext.newInstance(LoggingAS5.class);
-                Unmarshaller unmarshaller = logContext.createUnmarshaller();
-
-
-                temp = new File("temp.xml");
-                FileWriter fileWriter = new FileWriter(temp);
-                fileWriter.write(sb.toString());
-                fileWriter.close();
-
-                if(temp.canRead()){
-                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(temp);
-                    //loggingAS7 = migration.loggingMigration(loggingAS5);
-                }else{
-                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
-                            +File.separator + "server"+ File.separator+"conf\"");
-                    return;
-                }
-            }
+//            if(log){
+//                BufferedReader br = new BufferedReader(new FileReader(
+//                        new File(serverPath + File.separator +"conf" +File.separator + "jboss-log4j.xml")));
+//                String line;
+//                StringBuilder sb = new StringBuilder();
+//
+//                while((line = br.readLine()) != null){
+//                    if(line.contains("<!DOCTYPE")){
+//                        continue;
+//                    }
+//
+//                    sb.append(line.replaceAll("log4j:", "").replace("xmlns:log4j=\"http://jakarta.apache.org/log4j/\"", "") + "\n");
+//                }
+//
+//                final JAXBContext logContext = JAXBContext.newInstance(LoggingAS5.class);
+//                Unmarshaller unmarshaller = logContext.createUnmarshaller();
+//
+//
+//                temp = new File("temp.xml");
+//                FileWriter fileWriter = new FileWriter(temp);
+//                fileWriter.write(sb.toString());
+//                fileWriter.close();
+//
+//                if(temp.canRead()){
+//                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(temp);
+//                    //loggingAS7 = migration.loggingMigration(loggingAS5);
+//                }else{
+//                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
+//                            +File.separator + "server"+ File.separator+"conf\"");
+//                    return;
+//                }
+//            }
 
             if(data){
                 final JAXBContext dataContext = JAXBContext.newInstance(DataSources.class);
@@ -637,69 +632,69 @@ public class App {
 
             }
 
-            if(cli){
-                CliScript cliScript = new CliScriptImpl();
-
-                if(data){
-                    if(dsSub.getDatasource() != null){
-                        for(DatasourceAS7 datasourceAS7 : dsSub.getDatasource()){
-                            System.out.println(cliScript.createDatasourceScript(datasourceAS7));
-                        }
-                    }
-
-                    if(dsSub.getXaDatasource() != null){
-                        for(XaDatasourceAS7 xaDSAS7 : dsSub.getXaDatasource()){
-                            System.out.println(cliScript.createXaDatasourceScript(xaDSAS7));
-                        }
-                    }
-
-                    if(dsSub.getDrivers() != null){
-                        for(Driver driver : dsSub.getDrivers()){
-                            System.out.println(cliScript.createDriverScript(driver));
-                        }
-                    }
-                }
-
-                if(resource){
-                    if(resAdapSub != null){
-                        for(ResourceAdapter resourceAdapter : resAdapSub.getResourceAdapters()){
-                            System.out.println(cliScript.createResAdapterScript(resourceAdapter));
-
-                        }
-                    }
-                }
-
-                if(security){
-                     if(securityAS7 != null){
-                         for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
-                             System.out.println(cliScript.createSecurityDomainScript(securityDomain));
-                         }
-                     }
-                }
-
-                if(server){
-                    if(serverSub != null){
-                        for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
-                            System.out.println(cliScript.createConnectorScript(connectorAS7));
-                        }
-                    }
-//                    if(!(migration.getSocketBindingGroup().isEmpty())){
-//                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
-//                            System.out.println(cliScript.createSocketBinding(sb));
+////            if(cli){
+////                CliScript cliScript = new CliScriptImpl();
+////
+////                if(data){
+////                    if(dsSub.getDatasource() != null){
+////                        for(DatasourceAS7 datasourceAS7 : dsSub.getDatasource()){
+////                            System.out.println(cliScript.createDatasourceScript(datasourceAS7));
+////                        }
+////                    }
+////
+////                    if(dsSub.getXaDatasource() != null){
+////                        for(XaDatasourceAS7 xaDSAS7 : dsSub.getXaDatasource()){
+////                            System.out.println(cliScript.createXaDatasourceScript(xaDSAS7));
+////                        }
+////                    }
+////
+////                    if(dsSub.getDrivers() != null){
+////                        for(Driver driver : dsSub.getDrivers()){
+////                            System.out.println(cliScript.createDriverScript(driver));
+////                        }
+////                    }
+////                }
+////
+////                if(resource){
+////                    if(resAdapSub != null){
+////                        for(ResourceAdapter resourceAdapter : resAdapSub.getResourceAdapters()){
+////                            System.out.println(cliScript.createResAdapterScript(resourceAdapter));
+////
+////                        }
+////                    }
+////                }
+//
+//                if(security){
+//                     if(securityAS7 != null){
+//                         for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
+//                             System.out.println(cliScript.createSecurityDomainScript(securityDomain));
+//                         }
+//                     }
+//                }
+//
+//                if(server){
+//                    if(serverSub != null){
+//                        for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
+//                            System.out.println(cliScript.createConnectorScript(connectorAS7));
 //                        }
 //                    }
-                }
-
-                if(log){
-                    if(loggingAS7 != null){
-                        System.out.println(cliScript.createHandlersScript(loggingAS7));
-
-                        for(Logger logger : loggingAS7.getLoggers()){
-                            System.out.println(cliScript.createLoggerScript(logger));
-                        }
-                    }
-                }
-            }
+////                    if(!(migration.getSocketBindingGroup().isEmpty())){
+////                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
+////                            System.out.println(cliScript.createSocketBinding(sb));
+////                        }
+////                    }
+//                }
+//
+//                if(log){
+//                    if(loggingAS7 != null){
+//                        System.out.println(cliScript.createHandlersScript(loggingAS7));
+//
+//                        for(Logger logger : loggingAS7.getLoggers()){
+//                            System.out.println(cliScript.createLoggerScript(logger));
+//                        }
+//                    }
+//                }
+//            }
 
             if(merge){
                 DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
@@ -851,8 +846,6 @@ public class App {
         } catch (TransformerConfigurationException e) {
             e.printStackTrace();
         } catch (TransformerException e) {
-            e.printStackTrace();
-        } catch (CliScriptException e) {
             e.printStackTrace();
         } finally {
             if(temp != null){

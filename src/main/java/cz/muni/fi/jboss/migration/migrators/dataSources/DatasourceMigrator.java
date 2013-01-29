@@ -27,12 +27,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,10 +36,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Migrator of Datasource subsystem implementing IMigrator
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:41 AM
  */
+
 public class DatasourceMigrator implements IMigrator {
 
     private GlobalConfiguration globalConfig;
@@ -117,14 +115,14 @@ public class DatasourceMigrator implements IMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
         try {
-            File standalone = new File(globalConfig.getStandaloneFilePath());
-            Document doc = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for(int i = 0; i < subsystems.getLength(); i++){
                 if(!(subsystems.item(i) instanceof Element)){
                     continue;
                 }
                 if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")){
+                    System.out.println(((Element) subsystems.item(i)).getAttribute("xmlns"));
                     Node parent = subsystems.item(i).getFirstChild();
                     while(!(parent instanceof Element)){
                         parent = parent.getNextSibling();
@@ -137,25 +135,23 @@ public class DatasourceMigrator implements IMigrator {
                     }
 
                     for(Node node : generateDomElements(ctx)){
+                        ((Element) node).setAttribute("xmlns", "urn:jboss:domain:datasources:1.1");
                         Node adopted = doc.adoptNode(node.cloneNode(true));
+
+
                         if(node.getNodeName().equals("driver")){
                             lastNode.appendChild(adopted);
                         } else{
                             parent.insertBefore(adopted, lastNode);
                         }
+
+
                     }
                     break;
 
                 }
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(standalone);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-
-        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+        } catch (MigrationException e) {
             throw new ApplyMigrationException(e);
         }
     }
@@ -172,7 +168,7 @@ public class DatasourceMigrator implements IMigrator {
                 if(fragment instanceof DatasourceAS5){
                     Document doc = ctx.getDocBuilder().newDocument();
                     dataMarshaller.marshal(datasourceMigration((DatasourceAS5)fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
+                    nodeList.add(doc.getDocumentElement()   );
                     continue;
                 }
                 if(fragment instanceof XaDatasourceAS5){
@@ -262,7 +258,13 @@ public class DatasourceMigrator implements IMigrator {
 
     // TODO: Security-Domain must reference something what exists in subsystem security...
 
-    private DatasourceAS7 datasourceMigration(DatasourceAS5 datasourceAS5) {
+    /**
+     * Method for migrating Datasource from AS5 to AS7
+     *
+     * @param datasourceAS5 object of Datasource in AS5
+     * @return object representing migrated Datasource in AS7
+     */
+    public DatasourceAS7 datasourceMigration(DatasourceAS5 datasourceAS5) {
         DatasourceAS7 datasourceAS7 = new DatasourceAS7();
 
         drivers.add(datasourceAS5.getDriverClass());
@@ -331,7 +333,12 @@ public class DatasourceMigrator implements IMigrator {
         return datasourceAS7;
     }
 
-
+    /**
+     * Method for migrating XaDatasource from AS5 to AS7
+     *
+     * @param xaDataAS5 object of XaDatasource in AS5
+     * @return object representing migrated XaDatasource in AS7
+     */
     public XaDatasourceAS7 xaDatasourceMigration(XaDatasourceAS5 xaDataAS5) {
         XaDatasourceAS7 xaDataAS7 = new XaDatasourceAS7();
 
@@ -401,7 +408,15 @@ public class DatasourceMigrator implements IMigrator {
         return xaDataAS7;
     }
 
-    private String createDatasourceScript(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
+    /**
+     * Creating CLI script for adding Datasource
+     *
+     * @param datasourceAS7 object of Datasource
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createDatasourceScript(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
         if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
             throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
                     new NullPointerException());
@@ -463,7 +478,15 @@ public class DatasourceMigrator implements IMigrator {
         return script;
     }
 
-    private String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
+    /**
+     * Creating CLI script for adding XaDatsource
+     *
+     * @param xaDatasourceAS7 object of XaDatasource
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
         if((xaDatasourceAS7.getPoolName() == null) || (xaDatasourceAS7.getPoolName().isEmpty())){
             throw new CliScriptException("Error: pool-name of xa-datasource cannot be null or empty",
                     new NullPointerException());
@@ -532,7 +555,15 @@ public class DatasourceMigrator implements IMigrator {
         return script;
     }
 
-    private String createDriverScript(Driver driver, MigrationContext ctx) throws CliScriptException {
+    /**
+     * Creating CLI script for adding Driver
+     *
+     * @param driver object of Driver
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createDriverScript(Driver driver, MigrationContext ctx) throws CliScriptException {
         if((driver.getDriverModule() == null) || (driver.getDriverModule().isEmpty())){
             throw new CliScriptException("Error: Driver module in driver cannot be null or empty",
                     new NullPointerException());

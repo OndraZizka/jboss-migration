@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -8,18 +9,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
 
 /**
+ * Context of migration. Stores all necessary objects and information for all Migrators.
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:37 AM
  */
-
-// Keeps everything else
-//class MigrationContext {
-//
-//    Map<Class<T extends IMigrator>, IMigrator> migrators;
-//
-//    Map<Class<T extends IMigrator>, MigrationData> migrationData;
-//}
 
 public class MigrationContext {
 
@@ -30,6 +25,8 @@ public class MigrationContext {
     private Set<CopyMemory> copyMemories = new HashSet();
 
     private DocumentBuilder docBuilder;
+
+    private Document standaloneDoc;
 
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() {
         return migrators;
@@ -58,11 +55,19 @@ public class MigrationContext {
     public void createBuilder() throws ParserConfigurationException{
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
-       docBuilder = dbf.newDocumentBuilder();
+        docBuilder = dbf.newDocumentBuilder();
     }
 
     public DocumentBuilder getDocBuilder() {
         return docBuilder;
+    }
+
+    public Document getStandaloneDoc() {
+        return standaloneDoc;
+    }
+
+    public void setStandaloneDoc(Document standaloneDoc) {
+        this.standaloneDoc = standaloneDoc;
     }
 
     public String checkingMethod(String script, String name, String setter){

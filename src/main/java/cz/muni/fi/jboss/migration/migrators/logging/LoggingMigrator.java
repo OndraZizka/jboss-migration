@@ -14,24 +14,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.ArrayList;
@@ -40,6 +30,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Migrator of logging subsystem implementing IMigrator
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:42 AM
@@ -56,7 +48,7 @@ public class LoggingMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException, FileNotFoundException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5.class).createUnmarshaller();
             File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator +
@@ -73,7 +65,8 @@ public class LoggingMigrator implements IMigrator {
             if(file.canRead()){
                loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(xsr);
             }else{
-                throw new FileNotFoundException("Cannot find/open file: " + file.getAbsolutePath());
+                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                        FileNotFoundException());
             }
 
             MigrationData mData = new MigrationData();
@@ -95,8 +88,7 @@ public class LoggingMigrator implements IMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
         try {
-            File standalone = new File(globalConfig.getStandaloneFilePath());
-            Document doc = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for(int i = 0; i < subsystems.getLength(); i++){
                 if(!(subsystems.item(i) instanceof Element)){
@@ -133,14 +125,7 @@ public class LoggingMigrator implements IMigrator {
 
                 }
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(standalone);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-
-        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+        } catch (MigrationException e){
             throw new ApplyMigrationException(e);
         }
     }
@@ -312,6 +297,13 @@ public class LoggingMigrator implements IMigrator {
         }
     }
 
+    /**
+     *  Method for migrating Periodic-Rotating-File-Appender to Handler in AS7
+     *
+     * @param appender object representing Periodic-Rotating-File-Appender
+     * @param ctx  migration context
+     * @return migrated Periodic-Rotating-File-Handler object
+     */
     public PerRotFileHandler createPerRotFileHandler(Appender appender, MigrationContext ctx){
         PerRotFileHandler handler = new PerRotFileHandler();
         handler.setName(appender.getAppenderName());
@@ -350,6 +342,13 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
+    /**
+     *  Method for migrating Size-Rotating-File-Appender to Handler in AS7
+     *
+     * @param appender object representing Size-Rotating-File-Appender
+     * @param ctx  migration context
+     * @return migrated Size-Rotating-File-Handler object
+     */
     public SizeRotFileHandler createSizeRotFileHandler(Appender appender, MigrationContext ctx){
         SizeRotFileHandler handler = new SizeRotFileHandler();
         handler.setName(appender.getAppenderName());
@@ -393,6 +392,12 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
+    /**
+     *  Method for migrating Async-Appender to Handler in AS7
+     *
+     * @param appender object representing Async-Appender
+     * @return migrated Async-Handler object
+     */
     public AsyncHandler createAsyncHandler(Appender appender){
         AsyncHandler handler = new AsyncHandler();
         handler.setName(appender.getAppenderName());
@@ -419,6 +424,12 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
+    /**
+     *  Method for migrating Console-Appender to Handler in AS7
+     *
+     * @param appender object representing Console-Appender
+     * @return migrated Console-Handler object
+     */
     public ConsoleHandler createConsoleHandler(Appender appender){
         ConsoleHandler handler = new ConsoleHandler();
         handler.setName(appender.getAppenderName());
@@ -439,6 +450,12 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
+    /**
+     *  Method for migrating Custom-Appender to Handler in AS7
+     *
+     * @param appender object representing Custom-Appender
+     * @return migrated Custom-Handler object
+     */
     public CustomHandler createCustomHandler(Appender appender){
         CustomHandler handler = new CustomHandler();
         handler.setName(appender.getAppenderName());
@@ -462,10 +479,25 @@ public class LoggingMigrator implements IMigrator {
         return handler;
     }
 
+    /**
+     * Not implemented yet. Not sure if it is necesarry..
+     *  Method for migrating File-Appender to Handler in AS7
+     *
+     * @param appender object representing Periodic-Rotating-File-Appender
+     * @return migrated File-Handler object
+     */
     public FileHandler createFileHandler(Appender appender){
         return null;
     }
 
+    /**
+     * Creating CLI script for adding Logger
+     *
+     * @param logger object of Logger
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createLoggerScript(Logger logger, MigrationContext ctx) throws CliScriptException{
         if((logger.getLoggerLevelName() == null) || (logger.getLoggerLevelName().isEmpty())){
             throw new CliScriptException("Error:name of the logger cannot be null of empty", new NullPointerException());
@@ -493,6 +525,14 @@ public class LoggingMigrator implements IMigrator {
 
     }
 
+    /**
+     * Creating CLI script for adding Periodic-Rotating-File-Handler
+     *
+     * @param periodic object of Periodic-Rotating-File-Handler
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createPerHandlerScript(PerRotFileHandler periodic, MigrationContext ctx) throws CliScriptException{
         if((periodic.getName() ==  null) || (periodic.getName().isEmpty())){
             throw new CliScriptException("Error: name of the periodic rotating handler cannot be null or empty",
@@ -529,6 +569,14 @@ public class LoggingMigrator implements IMigrator {
         return script;
     }
 
+    /**
+     * Creating CLI script for adding Size-Rotating-File-Handler
+     *
+     * @param sizeHandler object of Size-Rotating-File-Handler
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createSizeHandlerScript(SizeRotFileHandler sizeHandler, MigrationContext ctx) throws CliScriptException{
         if((sizeHandler.getName() == null) || (sizeHandler.getName().isEmpty())){
             throw new CliScriptException("Error: name of the size rotating handler cannot be null or empty",
@@ -561,7 +609,14 @@ public class LoggingMigrator implements IMigrator {
 
     }
 
-
+    /**
+     * Creating CLI script for adding Async-Handler
+     *
+     * @param asyncHandler object of Async-Handler
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createAsyncHandlerScript(AsyncHandler asyncHandler, MigrationContext ctx) throws  CliScriptException{
         if((asyncHandler.getQueueLength() == null) || (asyncHandler.getQueueLength().isEmpty())){
             throw new CliScriptException("Error: queue-length in async handler cannot be null or empty",
@@ -598,6 +653,14 @@ public class LoggingMigrator implements IMigrator {
 
     }
 
+    /**
+     * Creating CLI script for adding Console-Handler
+     *
+     * @param consoleHandler object of Console-Handler
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createConsoleHandlerScript(ConsoleHandler consoleHandler, MigrationContext ctx) throws CliScriptException{
         if((consoleHandler.getName() == null) || (consoleHandler.getName().isEmpty())){
             throw new CliScriptException("Error: name of the console handler cannot be null or empty",
@@ -616,6 +679,14 @@ public class LoggingMigrator implements IMigrator {
         return script;
     }
 
+    /**
+     * Creating CLI script for adding Custom-Handler
+     *
+     * @param customHandler object ofCustom-Handler
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
     public String createCustomHandlerScript (CustomHandler customHandler, MigrationContext ctx) throws  CliScriptException{
         if((customHandler.getName() == null) || (customHandler.getName().isEmpty())){
             throw new CliScriptException("Error: name of the custom handler cannot be null or empty",

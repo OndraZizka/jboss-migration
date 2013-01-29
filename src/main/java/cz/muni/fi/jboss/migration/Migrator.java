@@ -8,7 +8,6 @@ import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.persistence.exceptions.JAXBException;
@@ -26,56 +25,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Migrator is class, which represents all functions of the application.
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:25 AM
  */
 
-
-//// Performs the whole process. This is the "X" on the picture.
-//class Migrator {
-//
-//    private Configuration config;
-//    private MigrationContext ctx;
-//
-//    private List<IMigrator> migrators = createMigrators();
-//
-//    // This way it will be simpler than instantiating from Class... We can add that later.
-//    private static List<IMigrator> createMigrators(){
-//        List<IMigrator> migrators = new LinkedList();
-//        migrators.add( new DatasourceMigrator(
-//                this.config.getGlobal(),
-//                this.config.getForMigrator(DatasourceMigrator.class)
-//        ) );
-//        migrators.add( ... );
-//        migrators.add( ... );
-//        return migrators;
-//    }
-//
-//
-//    public Migrator( Configuration config, MigrationContext ctx ){ ... }
-//
-//
-//    public void init(){
-//    }
-//
-//    public void loadAS5Data() throws LoadMigrationException {
-//        for( IMigrator mig : this.migrators ){
-//            mig.loadAS5Data( this.ctx );
-//        }
-//    }
-//
-//    public void apply() ApplyMigrationException {
-//        for( IMigrator mig : this.migrators ){
-//            mig.apply( this.ctx );
-//        }
-//    }
-//
-//    public List<DOMElement> generateDomElements(){ ... }
-//
-//    public List<String> generateCliCommands(){ ... }
-//
-//}
 public class Migrator {
 
     private Configuration config;
@@ -119,6 +75,19 @@ public class Migrator {
         for(IMigrator mig : migrators){
             mig.apply(this.ctx);
         }
+        try {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            StreamResult result = new StreamResult( new File(config.getGlobal().getStandaloneFilePath()));
+            //StreamResult result = new StreamResult(System.out);
+            DOMSource source = new DOMSource(ctx.getStandaloneDoc());
+            transformer.transform(source, result);
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     // TODO: Can it be list of Nodes not Elements?
@@ -147,9 +116,28 @@ public class Migrator {
             if(cp.getName() == null || cp.getName().isEmpty()){
                 throw new NullPointerException();
             }
-            // TODO: NameFileFilter doesnt work without specifying full name and type of file.. what is really strange
-            //NameFileFilter nff = new NameFileFilter(cp.getName());
-            NameFileFilter nff = new NameFileFilter("jms-ra", IOCase.INSENSITIVE);
+
+            NameFileFilter nff;
+            if(cp.getType().equals("driver")){
+                final String name = cp.getName();
+                nff = new NameFileFilter(name){
+                    @Override
+                    public boolean accept(File file) {
+                        if(file.getName().contains(name)){
+                            if(file.getName().contains("jar")){
+                                return true;
+                            } else{
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                };
+            } else{
+                nff = new NameFileFilter(cp.getName());
+            }
+
             List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
             switch(cp.getType()){
                 case "driver":{
@@ -161,12 +149,14 @@ public class Migrator {
                         cp.setHomePath(list.get(0).getAbsolutePath());
                         cp.setName(list.get(0).getName());
                         String module = "";
+                        // TODO: need better idea for module creating
                         if(cp.getModule() != null){
                             String[] parts = cp.getModule().split("\\.");
+                            module = "";
                             for(String s : parts){
-                                module = module + File.separator;
+                                module = module + s + File.separator;
                             }
-                            cp.setTargetPath(targetPath + File.separator + module  + "main");
+                            cp.setTargetPath(targetPath + File.separator + "modules" + File.separator + module  + "main");
                         } else{
                             throw new CopyException("Error: Module for driver is null!");
                         }
@@ -210,8 +200,11 @@ public class Migrator {
 
             for(CopyMemory cp : ctx.getCopyMemories()){
                 if(cp.getType().equals("driver")){
-                    transformer.transform(new DOMSource(cp.createModuleXML()),
-                            new StreamResult(new File(cp.getTargetPath() + "module.xml")));
+                    File directories = new File(cp.getTargetPath() + File.separator);
+                    FileUtils.forceMkdir(directories);
+                    File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
+                    module.createNewFile();
+                    transformer.transform(new DOMSource(cp.createModuleXML()), new StreamResult(module));
                 }
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
             }

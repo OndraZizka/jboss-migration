@@ -8,9 +8,7 @@ import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceAS7;
-import cz.muni.fi.jboss.migration.migrators.dataSources.Driver;
-import cz.muni.fi.jboss.migration.migrators.dataSources.XaDatasourceAS7;
+
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
@@ -29,12 +27,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,10 +36,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Migrator of Resource-Adapter(Connection-Factories in AS5) subsystem implementing IMigrator
+ *
  * @author Roman Jakubco
  *         Date: 1/24/13
  *         Time: 10:41 AM
  */
+
 public class ResAdapterMigrator implements IMigrator {
 
     private GlobalConfiguration globalConfig;
@@ -106,8 +102,7 @@ public class ResAdapterMigrator implements IMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
         try {
-            File standalone = new File(globalConfig.getStandaloneFilePath());
-            Document doc = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for(int i = 0; i < subsystems.getLength(); i++){
                 if(!(subsystems.item(i) instanceof Element)){
@@ -124,14 +119,7 @@ public class ResAdapterMigrator implements IMigrator {
                     break;
                 }
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(standalone);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-
-        } catch (SAXException | IOException | MigrationException | TransformerException e) {
+        } catch (MigrationException e) {
             throw new ApplyMigrationException(e);
         }
     }
@@ -230,7 +218,15 @@ public class ResAdapterMigrator implements IMigrator {
         }
     }
 
-    private String createResAdapterScript(ResourceAdapter resourceAdapter, MigrationContext ctx) throws CliScriptException{
+    /**
+     * Creating CLI script for adding Resource-Adapter
+     *
+     * @param resourceAdapter object of Resource-Adapter
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createResAdapterScript(ResourceAdapter resourceAdapter, MigrationContext ctx) throws CliScriptException{
 //        if((resourceAdapter.getJndiName() == null) || (resourceAdapter.getJndiName().isEmpty())){
 //            throw new CliScriptException("Error: name of the resource-adapter cannot be null or empty",
 //                    new NullPointerException());
