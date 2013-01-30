@@ -137,6 +137,26 @@ public class ServerMigrator implements IMigrator {
                     }
                 }
             }
+            NodeList socketGroup = doc.getElementsByTagName("socket-binding-group");
+            for(int i = 0; i < socketGroup.getLength(); i++){
+                if(!(socketGroup.item(i) instanceof Element)){
+                    continue;
+                }
+                Node parent = socketGroup.item(i);
+                Node lastNode = parent.getLastChild();
+
+                while(!(lastNode instanceof Element)){
+                    lastNode = lastNode.getPreviousSibling();
+                }
+
+                for(Node node : generateDomElements(ctx)){
+                    if(node.getNodeName().equals("socket-binding")){
+                        Node adopted = doc.adoptNode(node.cloneNode(true));
+                        parent.insertBefore(adopted, lastNode);
+                    }
+                }
+                break;
+            }
         } catch (MigrationException e) {
             throw new ApplyMigrationException(e);
         }
@@ -177,16 +197,16 @@ public class ServerMigrator implements IMigrator {
                     if (connector.getProtocol().equals("HTTP/1.1")) {
 
                         if (connector.getSslEnabled() == null) {
-                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
                         } else {
                             if (connector.getSslEnabled().equals("true")) {
-                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
+                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https", ctx));
                             } else {
-                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
+                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
                             }
                         }
                     } else {
-                        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
+                        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp", ctx));
                     }
 
                     if(connector.getSslEnabled() != null){
@@ -281,36 +301,30 @@ public class ServerMigrator implements IMigrator {
 
     /**
      * Method for creating socket-bindings, which are already in fresh standalone files.
+     *
+     * @param ctx  migration context
+     * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(){
-        /*
-        <socket-binding name="ajp" port="8009"/>
-     <socket-binding name="http" port="8080"/>
-     <socket-binding name="https" port="8443"/>
-     <socket-binding name="remoting" port="4447"/>
-     <socket-binding name="txn-recovery-environment" port="4712"/>
-     <socket-binding name="txn-status-manager" port="4713"/>
-         */
+    private void createDefaultSockets(MigrationContext ctx)  throws LoadMigrationException{
+        try {
+            Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBinding.class ).createUnmarshaller();
 
-        SocketBinding sb1 = new SocketBinding();
-        sb1.setSocketName("ajp");
-        sb1.setSocketPort("8009");
-        socketTemp.add(sb1);
+            // Or maybe use FileUtils and list all files with that name?
+            NodeList bindings = ctx.getStandaloneDoc().getElementsByTagName("socket-binding");
+            for(int i = 0; i < bindings.getLength(); i++) {
+                if(!(bindings.item(i) instanceof Element)){
+                    continue;
+                }
+                SocketBinding socketBinding = (SocketBinding)unmarshaller.unmarshal(bindings.item(i));
+                if((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)){
+                    socketTemp.add(socketBinding);
+                }
 
-        SocketBinding sb2 = new SocketBinding();
-        sb2.setSocketName("http");
-        sb2.setSocketPort("8080");
-        socketTemp.add(sb2);
+            }
+        } catch (JAXBException e) {
+            throw new LoadMigrationException(e);
+        }
 
-        SocketBinding sb3 = new SocketBinding();
-        sb3.setSocketName("https");
-        sb3.setSocketPort("8443");
-        socketTemp.add(sb3);
-
-        SocketBinding sb4 = new SocketBinding();
-        sb4.setSocketName("remoting");
-        sb4.setSocketPort("4712");
-        socketTemp.add(sb4);
     }
 
     /**
@@ -319,10 +333,15 @@ public class ServerMigrator implements IMigrator {
      * @param port port of the connector, which will be converted to socket-binding
      * @param name  name of the protocol which is used by connector (ajp/http/https)
      * @return name of the socket-binding so it cant be referenced in connector
+     * @throws MigrationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name) {
+    private String createSocketBinding(String port, String name, MigrationContext ctx) throws MigrationException{
         if(socketTemp.isEmpty()){
-            createDefaultSockets();
+            try {
+                createDefaultSockets(ctx);
+            } catch (LoadMigrationException e) {
+                throw new MigrationException(e);
+            }
         }
 
         Set<SocketBinding> temp = new HashSet();

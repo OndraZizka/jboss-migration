@@ -17,16 +17,16 @@ public class GlobalConfiguration {
 
     private String profileAS5 = "default";
 
-    private String profileAS7;
+    private String confPathAS7 = "standalone/configuration/standalone.xml";
 
     private String standaloneFilePath;
 
-    public String getProfileAS7() {
-        return profileAS7;
+    public String getConfPathAS7() {
+        return confPathAS7;
     }
 
-    public void setProfileAS7(String profileAS7) {
-        this.profileAS7 = profileAS7;
+    public void setConfPathAS7(String confPathAS7) {
+        this.confPathAS7 = confPathAS7;
     }
 
     public String getDirAS7() {
@@ -58,13 +58,7 @@ public class GlobalConfiguration {
     }
 
     public void setStandalonePath() {
-        if(getProfileAS5() == null){
-            standaloneFilePath = getDirAS7() + File.separator + "standalone" +
-                    File.separator + "configuration" + File.separator + "standalone.xml";
-        } else {
-            standaloneFilePath = getDirAS7() + File.separator + "standalone"
-                    + File.separator + "configuration" + File.separator + getProfileAS7();
-        }
+        standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7();
 
     }
 }

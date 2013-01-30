@@ -1,4 +1,8 @@
-package cz.muni.fi.jboss.migration.migrators.dataSources;
+package cz.muni.fi.jboss.migration.migrators.trash;
+
+import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceAS7;
+import cz.muni.fi.jboss.migration.migrators.dataSources.Driver;
+import cz.muni.fi.jboss.migration.migrators.dataSources.XaDatasourceAS7;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;

@@ -66,7 +66,7 @@ public class Migrator {
             for(IMigrator mig : migrators){
                 mig.loadAS5Data(this.ctx);
             }
-        } catch (JAXBException | FileNotFoundException e) {
+        } catch (JAXBException e) {
             throw new LoadMigrationException(e);
         }
     }
@@ -90,7 +90,7 @@ public class Migrator {
 
     }
 
-    // TODO: Can it be list of Nodes not Elements?
+
     public List<Node> getDOMElements() throws MigrationException{
         List<Node> elements = new ArrayList<>();
         for(IMigrator mig : migrators){
@@ -185,7 +185,6 @@ public class Migrator {
                                 new FileNotFoundException(cp.getName()));
                     } else{
                         cp.setHomePath(list.get(0).getAbsolutePath());
-                        // TODO:
                         cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "deployments");
                     }
                 } break;

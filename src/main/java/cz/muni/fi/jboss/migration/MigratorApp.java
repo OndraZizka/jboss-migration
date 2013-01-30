@@ -33,7 +33,8 @@ import java.util.*;
 public class MigratorApp {
     public static void main(String[] args) {
         if(args.length == 0){
-            System.out.println("help");
+            writeHelp();
+            return;
         }
         GlobalConfiguration global = new GlobalConfiguration();
         Configuration configuration = new Configuration();
@@ -62,7 +63,7 @@ public class MigratorApp {
             }
 
             if( args[i].contains("as7.confPath") ) {
-                global.setProfileAS7(StringUtils.substringAfter(args[i], "="));
+                global.setConfPathAS7(StringUtils.substringAfter(args[i], "="));
                 continue;
             }
 
@@ -179,7 +180,24 @@ public class MigratorApp {
      * Helping method for writing help.
      */
     private static void writeHelp(){
-
+        System.out.println("Usage:");
+        System.out.println();
+        System.out.println("    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>");
+        System.out.println();
+        System.out.println("Options:");
+        System.out.println();
+        System.out.println("    as5.profile=<name>");
+        System.out.println("        Path to AS 5 profile.");
+        System.out.println("        Default: \"default\"");
+        System.out.println();
+        System.out.println("    as7.confPath=<path> ");
+        System.out.println("        Path to AS 7 config file.");
+        System.out.println("        Default: \"standalone/configuration/standalone.xml\"");
+        System.out.println();
+        System.out.println("    conf.<module>.<property>=<value> := Module-specific options.");
+        System.out.println("        <module> := Name of one of modules. E.g. datasource, jaas, security, ...");
+        System.out.println("        <property> := Name of the property to set. Specific per module. " +
+                "May occur multiple times.");
     }
 
     /**

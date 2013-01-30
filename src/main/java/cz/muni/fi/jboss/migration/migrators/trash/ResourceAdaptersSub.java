@@ -1,4 +1,6 @@
-package cz.muni.fi.jboss.migration.migrators.connectionFactories;
+package cz.muni.fi.jboss.migration.migrators.trash;
+
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;

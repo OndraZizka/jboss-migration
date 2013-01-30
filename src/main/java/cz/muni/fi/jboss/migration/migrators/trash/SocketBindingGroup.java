@@ -1,4 +1,6 @@
-package cz.muni.fi.jboss.migration.migrators.server;
+package cz.muni.fi.jboss.migration.migrators.trash;
+
+import cz.muni.fi.jboss.migration.migrators.server.SocketBinding;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;

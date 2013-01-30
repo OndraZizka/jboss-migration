@@ -48,4 +48,24 @@ public class SocketBinding {
     public void setSocketPort(String socketPort) {
         this.socketPort = socketPort;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SocketBinding)) return false;
+
+        SocketBinding that = (SocketBinding) o;
+
+        if (socketName != null ? !socketName.equals(that.socketName) : that.socketName != null) return false;
+        if (socketPort != null ? !socketPort.equals(that.socketPort) : that.socketPort != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = socketName != null ? socketName.hashCode() : 0;
+        result = 31 * result + (socketPort != null ? socketPort.hashCode() : 0);
+        return result;
+    }
 }

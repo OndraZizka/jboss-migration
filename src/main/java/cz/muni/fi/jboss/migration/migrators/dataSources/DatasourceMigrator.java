@@ -122,7 +122,6 @@ public class DatasourceMigrator implements IMigrator {
                     continue;
                 }
                 if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")){
-                    System.out.println(((Element) subsystems.item(i)).getAttribute("xmlns"));
                     Node parent = subsystems.item(i).getFirstChild();
                     while(!(parent instanceof Element)){
                         parent = parent.getNextSibling();

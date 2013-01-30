@@ -1,4 +1,7 @@
-package cz.muni.fi.jboss.migration.migrators.server;
+package cz.muni.fi.jboss.migration.migrators.trash;
+
+import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
+import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;

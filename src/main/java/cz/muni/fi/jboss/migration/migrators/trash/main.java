@@ -1,33 +1,20 @@
-package cz.muni.fi.jboss.migration.old;
+package cz.muni.fi.jboss.migration.migrators.trash;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdaptersSub;
 import cz.muni.fi.jboss.migration.migrators.dataSources.*;
-import cz.muni.fi.jboss.migration.migrators.logging.Logger;
-import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS5;
-import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS7;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityAS7;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.*;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
 import java.io.StringWriter;
 import java.util.*;
 

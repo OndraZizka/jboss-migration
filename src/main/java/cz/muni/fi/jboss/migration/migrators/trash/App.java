@@ -1,15 +1,11 @@
-package cz.muni.fi.jboss.migration.old;
+package cz.muni.fi.jboss.migration.migrators.trash;
 
 import cz.muni.fi.jboss.migration.CopyMemory;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdaptersSub;
+import cz.muni.fi.jboss.migration.migrators.trash.ResourceAdaptersSub;
 import cz.muni.fi.jboss.migration.migrators.dataSources.*;
-import cz.muni.fi.jboss.migration.migrators.logging.Logger;
-import cz.muni.fi.jboss.migration.migrators.logging.LoggingAS7;
+import cz.muni.fi.jboss.migration.migrators.trash.*;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityAS7;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
 import cz.muni.fi.jboss.migration.migrators.server.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
