@@ -13,7 +13,7 @@ Options:
 
     as7.confPath=<path>
         Path to AS 7 config file.
-        Default: "standalone/conf/standalone.xml"
+        Default: "standalone/configuration/standalone.xml"
 
     conf.<module>.<property>=<value>  := Module-specific options.
 
