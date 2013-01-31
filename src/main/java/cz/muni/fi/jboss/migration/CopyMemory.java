@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -18,11 +19,18 @@ import javax.xml.transform.TransformerException;
  */
 public class CopyMemory {
     private String name;
+
     private String type;
+
     private String targetPath;
+
     private String homePath;
+
     // Only if it is driver
     private String module;
+
+    // Different name for jdbc driver. For Sybase and Mssql
+    private String altName;
 
     public String getName() {
         return name;
@@ -64,6 +72,15 @@ public class CopyMemory {
         this.homePath = homePath;
     }
 
+    public String getAltName() {
+        return altName;
+    }
+
+    /**
+     * Setting module for different databases.
+     *
+     * @return
+     */
     public String driverModuleGen(){
         module = "jdbc.drivers.";
         if(name.contains("mysql")){
@@ -88,26 +105,74 @@ public class CopyMemory {
         if(name.contains("db2")){
             module = module + "db2";
         }
-
+        if(name.contains("jtds")){
+            module = module + "jtds";
+        }
         //return module;
         return module;
     }
 
-    public Document createModuleXML() throws ParserConfigurationException, TransformerException {
+    /**
+     * Setting name of the Copy Memory for drivers. In special cases altName is set for alternative JDBC driver (JTDS)
+     *
+     * @param name driver-class from -ds.xml file from AS5
+     */
+    public void setDriverName(String name){
+        if(name.contains("postgres")){
+            this.name = "postgresql";
+            return;
+        }
+        if(name.contains("microsoft")){
+           this.name = "sqljdbc";
+           this.altName = "jtds";
+            return;
+        }
+        if(name.contains("db2")){
+            this.name = "db2";
+            return;
+        }
+        if(name.contains("sybase")){
+            this.name = "sybase";
+            this.altName = "jtds";
+            return;
+        }
+        if(name.contains("mysql")){
+            this.name = "sqljdbc";
+            return;
+        }
+        if(name.contains("oracle")){
+            this.name = "ojdbc";
+            return;
+        }
+        if(name.contains("hsqldb")){
+            this.name = "hsqldb";
+            return;
+        }
+        String temp = StringUtils.substringAfter(name, ".");
+        this.name = StringUtils.substringBefore(temp, ".");
+    }
+
+    /**
+     * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
+     *
+     * @return  Document representing created module.xml for given driver
+     * @throws ParserConfigurationException  if parser cannot be initialized
+     */
+    public Document createModuleXML() throws ParserConfigurationException{
 
         /**
          * Example of module xml,
          *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
-         <resources>
-         <resource-root path="h2-1.3.168.jar"/>
-         <!-- Insert resources here -->
-         </resources>
-         <dependencies>
-         <module name="javax.api"/>
-         <module name="javax.transaction.api"/>
-         <module name="javax.servlet.api" optional="true"/>
-         </dependencies>
-         </module>
+         *       <resources>
+         *          <resource-root path="h2-1.3.168.jar"/>
+         *       <!-- Insert resources here -->
+         *       </resources>
+         *       <dependencies>
+         *          <module name="javax.api"/>
+         *          <module name="javax.transaction.api"/>
+         *          <module name="javax.servlet.api" optional="true"/>
+         *       </dependencies>
+         *  </module>
          */
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setIgnoringComments(true);
@@ -128,7 +193,7 @@ public class CopyMemory {
         resource.setAttribute("path", getName());
         resources.appendChild(resource);
 
-        Element dependecies = doc.createElement("dependencies");
+        Element dependencies = doc.createElement("dependencies");
         Element module1 = doc.createElement("module");
         module1.setAttribute("name", "javax.api");
         Element module2 = doc.createElement("module");
@@ -137,11 +202,11 @@ public class CopyMemory {
         module3.setAttribute("name", "javax.servlet.api");
         module3.setAttribute("optional", "true");
 
-        dependecies.appendChild(module1);
-        dependecies.appendChild(module2);
-        dependecies.appendChild(module3);
+        dependencies.appendChild(module1);
+        dependencies.appendChild(module2);
+        dependencies.appendChild(module3);
 
-        root.appendChild(dependecies);
+        root.appendChild(dependencies);
 
         return doc;
     }

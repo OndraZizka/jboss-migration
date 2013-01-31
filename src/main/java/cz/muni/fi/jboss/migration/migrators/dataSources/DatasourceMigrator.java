@@ -184,10 +184,8 @@ public class DatasourceMigrator implements IMigrator {
                 driver.setDriverClass(driverClass);
                 driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
 
-                // TODO: Problem with copy memory class and setting name for Driver so it can be find in server dir
                 CopyMemory cp = new CopyMemory();
-                String name = StringUtils.substringAfter(driverClass, ".");
-                cp.setName(StringUtils.substringBefore(name, "."));
+                cp.setDriverName(driverClass);
                 cp.setType("driver");
                 driver.setDriverModule(cp.driverModuleGen());
 
@@ -196,8 +194,6 @@ public class DatasourceMigrator implements IMigrator {
                 Document doc = ctx.getDocBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
                 nodeList.add(doc.getDocumentElement());
-
-
             }
 
             for(String xaDsClass : xaDatasourceClasses){
@@ -205,9 +201,8 @@ public class DatasourceMigrator implements IMigrator {
                 driver.setXaDatasourceClass(xaDsClass);
                 driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
 
-                // TODO: Problem with copy memory class and setting name for Driver so it can be find in server dir
                 CopyMemory cp = new CopyMemory();
-                cp.setName(StringUtils.substringAfter(xaDsClass, "."));
+                cp.setDriverName(xaDsClass);
                 cp.setType("driver");
                 driver.setDriverModule(cp.driverModuleGen());
 

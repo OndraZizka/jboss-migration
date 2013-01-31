@@ -233,7 +233,6 @@ public class MigratorApp {
         }
     }
 
-    // TODO: Name of the oracle driver is ojdbc.jar. What is problem. Check all others drivers.
     // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
 
 

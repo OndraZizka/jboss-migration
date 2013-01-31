@@ -143,19 +143,66 @@ public class Migrator {
                 case "driver":{
                     // TODO:Can there be only one jar of selected driver or many different versions?
                     if(list.isEmpty()){
-                        throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() + "!",
-                                new FileNotFoundException(cp.getName()));
+                        // Special case for freeware jdbc driver jdts.jar
+                        if(cp.getAltName() != null){
+                            final String altName = cp.getAltName();
+
+                            nff =  new NameFileFilter(altName){
+                                @Override
+                                public boolean accept(File file) {
+                                    if(file.getName().contains(altName)){
+                                        if(file.getName().contains("jar")){
+                                            return true;
+                                        } else{
+                                            return false;
+                                        }
+                                    } else {
+                                        return false;
+                                    }
+                                }
+                            };
+
+                            List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
+                                    FileFilterUtils.makeCVSAware(null));
+
+                            if(altList.isEmpty()){
+                                throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() +
+                                        " or " + cp.getAltName() + "!",
+                                        new FileNotFoundException(cp.getName()));
+                            } else {
+                                cp.setHomePath(altList.get(0).getAbsolutePath());
+                                cp.setName(altList.get(0).getName());
+                                String module = "";
+
+                                if(cp.getModule() != null){
+                                    String[] parts = cp.getModule().split("\\.");
+                                    module = "";
+                                    for(String s : parts){
+                                        module = module + s + File.separator;
+                                    }
+                                    cp.setTargetPath(targetPath + File.separator + "modules" + File.separator +
+                                            module  + "main");
+                                } else{
+                                    throw new CopyException("Error: Module for driver is null!");
+                                }
+                            }
+                        } else {
+                            throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() + "!",
+                                    new FileNotFoundException(cp.getName()));
+                        }
                     } else{
                         cp.setHomePath(list.get(0).getAbsolutePath());
                         cp.setName(list.get(0).getName());
                         String module = "";
-                        // TODO: need better idea for module creating
+
                         if(cp.getModule() != null){
                             String[] parts = cp.getModule().split("\\.");
                             module = "";
+
                             for(String s : parts){
                                 module = module + s + File.separator;
                             }
+
                             cp.setTargetPath(targetPath + File.separator + "modules" + File.separator + module  + "main");
                         } else{
                             throw new CopyException("Error: Module for driver is null!");
@@ -205,6 +252,7 @@ public class Migrator {
                     module.createNewFile();
                     transformer.transform(new DOMSource(cp.createModuleXML()), new StreamResult(module));
                 }
+
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
             }
         } catch (IOException | ParserConfigurationException | TransformerException e) {
