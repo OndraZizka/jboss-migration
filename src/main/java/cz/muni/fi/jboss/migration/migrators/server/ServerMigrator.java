@@ -219,8 +219,8 @@ public class ServerMigrator implements IMigrator {
                             // TODO: Problem with place of the file
                             connAS7.setCertifKeyFile(connector.getKeystoreFile());
 
-                            // TODO: No sure which protocols can be in AS5
-                            if (connector.getSslProtocol().equals("TLS")) {
+                            // TODO: No sure which protocols can be in AS5. Hard to find..
+                            if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
                                 connAS7.setSslProtocol("TLSv1");
                             }
                             connAS7.setSslProtocol(connector.getSslProtocol());

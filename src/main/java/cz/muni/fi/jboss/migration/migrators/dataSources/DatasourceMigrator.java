@@ -218,7 +218,7 @@ public class DatasourceMigrator implements IMigrator {
             throw new MigrationException(e);
         }
     }
-    // TODO: Test if you can add datasource with CLI before its driver.
+
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
         try {
@@ -568,7 +568,7 @@ public class DatasourceMigrator implements IMigrator {
                     new NullPointerException());
         }
 
-        String script = "/subsystem=data-sources/jdbc-driver=";
+        String script = "/subsystem=datasources/jdbc-driver=";
         script = script.concat(driver.getDriverName() + ":add(");
         script = script.concat("driver-module-name=" + driver.getDriverModule());
         script = ctx.checkingMethod(script, ", driver-class-name", driver.getDriverClass());
@@ -580,4 +580,156 @@ public class DatasourceMigrator implements IMigrator {
         return script;
     }
 
+
+
+    // TODO: It seems that CLI script for adding Datasource and Xa-Datasource was changed.
+
+
+    /**
+     * Creating CLI script for adding Datasource
+     *
+     * @param datasourceAS7 object of Datasource
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createDatasourceScript2(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
+        if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
+            throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((datasourceAS7.getJndiName() == null) || (datasourceAS7.getJndiName().isEmpty())){
+            throw new CliScriptException("Error: jndi-name of datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((datasourceAS7.getConnectionUrl() == null) || (datasourceAS7.getConnectionUrl().isEmpty())){
+            throw new CliScriptException("Error: connection-url in datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((datasourceAS7.getDriver() == null) || (datasourceAS7.getDriver().isEmpty())){
+            throw new CliScriptException("Error: driver-name in datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        String script = "data-source add";
+        script = script.concat(datasourceAS7.getPoolName()+":add(");
+        script = ctx.checkingMethod(script, " --jndi-name", datasourceAS7.getJndiName());
+        script = ctx.checkingMethod(script, " --enabled", datasourceAS7.getEnabled());
+        script = ctx.checkingMethod(script, " --use-java-context", datasourceAS7.getUseJavaContext());
+        script = ctx.checkingMethod(script, " --driver-name", datasourceAS7.getDriver());
+        script = ctx.checkingMethod(script, " --connection-url", datasourceAS7.getConnectionUrl());
+        script = ctx.checkingMethod(script, " --url-delimeter", datasourceAS7.getUrlDelimeter());
+        script = ctx.checkingMethod(script, " --url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
+        script = ctx.checkingMethod(script, " --transaction-isolation", datasourceAS7.getTransIsolation());
+        script = ctx.checkingMethod(script, " --new-connection-sql", datasourceAS7.getNewConnectionSql());
+        script = ctx.checkingMethod(script, " --prefill", datasourceAS7.getPrefill());
+        script = ctx.checkingMethod(script, " --min-pool-size", datasourceAS7.getMinPoolSize());
+        script = ctx.checkingMethod(script, " --max-pool-size", datasourceAS7.getMaxPoolSize());
+        script = ctx.checkingMethod(script, " --password", datasourceAS7.getPassword());
+        script = ctx.checkingMethod(script, " --user-name", datasourceAS7.getUserName());
+        script = ctx.checkingMethod(script, " --security-domain", datasourceAS7.getSecurityDomain());
+        script = ctx.checkingMethod(script, " --check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
+        script = ctx.checkingMethod(script, " --validate-on-match", datasourceAS7.getValidateOnMatch());
+        script = ctx.checkingMethod(script, " --background-validation", datasourceAS7.getBackgroundValid());
+        script = ctx.checkingMethod(script, " --background-validation-minutes", datasourceAS7.getBackgroundValidMin());
+        script = ctx.checkingMethod(script, " --use-fast-fail", datasourceAS7.getUseFastFail());
+        script = ctx.checkingMethod(script, " --exception-sorter-class-name", datasourceAS7.getExceptionSorter());
+        script = ctx.checkingMethod(script, " --valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
+        script = ctx.checkingMethod(script, " --stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
+        script = ctx.checkingMethod(script, " --blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
+        script = ctx.checkingMethod(script, " --idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
+        script = ctx.checkingMethod(script, " --set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
+        script = ctx.checkingMethod(script, " --query-timeout", datasourceAS7.getQueryTimeout());
+        script = ctx.checkingMethod(script, " --allocation-retry", datasourceAS7.getAllocationRetry());
+        script = ctx.checkingMethod(script, " --allocation-retry-wait-millis", datasourceAS7.getAllocRetryWaitMillis());
+        script = ctx.checkingMethod(script, " --use-try-lock", datasourceAS7.getUseTryLock());
+        script = ctx.checkingMethod(script, " --prepared-statement-cache-size", datasourceAS7.getPreStatementCacheSize());
+        script = ctx.checkingMethod(script, " --track-statements", datasourceAS7.getTrackStatements());
+        script = ctx.checkingMethod(script, " --share-prepared-statements", datasourceAS7.getSharePreStatements());
+        script = script.concat("\n");
+        script = script.concat("data-source enable --name=" + datasourceAS7.getPoolName());
+
+        return script;
+    }
+
+
+    /**
+     * Creating CLI script for adding XaDatsource
+     *
+     * @param xaDatasourceAS7 object of XaDatasource
+     * @param ctx  migration context
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes are missing
+     */
+    public String createXaDatasourceScript2(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
+        if((xaDatasourceAS7.getPoolName() == null) || (xaDatasourceAS7.getPoolName().isEmpty())){
+            throw new CliScriptException("Error: pool-name of xa-datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((xaDatasourceAS7.getJndiName() == null) || (xaDatasourceAS7.getJndiName().isEmpty())){
+            throw new CliScriptException("Error: jndi-name of xa-datasource cannot be null or empty",
+                    new NullPointerException());
+        }
+
+        if((xaDatasourceAS7.getDriver() == null) || (xaDatasourceAS7.getDriver().isEmpty())){
+            throw new CliScriptException("Error: driver-name in xa-datasource cannot be null",
+                    new NullPointerException());
+        }
+
+        String script = "xa-data-source add";
+        script = script.concat(xaDatasourceAS7.getPoolName()+":add(");
+        script = ctx.checkingMethod(script, " --jndi-name", xaDatasourceAS7.getJndiName());
+        script = ctx.checkingMethod(script, " --enabled", xaDatasourceAS7.getEnabled());
+        script = ctx.checkingMethod(script, " --use-java-context", xaDatasourceAS7.getUseJavaContext());
+        script = ctx.checkingMethod(script, " --driver-name", xaDatasourceAS7.getDriver());
+        script = ctx.checkingMethod(script, " --url-delimeter", xaDatasourceAS7.getUrlDelimeter());
+        script = ctx.checkingMethod(script, " --url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
+        script = ctx.checkingMethod(script, " --transaction-isolation", xaDatasourceAS7.getTransIsolation());
+        script = ctx.checkingMethod(script, " --new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
+        script = ctx.checkingMethod(script, " --prefill", xaDatasourceAS7.getPrefill());
+        script = ctx.checkingMethod(script, " --min-pool-size", xaDatasourceAS7.getMinPoolSize());
+        script = ctx.checkingMethod(script, " --max-pool-size", xaDatasourceAS7.getMaxPoolSize());
+        script = ctx.checkingMethod(script, " --is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
+        script = ctx.checkingMethod(script, " --interleaving", xaDatasourceAS7.getInterleaving());
+        script = ctx.checkingMethod(script, " --no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
+        script = ctx.checkingMethod(script, " --password", xaDatasourceAS7.getPassword());
+        script = ctx.checkingMethod(script, " --user-name", xaDatasourceAS7.getUserName());
+        script = ctx.checkingMethod(script, " --security-domain", xaDatasourceAS7.getSecurityDomain());
+        script = ctx.checkingMethod(script, " --check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
+        script = ctx.checkingMethod(script, " --validate-on-match", xaDatasourceAS7.getValidateOnMatch());
+        script = ctx.checkingMethod(script, " --background-validation", xaDatasourceAS7.getBackgroundValid());
+        script = ctx.checkingMethod(script, " --background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
+        script = ctx.checkingMethod(script, " --use-fast-fail", xaDatasourceAS7.getUseFastFail());
+        script = ctx.checkingMethod(script, " --exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
+        script = ctx.checkingMethod(script, " --valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
+        script = ctx.checkingMethod(script, " --stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
+        script = ctx.checkingMethod(script, " --blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
+        script = ctx.checkingMethod(script, " --idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMinutes());
+        script = ctx.checkingMethod(script, " --set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
+        script = ctx.checkingMethod(script, " --query-timeout", xaDatasourceAS7.getQueryTimeout());
+        script = ctx.checkingMethod(script, " --allocation-retry", xaDatasourceAS7.getAllocationRetry());
+        script = ctx.checkingMethod(script, " --allocation-retry-wait-millis", xaDatasourceAS7.getAllocRetryWaitMillis());
+        script = ctx.checkingMethod(script, " --use-try-lock", xaDatasourceAS7.getUseTryLock());
+        script = ctx.checkingMethod(script, " --xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
+        script = ctx.checkingMethod(script, " --prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
+        script = ctx.checkingMethod(script, " --track-statements", xaDatasourceAS7.getTrackStatements());
+        script = ctx.checkingMethod(script, " --share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
+        script = script.concat("\n");
+
+        if(xaDatasourceAS7.getXaDatasourceProps() != null){
+            for(XaDatasourceProperty xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()){
+                script = script.concat("/subsystem=datasources/xa-data-source=" + xaDatasourceAS7.getPoolName());
+                script = script.concat("/xa-datasource-properties=" + xaDatasourceProperty.getXaDatasourcePropName());
+                script = script.concat(":add(value=" + xaDatasourceProperty.getXaDatasourceProp() + ")\n");
+
+            }
+        }
+
+        script = script.concat("xa-data-source enable --name=" + xaDatasourceAS7.getPoolName());
+        return script;
+    }
 }
