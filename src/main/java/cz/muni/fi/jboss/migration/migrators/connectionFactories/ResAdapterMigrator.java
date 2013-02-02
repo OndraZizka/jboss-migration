@@ -4,10 +4,7 @@ import cz.muni.fi.jboss.migration.CopyMemory;
 import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.*;
 
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
@@ -82,7 +79,7 @@ public class ResAdapterMigrator implements IMigrator {
                     }
                 }
             } else {
-                throw new LoadMigrationException("Error: don't have permission for reading files in directory \"AS5_Home"
+                throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
                         + File.separator+"deploy\"");
             }
 
@@ -119,13 +116,13 @@ public class ResAdapterMigrator implements IMigrator {
                     break;
                 }
             }
-        } catch (MigrationException e) {
+        } catch (NodeGenerationException e) {
             throw new ApplyMigrationException(e);
         }
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapter.class);
             List<Node> nodeList = new ArrayList();
@@ -133,7 +130,8 @@ public class ResAdapterMigrator implements IMigrator {
 
             for(IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()){
                 if(!(fragment instanceof ConnectionFactoryAS5)){
-                    throw new MigrationException("Error: Object is not part of resource-adapter(connection-factories) migration!");
+                    throw new NodeGenerationException("Object is not part of resource-adapter" +
+                            "(connection-factories) migration!");
                 }
                 ConnectionFactoryAS5 connFactoryAS5 = (ConnectionFactoryAS5) fragment;
                 ResourceAdapter resAdapter = new ResourceAdapter();
@@ -196,8 +194,8 @@ public class ResAdapterMigrator implements IMigrator {
 
             return nodeList;
 
-        } catch (Exception e) {
-            throw new MigrationException(e);
+        } catch (JAXBException e) {
+            throw new NodeGenerationException(e);
         }
     }
 
@@ -213,7 +211,7 @@ public class ResAdapterMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException | JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -226,15 +224,13 @@ public class ResAdapterMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createResAdapterScript(ResourceAdapter resourceAdapter, MigrationContext ctx) throws CliScriptException{
+    public static String createResAdapterScript(ResourceAdapter resourceAdapter, MigrationContext ctx) throws CliScriptException{
 //        if((resourceAdapter.getJndiName() == null) || (resourceAdapter.getJndiName().isEmpty())){
-//            throw new CliScriptException("Error: name of the resource-adapter cannot be null or empty",
-//                    new NullPointerException());
+//            throw new CliScriptException("Error: name of the resource-adapter cannot be null or empty");
 //        }
 
         if((resourceAdapter.getArchive() == null) || (resourceAdapter.getArchive().isEmpty())){
-            throw new CliScriptException("Error: archive in the resource-adapter cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Archive in the resource-adapter cannot be null or empty");
         }
 
         String script = "/subsystem=resource-adapters/resource-adapter=";
@@ -247,8 +243,7 @@ public class ResAdapterMigrator implements IMigrator {
         if(resourceAdapter.getConnectionDefinitions() != null){
             for(ConnectionDefinition connectionDefinition : resourceAdapter.getConnectionDefinitions()){
                 if((connectionDefinition.getClassName() == null) || (connectionDefinition.getClassName().isEmpty())){
-                    throw new CliScriptException("Error: class-name in the connection definition cannot be null or empty",
-                            new NullPointerException());
+                    throw new CliScriptException("Class-name in the connection definition cannot be null or empty");
                 }
 
                 script =  script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName());

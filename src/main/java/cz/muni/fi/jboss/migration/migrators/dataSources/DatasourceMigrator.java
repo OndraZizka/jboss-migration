@@ -1,15 +1,8 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
-import cz.muni.fi.jboss.migration.CopyMemory;
-import cz.muni.fi.jboss.migration.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.MigrationContext;
-import cz.muni.fi.jboss.migration.MigrationData;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -43,19 +36,14 @@ import java.util.Set;
  *         Time: 10:41 AM
  */
 
-public class DatasourceMigrator implements IMigrator {
-
-    private GlobalConfiguration globalConfig;
-
-    private List<Pair<String,String>> config;
+public class DatasourceMigrator extends AbstractMigrator {
 
     private Set<String> drivers = new HashSet();
 
     private Set<String> xaDatasourceClasses = new HashSet();
 
     public DatasourceMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
-        this.globalConfig = globalConfig;
-        this.config =  config;
+        super(globalConfig, config);;
     }
 
     @Override
@@ -64,7 +52,8 @@ public class DatasourceMigrator implements IMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DataSources.class).createUnmarshaller();
             List<DataSources> dsColl = new ArrayList();
 
-            File dsFiles = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy");
+            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
+                    File.separator + "deploy");
 
             if(dsFiles.canRead()){
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
@@ -87,7 +76,7 @@ public class DatasourceMigrator implements IMigrator {
                     }
                 }
             } else {
-                throw new LoadMigrationException("Error: don't have permission for reading files in directory \"AS5_Home"
+                throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
                         + File.separator+"deploy\"");
 
             }
@@ -150,13 +139,13 @@ public class DatasourceMigrator implements IMigrator {
 
                 }
             }
-        } catch (MigrationException e) {
+        } catch (NodeGenerationException e) {
             throw new ApplyMigrationException(e);
         }
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
         try {
             List<Node> nodeList = new ArrayList();
             Marshaller dataMarshaller = JAXBContext.newInstance(DatasourceAS7.class).createMarshaller();
@@ -176,10 +165,10 @@ public class DatasourceMigrator implements IMigrator {
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                throw new MigrationException("Error: Object is not part of Datasource migration!");
+                throw new NodeGenerationException("Object is not part of Datasource migration!");
             }
 
-            for(String driverClass : drivers){
+            for(String driverClass : this.drivers){
                 Driver driver = new Driver();
                 driver.setDriverClass(driverClass);
                 driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
@@ -196,7 +185,7 @@ public class DatasourceMigrator implements IMigrator {
                 nodeList.add(doc.getDocumentElement());
             }
 
-            for(String xaDsClass : xaDatasourceClasses){
+            for(String xaDsClass : this.xaDatasourceClasses){
                 Driver driver = new Driver();
                 driver.setXaDatasourceClass(xaDsClass);
                 driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
@@ -214,8 +203,8 @@ public class DatasourceMigrator implements IMigrator {
             }
 
             return nodeList;
-        } catch (Exception e) {
-            throw new MigrationException(e);
+        } catch (JAXBException e) {
+            throw new NodeGenerationException(e);
         }
     }
 
@@ -245,7 +234,7 @@ public class DatasourceMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException | JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -261,7 +250,7 @@ public class DatasourceMigrator implements IMigrator {
     public DatasourceAS7 datasourceMigration(DatasourceAS5 datasourceAS5) {
         DatasourceAS7 datasourceAS7 = new DatasourceAS7();
 
-        drivers.add(datasourceAS5.getDriverClass());
+        this.drivers.add(datasourceAS5.getDriverClass());
 
         // Standalone elements in AS7
         datasourceAS7.setJndiName("java:jboss/datasources/" + datasourceAS5.getJndiName());
@@ -344,7 +333,7 @@ public class DatasourceMigrator implements IMigrator {
         // xa-datasource-class should be declared in drivers no in datasource.
         // xa-datasource then reference xa-datasource-class with element name
         //xaDatasourceAS7.setXaDatasourceClass(xaDatasourceAS5.getXaDatasourceClass());
-        xaDatasourceClasses.add(xaDataAS5.getXaDatasourceClass());
+        this.xaDatasourceClasses.add(xaDataAS5.getXaDatasourceClass());
 
         xaDataAS7.setDriver(StringUtils.substringAfter(xaDataAS5.getXaDatasourceClass(), "."));
 
@@ -410,25 +399,21 @@ public class DatasourceMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createDatasourceScript(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
+    public static String createDatasourceScript(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
         if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
-            throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Pool-name of datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getJndiName() == null) || (datasourceAS7.getJndiName().isEmpty())){
-            throw new CliScriptException("Error: jndi-name of datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Jndi-name of datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getConnectionUrl() == null) || (datasourceAS7.getConnectionUrl().isEmpty())){
-            throw new CliScriptException("Error: connection-url in datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Connection-url in datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getDriver() == null) || (datasourceAS7.getDriver().isEmpty())){
-            throw new CliScriptException("Error: driver-name in datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Driver-name in datasource cannot be null or empty");
         }
 
         String script = "/subsystem=datasources/data-source=";
@@ -480,20 +465,17 @@ public class DatasourceMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
+    public static  String createXaDatasourceScript(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
         if((xaDatasourceAS7.getPoolName() == null) || (xaDatasourceAS7.getPoolName().isEmpty())){
-            throw new CliScriptException("Error: pool-name of xa-datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Pool-name of xa-datasource cannot be null or empty");
         }
 
         if((xaDatasourceAS7.getJndiName() == null) || (xaDatasourceAS7.getJndiName().isEmpty())){
-            throw new CliScriptException("Error: jndi-name of xa-datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Jndi-name of xa-datasource cannot be null or empty");
         }
 
         if((xaDatasourceAS7.getDriver() == null) || (xaDatasourceAS7.getDriver().isEmpty())){
-            throw new CliScriptException("Error: driver-name in xa-datasource cannot be null",
-                    new NullPointerException());
+            throw new CliScriptException("Driver-name in xa-datasource cannot be null");
         }
 
         String script = "/subsystem=datasources/xa-data-source=";
@@ -557,15 +539,13 @@ public class DatasourceMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createDriverScript(Driver driver, MigrationContext ctx) throws CliScriptException {
+    public static String createDriverScript(Driver driver, MigrationContext ctx) throws CliScriptException {
         if((driver.getDriverModule() == null) || (driver.getDriverModule().isEmpty())){
-            throw new CliScriptException("Error: Driver module in driver cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Driver module in driver cannot be null or empty");
         }
 
         if((driver.getDriverName() == null) || (driver.getDriverName().isEmpty())){
-            throw new CliScriptException("Error: Driver name cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Driver name cannot be null or empty");
         }
 
         String script = "/subsystem=datasources/jdbc-driver=";
@@ -593,25 +573,21 @@ public class DatasourceMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createDatasourceScript2(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
+    public static String createDatasourceScript2(DatasourceAS7 datasourceAS7, MigrationContext ctx) throws CliScriptException {
         if((datasourceAS7.getPoolName() == null) || (datasourceAS7.getPoolName().isEmpty())){
-            throw new CliScriptException("Error: pool-name of datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Pool-name of datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getJndiName() == null) || (datasourceAS7.getJndiName().isEmpty())){
-            throw new CliScriptException("Error: jndi-name of datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Jndi-name of datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getConnectionUrl() == null) || (datasourceAS7.getConnectionUrl().isEmpty())){
-            throw new CliScriptException("Error: connection-url in datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Connection-url in datasource cannot be null or empty");
         }
 
         if((datasourceAS7.getDriver() == null) || (datasourceAS7.getDriver().isEmpty())){
-            throw new CliScriptException("Error: driver-name in datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Driver-name in datasource cannot be null or empty");
         }
 
         String script = "data-source add";
@@ -664,20 +640,17 @@ public class DatasourceMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createXaDatasourceScript2(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
+    public static String createXaDatasourceScript2(XaDatasourceAS7 xaDatasourceAS7, MigrationContext ctx) throws  CliScriptException{
         if((xaDatasourceAS7.getPoolName() == null) || (xaDatasourceAS7.getPoolName().isEmpty())){
-            throw new CliScriptException("Error: pool-name of xa-datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Pool-name of xa-datasource cannot be null or empty");
         }
 
         if((xaDatasourceAS7.getJndiName() == null) || (xaDatasourceAS7.getJndiName().isEmpty())){
-            throw new CliScriptException("Error: jndi-name of xa-datasource cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Jndi-name of xa-datasource cannot be null or empty");
         }
 
         if((xaDatasourceAS7.getDriver() == null) || (xaDatasourceAS7.getDriver().isEmpty())){
-            throw new CliScriptException("Error: driver-name in xa-datasource cannot be null",
-                    new NullPointerException());
+            throw new CliScriptException("Driver-name in xa-datasource cannot be null");
         }
 
         String script = "xa-data-source add";

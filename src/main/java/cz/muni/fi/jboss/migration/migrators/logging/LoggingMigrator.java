@@ -1,13 +1,9 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.*;
 
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -36,29 +32,22 @@ import java.util.Set;
  *         Date: 1/24/13
  *         Time: 10:42 AM
  */
-public class LoggingMigrator implements IMigrator {
-
-    private GlobalConfiguration globalConfig;
-
-    private List<Pair<String,String>> config;
+public class LoggingMigrator extends AbstractMigrator {
 
     public LoggingMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
-        this.globalConfig = globalConfig;
-        this.config =  config;
+        super(globalConfig, config);
     }
 
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5.class).createUnmarshaller();
-            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator +
-                    "conf" + File.separator + "jboss-log4j.xml");
+            File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
+                    File.separator +"conf" + File.separator + "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
             XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(file));
-
-
 
             LoggingAS5 loggingAS5;
 
@@ -76,12 +65,8 @@ public class LoggingMigrator implements IMigrator {
 
             ctx.getMigrationData().put(LoggingMigrator.class, mData);
 
-
-
-        } catch (JAXBException e) {
+        } catch (JAXBException | XMLStreamException e) {
             throw new LoadMigrationException(e);
-        } catch (XMLStreamException e) {
-            e.printStackTrace();
         }
     }
 
@@ -131,7 +116,7 @@ public class LoggingMigrator implements IMigrator {
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             JAXBContext loggerCtx = JAXBContext.newInstance(Logger.class);
             JAXBContext rootLogCtx = JAXBContext.newInstance(RootLoggerAS7.class);
@@ -140,7 +125,9 @@ public class LoggingMigrator implements IMigrator {
             JAXBContext perHandlerCtx = JAXBContext.newInstance(PerRotFileHandler.class);
             JAXBContext consoleHandlerCtx = JAXBContext.newInstance(ConsoleHandler.class);
             JAXBContext customHandlerCtx = JAXBContext.newInstance(CustomHandler.class);
+
             List<Node> nodeList = new ArrayList();
+
             Marshaller logMarshaller = loggerCtx.createMarshaller();
             Marshaller rootLogMarshaller = rootLogCtx.createMarshaller();
             Marshaller perHandMarshaller = perHandlerCtx.createMarshaller();
@@ -228,13 +215,13 @@ public class LoggingMigrator implements IMigrator {
                     continue;
                 }
 
-                throw new MigrationException("Error: Object is not part of Logging migration!");
+                throw new NodeGenerationException("Object is not part of Logging migration!");
             }
 
             return nodeList;
 
-        } catch (Exception e) {
-            throw new MigrationException(e);
+        } catch (JAXBException e) {
+            throw new NodeGenerationException(e);
         }
     }
 
@@ -242,6 +229,7 @@ public class LoggingMigrator implements IMigrator {
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
         try {
             List<String> list = new ArrayList();
+
             Unmarshaller logUnmarshaller = JAXBContext.newInstance(Logger.class).createUnmarshaller();
             Unmarshaller rootUnmarshaller = JAXBContext.newInstance(RootLoggerAS7.class).createUnmarshaller();
             Unmarshaller perHandUnmarshaller = JAXBContext.newInstance(PerRotFileHandler.class).createUnmarshaller();
@@ -290,9 +278,7 @@ public class LoggingMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException e) {
-            throw new CliScriptException(e);
-        } catch (JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -304,7 +290,7 @@ public class LoggingMigrator implements IMigrator {
      * @param ctx  migration context
      * @return migrated Periodic-Rotating-File-Handler object
      */
-    public PerRotFileHandler createPerRotFileHandler(Appender appender, MigrationContext ctx){
+    public static PerRotFileHandler createPerRotFileHandler(Appender appender, MigrationContext ctx){
         PerRotFileHandler handler = new PerRotFileHandler();
         handler.setName(appender.getAppenderName());
 
@@ -349,7 +335,7 @@ public class LoggingMigrator implements IMigrator {
      * @param ctx  migration context
      * @return migrated Size-Rotating-File-Handler object
      */
-    public SizeRotFileHandler createSizeRotFileHandler(Appender appender, MigrationContext ctx){
+    public static SizeRotFileHandler createSizeRotFileHandler(Appender appender, MigrationContext ctx){
         SizeRotFileHandler handler = new SizeRotFileHandler();
         handler.setName(appender.getAppenderName());
 
@@ -398,7 +384,7 @@ public class LoggingMigrator implements IMigrator {
      * @param appender object representing Async-Appender
      * @return migrated Async-Handler object
      */
-    public AsyncHandler createAsyncHandler(Appender appender){
+    public static AsyncHandler createAsyncHandler(Appender appender){
         AsyncHandler handler = new AsyncHandler();
         handler.setName(appender.getAppenderName());
         for (Parameter parameter : appender.getParameters()) {
@@ -430,7 +416,7 @@ public class LoggingMigrator implements IMigrator {
      * @param appender object representing Console-Appender
      * @return migrated Console-Handler object
      */
-    public ConsoleHandler createConsoleHandler(Appender appender){
+    public static ConsoleHandler createConsoleHandler(Appender appender){
         ConsoleHandler handler = new ConsoleHandler();
         handler.setName(appender.getAppenderName());
 
@@ -456,7 +442,7 @@ public class LoggingMigrator implements IMigrator {
      * @param appender object representing Custom-Appender
      * @return migrated Custom-Handler object
      */
-    public CustomHandler createCustomHandler(Appender appender){
+    public static CustomHandler createCustomHandler(Appender appender){
         CustomHandler handler = new CustomHandler();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
@@ -486,7 +472,7 @@ public class LoggingMigrator implements IMigrator {
      * @param appender object representing Periodic-Rotating-File-Appender
      * @return migrated File-Handler object
      */
-    public FileHandler createFileHandler(Appender appender){
+    public static FileHandler createFileHandler(Appender appender){
         return null;
     }
 
@@ -498,9 +484,9 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createLoggerScript(Logger logger, MigrationContext ctx) throws CliScriptException{
+    public static String createLoggerScript(Logger logger, MigrationContext ctx) throws CliScriptException{
         if((logger.getLoggerLevelName() == null) || (logger.getLoggerLevelName().isEmpty())){
-            throw new CliScriptException("Error:name of the logger cannot be null of empty", new NullPointerException());
+            throw new CliScriptException("Name of the logger cannot be null of empty");
         }
 
         String script = "/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(";
@@ -533,26 +519,21 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createPerHandlerScript(PerRotFileHandler periodic, MigrationContext ctx) throws CliScriptException{
+    public static String createPerHandlerScript(PerRotFileHandler periodic, MigrationContext ctx) throws CliScriptException{
         if((periodic.getName() ==  null) || (periodic.getName().isEmpty())){
-            throw new CliScriptException("Error: name of the periodic rotating handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the periodic rotating handler cannot be null or empty");
         }
 
         if((periodic.getSuffix() == null) || (periodic.getSuffix().isEmpty())){
-            throw new CliScriptException("Error: suffix in periodic rotating handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Suffix in periodic rotating handler cannot be null or empty");
         }
 
         if((periodic.getFileRelativeTo() == null) || (periodic.getFileRelativeTo().isEmpty())){
-            throw new CliScriptException("Error: relative-to in <file> in periodic rotating handler"
-                    +"cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Relative-to in <file> in periodic rotating handler cannot be null or empty");
         }
 
         if((periodic.getPath() == null) || (periodic.getPath().isEmpty())){
-            throw new CliScriptException("Error:  path in <file> in periodic rotating handler cannot"
-                    +" be null or empty", new NullPointerException());
+            throw new CliScriptException("Path in <file> in periodic rotating handler cannot be null or empty");
         }
 
         String script = "/subsystem=logging/periodic-rotating-file-handler=";
@@ -577,20 +558,17 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createSizeHandlerScript(SizeRotFileHandler sizeHandler, MigrationContext ctx) throws CliScriptException{
+    public static String createSizeHandlerScript(SizeRotFileHandler sizeHandler, MigrationContext ctx) throws CliScriptException{
         if((sizeHandler.getName() == null) || (sizeHandler.getName().isEmpty())){
-            throw new CliScriptException("Error: name of the size rotating handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the size rotating handler cannot be null or empty");
         }
 
         if((sizeHandler.getRelativeTo() == null) || (sizeHandler.getPath().isEmpty())){
-            throw new CliScriptException("Error: relative-to in <file> in size rotating handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Relative-to in <file> in size rotating handler cannot be null or empty");
         }
 
         if((sizeHandler.getPath() ==  null) || (sizeHandler.getPath().isEmpty())){
-            throw new CliScriptException("Error: path in <file> in size rotating handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Path in <file> in size rotating handler cannot be null or empty");
         }
 
         String script = "/subsystem=logging/size-rotating-file-handler=";
@@ -617,15 +595,13 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createAsyncHandlerScript(AsyncHandler asyncHandler, MigrationContext ctx) throws  CliScriptException{
+    public static String createAsyncHandlerScript(AsyncHandler asyncHandler, MigrationContext ctx) throws  CliScriptException{
         if((asyncHandler.getQueueLength() == null) || (asyncHandler.getQueueLength().isEmpty())){
-            throw new CliScriptException("Error: queue-length in async handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Queue-length in async handler cannot be null or empty");
         }
 
         if((asyncHandler.getName() == null) || (asyncHandler.getName().isEmpty())){
-            throw new CliScriptException("Error: name of the async handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the async handler cannot be null or empty");
         }
 
         String script = "/subsystem=logging/async-handler=";
@@ -661,10 +637,9 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createConsoleHandlerScript(ConsoleHandler consoleHandler, MigrationContext ctx) throws CliScriptException{
+    public static String createConsoleHandlerScript(ConsoleHandler consoleHandler, MigrationContext ctx) throws CliScriptException{
         if((consoleHandler.getName() == null) || (consoleHandler.getName().isEmpty())){
-            throw new CliScriptException("Error: name of the console handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the console handler cannot be null or empty");
         }
 
         String script = "/subsystem=logging/console-handler=";
@@ -687,20 +662,17 @@ public class LoggingMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createCustomHandlerScript (CustomHandler customHandler, MigrationContext ctx) throws  CliScriptException{
+    public static String createCustomHandlerScript (CustomHandler customHandler, MigrationContext ctx) throws  CliScriptException{
         if((customHandler.getName() == null) || (customHandler.getName().isEmpty())){
-            throw new CliScriptException("Error: name of the custom handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the custom handler cannot be null or empty");
         }
 
         if((customHandler.getModule() == null) || (customHandler.getModule().isEmpty())){
-            throw new CliScriptException("Error: module in the custom handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Module in the custom handler cannot be null or empty");
         }
 
         if((customHandler.getClassValue() == null) || (customHandler.getClassValue().isEmpty())){
-            throw new CliScriptException("Error: class in the custom handler cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Class in the custom handler cannot be null or empty");
         }
 
         String script = "/subsystem=logging/custom-handler=";

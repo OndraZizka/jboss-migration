@@ -7,7 +7,7 @@ package cz.muni.fi.jboss.migration.ex;
  *         Date: 1/28/13
  *         Time: 7:11 PM
  */
-public class CopyException extends Exception {
+public class CopyException extends MigrationException {
     public CopyException(String message) {
         super(message);
     }

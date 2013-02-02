@@ -1,12 +1,8 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -34,15 +30,10 @@ import java.util.Set;
  *         Date: 1/24/13
  *         Time: 10:42 AM
  */
-public class SecurityMigrator implements IMigrator {
-
-    private GlobalConfiguration globalConfig;
-
-    private List<Pair<String,String>> config;
+public class SecurityMigrator extends AbstractMigrator {
 
     public SecurityMigrator(GlobalConfiguration globalConfig, List<Pair<String, String>> config){
-        this.globalConfig = globalConfig;
-        this.config =  config;
+        super(globalConfig, config);
     }
 
     @Override
@@ -50,8 +41,8 @@ public class SecurityMigrator implements IMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5.class).createUnmarshaller();
 
-            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator +
-                    "conf" + File.separator + "login-config.xml");
+            File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
+                    File.separator +"conf" + File.separator + "login-config.xml");
 
             if(file.canRead()){
                 SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(file);
@@ -93,13 +84,13 @@ public class SecurityMigrator implements IMigrator {
                     break;
                 }
             }
-        } catch ( MigrationException e) {
+        } catch (NodeGenerationException e) {
             throw new ApplyMigrationException(e);
         }
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+    public  List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
         try {
             JAXBContext secDomainCtx = JAXBContext.newInstance(SecurityDomain.class);
             List<Node> nodeList = new ArrayList();
@@ -107,7 +98,7 @@ public class SecurityMigrator implements IMigrator {
 
             for (IConfigFragment data : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
                 if(!(data instanceof ApplicationPolicy)){
-                    throw new MigrationException("Error: Object is not part of Security migration!");
+                    throw new NodeGenerationException("Object is not part of Security migration!");
                 }
                 ApplicationPolicy appPolicy = (ApplicationPolicy) data;
 
@@ -231,7 +222,7 @@ public class SecurityMigrator implements IMigrator {
 
             return nodeList;
         } catch (JAXBException e) {
-            throw new MigrationException(e);
+            throw new NodeGenerationException(e);
         }
     }
 
@@ -247,7 +238,7 @@ public class SecurityMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException | JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -260,10 +251,9 @@ public class SecurityMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createSecurityDomainScript(SecurityDomain securityDomain, MigrationContext ctx) throws CliScriptException{
+    public static String createSecurityDomainScript(SecurityDomain securityDomain, MigrationContext ctx) throws CliScriptException{
         if((securityDomain.getSecurityDomainName() == null) || (securityDomain.getSecurityDomainName().isEmpty())){
-            throw new CliScriptException("Error: Name of the security domain cannot be null or empty",
-                    new NullPointerException());
+            throw new CliScriptException("Name of the security domain cannot be null or empty");
         }
 
         String script = "/subsystem=security/security-domain=";

@@ -1,12 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
+import cz.muni.fi.jboss.migration.AbstractMigrator;
 import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
@@ -35,11 +33,7 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 
-public class ServerMigrator implements IMigrator {
-
-    private GlobalConfiguration globalConfig;
-
-    private List<Pair<String,String>> config;
+public class ServerMigrator extends AbstractMigrator{
 
     private Set<SocketBinding> socketTemp = new HashSet();
 
@@ -50,8 +44,7 @@ public class ServerMigrator implements IMigrator {
     private Integer randomConnector =1 ;
 
     public ServerMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
-        this.globalConfig = globalConfig;
-        this.config =  config;
+        super(globalConfig, config);
     }
 
     public Set<SocketBinding> getSocketTemp() {
@@ -62,30 +55,14 @@ public class ServerMigrator implements IMigrator {
         this.socketTemp = socketTemp;
     }
 
-    public GlobalConfiguration getGlobalConfig() {
-        return globalConfig;
-    }
-
-    public void setGlobalConfig(GlobalConfiguration globalConfig) {
-        this.globalConfig = globalConfig;
-    }
-
-    public List<Pair<String, String>> getConfig() {
-        return config;
-    }
-
-    public void setConfig(List<Pair<String, String>> config) {
-        this.config = config;
-    }
-
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            File file = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy"
-                    + File.separator + "jbossweb.sar" + File.separator + "server.xml");
+            File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
+                    File.separator + "deploy" + File.separator + "jbossweb.sar" + File.separator + "server.xml");
 
             if(file.canRead()){
                 ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(file);
@@ -157,18 +134,20 @@ public class ServerMigrator implements IMigrator {
                 }
                 break;
             }
-        } catch (MigrationException e) {
+        } catch (NodeGenerationException e) {
             throw new ApplyMigrationException(e);
         }
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws MigrationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
         try {
             JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7.class);
             JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServer.class);
             JAXBContext socketCtx = JAXBContext.newInstance(SocketBinding.class);
+
             List<Node> nodeList = new ArrayList();
+
             Marshaller connMarshaller = connCtx.createMarshaller();
             Marshaller virSerMarshaller = virSerCtx.createMarshaller();
             Marshaller socketMarshaller = socketCtx.createMarshaller();
@@ -190,8 +169,8 @@ public class ServerMigrator implements IMigrator {
                     // TODO: Only solution is http?
                     connAS7.setScheme("http");
 
-                    connAS7.setConnectorName("connector" + randomConnector);
-                    randomConnector++;
+                    connAS7.setConnectorName("connector" + this.randomConnector);
+                    this.randomConnector++;
 
                     // Socket-binding.. first try
                     if (connector.getProtocol().equals("HTTP/1.1")) {
@@ -250,10 +229,10 @@ public class ServerMigrator implements IMigrator {
                     continue;
                 }
 
-                throw new MigrationException("Error: Object is not part of Server migration!");
+                throw new NodeGenerationException("Object is not part of Server migration!");
             }
 
-            for(SocketBinding sb : socketBindings){
+            for(SocketBinding sb : this.socketBindings){
                 Document doc = ctx.getDocBuilder().newDocument();
                 socketMarshaller.marshal(sb, doc);
                 nodeList.add(doc.getDocumentElement());
@@ -263,7 +242,7 @@ public class ServerMigrator implements IMigrator {
             return nodeList;
 
         } catch (JAXBException e) {
-            throw new MigrationException(e);
+            throw new NodeGenerationException(e);
         }
     }
 
@@ -271,6 +250,7 @@ public class ServerMigrator implements IMigrator {
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
         try {
             List<String> list = new ArrayList();
+
             Unmarshaller connUnmarshaller = JAXBContext.newInstance(ConnectorAS7.class).createUnmarshaller();
             Unmarshaller virtualUnmarshaller = JAXBContext.newInstance(VirtualServer.class).createUnmarshaller();
             Unmarshaller socketUnmarshaller = JAXBContext.newInstance(SocketBinding.class).createUnmarshaller();
@@ -294,7 +274,7 @@ public class ServerMigrator implements IMigrator {
             }
 
             return list;
-        } catch (MigrationException | JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -317,7 +297,7 @@ public class ServerMigrator implements IMigrator {
                 }
                 SocketBinding socketBinding = (SocketBinding)unmarshaller.unmarshal(bindings.item(i));
                 if((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)){
-                    socketTemp.add(socketBinding);
+                    this.socketTemp.add(socketBinding);
                 }
 
             }
@@ -335,32 +315,32 @@ public class ServerMigrator implements IMigrator {
      * @return name of the socket-binding so it cant be referenced in connector
      * @throws MigrationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name, MigrationContext ctx) throws MigrationException{
-        if(socketTemp.isEmpty()){
+    private String createSocketBinding(String port, String name, MigrationContext ctx) throws NodeGenerationException{
+        if(this.socketTemp.isEmpty()){
             try {
                 createDefaultSockets(ctx);
             } catch (LoadMigrationException e) {
-                throw new MigrationException(e);
+                throw new NodeGenerationException(e);
             }
         }
 
         Set<SocketBinding> temp = new HashSet();
 
-        for (SocketBinding sb : socketTemp) {
+        for (SocketBinding sb : this.socketTemp) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
         }
         SocketBinding socketBinding = new SocketBinding();
-        if (socketBindings == null) {
-            socketBindings = new HashSet();
+        if (this.socketBindings == null) {
+            this.socketBindings = new HashSet();
             socketBinding.setSocketName(name);
             socketBinding.setSocketPort(port);
-            socketBindings.add(socketBinding);
+            this.socketBindings.add(socketBinding);
             return name;
         }
 
-        for (SocketBinding sb : socketBindings) {
+        for (SocketBinding sb : this.socketBindings) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
@@ -368,15 +348,15 @@ public class ServerMigrator implements IMigrator {
 
         socketBinding.setSocketPort(port);
 
-        for (SocketBinding sb : socketBindings) {
+        for (SocketBinding sb : this.socketBindings) {
             if (sb.getSocketName().equals(name)) {
-                name = name.concat(randomSocket.toString());
-                randomSocket++;
+                name = name.concat(this.randomSocket.toString());
+                this.randomSocket++;
             }
         }
 
         socketBinding.setSocketName(name);
-        socketBindings.add(socketBinding);
+        this.socketBindings.add(socketBinding);
 
         return name;
     }
@@ -389,21 +369,21 @@ public class ServerMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createConnectorScript(ConnectorAS7 connectorAS7, MigrationContext ctx) throws CliScriptException{
+    public static String createConnectorScript(ConnectorAS7 connectorAS7, MigrationContext ctx) throws CliScriptException{
         if((connectorAS7.getScheme() == null) || (connectorAS7.getScheme().isEmpty())){
-            throw new CliScriptException("Error: Scheme in connector cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Scheme in connector cannot be null or empty") ;
         }
 
         if((connectorAS7.getSocketBinding() == null) || (connectorAS7.getSocketBinding().isEmpty())){
-            throw new CliScriptException("Error: Socket-binding in connector cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Socket-binding in connector cannot be null or empty");
         }
 
         if((connectorAS7.getConnectorName() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Error: Connector name cannot be null or empty", new NullPointerException()) ;
+            throw new CliScriptException("Connector name cannot be null or empty");
         }
 
         if((connectorAS7.getProtocol() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Error: Protocol in connector cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Protocol in connector cannot be null or empty");
         }
 
         String script = "/subsystem=web/connector=";
@@ -440,8 +420,6 @@ public class ServerMigrator implements IMigrator {
         }
 
         return script;
-
-
     }
 
     /**
@@ -451,7 +429,7 @@ public class ServerMigrator implements IMigrator {
      * @param ctx migration context
      * @return string containing created CLI script
      */
-    public String createVirtualServerScript(VirtualServer virtualServer, MigrationContext ctx) {
+    public static String createVirtualServerScript(VirtualServer virtualServer, MigrationContext ctx) {
         String script = "/subsystem=web/virtual-server=";
         script = script.concat(virtualServer.getVirtualServerName() + ":add(");
         script = ctx.checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
@@ -483,13 +461,13 @@ public class ServerMigrator implements IMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public String createSocketBindingScript(SocketBinding socketBinding, MigrationContext ctx) throws CliScriptException{
+    public static String createSocketBindingScript(SocketBinding socketBinding, MigrationContext ctx) throws CliScriptException{
         if((socketBinding.getSocketPort() == null) || (socketBinding.getSocketPort().isEmpty())){
-            throw new CliScriptException("Error: Port in socket binding cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Port in socket binding cannot be null or empty");
         }
 
         if((socketBinding.getSocketName() == null) || (socketBinding.getSocketName().isEmpty())){
-            throw new CliScriptException("Error: Name of socket binding cannot be null or empty", new NullPointerException());
+            throw new CliScriptException("Name of socket binding cannot be null or empty");
         }
 
         String script = "/socket-binding-group=standard-sockets/socket-binding=";

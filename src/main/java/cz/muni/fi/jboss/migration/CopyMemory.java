@@ -82,7 +82,7 @@ public class CopyMemory {
      * @return
      */
     public String driverModuleGen(){
-        module = "jdbc.drivers.";
+        this.module = "jdbc.drivers.";
         if(name.contains("mysql")){
           module = module + "mysql";
         }
@@ -158,7 +158,7 @@ public class CopyMemory {
      * @return  Document representing created module.xml for given driver
      * @throws ParserConfigurationException  if parser cannot be initialized
      */
-    public Document createModuleXML() throws ParserConfigurationException{
+    public  Document createModuleXML() throws ParserConfigurationException{
 
         /**
          * Example of module xml,
@@ -184,13 +184,13 @@ public class CopyMemory {
         doc.appendChild(root);
 
         root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("module", getModule());
+        root.setAttribute("module", this.getModule());
 
         Element resources = doc.createElement("resources");
         root.appendChild(resources);
 
         Element resource = doc.createElement("resource-root");
-        resource.setAttribute("path", getName());
+        resource.setAttribute("path", this.getName());
         resources.appendChild(resource);
 
         Element dependencies = doc.createElement("dependencies");

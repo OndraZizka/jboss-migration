@@ -8,7 +8,7 @@ package cz.muni.fi.jboss.migration.ex;
  * Time: 3:43 PM
  */
 
-public class CliScriptException extends Exception {
+public class CliScriptException extends MigrationException{
 
     public CliScriptException(String message){
           super(message);

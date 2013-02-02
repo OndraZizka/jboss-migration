@@ -42,8 +42,8 @@ public class Migrator {
 
     public Migrator(Configuration config, MigrationContext context){
         this.config = config;
-        ctx = context;
-        migrators = createMigrators();
+        this.ctx = context;
+        this.migrators = createMigrators();
     }
 
     private List<IMigrator> createMigrators(){
@@ -63,7 +63,7 @@ public class Migrator {
 
     public void loadAS5Data() throws LoadMigrationException {
         try {
-            for(IMigrator mig : migrators){
+            for(IMigrator mig : this.migrators){
                 mig.loadAS5Data(this.ctx);
             }
         } catch (JAXBException e) {
@@ -72,16 +72,16 @@ public class Migrator {
     }
 
     public void apply() throws ApplyMigrationException {
-        for(IMigrator mig : migrators){
+        for(IMigrator mig : this.migrators){
             mig.apply(this.ctx);
         }
         try {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult( new File(config.getGlobal().getStandaloneFilePath()));
+            StreamResult result = new StreamResult( new File(this.config.getGlobal().getStandaloneFilePath()));
             //StreamResult result = new StreamResult(System.out);
-            DOMSource source = new DOMSource(ctx.getStandaloneDoc());
+            DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
             transformer.transform(source, result);
         } catch (TransformerException e) {
             e.printStackTrace();
@@ -93,7 +93,7 @@ public class Migrator {
 
     public List<Node> getDOMElements() throws MigrationException{
         List<Node> elements = new ArrayList<>();
-        for(IMigrator mig : migrators){
+        for(IMigrator mig : this.migrators){
             elements.addAll(mig.generateDomElements(this.ctx));
         }
 
@@ -102,7 +102,7 @@ public class Migrator {
 
     public List<String> getCLIScripts() throws CliScriptException{
         List<String> scripts = new ArrayList<>();
-        for(IMigrator mig : migrators){
+        for(IMigrator mig : this.migrators){
             scripts.addAll(mig.generateCliScripts(this.ctx));
         }
 
@@ -110,9 +110,9 @@ public class Migrator {
     }
 
     public void copyItems() throws CopyException{
-        String targetPath = config.getGlobal().getDirAS7();
-        File dir = new File(config.getGlobal().getDirAS5() + File.separator + config.getGlobal().getProfileAS5());
-        for(CopyMemory cp : ctx.getCopyMemories()){
+        String targetPath = this.config.getGlobal().getDirAS7();
+        File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
+        for(CopyMemory cp : this.ctx.getCopyMemories()){
             if(cp.getName() == null || cp.getName().isEmpty()){
                 throw new NullPointerException();
             }
@@ -244,7 +244,7 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for(CopyMemory cp : ctx.getCopyMemories()){
+            for(CopyMemory cp : this.ctx.getCopyMemories()){
                 if(cp.getType().equals("driver")){
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
