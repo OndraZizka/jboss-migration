@@ -160,7 +160,7 @@ public class MigratorApp {
         } catch (CopyException e) {
             System.err.println(e.toString());
             e.printStackTrace();
-            removeData(ctx.getCopyMemories());
+            removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
         }
@@ -170,7 +170,7 @@ public class MigratorApp {
         } catch (ApplyMigrationException e) {
             System.err.println(e.toString());
             cleanStandalone(nonAlteredStandalone, configuration);
-            e.printStackTrace(); removeData(ctx.getCopyMemories());
+            e.printStackTrace(); removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
         }
@@ -203,10 +203,10 @@ public class MigratorApp {
     /**
      * Method for removing copied required data for migration from AS5 server if the app fails.
      *
-     * @param copyMemories files, which where copied to AS7 folder
+     * @param rollbackDatas files, which where copied to AS7 folder
      */
-    private static void removeData(Collection<CopyMemory> copyMemories){
-        for(CopyMemory cp : copyMemories){
+    private static void removeData(Collection<RollbackData> rollbackDatas){
+        for(RollbackData cp : rollbackDatas){
             if(!(cp.getType().equals("driver"))){
                 FileUtils.deleteQuietly(new File(cp.getTargetPath() + File.separator + cp.getName()));
             }

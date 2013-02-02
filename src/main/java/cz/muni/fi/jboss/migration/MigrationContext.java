@@ -22,7 +22,7 @@ public class MigrationContext {
 
     private Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
 
-    private Set<CopyMemory> copyMemories = new HashSet();
+    private Set<RollbackData> rollbackDatas = new HashSet();
 
     private DocumentBuilder docBuilder;
 
@@ -44,12 +44,12 @@ public class MigrationContext {
         this.migrationData = migrationData;
     }
 
-    public Set<CopyMemory> getCopyMemories() {
-        return copyMemories;
+    public Set<RollbackData> getRollbackDatas() {
+        return rollbackDatas;
     }
 
-    public void setCopyMemories(Set<CopyMemory> copyMemories) {
-        this.copyMemories = copyMemories;
+    public void setRollbackDatas(Set<RollbackData> rollbackDatas) {
+        this.rollbackDatas = rollbackDatas;
     }
 
     public void createBuilder() throws ParserConfigurationException{
@@ -70,7 +70,8 @@ public class MigrationContext {
         this.standaloneDoc = standaloneDoc;
     }
 
-    public String checkingMethod(String script, String name, String setter){
+    // TODO:Only for test if new CLI scripts methods produce same result
+    public static String checkingMethod(String script, String name, String setter){
         if(setter != null){
             if (!setter.isEmpty()) {
                 script = script.concat(name + "=" + setter);

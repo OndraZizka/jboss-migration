@@ -7,6 +7,7 @@ import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
@@ -112,7 +113,7 @@ public class Migrator {
     public void copyItems() throws CopyException{
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
-        for(CopyMemory cp : this.ctx.getCopyMemories()){
+        for(RollbackData cp : this.ctx.getRollbackDatas()){
             if(cp.getName() == null || cp.getName().isEmpty()){
                 throw new NullPointerException();
             }
@@ -244,13 +245,13 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for(CopyMemory cp : this.ctx.getCopyMemories()){
+            for(RollbackData cp : this.ctx.getRollbackDatas()){
                 if(cp.getType().equals("driver")){
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
                     File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
                     module.createNewFile();
-                    transformer.transform(new DOMSource(cp.createModuleXML()), new StreamResult(module));
+                    transformer.transform(new DOMSource(AS7ModuleUtils.createModuleXML(cp)), new StreamResult(module));
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
