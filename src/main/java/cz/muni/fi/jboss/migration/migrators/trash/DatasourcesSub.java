@@ -1,8 +1,8 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceAS7;
-import cz.muni.fi.jboss.migration.migrators.dataSources.Driver;
-import cz.muni.fi.jboss.migration.migrators.dataSources.XaDatasourceAS7;
+import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.DatasourceAS7Bean;
+import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.DriverBean;
+import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.XaDatasourceAS7Bean;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -24,54 +24,54 @@ import java.util.Set;
 public class DatasourcesSub {
 
     @XmlElement(name = "datasource")
-    private Set<DatasourceAS7> datasource;
+    private Set<DatasourceAS7Bean> datasource;
 
     @XmlElement(name = "xa-datasource")
-    private Set<XaDatasourceAS7> xaDatasource;
+    private Set<XaDatasourceAS7Bean> xaDatasource;
 
     @XmlElementWrapper(name = "drivers")
-    @XmlElements(@XmlElement(name = "driver", type = Driver.class))
-    private Set<Driver> drivers;
+    @XmlElements(@XmlElement(name = "driver", type = DriverBean.class))
+    private Set<DriverBean> drivers;
 
-    @XmlElements(@XmlElement(name = "xa-datasource-class", type = Driver.class))
-    private Set<Driver> xaDsClasses;
+    @XmlElements(@XmlElement(name = "xa-datasource-class", type = DriverBean.class))
+    private Set<DriverBean> xaDsClasses;
 
-    public Set<DatasourceAS7> getDatasource() {
+    public Set<DatasourceAS7Bean> getDatasource() {
         return datasource;
     }
 
-    public void setDatasource(Collection<DatasourceAS7> datasource) {
-        Set<DatasourceAS7> temp = new HashSet();
+    public void setDatasource(Collection<DatasourceAS7Bean> datasource) {
+        Set<DatasourceAS7Bean> temp = new HashSet();
         temp.addAll(datasource);
         this.datasource = temp;
     }
 
-    public Set<XaDatasourceAS7> getXaDatasource() {
+    public Set<XaDatasourceAS7Bean> getXaDatasource() {
         return xaDatasource;
     }
 
-    public void setXaDatasource(Collection<XaDatasourceAS7> xaDatasource) {
-        Set<XaDatasourceAS7> temp = new HashSet();
+    public void setXaDatasource(Collection<XaDatasourceAS7Bean> xaDatasource) {
+        Set<XaDatasourceAS7Bean> temp = new HashSet();
         temp.addAll(xaDatasource);
         this.xaDatasource = temp;
     }
 
-    public Set<Driver> getDrivers() {
+    public Set<DriverBean> getDrivers() {
         return drivers;
     }
 
-    public void setDrivers(Collection<Driver> drivers) {
-        Set<Driver> temp = new HashSet();
+    public void setDrivers(Collection<DriverBean> drivers) {
+        Set<DriverBean> temp = new HashSet();
         temp.addAll(drivers);
         this.drivers = temp;
     }
 
-    public Set<Driver> getXaDsClasses() {
+    public Set<DriverBean> getXaDsClasses() {
         return xaDsClasses;
     }
 
-    public void setXaDsClasses(Collection<Driver> xaDsClasses) {
-        Set<Driver> temp = new HashSet();
+    public void setXaDsClasses(Collection<DriverBean> xaDsClasses) {
+        Set<DriverBean> temp = new HashSet();
         temp.addAll(xaDsClasses);
         this.xaDsClasses = temp;
     }

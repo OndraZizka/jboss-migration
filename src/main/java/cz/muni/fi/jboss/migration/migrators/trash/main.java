@@ -27,17 +27,17 @@ public class main {
     public static void main(String[] args) {
         // Basic implementation for testing
         try {
-//            final JAXBContext context = JAXBContext.newInstance(DataSources.class) ;
+//            final JAXBContext context = JAXBContext.newInstance(DataSourcesBean.class) ;
 //            final JAXBContext context1 = JAXBContext.newInstance(DatasourcesSub.class);
 //            final JAXBContext context2=JAXBContext.newInstance(ResourceAdaptersSub.class);
-//            final JAXBContext context3=JAXBContext.newInstance(ConnectionFactories.class);
-//            final JAXBContext context4=JAXBContext.newInstance(ServerAS5.class);
+//            final JAXBContext context3=JAXBContext.newInstance(ConnectionFactoriesBean.class);
+//            final JAXBContext context4=JAXBContext.newInstance(ServerAS5Bean.class);
 //            final JAXBContext context5=JAXBContext.newInstance(ServerSub.class);
 //            final JAXBContext context6=JAXBContext.newInstance(SocketBindingGroup.class);
-//            final JAXBContext context7=JAXBContext.newInstance(LoggingAS5.class);
+//            final JAXBContext context7=JAXBContext.newInstance(LoggingAS5Bean.class);
 //            final JAXBContext context8=JAXBContext.newInstance(LoggingAS7.class);
 //            final JAXBContext context9=JAXBContext.newInstance(SecurityAS7.class);
-//            final JAXBContext context10=JAXBContext.newInstance(SecurityAS5.class);
+//            final JAXBContext context10=JAXBContext.newInstance(SecurityAS5Bean.class);
 //
 //            Unmarshaller unmarshaller=context.createUnmarshaller();
 //            Unmarshaller unmarshaller3=context3.createUnmarshaller();
@@ -45,17 +45,17 @@ public class main {
 //            Unmarshaller unmarshaller7=context7.createUnmarshaller();
 //            Unmarshaller unmarshaller10=context10.createUnmarshaller();
 //
-//            Collection<DataSources> dataSourcesCollection = new ArrayList<>();
+//            Collection<DataSourcesBean> dataSourcesCollection = new ArrayList<>();
 //
-//            DataSources dataSources=(DataSources)unmarshaller.unmarshal(new File("datasources.xml"));
+//            DataSourcesBean dataSources=(DataSourcesBean)unmarshaller.unmarshal(new File("datasources.xml"));
 //            dataSourcesCollection.add(dataSources);
 //
-//            ServerAS5 serverAS5=(ServerAS5)unmarshaller4.unmarshal(new File("server.xml"));
-//            LoggingAS5 loggingAS5= (LoggingAS5)unmarshaller7.unmarshal(new File("logging.xml"));
-//            SecurityAS5 securityAS5=(SecurityAS5)unmarshaller10.unmarshal(new File("security.xml"));
-//            ConnectionFactories connectionFactories=(ConnectionFactories)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
+//            ServerAS5Bean serverAS5=(ServerAS5Bean)unmarshaller4.unmarshal(new File("server.xml"));
+//            LoggingAS5Bean loggingAS5= (LoggingAS5Bean)unmarshaller7.unmarshal(new File("logging.xml"));
+//            SecurityAS5Bean securityAS5=(SecurityAS5Bean)unmarshaller10.unmarshal(new File("security.xml"));
+//            ConnectionFactoriesBean connectionFactories=(ConnectionFactoriesBean)unmarshaller3.unmarshal(new File("resourceAdapters.xml"));
 
-//            Collection<ConnectionFactories> cont = new ArrayList<>();
+//            Collection<ConnectionFactoriesBean> cont = new ArrayList<>();
 //            cont.add(connectionFactories);
 
             Configuration conf = new Configuration();
@@ -117,7 +117,7 @@ public class main {
 //            marshaller4.marshal(migration.serverMigration(serverAS5) ,writer);
 //            writer.write("\n\n");
 //
-//            // SocketBinding marshaller
+//            // SocketBindingBean marshaller
 //            Marshaller marshaller1 = context6.createMarshaller();
 //            marshaller1.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
 //            marshaller1.marshal(migration.getSocketBindingGroup(),writer);
@@ -144,36 +144,36 @@ public class main {
 //
 //            CliScript cliScript= new CliScriptImpl();
 //            DatasourcesSub datasourcesSub= migration.datasourceSubMigration(dataSourcesCollection);
-//            for(DatasourceAS7 datasourceAS7 : datasourcesSub.getDatasource()){
+//            for(DatasourceAS7Bean datasourceAS7 : datasourcesSub.getDatasource()){
 //                System.out.println(cliScript.createDatasourceScript(datasourceAS7));
 //            }
-//            for(XaDatasourceAS7 xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
+//            for(XaDatasourceAS7Bean xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
 //                System.out.println(cliScript.createXaDatasourceScript(xaDatasourceAS7));
 //            }
 //            //ResourceAdaptersSub connectionFactoriesSub = migration.connectionFactoriesMigration(connectionFactories);
-//            //for(ResourceAdapter connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
+//            //for(ResourceAdapterBean connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){
 //            //   System.out.println(cliScript.createResAdapterScript(connectionFactoryAS7));
 //            //}
 //            LoggingAS7 loggingAS7 = migration.loggingMigration(loggingAS5);
-//            for(Logger logger : loggingAS7.getLoggers()){
+//            for(LoggerBean logger : loggingAS7.getLoggers()){
 //                System.out.println(cliScript.createLoggerScript(logger));
 //
 //            }
 //            SecurityAS7 securityAS7 = migration.securityMigration(securityAS5);
-//            for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
+//            for(SecurityDomainBean securityDomain : securityAS7.getSecurityDomains()){
 //                System.out.println(cliScript.createSecurityDomainScript(securityDomain));
 //            }
 //            ServerSub serverSub = migration.serverMigration(serverAS5);
-//            for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
+//            for(ConnectorAS7Bean connectorAS7 : serverSub.getConnectors()){
 //                System.out.println(cliScript.createConnectorScript(connectorAS7));
 //            }
-//            for(VirtualServer virtualServer : serverSub.getVirtualServers()){
+//            for(VirtualServerBean virtualServer : serverSub.getVirtualServers()){
 //                System.out.println(cliScript.createVirtualServerScript(virtualServer));
 //            }
 //            SocketBindingGroup socketBindingGroup= migration.getSocketBindingGroup();
 //
 //
-//            for(SocketBinding socketBinding : socketBindingGroup.getSocketBindings()){
+//            for(SocketBindingBean socketBinding : socketBindingGroup.getSocketBindings()){
 //                System.out.println(cliScript.createSocketBinding(socketBinding));
 //            }
 //

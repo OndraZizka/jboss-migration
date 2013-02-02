@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.logging.*;
+import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -25,105 +25,105 @@ import java.util.Set;
 
 public class LoggingAS7 {
 
-    @XmlElements(@XmlElement(name = "async-handler", type = AsyncHandler.class))
-    private Set<AsyncHandler> asyncHandlers;
+    @XmlElements(@XmlElement(name = "async-handler", type = AsyncHandlerBean.class))
+    private Set<AsyncHandlerBean> asyncHandlers;
 
-    @XmlElements(@XmlElement(name = "console-handler", type = ConsoleHandler.class))
-    private Set<ConsoleHandler> consoleHandlers;
+    @XmlElements(@XmlElement(name = "console-handler", type = ConsoleHandlerBean.class))
+    private Set<ConsoleHandlerBean> consoleHandlers;
 
-    @XmlElements(@XmlElement(name = "file-handler", type = FileHandler.class))
-    private Set<FileHandler> fileHandlers;
+    @XmlElements(@XmlElement(name = "file-handler", type = FileHandlerBean.class))
+    private Set<FileHandlerBean> fileHandlers;
 
-    @XmlElements(@XmlElement(name = "periodic-rotating-file-handler", type = PerRotFileHandler.class))
-    private Set<PerRotFileHandler> perRotFileHandlers;
+    @XmlElements(@XmlElement(name = "periodic-rotating-file-handler", type = PerRotFileHandlerBean.class))
+    private Set<PerRotFileHandlerBean> perRotFileHandlers;
 
-    @XmlElements(@XmlElement(name = "size-rotating-file-handler", type = SizeRotFileHandler.class))
-    private Set<SizeRotFileHandler> sizeRotFileHandlers;
+    @XmlElements(@XmlElement(name = "size-rotating-file-handler", type = SizeRotFileHandlerBean.class))
+    private Set<SizeRotFileHandlerBean> sizeRotFileHandlers;
 
-    @XmlElements(@XmlElement(name = "custom-handler", type = CustomHandler.class))
-    private Set<CustomHandler> customHandlers;
+    @XmlElements(@XmlElement(name = "custom-handler", type = CustomHandlerBean.class))
+    private Set<CustomHandlerBean> customHandlers;
 
-    @XmlElements(@XmlElement(name = "logger", type = Logger.class))
-    private Set<Logger> loggers;
+    @XmlElements(@XmlElement(name = "logger", type = LoggerBean.class))
+    private Set<LoggerBean> loggers;
 
     @XmlElement(name = "root-logger")
-    private RootLoggerAS7 rootLogger;
+    private RootLoggerAS7Bean rootLogger;
 
-    public Set<AsyncHandler> getAsyncHandlers() {
+    public Set<AsyncHandlerBean> getAsyncHandlers() {
         return asyncHandlers;
     }
 
-    public void setAsyncHandlers(Collection<AsyncHandler> asyncHandlers) {
-        Set<AsyncHandler> temp = new HashSet();
+    public void setAsyncHandlers(Collection<AsyncHandlerBean> asyncHandlers) {
+        Set<AsyncHandlerBean> temp = new HashSet();
         temp.addAll(asyncHandlers);
         this.asyncHandlers = temp;
     }
 
-    public Set<ConsoleHandler> getConsoleHandlers() {
+    public Set<ConsoleHandlerBean> getConsoleHandlers() {
         return consoleHandlers;
     }
 
-    public void setConsoleHandlers(Collection<ConsoleHandler> consoleHandlers) {
-        Set<ConsoleHandler> temp = new HashSet();
+    public void setConsoleHandlers(Collection<ConsoleHandlerBean> consoleHandlers) {
+        Set<ConsoleHandlerBean> temp = new HashSet();
         temp.addAll(consoleHandlers);
         this.consoleHandlers = temp;
     }
 
-    public Set<FileHandler> getFileHandlers() {
+    public Set<FileHandlerBean> getFileHandlers() {
         return fileHandlers;
     }
 
-    public void setFileHandlers(Collection<FileHandler> fileHandlers) {
-        Set<FileHandler> temp = new HashSet();
+    public void setFileHandlers(Collection<FileHandlerBean> fileHandlers) {
+        Set<FileHandlerBean> temp = new HashSet();
         temp.addAll(fileHandlers);
         this.fileHandlers = temp;
     }
 
-    public Set<PerRotFileHandler> getPerRotFileHandlers() {
+    public Set<PerRotFileHandlerBean> getPerRotFileHandlers() {
         return perRotFileHandlers;
     }
 
-    public void setPerRotFileHandlers(Collection<PerRotFileHandler> perRotFileHandlers) {
-        Set<PerRotFileHandler> temp = new HashSet();
+    public void setPerRotFileHandlers(Collection<PerRotFileHandlerBean> perRotFileHandlers) {
+        Set<PerRotFileHandlerBean> temp = new HashSet();
         temp.addAll(perRotFileHandlers);
         this.perRotFileHandlers = temp;
     }
 
-    public Set<SizeRotFileHandler> getSizeRotFileHandlers() {
+    public Set<SizeRotFileHandlerBean> getSizeRotFileHandlers() {
         return sizeRotFileHandlers;
     }
 
-    public void setSizeRotFileHandlers(Collection<SizeRotFileHandler> sizeRotFileHandlers) {
-        Set<SizeRotFileHandler> temp = new HashSet();
+    public void setSizeRotFileHandlers(Collection<SizeRotFileHandlerBean> sizeRotFileHandlers) {
+        Set<SizeRotFileHandlerBean> temp = new HashSet();
         temp.addAll(sizeRotFileHandlers);
         this.sizeRotFileHandlers = temp;
     }
 
-    public Set<CustomHandler> getCustomHandlers() {
+    public Set<CustomHandlerBean> getCustomHandlers() {
         return customHandlers;
     }
 
-    public void setCustomHandlers(Collection<CustomHandler> customHandlers) {
-        Set<CustomHandler> temp = new HashSet();
+    public void setCustomHandlers(Collection<CustomHandlerBean> customHandlers) {
+        Set<CustomHandlerBean> temp = new HashSet();
         temp.addAll(customHandlers);
         this.customHandlers = temp;
     }
 
-    public Set<Logger> getLoggers() {
+    public Set<LoggerBean> getLoggers() {
         return loggers;
     }
 
-    public void setLoggers(Collection<Logger> loggers) {
-        Set<Logger> temp = new HashSet();
+    public void setLoggers(Collection<LoggerBean> loggers) {
+        Set<LoggerBean> temp = new HashSet();
         temp.addAll(loggers);
         this.loggers = temp;
     }
 
-    public RootLoggerAS7 getRootLogger() {
+    public RootLoggerAS7Bean getRootLogger() {
         return rootLogger;
     }
 
-    public void setRootLogger(RootLoggerAS7 rootLogger) {
+    public void setRootLogger(RootLoggerAS7Bean rootLogger) {
         this.rootLogger = rootLogger;
     }
 }

@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.server.ConnectorAS7;
-import cz.muni.fi.jboss.migration.migrators.server.VirtualServer;
+import cz.muni.fi.jboss.migration.migrators.server.jaxb.ConnectorAS7Bean;
+import cz.muni.fi.jboss.migration.migrators.server.jaxb.VirtualServerBean;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -37,11 +37,11 @@ public class ServerSub {
 
     // TODO: Elements jsp-configuration and static-resources not implemented yet
 
-    @XmlElements(@XmlElement(name = "connector", type = ConnectorAS7.class))
-    private Set<ConnectorAS7> connectors;
+    @XmlElements(@XmlElement(name = "connector", type = ConnectorAS7Bean.class))
+    private Set<ConnectorAS7Bean> connectors;
 
-    @XmlElements(@XmlElement(name = "virtual-server", type = VirtualServer.class ))
-    private Set<VirtualServer> virtualServers;
+    @XmlElements(@XmlElement(name = "virtual-server", type = VirtualServerBean.class ))
+    private Set<VirtualServerBean> virtualServers;
 
     public String getDefVirtualServer() {
         return defVirtualServer;
@@ -59,22 +59,22 @@ public class ServerSub {
         this.nativeAttr = nativeAttr;
     }
 
-    public Set<ConnectorAS7> getConnectors() {
+    public Set<ConnectorAS7Bean> getConnectors() {
         return connectors;
     }
 
-    public void setConnectors(Collection<ConnectorAS7> connectors) {
-        Set<ConnectorAS7> temp = new HashSet();
+    public void setConnectors(Collection<ConnectorAS7Bean> connectors) {
+        Set<ConnectorAS7Bean> temp = new HashSet();
         temp.addAll(connectors);
         this.connectors = temp;
     }
 
-    public Set<VirtualServer> getVirtualServers() {
+    public Set<VirtualServerBean> getVirtualServers() {
         return virtualServers;
     }
 
-    public void setVirtualServers(Collection<VirtualServer> virtualServers) {
-        Set<VirtualServer> temp = new HashSet();
+    public void setVirtualServers(Collection<VirtualServerBean> virtualServers) {
+        Set<VirtualServerBean> temp = new HashSet();
         temp.addAll(virtualServers);
         this.virtualServers = temp;
     }

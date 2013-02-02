@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.server.SocketBinding;
+import cz.muni.fi.jboss.migration.migrators.server.jaxb.SocketBindingBean;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -22,15 +22,15 @@ import java.util.Set;
 
 public class SocketBindingGroup {
 
-  @XmlElements(@XmlElement(name = "socket-binding", type = SocketBinding.class ))
-   private Set<SocketBinding> socketBindings;
+  @XmlElements(@XmlElement(name = "socket-binding", type = SocketBindingBean.class ))
+   private Set<SocketBindingBean> socketBindings;
 
-    public Set<SocketBinding> getSocketBindings() {
+    public Set<SocketBindingBean> getSocketBindings() {
         return socketBindings;
     }
 
-    public void setSocketBindings(Collection<SocketBinding> socketBindings) {
-        Set<SocketBinding> temp = new HashSet();
+    public void setSocketBindings(Collection<SocketBindingBean> socketBindings) {
+        Set<SocketBindingBean> temp = new HashSet();
         temp.addAll(socketBindings);
         this.socketBindings = temp;
     }

@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.security.SecurityDomain;
+import cz.muni.fi.jboss.migration.migrators.security.jaxb.SecurityDomainBean;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -21,15 +21,15 @@ import java.util.Set;
 
 public class SecurityAS7 {
 
-    @XmlElements(@XmlElement(name = "security-domain", type = SecurityDomain.class))
-    private Set<SecurityDomain> securityDomains;
+    @XmlElements(@XmlElement(name = "security-domain", type = SecurityDomainBean.class))
+    private Set<SecurityDomainBean> securityDomains;
 
-    public Set<SecurityDomain> getSecurityDomains() {
+    public Set<SecurityDomainBean> getSecurityDomains() {
         return securityDomains;
     }
 
-    public void setSecurityDomains(Collection<SecurityDomain> securityDomains) {
-        Set<SecurityDomain> temp = new HashSet();
+    public void setSecurityDomains(Collection<SecurityDomainBean> securityDomains) {
+        Set<SecurityDomainBean> temp = new HashSet();
         temp.addAll(securityDomains);
         this.securityDomains = temp;
     }

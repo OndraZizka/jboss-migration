@@ -1,12 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.CopyMemory;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ConnectionFactories;
-import cz.muni.fi.jboss.migration.migrators.trash.ResourceAdaptersSub;
-import cz.muni.fi.jboss.migration.migrators.dataSources.*;
-import cz.muni.fi.jboss.migration.migrators.trash.*;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityAS5;
-import cz.muni.fi.jboss.migration.migrators.server.*;
+import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.ConnectionFactoriesBean;
+import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.DataSourcesBean;
+import cz.muni.fi.jboss.migration.migrators.security.jaxb.SecurityAS5Bean;
+import cz.muni.fi.jboss.migration.migrators.server.jaxb.ServerAS5Bean;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 
@@ -152,7 +150,7 @@ public class App {
     }
 
     // Method for creating module.xml for drivers.
-    private static Document createModuleXML(CopyMemory cp) throws ParserConfigurationException, TransformerException{
+    private static Document createModuleXML(RollbackData cp) throws ParserConfigurationException, TransformerException{
 
         /**
          * Example of module xml,
@@ -409,8 +407,8 @@ public class App {
             DatasourcesSub dsSub = null;
             ResourceAdaptersSub resAdapSub = null;
 
-            Set<DataSources> dsColl = new HashSet();
-            Set<ConnectionFactories> connFacColl = new HashSet();
+            Set<DataSourcesBean> dsColl = new HashSet();
+            Set<ConnectionFactoriesBean> connFacColl = new HashSet();
 
 //            if(log){
 //                BufferedReader br = new BufferedReader(new FileReader(
@@ -426,7 +424,7 @@ public class App {
 //                    sb.append(line.replaceAll("log4j:", "").replace("xmlns:log4j=\"http://jakarta.apache.org/log4j/\"", "") + "\n");
 //                }
 //
-//                final JAXBContext logContext = JAXBContext.newInstance(LoggingAS5.class);
+//                final JAXBContext logContext = JAXBContext.newInstance(LoggingAS5Bean.class);
 //                Unmarshaller unmarshaller = logContext.createUnmarshaller();
 //
 //
@@ -436,7 +434,7 @@ public class App {
 //                fileWriter.close();
 //
 //                if(temp.canRead()){
-//                    LoggingAS5 loggingAS5 = (LoggingAS5)unmarshaller.unmarshal(temp);
+//                    LoggingAS5Bean loggingAS5 = (LoggingAS5Bean)unmarshaller.unmarshal(temp);
 //                    //loggingAS7 = migration.loggingMigration(loggingAS5);
 //                }else{
 //                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
@@ -446,9 +444,9 @@ public class App {
 //            }
 
             if(data){
-                final JAXBContext dataContext = JAXBContext.newInstance(DataSources.class);
+                final JAXBContext dataContext = JAXBContext.newInstance(DataSourcesBean.class);
                 Unmarshaller dataUnmarshaller = dataContext.createUnmarshaller();
-                final JAXBContext resourceContext = JAXBContext.newInstance(DataSources.class);
+                final JAXBContext resourceContext = JAXBContext.newInstance(DataSourcesBean.class);
                 Unmarshaller resourceUnmarshaller = resourceContext.createUnmarshaller();
 
                 File dsFiles = new File(serverPath + File.separator + "deploy" );
@@ -465,13 +463,13 @@ public class App {
                         Element element = doc.getDocumentElement();
 
                         if(element.getTagName().equalsIgnoreCase("datasources")){
-                            DataSources dataSources = (DataSources)dataUnmarshaller.unmarshal(list.get(i));
+                            DataSourcesBean dataSources = (DataSourcesBean)dataUnmarshaller.unmarshal(list.get(i));
                             dsColl.add(dataSources);
                         } else {
                             if(element.getTagName().equalsIgnoreCase("connection-factories")){
                                 if(resource){
-                                    ConnectionFactories connFac =
-                                            (ConnectionFactories)resourceUnmarshaller.unmarshal(list.get(i));
+                                    ConnectionFactoriesBean connFac =
+                                            (ConnectionFactoriesBean)resourceUnmarshaller.unmarshal(list.get(i));
                                     connFacColl.add(connFac);
                                 }
                             } else {
@@ -496,13 +494,13 @@ public class App {
             }
 
             if(security){
-                final JAXBContext securityContext = JAXBContext.newInstance(SecurityAS5.class);
+                final JAXBContext securityContext = JAXBContext.newInstance(SecurityAS5Bean.class);
                 Unmarshaller unmarshaller = securityContext.createUnmarshaller();
 
                 File securityFile = new File(serverPath + File.separator + "conf" + File.separator + "login-config.xml");
 
                 if(securityFile.canRead()){
-                    SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(securityFile);
+                    SecurityAS5Bean securityAS5 = (SecurityAS5Bean)unmarshaller.unmarshal(securityFile);
                    // securityAS7 = migration.securityMigration(securityAS5);
                 } else {
                     System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
@@ -512,14 +510,14 @@ public class App {
             }
 
             if(server){
-               final JAXBContext serverContext = JAXBContext.newInstance(ServerAS5.class );
+               final JAXBContext serverContext = JAXBContext.newInstance(ServerAS5Bean.class );
                Unmarshaller unmarshaller = serverContext.createUnmarshaller();
 
                File serverFile = new File(serverPath + File.separator + "deploy" + File.separator
                        + "jbossweb.sar" + File.separator + "server.xml");
 
                if(serverFile.canRead()){
-                   ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(serverFile);
+                   ServerAS5Bean serverAS5 = (ServerAS5Bean)unmarshaller.unmarshal(serverFile);
                    //serverSub = migration.serverMigration(serverAS5);
                } else{
                    System.err.println("Error: don't have permission for reading files in directory \"AS5_Home"
@@ -633,19 +631,19 @@ public class App {
 ////
 ////                if(data){
 ////                    if(dsSub.getDatasource() != null){
-////                        for(DatasourceAS7 datasourceAS7 : dsSub.getDatasource()){
+////                        for(DatasourceAS7Bean datasourceAS7 : dsSub.getDatasource()){
 ////                            System.out.println(cliScript.createDatasourceScript(datasourceAS7));
 ////                        }
 ////                    }
 ////
 ////                    if(dsSub.getXaDatasource() != null){
-////                        for(XaDatasourceAS7 xaDSAS7 : dsSub.getXaDatasource()){
+////                        for(XaDatasourceAS7Bean xaDSAS7 : dsSub.getXaDatasource()){
 ////                            System.out.println(cliScript.createXaDatasourceScript(xaDSAS7));
 ////                        }
 ////                    }
 ////
 ////                    if(dsSub.getDrivers() != null){
-////                        for(Driver driver : dsSub.getDrivers()){
+////                        for(DriverBean driver : dsSub.getDrivers()){
 ////                            System.out.println(cliScript.createDriverScript(driver));
 ////                        }
 ////                    }
@@ -653,7 +651,7 @@ public class App {
 ////
 ////                if(resource){
 ////                    if(resAdapSub != null){
-////                        for(ResourceAdapter resourceAdapter : resAdapSub.getResourceAdapters()){
+////                        for(ResourceAdapterBean resourceAdapter : resAdapSub.getResourceAdapters()){
 ////                            System.out.println(cliScript.createResAdapterScript(resourceAdapter));
 ////
 ////                        }
@@ -662,7 +660,7 @@ public class App {
 //
 //                if(security){
 //                     if(securityAS7 != null){
-//                         for(SecurityDomain securityDomain : securityAS7.getSecurityDomains()){
+//                         for(SecurityDomainBean securityDomain : securityAS7.getSecurityDomains()){
 //                             System.out.println(cliScript.createSecurityDomainScript(securityDomain));
 //                         }
 //                     }
@@ -670,12 +668,12 @@ public class App {
 //
 //                if(server){
 //                    if(serverSub != null){
-//                        for(ConnectorAS7 connectorAS7 : serverSub.getConnectors()){
+//                        for(ConnectorAS7Bean connectorAS7 : serverSub.getConnectors()){
 //                            System.out.println(cliScript.createConnectorScript(connectorAS7));
 //                        }
 //                    }
 ////                    if(!(migration.getSocketBindingGroup().isEmpty())){
-////                        for(SocketBinding sb : migration.getSocketBindingGroup().getSocketBindings()){
+////                        for(SocketBindingBean sb : migration.getSocketBindingGroup().getSocketBindings()){
 ////                            System.out.println(cliScript.createSocketBinding(sb));
 ////                        }
 ////                    }
@@ -685,7 +683,7 @@ public class App {
 //                    if(loggingAS7 != null){
 //                        System.out.println(cliScript.createHandlersScript(loggingAS7));
 //
-//                        for(Logger logger : loggingAS7.getLoggers()){
+//                        for(LoggerBean logger : loggingAS7.getLoggers()){
 //                            System.out.println(cliScript.createLoggerScript(logger));
 //                        }
 //                    }
@@ -757,8 +755,8 @@ public class App {
             }
 
             if(copy){
-//                Collection<CopyMemory> copyMemories = migration.getCopyMemories();
-//                for(CopyMemory cp : copyMemories){
+//                Collection<RollbackData> copyMemories = migration.getRollbackDatas();
+//                for(RollbackData cp : copyMemories){
 //                   if(cp.getName() == null || cp.getName().isEmpty()){
 //                       throw new NullPointerException();
 //                   }

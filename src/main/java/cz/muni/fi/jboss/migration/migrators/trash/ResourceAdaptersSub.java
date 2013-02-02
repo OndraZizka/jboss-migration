@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResourceAdapter;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.ResourceAdapterBean;
 
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
@@ -22,14 +22,14 @@ import java.util.Set;
 public class ResourceAdaptersSub {
 
     @XmlElements(@XmlElement(name = "resource-adapter"))
-    private Set<ResourceAdapter> resourceAdapters;
+    private Set<ResourceAdapterBean> resourceAdapters;
 
-    public Set<ResourceAdapter> getResourceAdapters() {
+    public Set<ResourceAdapterBean> getResourceAdapters() {
         return resourceAdapters;
     }
 
-    public void setResourceAdapters(Collection<ResourceAdapter> resourceAdapters) {
-        Set<ResourceAdapter> temp = new HashSet();
+    public void setResourceAdapters(Collection<ResourceAdapterBean> resourceAdapters) {
+        Set<ResourceAdapterBean> temp = new HashSet();
         temp.addAll(resourceAdapters);
         this.resourceAdapters = temp;
     }
