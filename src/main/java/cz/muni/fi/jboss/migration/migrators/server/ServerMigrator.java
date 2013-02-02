@@ -1,12 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.AbstractMigrator;
-import cz.muni.fi.jboss.migration.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.MigrationContext;
-import cz.muni.fi.jboss.migration.MigrationData;
+import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.migrators.server.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
+import cz.muni.fi.jboss.migration.utils.Utils;
 import javafx.util.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,9 +33,9 @@ import java.util.Set;
 
 public class ServerMigrator extends AbstractMigrator{
 
-    private Set<SocketBinding> socketTemp = new HashSet();
+    private Set<SocketBindingBean> socketTemp = new HashSet();
 
-    private Set<SocketBinding> socketBindings = new HashSet();
+    private Set<SocketBindingBean> socketBindings = new HashSet();
 
     private Integer randomSocket = 1;
 
@@ -47,28 +45,28 @@ public class ServerMigrator extends AbstractMigrator{
         super(globalConfig, config);
     }
 
-    public Set<SocketBinding> getSocketTemp() {
+    public Set<SocketBindingBean> getSocketTemp() {
         return socketTemp;
     }
 
-    public void setSocketTemp(Set<SocketBinding> socketTemp) {
+    public void setSocketTemp(Set<SocketBindingBean> socketTemp) {
         this.socketTemp = socketTemp;
     }
 
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5.class ).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5Bean.class ).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
             File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
                     File.separator + "deploy" + File.separator + "jbossweb.sar" + File.separator + "server.xml");
 
             if(file.canRead()){
-                ServerAS5 serverAS5 = (ServerAS5)unmarshaller.unmarshal(file);
+                ServerAS5Bean serverAS5 = (ServerAS5Bean)unmarshaller.unmarshal(file);
 
                 MigrationData mData = new MigrationData();
-                for(Service s : serverAS5.getServices()){
+                for(ServiceBean s : serverAS5.getServices()){
                     mData.getConfigFragment().add(s.getEngine());
                     mData.getConfigFragment().addAll(s.getConnectorAS5s());
                 }
@@ -142,9 +140,9 @@ public class ServerMigrator extends AbstractMigrator{
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
         try {
-            JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7.class);
-            JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServer.class);
-            JAXBContext socketCtx = JAXBContext.newInstance(SocketBinding.class);
+            JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7Bean.class);
+            JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServerBean.class);
+            JAXBContext socketCtx = JAXBContext.newInstance(SocketBindingBean.class);
 
             List<Node> nodeList = new ArrayList();
 
@@ -153,9 +151,9 @@ public class ServerMigrator extends AbstractMigrator{
             Marshaller socketMarshaller = socketCtx.createMarshaller();
 
             for(IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()){
-                if(data instanceof ConnectorAS5){
-                    ConnectorAS5 connector = (ConnectorAS5) data;
-                    ConnectorAS7 connAS7 = new ConnectorAS7();
+                if(data instanceof ConnectorAS5Bean){
+                    ConnectorAS5Bean connector = (ConnectorAS5Bean) data;
+                    ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
                     connAS7.setEnabled("true");
                     connAS7.setEnableLookups(connector.getEnableLookups());
                     connAS7.setMaxPostSize(connector.getMaxPostSize());
@@ -216,9 +214,9 @@ public class ServerMigrator extends AbstractMigrator{
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                if(data instanceof Engine){
-                    Engine eng = (Engine) data;
-                    VirtualServer virtualServer = new VirtualServer();
+                if(data instanceof EngineBean){
+                    EngineBean eng = (EngineBean) data;
+                    VirtualServerBean virtualServer = new VirtualServerBean();
                     virtualServer.setVirtualServerName(eng.getEngineName());
                     virtualServer.setEnableWelcomeRoot("true");
                     virtualServer.setAliasName(eng.getHostNames());
@@ -232,7 +230,7 @@ public class ServerMigrator extends AbstractMigrator{
                 throw new NodeGenerationException("Object is not part of Server migration!");
             }
 
-            for(SocketBinding sb : this.socketBindings){
+            for(SocketBindingBean sb : this.socketBindings){
                 Document doc = ctx.getDocBuilder().newDocument();
                 socketMarshaller.marshal(sb, doc);
                 nodeList.add(doc.getDocumentElement());
@@ -251,23 +249,23 @@ public class ServerMigrator extends AbstractMigrator{
         try {
             List<String> list = new ArrayList();
 
-            Unmarshaller connUnmarshaller = JAXBContext.newInstance(ConnectorAS7.class).createUnmarshaller();
-            Unmarshaller virtualUnmarshaller = JAXBContext.newInstance(VirtualServer.class).createUnmarshaller();
-            Unmarshaller socketUnmarshaller = JAXBContext.newInstance(SocketBinding.class).createUnmarshaller();
+            Unmarshaller connUnmarshaller = JAXBContext.newInstance(ConnectorAS7Bean.class).createUnmarshaller();
+            Unmarshaller virtualUnmarshaller = JAXBContext.newInstance(VirtualServerBean.class).createUnmarshaller();
+            Unmarshaller socketUnmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
             for(Node node : generateDomElements(ctx)){
                 if(node.getNodeName().equals("connector")){
-                    ConnectorAS7 conn = (ConnectorAS7) connUnmarshaller.unmarshal(node);
+                    ConnectorAS7Bean conn = (ConnectorAS7Bean) connUnmarshaller.unmarshal(node);
                     list.add(createConnectorScript(conn, ctx));
                     continue;
                 }
                 if(node.getNodeName().equals("virtual-server")){
-                    VirtualServer virtual = (VirtualServer) virtualUnmarshaller.unmarshal(node);
+                    VirtualServerBean virtual = (VirtualServerBean) virtualUnmarshaller.unmarshal(node);
                     list.add(createVirtualServerScript(virtual, ctx));
                     continue;
                 }
                 if(node.getNodeName().equals("socket-binding")){
-                    SocketBinding socketBinding = (SocketBinding) socketUnmarshaller.unmarshal(node);
+                    SocketBindingBean socketBinding = (SocketBindingBean) socketUnmarshaller.unmarshal(node);
                     list.add(createSocketBindingScript(socketBinding, ctx));
                     continue;
                 }
@@ -287,7 +285,7 @@ public class ServerMigrator extends AbstractMigrator{
      */
     private void createDefaultSockets(MigrationContext ctx)  throws LoadMigrationException{
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBinding.class ).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class ).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
             NodeList bindings = ctx.getStandaloneDoc().getElementsByTagName("socket-binding");
@@ -295,7 +293,7 @@ public class ServerMigrator extends AbstractMigrator{
                 if(!(bindings.item(i) instanceof Element)){
                     continue;
                 }
-                SocketBinding socketBinding = (SocketBinding)unmarshaller.unmarshal(bindings.item(i));
+                SocketBindingBean socketBinding = (SocketBindingBean)unmarshaller.unmarshal(bindings.item(i));
                 if((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)){
                     this.socketTemp.add(socketBinding);
                 }
@@ -324,14 +322,14 @@ public class ServerMigrator extends AbstractMigrator{
             }
         }
 
-        Set<SocketBinding> temp = new HashSet();
+        Set<SocketBindingBean> temp = new HashSet();
 
-        for (SocketBinding sb : this.socketTemp) {
+        for (SocketBindingBean sb : this.socketTemp) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
         }
-        SocketBinding socketBinding = new SocketBinding();
+        SocketBindingBean socketBinding = new SocketBindingBean();
         if (this.socketBindings == null) {
             this.socketBindings = new HashSet();
             socketBinding.setSocketName(name);
@@ -340,7 +338,7 @@ public class ServerMigrator extends AbstractMigrator{
             return name;
         }
 
-        for (SocketBinding sb : this.socketBindings) {
+        for (SocketBindingBean sb : this.socketBindings) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
@@ -348,7 +346,7 @@ public class ServerMigrator extends AbstractMigrator{
 
         socketBinding.setSocketPort(port);
 
-        for (SocketBinding sb : this.socketBindings) {
+        for (SocketBindingBean sb : this.socketBindings) {
             if (sb.getSocketName().equals(name)) {
                 name = name.concat(this.randomSocket.toString());
                 this.randomSocket++;
@@ -369,57 +367,89 @@ public class ServerMigrator extends AbstractMigrator{
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createConnectorScript(ConnectorAS7 connectorAS7, MigrationContext ctx) throws CliScriptException{
-        if((connectorAS7.getScheme() == null) || (connectorAS7.getScheme().isEmpty())){
-            throw new CliScriptException("Scheme in connector cannot be null or empty") ;
-        }
+    public static String createConnectorScript(ConnectorAS7Bean connectorAS7, MigrationContext ctx) throws CliScriptException{
+        String errMsg = " in connector must be set.";
+        Utils.throwIfBlank(connectorAS7.getScheme(), errMsg, "Scheme");
+        Utils.throwIfBlank(connectorAS7.getSocketBinding(), errMsg, "Socket-binding");
+        Utils.throwIfBlank(connectorAS7.getConnectorName(), errMsg, "Connector name");
+        Utils.throwIfBlank(connectorAS7.getProtocol(), errMsg, "Protocol");
 
-        if((connectorAS7.getSocketBinding() == null) || (connectorAS7.getSocketBinding().isEmpty())){
-            throw new CliScriptException("Socket-binding in connector cannot be null or empty");
-        }
-
-        if((connectorAS7.getConnectorName() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Connector name cannot be null or empty");
-        }
-
-        if((connectorAS7.getProtocol() == null) || (connectorAS7.getConnectorName().isEmpty())){
-            throw new CliScriptException("Protocol in connector cannot be null or empty");
-        }
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
 
         String script = "/subsystem=web/connector=";
         script = script.concat(connectorAS7.getConnectorName() + ":add(");
-        script = ctx.checkingMethod(script, "socket-binding", connectorAS7.getSocketBinding());
-        script = ctx.checkingMethod(script, ",enable-lookups", connectorAS7.getEnableLookups());
-        script = ctx.checkingMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
-        script = ctx.checkingMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
-        script = ctx.checkingMethod(script, ", max-connections", connectorAS7.getMaxConnections());
-        script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
-        script = ctx.checkingMethod(script, ", proxy-name", connectorAS7.getProxyName());
-        script = ctx.checkingMethod(script, ", proxy-port", connectorAS7.getProxyPort());
-        script = ctx.checkingMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
-        script = ctx.checkingMethod(script, ", scheme", connectorAS7.getScheme());
-        script = ctx.checkingMethod(script, ", secure", connectorAS7.getSecure());
-        script = ctx.checkingMethod(script, ", enabled", connectorAS7.getEnabled());
-        script = script.concat(")");
+        builder.addProperty("socket-binding", connectorAS7.getSocketBinding());
+        builder.addProperty("enable-lookups", connectorAS7.getEnableLookups());
+        builder.addProperty("max-post-size", connectorAS7.getMaxPostSize());
+        builder.addProperty("max-save-post-size", connectorAS7.getMaxSavePostSize());
+        builder.addProperty("max-connections", connectorAS7.getMaxConnections());
+        builder.addProperty("protocol", connectorAS7.getProtocol());
+        builder.addProperty("proxy-name", connectorAS7.getProxyName());
+        builder.addProperty("proxy-port", connectorAS7.getProxyPort());
+        builder.addProperty("redirect-port", connectorAS7.getRedirectPort());
+        builder.addProperty("scheme", connectorAS7.getScheme());
+        builder.addProperty("secure", connectorAS7.getSecure());
+        builder.addProperty("enabled", connectorAS7.getEnabled());
+
+        script = script.concat(builder.asString() + ")");
 
         if(connectorAS7.getScheme().equals("https"))  {
+            builder.clear();
+
             script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
                     + "/ssl=configuration:add(");
-            script = ctx.checkingMethod(script, "name", connectorAS7.getSslName());
-            script = ctx.checkingMethod(script, ", verify-client", connectorAS7.getVerifyClient());
-            script = ctx.checkingMethod(script, ", verify-depth", connectorAS7.getVerifyDepth());
-            script = ctx.checkingMethod(script, ", certificate-key-file", connectorAS7.getCertifKeyFile());
-            script = ctx.checkingMethod(script, ", password", connectorAS7.getPassword());
-            script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
-            script = ctx.checkingMethod(script, ", ciphers", connectorAS7.getCiphers());
-            script = ctx.checkingMethod(script, ", key-alias", connectorAS7.getKeyAlias());
-            script = ctx.checkingMethod(script, ", ca-certificate-file", connectorAS7.getCaCertifFile());
-            script = ctx.checkingMethod(script, ", session-cache-size", connectorAS7.getSessionCacheSize());
-            script = ctx.checkingMethod(script, ", session-timeout", connectorAS7.getSessionTimeout());
-            script = script.concat(")");
-        }
+            builder.addProperty("name", connectorAS7.getSslName());
+            builder.addProperty("verify-client", connectorAS7.getVerifyClient());
+            builder.addProperty("verify-depth", connectorAS7.getVerifyDepth());
+            builder.addProperty("certificate-key-file", connectorAS7.getCertifKeyFile());
+            builder.addProperty("password", connectorAS7.getPassword());
+            builder.addProperty("protocol", connectorAS7.getProtocol());
+            builder.addProperty("ciphers", connectorAS7.getCiphers());
+            builder.addProperty("key-alias", connectorAS7.getKeyAlias());
+            builder.addProperty("ca-certificate-file", connectorAS7.getCaCertifFile());
+            builder.addProperty("session-cache-size", connectorAS7.getSessionCacheSize());
+            builder.addProperty("session-timeout", connectorAS7.getSessionTimeout());
 
+            script = script.concat(builder.asString() + ")");
+        }
         return script;
+
+
+
+//        String script = "/subsystem=web/connector=";
+//        script = script.concat(connectorAS7.getConnectorName() + ":add(");
+//        script = ctx.checkingMethod(script, "socket-binding", connectorAS7.getSocketBinding());
+//        script = ctx.checkingMethod(script, ", enable-lookups", connectorAS7.getEnableLookups());
+//        script = ctx.checkingMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
+//        script = ctx.checkingMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
+//        script = ctx.checkingMethod(script, ", max-connections", connectorAS7.getMaxConnections());
+//        script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
+//        script = ctx.checkingMethod(script, ", proxy-name", connectorAS7.getProxyName());
+//        script = ctx.checkingMethod(script, ", proxy-port", connectorAS7.getProxyPort());
+//        script = ctx.checkingMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
+//        script = ctx.checkingMethod(script, ", scheme", connectorAS7.getScheme());
+//        script = ctx.checkingMethod(script, ", secure", connectorAS7.getSecure());
+//        script = ctx.checkingMethod(script, ", enabled", connectorAS7.getEnabled());
+//        script = script.concat(")");
+//
+//        if(connectorAS7.getScheme().equals("https"))  {
+//            script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
+//                    + "/ssl=configuration:add(");
+//            script = ctx.checkingMethod(script, "name", connectorAS7.getSslName());
+//            script = ctx.checkingMethod(script, ", verify-client", connectorAS7.getVerifyClient());
+//            script = ctx.checkingMethod(script, ", verify-depth", connectorAS7.getVerifyDepth());
+//            script = ctx.checkingMethod(script, ", certificate-key-file", connectorAS7.getCertifKeyFile());
+//            script = ctx.checkingMethod(script, ", password", connectorAS7.getPassword());
+//            script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
+//            script = ctx.checkingMethod(script, ", ciphers", connectorAS7.getCiphers());
+//            script = ctx.checkingMethod(script, ", key-alias", connectorAS7.getKeyAlias());
+//            script = ctx.checkingMethod(script, ", ca-certificate-file", connectorAS7.getCaCertifFile());
+//            script = ctx.checkingMethod(script, ", session-cache-size", connectorAS7.getSessionCacheSize());
+//            script = ctx.checkingMethod(script, ", session-timeout", connectorAS7.getSessionTimeout());
+//            script = script.concat(")");
+//        }
+//
+//        return script;
     }
 
     /**
@@ -429,28 +459,52 @@ public class ServerMigrator extends AbstractMigrator{
      * @param ctx migration context
      * @return string containing created CLI script
      */
-    public static String createVirtualServerScript(VirtualServer virtualServer, MigrationContext ctx) {
+    public static String createVirtualServerScript(VirtualServerBean virtualServer, MigrationContext ctx) {
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
         String script = "/subsystem=web/virtual-server=";
         script = script.concat(virtualServer.getVirtualServerName() + ":add(");
-        script = ctx.checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
-        script = ctx.checkingMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
+        builder.addProperty("enable-welcome-root", virtualServer.getEnableWelcomeRoot());
+        builder.addProperty("default-web-module", virtualServer.getDefaultWebModule());
 
+        String aliases = "";
         if(virtualServer.getAliasName() != null){
-            String aliases = "";
+            StringBuilder aliasBuilder = new StringBuilder();
             for(String alias : virtualServer.getAliasName()){
-                aliases = aliases.concat(", \"" + alias+"\"");
+                aliasBuilder.append(", \"" + alias + "\"");
             }
 
+            aliases = aliasBuilder.toString();
             aliases = aliases.replaceFirst("\\, ", "");
 
             if(!aliases.isEmpty()){
-                script = script.concat(", alias=[" + aliases + "]");
+                aliases = ", alias=[" + aliases + "]";
             }
         }
 
-        script = script.concat(")");
 
-        return script;
+        return script + builder.asString() + aliases + ")";
+
+//        String script = "/subsystem=web/virtual-server=";
+//        script = script.concat(virtualServer.getVirtualServerName() + ":add(");
+//        script = ctx.checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
+//        script = ctx.checkingMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
+//
+//        if(virtualServer.getAliasName() != null){
+//            String aliases = "";
+//            for(String alias : virtualServer.getAliasName()){
+//                aliases = aliases.concat(", \"" + alias+"\"");
+//            }
+//
+//            aliases = aliases.replaceFirst("\\, ", "");
+//
+//            if(!aliases.isEmpty()){
+//                script = script.concat(", alias=[" + aliases + "]");
+//            }
+//        }
+//
+//        script = script.concat(")");
+//
+//        return script;
     }
 
     /**
@@ -461,21 +515,27 @@ public class ServerMigrator extends AbstractMigrator{
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSocketBindingScript(SocketBinding socketBinding, MigrationContext ctx) throws CliScriptException{
-        if((socketBinding.getSocketPort() == null) || (socketBinding.getSocketPort().isEmpty())){
-            throw new CliScriptException("Port in socket binding cannot be null or empty");
-        }
+    public static String createSocketBindingScript(SocketBindingBean socketBinding, MigrationContext ctx)
+            throws CliScriptException{
+        String errMsg = " in socket-binding must be set.";
+        Utils.throwIfBlank(socketBinding.getSocketPort(), errMsg, "Port");
+        Utils.throwIfBlank(socketBinding.getSocketName(), errMsg, "Name");
 
-        if((socketBinding.getSocketName() == null) || (socketBinding.getSocketName().isEmpty())){
-            throw new CliScriptException("Name of socket binding cannot be null or empty");
-        }
-
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
         String script = "/socket-binding-group=standard-sockets/socket-binding=";
         script = script.concat(socketBinding.getSocketName() + ":add(");
         script = script.concat("port=" + socketBinding.getSocketPort());
-        script = ctx.checkingMethod(script, ", interface", socketBinding.getSocketInterface());
-        script = script.concat(")");
+        builder.addProperty("interface", socketBinding.getSocketInterface());
 
-        return script;
+
+        return script + builder.asString() + ")";
+
+//        String script = "/socket-binding-group=standard-sockets/socket-binding=";
+//        script = script.concat(socketBinding.getSocketName() + ":add(");
+//        script = script.concat("port=" + socketBinding.getSocketPort());
+//        script = ctx.checkingMethod(script, ", interface", socketBinding.getSocketInterface());
+//        script = script.concat(")");
+//
+//        return script;
     }
 }

@@ -2,7 +2,9 @@ package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
+import cz.muni.fi.jboss.migration.utils.Utils;
 import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -39,13 +41,13 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5.class).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
 
             File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
                     File.separator +"conf" + File.separator + "login-config.xml");
 
             if(file.canRead()){
-                SecurityAS5 securityAS5 = (SecurityAS5)unmarshaller.unmarshal(file);
+                SecurityAS5Bean securityAS5 = (SecurityAS5Bean)unmarshaller.unmarshal(file);
 
                 MigrationData mData = new MigrationData();
                 mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
@@ -92,24 +94,24 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public  List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
         try {
-            JAXBContext secDomainCtx = JAXBContext.newInstance(SecurityDomain.class);
+            JAXBContext secDomainCtx = JAXBContext.newInstance(SecurityDomainBean.class);
             List<Node> nodeList = new ArrayList();
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
             for (IConfigFragment data : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
-                if(!(data instanceof ApplicationPolicy)){
+                if(!(data instanceof ApplicationPolicyBean)){
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }
-                ApplicationPolicy appPolicy = (ApplicationPolicy) data;
+                ApplicationPolicyBean appPolicy = (ApplicationPolicyBean) data;
 
-                Set<LoginModuleAS7> loginModules = new HashSet();
-                SecurityDomain securityDomain = new SecurityDomain();
+                Set<LoginModuleAS7Bean> loginModules = new HashSet();
+                SecurityDomainBean securityDomain = new SecurityDomainBean();
                 securityDomain.setSecurityDomainName(appPolicy.getApplicationPolicyName());
                 securityDomain.setCacheType("default");
 
-                for (LoginModuleAS5 lmAS5 : appPolicy.getLoginModules()) {
-                    Set<ModuleOptionAS7> moduleOptions = new HashSet();
-                    LoginModuleAS7 lmAS7 = new LoginModuleAS7();
+                for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
+                    Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
+                    LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
                     lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
 
                     switch (StringUtils.substringAfterLast(lmAS5.getLoginModule(), ".")) {
@@ -183,8 +185,8 @@ public class SecurityMigrator extends AbstractMigrator {
                     }
 
                     if (lmAS5.getModuleOptions() != null) {
-                        for (ModuleOptionAS5 moAS5 : lmAS5.getModuleOptions()) {
-                            ModuleOptionAS7 moAS7 = new ModuleOptionAS7();
+                        for (ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions()) {
+                            ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();
                             moAS7.setModuleOptionName(moAS5.getModuleName());
 
                             // TODO: Module-option using file can only use .properties?
@@ -197,10 +199,10 @@ public class SecurityMigrator extends AbstractMigrator {
                                 }
                                 moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-                                CopyMemory cp = new CopyMemory();
+                                RollbackData cp = new RollbackData();
                                 cp.setName(value);
                                 cp.setType("security");
-                                ctx.getCopyMemories().add(cp);
+                                ctx.getRollbackDatas().add(cp);
                             } else{
                                 moAS7.setModuleOptionValue(moAS5.getModuleValue());
                             }
@@ -230,10 +232,10 @@ public class SecurityMigrator extends AbstractMigrator {
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
         try {
             List<String> list = new ArrayList();
-            Unmarshaller secUnmarshaller = JAXBContext.newInstance(SecurityDomain.class).createUnmarshaller();
+            Unmarshaller secUnmarshaller = JAXBContext.newInstance(SecurityDomainBean.class).createUnmarshaller();
 
             for(Node node : generateDomElements(ctx)){
-                SecurityDomain securityDomain = (SecurityDomain) secUnmarshaller.unmarshal(node);
+                SecurityDomainBean securityDomain = (SecurityDomainBean) secUnmarshaller.unmarshal(node);
                 list.add(createSecurityDomainScript(securityDomain, ctx));
             }
 
@@ -251,17 +253,17 @@ public class SecurityMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSecurityDomainScript(SecurityDomain securityDomain, MigrationContext ctx) throws CliScriptException{
-        if((securityDomain.getSecurityDomainName() == null) || (securityDomain.getSecurityDomainName().isEmpty())){
-            throw new CliScriptException("Name of the security domain cannot be null or empty");
-        }
+    public static String createSecurityDomainScript(SecurityDomainBean securityDomain, MigrationContext ctx)
+            throws CliScriptException{
+        String errMsg = " in security-domain must be set.";
+        Utils.throwIfBlank(securityDomain.getSecurityDomainName(), errMsg, "Security name");
 
         String script = "/subsystem=security/security-domain=";
         script = script.concat(securityDomain.getSecurityDomainName() + ":add(");
         script = ctx.checkingMethod(script, "cache-type", securityDomain.getCacheType() + ")\n");
 
         if(securityDomain.getLoginModules() != null){
-            for(LoginModuleAS7 loginModuleAS7 : securityDomain.getLoginModules()){
+            for(LoginModuleAS7Bean loginModuleAS7 : securityDomain.getLoginModules()){
                 script = script.concat("/subsystem=security/security-domain=" + securityDomain.getSecurityDomainName());
                 script = script.concat("/authentication=classic:add(login-modules=[{");
                 script = ctx.checkingMethod(script, "\"code\"", ">\"" + loginModuleAS7.getLoginModuleCode() + "\"");
@@ -270,7 +272,7 @@ public class SecurityMigrator extends AbstractMigrator {
                 if(loginModuleAS7.getModuleOptions() != null){
                     if(!loginModuleAS7.getModuleOptions().isEmpty()) {
                         String modules= "";
-                        for(ModuleOptionAS7 moduleOptionAS7 : loginModuleAS7.getModuleOptions()){
+                        for(ModuleOptionAS7Bean moduleOptionAS7 : loginModuleAS7.getModuleOptions()){
                             modules = modules.concat(", (\"" + moduleOptionAS7.getModuleOptionName() + "\"=>");
                             modules = modules.concat("\"" + moduleOptionAS7.getModuleOptionValue() + "\")");
                         }
