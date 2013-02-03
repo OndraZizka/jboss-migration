@@ -9,6 +9,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
+ * Util class for generation of module for driver and module.xml which is required in migration.
+ *
  * @author Roman Jakubco
  *         Date: 2/2/13
  *         Time: 1:08 PM

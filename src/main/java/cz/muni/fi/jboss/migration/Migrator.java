@@ -8,6 +8,7 @@ import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
+import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
@@ -19,7 +20,6 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -134,20 +134,20 @@ public class Migrator {
     /**
      * Method for copying all necessary files for migration from AS5 to their place in AS7 home folder.
      *
-     * @throws CopyException if copying of files fails
+     * @throws CopyException if copying of files fails.
      */
     public void copyItems() throws CopyException{
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
 
-        for(RollbackData cp : this.ctx.getRollbackDatas()){
-            if(cp.getName() == null || cp.getName().isEmpty()){
+        for(RollbackData rollData : this.ctx.getRollbackDatas()){
+            if(rollData.getName() == null || rollData.getName().isEmpty()){
                 throw new NullPointerException();
             }
 
             NameFileFilter nff;
-            if(cp.getType().equals("driver")){
-                final String name = cp.getName();
+            if(rollData.getType().equals("driver")){
+                final String name = rollData.getName();
                 nff = new NameFileFilter(name){
                     @Override
                     public boolean accept(File file) {
@@ -155,17 +155,18 @@ public class Migrator {
                     }
                 };
             } else{
-                nff = new NameFileFilter(cp.getName());
+                nff = new NameFileFilter(rollData.getName());
             }
 
             List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
-            switch(cp.getType()){
+
+            switch(rollData.getType()){
                 case "driver":{
                     // TODO:Can there be only one jar of selected driver or many different versions?
                     if(list.isEmpty()){
                         // Special case for freeware jdbc driver jdts.jar
-                        if(cp.getAltName() != null){
-                            final String altName = cp.getAltName();
+                        if(rollData.getAltName() != null){
+                            final String altName = rollData.getAltName();
 
                             nff =  new NameFileFilter(altName){
                                 @Override
@@ -173,80 +174,20 @@ public class Migrator {
                                     return file.getName().contains(altName) && file.getName().contains("jar");
                                 }
                             };
-
                             List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
                                     FileFilterUtils.makeCVSAware(null));
 
-                            if(altList.isEmpty()){
-                                throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() +
-                                        " or " + cp.getAltName() + "!",
-                                        new FileNotFoundException(cp.getName()));
-                            } else {
-                                cp.setHomePath(altList.get(0).getAbsolutePath());
-                                cp.setName(altList.get(0).getName());
-                                String module;
-
-                                if(cp.getModule() != null){
-                                    String[] parts = cp.getModule().split("\\.");
-                                    module = "";
-                                    for(String s : parts){
-                                        module = module + s + File.separator;
-                                    }
-                                    cp.setTargetPath(targetPath + File.separator + "modules" + File.separator +
-                                            module  + "main");
-                                } else{
-                                    throw new CopyException("Error: Module for driver is null!");
-                                }
-                            }
+                            Utils.setRollbackData(rollData, altList, targetPath); break;
                         } else {
-                            throw new CopyException("Cannot locate driver jar for driver:" + cp.getName() + "!",
-                                    new FileNotFoundException(cp.getName()));
+                            throw new CopyException("Cannot locate driver jar for driver:" + rollData.getName() + "!");
                         }
                     } else{
-                        cp.setHomePath(list.get(0).getAbsolutePath());
-                        cp.setName(list.get(0).getName());
-                        String module;
-
-                        if(cp.getModule() != null){
-                            String[] parts = cp.getModule().split("\\.");
-                            module = "";
-
-                            for(String s : parts){
-                                module = module + s + File.separator;
-                            }
-
-                            cp.setTargetPath(targetPath + File.separator + "modules" + File.separator + module  + "main");
-                        } else{
-                            throw new CopyException("Error: Module for driver is null!");
-                        }
+                        Utils.setRollbackData(rollData, list, targetPath);
                     }
                 } break;
-                case "log":{
-                    if(list.isEmpty()){
-                        throw  new NullPointerException("Cannot locate log file: " + cp.getName() + "!");
-                    } else{
-                        cp.setHomePath(list.get(0).getAbsolutePath());
-                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator +"log" );
-                    }
-                } break;
-                case "security":{
-                    if(list.isEmpty()){
-                        throw  new CopyException("Cannot locate security file: " + cp.getName() + "!",
-                                new FileNotFoundException(cp.getName()));
-                    } else{
-                        cp.setHomePath(list.get(0).getAbsolutePath());
-                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "configuration");
-                    }
-                } break;
-                case "resource":{
-                    if(list.isEmpty()){
-                        throw  new CopyException("Cannot locate security file: " + cp.getName() + "!",
-                                new FileNotFoundException(cp.getName()));
-                    } else{
-                        cp.setHomePath(list.get(0).getAbsolutePath());
-                        cp.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "deployments");
-                    }
-                } break;
+                case "log": Utils.setRollbackData(rollData, list, targetPath); break;
+                case "security": Utils.setRollbackData(rollData, list, targetPath); break;
+                case "resource": Utils.setRollbackData(rollData, list, targetPath); break;
             }
         }
 
@@ -268,7 +209,6 @@ public class Migrator {
                     } else{
                         throw new CopyException("Cannot create file \"module.xml\" in AS7 structure.");
                     }
-
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
