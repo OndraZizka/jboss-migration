@@ -18,7 +18,7 @@ public class AS7ModuleUtils {
     /**
      * Setting module for different databases.
      *
-     * @return
+     * @return string containing generate module name
      */
     public static String createDriverModule(String driverName){
         String module = "jdbc.drivers.";

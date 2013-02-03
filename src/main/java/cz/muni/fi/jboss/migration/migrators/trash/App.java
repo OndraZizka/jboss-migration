@@ -632,13 +632,13 @@ public class App {
 ////                if(data){
 ////                    if(dsSub.getDatasource() != null){
 ////                        for(DatasourceAS7Bean datasourceAS7 : dsSub.getDatasource()){
-////                            System.out.println(cliScript.createDatasourceScript(datasourceAS7));
+////                            System.out.println(cliScript.createDatasourceScriptOld(datasourceAS7));
 ////                        }
 ////                    }
 ////
 ////                    if(dsSub.getXaDatasource() != null){
 ////                        for(XaDatasourceAS7Bean xaDSAS7 : dsSub.getXaDatasource()){
-////                            System.out.println(cliScript.createXaDatasourceScript(xaDSAS7));
+////                            System.out.println(cliScript.createXaDatasourceScriptOld(xaDSAS7));
 ////                        }
 ////                    }
 ////

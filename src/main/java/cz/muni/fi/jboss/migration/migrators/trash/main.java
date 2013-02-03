@@ -145,10 +145,10 @@ public class main {
 //            CliScript cliScript= new CliScriptImpl();
 //            DatasourcesSub datasourcesSub= migration.datasourceSubMigration(dataSourcesCollection);
 //            for(DatasourceAS7Bean datasourceAS7 : datasourcesSub.getDatasource()){
-//                System.out.println(cliScript.createDatasourceScript(datasourceAS7));
+//                System.out.println(cliScript.createDatasourceScriptOld(datasourceAS7));
 //            }
 //            for(XaDatasourceAS7Bean xaDatasourceAS7 : datasourcesSub.getXaDatasource()){
-//                System.out.println(cliScript.createXaDatasourceScript(xaDatasourceAS7));
+//                System.out.println(cliScript.createXaDatasourceScriptOld(xaDatasourceAS7));
 //            }
 //            //ResourceAdaptersSub connectionFactoriesSub = migration.connectionFactoriesMigration(connectionFactories);
 //            //for(ResourceAdapterBean connectionFactoryAS7 : connectionFactoriesSub.getResourceAdapters()){

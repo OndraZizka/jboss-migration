@@ -58,10 +58,15 @@ public class Migrator {
         return migrators;
     }
 
-    public void init(){
+//    public void init(){
+//
+//    }
 
-    }
-
+    /**
+     * Method which calls method for loading configuration data from AS5 on all migrators.
+     *
+     * @throws LoadMigrationException
+     */
     public void loadAS5Data() throws LoadMigrationException {
         try {
             for(IMigrator mig : this.migrators){
@@ -72,6 +77,11 @@ public class Migrator {
         }
     }
 
+    /**
+     * Method which calls method for applying migrated configuration on all migrators.
+     *
+     * @throws ApplyMigrationException if inserting of generated nodes fails.
+     */
     public void apply() throws ApplyMigrationException {
         for(IMigrator mig : this.migrators){
             mig.apply(this.ctx);
@@ -91,7 +101,12 @@ public class Migrator {
 
     }
 
-
+    /**
+     * Method which calls method for generating Dom Nodes on all migrators.
+     *
+     * @return List containing all generated Nodes
+     * @throws MigrationException if migrating of file or generating of nodes fails.
+     */
     public List<Node> getDOMElements() throws MigrationException{
         List<Node> elements = new ArrayList<>();
         for(IMigrator mig : this.migrators){
@@ -101,6 +116,12 @@ public class Migrator {
         return elements;
     }
 
+    /**
+     * Method which calls method for generating Cli scripts on all migrators.
+     *
+     * @return List containing generated scripts from all migrated subsystems
+     * @throws CliScriptException if creation of scripts fail
+     */
     public List<String> getCLIScripts() throws CliScriptException{
         List<String> scripts = new ArrayList<>();
         for(IMigrator mig : this.migrators){
@@ -110,9 +131,15 @@ public class Migrator {
         return scripts;
     }
 
+    /**
+     * Method for copying all necessary files for migration from AS5 to their place in AS7 home folder.
+     *
+     * @throws CopyException if copying of files fails
+     */
     public void copyItems() throws CopyException{
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
+
         for(RollbackData cp : this.ctx.getRollbackDatas()){
             if(cp.getName() == null || cp.getName().isEmpty()){
                 throw new NullPointerException();
@@ -124,15 +151,7 @@ public class Migrator {
                 nff = new NameFileFilter(name){
                     @Override
                     public boolean accept(File file) {
-                        if(file.getName().contains(name)){
-                            if(file.getName().contains("jar")){
-                                return true;
-                            } else{
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
+                        return file.getName().contains(name) && file.getName().contains("jar");
                     }
                 };
             } else{
@@ -151,15 +170,7 @@ public class Migrator {
                             nff =  new NameFileFilter(altName){
                                 @Override
                                 public boolean accept(File file) {
-                                    if(file.getName().contains(altName)){
-                                        if(file.getName().contains("jar")){
-                                            return true;
-                                        } else{
-                                            return false;
-                                        }
-                                    } else {
-                                        return false;
-                                    }
+                                    return file.getName().contains(altName) && file.getName().contains("jar");
                                 }
                             };
 
@@ -173,7 +184,7 @@ public class Migrator {
                             } else {
                                 cp.setHomePath(altList.get(0).getAbsolutePath());
                                 cp.setName(altList.get(0).getName());
-                                String module = "";
+                                String module;
 
                                 if(cp.getModule() != null){
                                     String[] parts = cp.getModule().split("\\.");
@@ -194,7 +205,7 @@ public class Migrator {
                     } else{
                         cp.setHomePath(list.get(0).getAbsolutePath());
                         cp.setName(list.get(0).getName());
-                        String module = "";
+                        String module;
 
                         if(cp.getModule() != null){
                             String[] parts = cp.getModule().split("\\.");
@@ -242,6 +253,7 @@ public class Migrator {
         try {
             final TransformerFactory tf = TransformerFactory.newInstance();
             final Transformer transformer = tf.newTransformer();
+
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
@@ -250,8 +262,13 @@ public class Migrator {
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
                     File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
-                    module.createNewFile();
-                    transformer.transform(new DOMSource(AS7ModuleUtils.createModuleXML(cp)), new StreamResult(module));
+
+                    if(module.createNewFile()){
+                        transformer.transform(new DOMSource(AS7ModuleUtils.createModuleXML(cp)), new StreamResult(module));
+                    } else{
+                        throw new CopyException("Cannot create file \"module.xml\" in AS7 structure.");
+                    }
+
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));

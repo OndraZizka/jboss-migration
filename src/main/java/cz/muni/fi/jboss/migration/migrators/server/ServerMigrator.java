@@ -234,7 +234,6 @@ public class ServerMigrator extends AbstractMigrator{
                 Document doc = ctx.getDocBuilder().newDocument();
                 socketMarshaller.marshal(sb, doc);
                 nodeList.add(doc.getDocumentElement());
-                continue;
             }
 
             return nodeList;
@@ -256,18 +255,17 @@ public class ServerMigrator extends AbstractMigrator{
             for(Node node : generateDomElements(ctx)){
                 if(node.getNodeName().equals("connector")){
                     ConnectorAS7Bean conn = (ConnectorAS7Bean) connUnmarshaller.unmarshal(node);
-                    list.add(createConnectorScript(conn, ctx));
+                    list.add(createConnectorScript(conn));
                     continue;
                 }
                 if(node.getNodeName().equals("virtual-server")){
                     VirtualServerBean virtual = (VirtualServerBean) virtualUnmarshaller.unmarshal(node);
-                    list.add(createVirtualServerScript(virtual, ctx));
+                    list.add(createVirtualServerScript(virtual));
                     continue;
                 }
                 if(node.getNodeName().equals("socket-binding")){
                     SocketBindingBean socketBinding = (SocketBindingBean) socketUnmarshaller.unmarshal(node);
-                    list.add(createSocketBindingScript(socketBinding, ctx));
-                    continue;
+                    list.add(createSocketBindingScript(socketBinding));
                 }
             }
 
@@ -311,7 +309,7 @@ public class ServerMigrator extends AbstractMigrator{
      * @param port port of the connector, which will be converted to socket-binding
      * @param name  name of the protocol which is used by connector (ajp/http/https)
      * @return name of the socket-binding so it cant be referenced in connector
-     * @throws MigrationException if createDefaultSocket fails to unmarshall socket-bindings
+     * @throws NodeGenerationException if createDefaultSocket fails to unmarshall socket-bindings
      */
     private String createSocketBinding(String port, String name, MigrationContext ctx) throws NodeGenerationException{
         if(this.socketTemp.isEmpty()){
@@ -362,107 +360,70 @@ public class ServerMigrator extends AbstractMigrator{
     /**
      * Creating CLI script for adding connector to AS7 from migrated connector.
      *
-     * @param connectorAS7 object of migrated connector
-     * @param ctx  migration context
+     * @param connAS7 object of migrated connector
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createConnectorScript(ConnectorAS7Bean connectorAS7, MigrationContext ctx) throws CliScriptException{
+    public static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException{
         String errMsg = " in connector must be set.";
-        Utils.throwIfBlank(connectorAS7.getScheme(), errMsg, "Scheme");
-        Utils.throwIfBlank(connectorAS7.getSocketBinding(), errMsg, "Socket-binding");
-        Utils.throwIfBlank(connectorAS7.getConnectorName(), errMsg, "Connector name");
-        Utils.throwIfBlank(connectorAS7.getProtocol(), errMsg, "Protocol");
+        Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
+        Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
+        Utils.throwIfBlank(connAS7.getConnectorName(), errMsg, "Connector name");
+        Utils.throwIfBlank(connAS7.getProtocol(), errMsg, "Protocol");
 
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=web/connector=");
 
-        String script = "/subsystem=web/connector=";
-        script = script.concat(connectorAS7.getConnectorName() + ":add(");
-        builder.addProperty("socket-binding", connectorAS7.getSocketBinding());
-        builder.addProperty("enable-lookups", connectorAS7.getEnableLookups());
-        builder.addProperty("max-post-size", connectorAS7.getMaxPostSize());
-        builder.addProperty("max-save-post-size", connectorAS7.getMaxSavePostSize());
-        builder.addProperty("max-connections", connectorAS7.getMaxConnections());
-        builder.addProperty("protocol", connectorAS7.getProtocol());
-        builder.addProperty("proxy-name", connectorAS7.getProxyName());
-        builder.addProperty("proxy-port", connectorAS7.getProxyPort());
-        builder.addProperty("redirect-port", connectorAS7.getRedirectPort());
-        builder.addProperty("scheme", connectorAS7.getScheme());
-        builder.addProperty("secure", connectorAS7.getSecure());
-        builder.addProperty("enabled", connectorAS7.getEnabled());
+        resultScript.append(connAS7.getConnectorName()).append(":add(");
 
-        script = script.concat(builder.asString() + ")");
+        builder.addProperty("socket-binding", connAS7.getSocketBinding());
+        builder.addProperty("enable-lookups", connAS7.getEnableLookups());
+        builder.addProperty("max-post-size", connAS7.getMaxPostSize());
+        builder.addProperty("max-save-post-size", connAS7.getMaxSavePostSize());
+        builder.addProperty("max-connections", connAS7.getMaxConnections());
+        builder.addProperty("protocol", connAS7.getProtocol());
+        builder.addProperty("proxy-name", connAS7.getProxyName());
+        builder.addProperty("proxy-port", connAS7.getProxyPort());
+        builder.addProperty("redirect-port", connAS7.getRedirectPort());
+        builder.addProperty("scheme", connAS7.getScheme());
+        builder.addProperty("secure", connAS7.getSecure());
+        builder.addProperty("enabled", connAS7.getEnabled());
 
-        if(connectorAS7.getScheme().equals("https"))  {
-            builder.clear();
+        resultScript.append(builder.asString()).append(")");
 
-            script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
-                    + "/ssl=configuration:add(");
-            builder.addProperty("name", connectorAS7.getSslName());
-            builder.addProperty("verify-client", connectorAS7.getVerifyClient());
-            builder.addProperty("verify-depth", connectorAS7.getVerifyDepth());
-            builder.addProperty("certificate-key-file", connectorAS7.getCertifKeyFile());
-            builder.addProperty("password", connectorAS7.getPassword());
-            builder.addProperty("protocol", connectorAS7.getProtocol());
-            builder.addProperty("ciphers", connectorAS7.getCiphers());
-            builder.addProperty("key-alias", connectorAS7.getKeyAlias());
-            builder.addProperty("ca-certificate-file", connectorAS7.getCaCertifFile());
-            builder.addProperty("session-cache-size", connectorAS7.getSessionCacheSize());
-            builder.addProperty("session-timeout", connectorAS7.getSessionTimeout());
+        if(connAS7.getScheme().equals("https"))  {
+            resultScript.append("\n/subsystem=web/connector=").append(connAS7.getConnectorName());
+            resultScript.append("/ssl=configuration:add(");
 
-            script = script.concat(builder.asString() + ")");
+            builder.addProperty("name", connAS7.getSslName());
+            builder.addProperty("verify-client", connAS7.getVerifyClient());
+            builder.addProperty("verify-depth", connAS7.getVerifyDepth());
+            builder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
+            builder.addProperty("password", connAS7.getPassword());
+            builder.addProperty("protocol", connAS7.getProtocol());
+            builder.addProperty("ciphers", connAS7.getCiphers());
+            builder.addProperty("key-alias", connAS7.getKeyAlias());
+            builder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
+            builder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
+            builder.addProperty("session-timeout", connAS7.getSessionTimeout());
+
+            resultScript.append(builder.asString()).append(")");
         }
-        return script;
 
-
-
-//        String script = "/subsystem=web/connector=";
-//        script = script.concat(connectorAS7.getConnectorName() + ":add(");
-//        script = ctx.checkingMethod(script, "socket-binding", connectorAS7.getSocketBinding());
-//        script = ctx.checkingMethod(script, ", enable-lookups", connectorAS7.getEnableLookups());
-//        script = ctx.checkingMethod(script, ", max-post-size", connectorAS7.getMaxPostSize());
-//        script = ctx.checkingMethod(script, ", max-save-post-size", connectorAS7.getMaxSavePostSize());
-//        script = ctx.checkingMethod(script, ", max-connections", connectorAS7.getMaxConnections());
-//        script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
-//        script = ctx.checkingMethod(script, ", proxy-name", connectorAS7.getProxyName());
-//        script = ctx.checkingMethod(script, ", proxy-port", connectorAS7.getProxyPort());
-//        script = ctx.checkingMethod(script, ", redirect-port", connectorAS7.getRedirectPort());
-//        script = ctx.checkingMethod(script, ", scheme", connectorAS7.getScheme());
-//        script = ctx.checkingMethod(script, ", secure", connectorAS7.getSecure());
-//        script = ctx.checkingMethod(script, ", enabled", connectorAS7.getEnabled());
-//        script = script.concat(")");
-//
-//        if(connectorAS7.getScheme().equals("https"))  {
-//            script = script.concat("\n/subsystem=web/connector=" + connectorAS7.getConnectorName()
-//                    + "/ssl=configuration:add(");
-//            script = ctx.checkingMethod(script, "name", connectorAS7.getSslName());
-//            script = ctx.checkingMethod(script, ", verify-client", connectorAS7.getVerifyClient());
-//            script = ctx.checkingMethod(script, ", verify-depth", connectorAS7.getVerifyDepth());
-//            script = ctx.checkingMethod(script, ", certificate-key-file", connectorAS7.getCertifKeyFile());
-//            script = ctx.checkingMethod(script, ", password", connectorAS7.getPassword());
-//            script = ctx.checkingMethod(script, ", protocol", connectorAS7.getProtocol());
-//            script = ctx.checkingMethod(script, ", ciphers", connectorAS7.getCiphers());
-//            script = ctx.checkingMethod(script, ", key-alias", connectorAS7.getKeyAlias());
-//            script = ctx.checkingMethod(script, ", ca-certificate-file", connectorAS7.getCaCertifFile());
-//            script = ctx.checkingMethod(script, ", session-cache-size", connectorAS7.getSessionCacheSize());
-//            script = ctx.checkingMethod(script, ", session-timeout", connectorAS7.getSessionTimeout());
-//            script = script.concat(")");
-//        }
-//
-//        return script;
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding virtual-server to AS7
      *
      * @param virtualServer object representing migrated virtual-server
-     * @param ctx migration context
      * @return string containing created CLI script
      */
-    public static String createVirtualServerScript(VirtualServerBean virtualServer, MigrationContext ctx) {
+    public static String createVirtualServerScript(VirtualServerBean virtualServer) {
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
-        String script = "/subsystem=web/virtual-server=";
-        script = script.concat(virtualServer.getVirtualServerName() + ":add(");
+        StringBuilder resultScript = new StringBuilder("/subsystem=web/virtual-server=");
+        resultScript.append(virtualServer.getVirtualServerName()).append(":add(");
+
         builder.addProperty("enable-welcome-root", virtualServer.getEnableWelcomeRoot());
         builder.addProperty("default-web-module", virtualServer.getDefaultWebModule());
 
@@ -470,7 +431,7 @@ public class ServerMigrator extends AbstractMigrator{
         if(virtualServer.getAliasName() != null){
             StringBuilder aliasBuilder = new StringBuilder();
             for(String alias : virtualServer.getAliasName()){
-                aliasBuilder.append(", \"" + alias + "\"");
+                aliasBuilder.append(", \"").append(alias).append("\"");
             }
 
             aliases = aliasBuilder.toString();
@@ -481,61 +442,34 @@ public class ServerMigrator extends AbstractMigrator{
             }
         }
 
+        resultScript.append(builder.asString()).append(aliases).append(")");
 
-        return script + builder.asString() + aliases + ")";
-
-//        String script = "/subsystem=web/virtual-server=";
-//        script = script.concat(virtualServer.getVirtualServerName() + ":add(");
-//        script = ctx.checkingMethod(script, "enable-welcome-root", virtualServer.getEnableWelcomeRoot());
-//        script = ctx.checkingMethod(script, "default-web-module", virtualServer.getDefaultWebModule());
-//
-//        if(virtualServer.getAliasName() != null){
-//            String aliases = "";
-//            for(String alias : virtualServer.getAliasName()){
-//                aliases = aliases.concat(", \"" + alias+"\"");
-//            }
-//
-//            aliases = aliases.replaceFirst("\\, ", "");
-//
-//            if(!aliases.isEmpty()){
-//                script = script.concat(", alias=[" + aliases + "]");
-//            }
-//        }
-//
-//        script = script.concat(")");
-//
-//        return script;
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding socket-binding to AS7
      *
      * @param socketBinding object representing socket-binding
-     * @param ctx migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSocketBindingScript(SocketBindingBean socketBinding, MigrationContext ctx)
+    public static String createSocketBindingScript(SocketBindingBean socketBinding)
             throws CliScriptException{
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socketBinding.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socketBinding.getSocketName(), errMsg, "Name");
 
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
-        String script = "/socket-binding-group=standard-sockets/socket-binding=";
-        script = script.concat(socketBinding.getSocketName() + ":add(");
-        script = script.concat("port=" + socketBinding.getSocketPort());
+        StringBuilder resultScript = new StringBuilder("/socket-binding-group=standard-sockets/socket-binding=");
+
+        resultScript.append(socketBinding.getSocketName()).append(":add(");
+        resultScript.append("port=").append(socketBinding.getSocketPort());
+
         builder.addProperty("interface", socketBinding.getSocketInterface());
 
+        resultScript.append(builder.asString()).append(")");
 
-        return script + builder.asString() + ")";
-
-//        String script = "/socket-binding-group=standard-sockets/socket-binding=";
-//        script = script.concat(socketBinding.getSocketName() + ":add(");
-//        script = script.concat("port=" + socketBinding.getSocketPort());
-//        script = ctx.checkingMethod(script, ", interface", socketBinding.getSocketInterface());
-//        script = script.concat(")");
-//
-//        return script;
+        return resultScript.toString();
     }
 }

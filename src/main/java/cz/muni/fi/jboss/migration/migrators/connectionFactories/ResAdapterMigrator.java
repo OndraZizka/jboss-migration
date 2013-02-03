@@ -65,15 +65,15 @@ public class ResAdapterMigrator implements IMigrator {
                     throw new LoadMigrationException("No \"-ds.xml\" to parse!");
                 }
 
-                for(int i = 0; i < list.size() ; i++){
+                for (File aList : list) {
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     DocumentBuilder db = dbf.newDocumentBuilder();
-                    Document doc = db.parse(list.get(i));
+                    Document doc = db.parse(aList);
 
                     Element element = doc.getDocumentElement();
 
-                    if(element.getTagName().equalsIgnoreCase("connection-factories")){
-                        ConnectionFactoriesBean conn = (ConnectionFactoriesBean)dataUnmarshaller.unmarshal(list.get(i));
+                    if (element.getTagName().equalsIgnoreCase("connection-factories")) {
+                        ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(aList);
                         connFactories.add(conn);
                     }
                 }
@@ -206,7 +206,7 @@ public class ResAdapterMigrator implements IMigrator {
 
             for(Node node : generateDomElements(ctx)){
                 ResourceAdapterBean resAdapter = (ResourceAdapterBean) resUnmarshaller.unmarshal(node);
-                list.add(createResAdapterScript(resAdapter, ctx));
+                list.add(createResAdapterScript(resAdapter));
             }
 
             return list;
@@ -219,11 +219,10 @@ public class ResAdapterMigrator implements IMigrator {
      * Creating CLI script for adding Resource-Adapter
      *
      * @param resourceAdapter object of Resource-Adapter
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createResAdapterScript(ResourceAdapterBean resourceAdapter, MigrationContext ctx)
+    public static String createResAdapterScript(ResourceAdapterBean resourceAdapter)
             throws CliScriptException{
         String errMsg = " in Resource Adapter(Connection-Factories in AS5) must be set.";
         Utils.throwIfBlank(resourceAdapter.getArchive(), errMsg, "Archive name");
@@ -245,7 +244,6 @@ public class ResAdapterMigrator implements IMigrator {
                 if((connDef.getClassName() == null) || (connDef.getClassName().isEmpty())){
                     throw new CliScriptException("Class-name in the connection definition cannot be null or empty");
                 }
-                cliBuilder.clear();
 
                 String connDefScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive();
                 connDefScript = connDefScript.concat("/connection-definitions=" + connDef.getPoolName() + ":add(");
@@ -286,78 +284,21 @@ public class ResAdapterMigrator implements IMigrator {
                 if(connDef.getConfigProperties() != null){
                     for(ConfigPropertyBean configProperty : connDef.getConfigProperties()){
                         // TODO: Check if something is required or if something can be not specified
-                        resultBuilder.append("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive());
-                        resultBuilder.append("/connection-definitions=" + connDef.getPoolName());
-                        resultBuilder.append("/config-properties=" + configProperty.getConfigPropertyName() + ":add(");
-                        resultBuilder.append("value=" + configProperty.getConfigProperty() + ")\n");
+                        resultBuilder.append("/subsystem=resource-adapters/resource-adapter=");
+                        resultBuilder.append(resourceAdapter.getArchive());
+
+                        resultBuilder.append("/connection-definitions=").append(connDef.getPoolName());
+
+                        resultBuilder.append("/config-properties=");
+                        resultBuilder.append(configProperty.getConfigPropertyName());
+
+                        resultBuilder.append(":add(");
+                        resultBuilder.append("value=").append(configProperty.getConfigProperty()).append(")\n");
                     }
                 }
             }
         }
+
         return resultBuilder.toString();
-
-//        String script = "/subsystem=resource-adapters/resource-adapter=";
-//
-//        script = script.concat(resourceAdapter.getArchive() + ":add(");
-//        script = script.concat("archive=" + resourceAdapter.getArchive());
-//        script = ctx.checkingMethod(script, ", transaction-support", resourceAdapter.getTransactionSupport());
-//        script = script.concat(")\n");
-//
-//        if(resourceAdapter.getConnectionDefinitions() != null){
-//            for(ConnectionDefinitionBean connectionDefinition : resourceAdapter.getConnectionDefinitions()){
-//                if((connectionDefinition.getClassName() == null) || (connectionDefinition.getClassName().isEmpty())){
-//                    throw new CliScriptException("Class-name in the connection definition cannot be null or empty");
-//                }
-//
-//                script =  script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive());
-//                script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName() + ":add(");
-//                script = ctx.checkingMethod(script, " jndi-name", connectionDefinition.getJndiName());
-//                script = ctx.checkingMethod(script, ", enabled", connectionDefinition.getEnabled());
-//                script = ctx.checkingMethod(script, ", use-java-context", connectionDefinition.getUseJavaCont());
-//                script = ctx.checkingMethod(script, ", class-name", connectionDefinition.getClassName());
-//                script = ctx.checkingMethod(script, ", use-ccm", connectionDefinition.getUseCcm());
-//                script = ctx.checkingMethod(script, ", prefill", connectionDefinition.getPrefill());
-//                script = ctx.checkingMethod(script, ", use-strict-min", connectionDefinition.getUseStrictMin());
-//                script = ctx.checkingMethod(script, ", flush-strategy", connectionDefinition.getFlushStrategy());
-//                script = ctx.checkingMethod(script, ", min-pool-size", connectionDefinition.getMinPoolSize());
-//                script = ctx.checkingMethod(script, ", max-pool-size", connectionDefinition.getMaxPoolSize());
-//
-//                // TODO: Change structure of ifs...
-//                if(connectionDefinition.getSecurityDomain() != null){
-//                    script = ctx.checkingMethod(script, ", security-domain", connectionDefinition.getSecurityDomain());
-//                }
-//
-//                if(connectionDefinition.getSecDomainAndApp() != null){
-//                    script = ctx.checkingMethod(script, ", security-domain-and-application",
-//                            connectionDefinition.getSecDomainAndApp());
-//                }
-//
-//                if(connectionDefinition.getAppManagedSec() != null){
-//                    script = ctx.checkingMethod(script, ", application-managed-security",
-//                            connectionDefinition.getAppManagedSec());
-//                }
-//
-//                script = ctx.checkingMethod(script, ", background-validation", connectionDefinition.getBackgroundValidation());
-//                script = ctx.checkingMethod(script, ", background-validation-millis", connectionDefinition.getBackgroundValiMillis());
-//                script = ctx.checkingMethod(script, ", blocking-timeout-millis", connectionDefinition.getBackgroundValiMillis());
-//                script = ctx.checkingMethod(script, ", idle-timeout-minutes", connectionDefinition.getIdleTimeoutMinutes());
-//                script = ctx.checkingMethod(script, ", allocation-retry", connectionDefinition.getAllocationRetry());
-//                script = ctx.checkingMethod(script, ", allocation-retry-wait-millis", connectionDefinition.getAllocRetryWaitMillis());
-//                script = ctx.checkingMethod(script, ", xa-resource-timeout", connectionDefinition.getXaResourceTimeout());
-//                script = script.concat(")\n");
-//
-//                if(connectionDefinition.getConfigProperties() != null){
-//                    for(ConfigPropertyBean configProperty : connectionDefinition.getConfigProperties()){
-//                        script = script.concat("/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive());
-//                        script = script.concat("/connection-definitions=" + connectionDefinition.getPoolName());
-//                        script = script.concat("/config-properties=" + configProperty.getConfigPropertyName() + ":add(");
-//                        script = script.concat("value=" + configProperty.getConfigProperty() + ")\n");
-//                    }
-//                }
-//            }
-//        }
-//        return script;
     }
-
-
 }

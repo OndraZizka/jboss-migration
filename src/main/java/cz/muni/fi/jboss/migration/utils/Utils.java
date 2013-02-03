@@ -20,14 +20,4 @@ public class Utils {
             throw new CliScriptException(name + errMsg) ;
         }
     }
-      // Only for test if new CLI scripts methods produce same result
-//    public static String checkingMethod(String script, String name, String setter){
-//        if(setter != null){
-//            if (!setter.isEmpty()) {
-//                script = script.concat(name + "=" + setter);
-//            }
-//        }
-//        return script;
-//    }
-
 }

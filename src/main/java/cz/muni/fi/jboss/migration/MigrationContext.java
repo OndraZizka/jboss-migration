@@ -69,14 +69,4 @@ public class MigrationContext {
     public void setStandaloneDoc(Document standaloneDoc) {
         this.standaloneDoc = standaloneDoc;
     }
-
-    // TODO:Only for test if new CLI scripts methods produce same result
-    public static String checkingMethod(String script, String name, String setter){
-        if(setter != null){
-            if (!setter.isEmpty()) {
-                script = script.concat(name + "=" + setter);
-            }
-        }
-        return script;
-    }
 }

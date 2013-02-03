@@ -1,16 +1,13 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
-import org.w3c.dom.Node;
 
 import java.util.List;
 
 /**
+ * Abstract class for Migrators containing configurations of Migrators.
+ *
  * @author Roman Jakubco
  *         Date: 2/2/13
  *         Time: 11:07 AM

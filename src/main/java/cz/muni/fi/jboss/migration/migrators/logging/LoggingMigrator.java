@@ -243,7 +243,7 @@ public class LoggingMigrator extends AbstractMigrator {
             for(Node node : generateDomElements(ctx)){
                 if(node.getNodeName().equals("logger")){
                     LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal(node);
-                    list.add(createLoggerScript(log, ctx));
+                    list.add(createLoggerScript(log));
                     continue;
                 }
                 // TODO: Check how add root-logger or change with CLI then implement
@@ -254,32 +254,32 @@ public class LoggingMigrator extends AbstractMigrator {
 //                }
                 if(node.getNodeName().equals("size-rotating-handler")){
                     SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal(node);
-                    list.add(createSizeHandlerScript(sizeHandler, ctx));
+                    list.add(createSizeHandlerScript(sizeHandler));
                     continue;
                 }
                 if(node.getNodeName().equals("periodic-rotating-file-handler")){
                     PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal(node);
-                    list.add(createPerHandlerScript(perHandler, ctx));
+                    list.add(createPerHandlerScript(perHandler));
                     continue;
                 }
                 if(node.getNodeName().equals("custom-handler")){
                     CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal(node);
-                    list.add(createCustomHandlerScript(cusHandler, ctx));
+                    list.add(createCustomHandlerScript(cusHandler));
                     continue;
                 }
                 if(node.getNodeName().equals("async-handler")){
                     AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal(node);
-                    list.add(createAsyncHandlerScript(asyncHandler, ctx));
+                    list.add(createAsyncHandlerScript(asyncHandler));
                     continue;
                 }
                 if(node.getNodeName().equals("console-handler")){
                     ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal(node);
-                    list.add(createConsoleHandlerScript(conHandler, ctx));
-                    continue;
+                    list.add(createConsoleHandlerScript(conHandler));
                 }
             }
 
             return list;
+
         } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
@@ -323,10 +323,10 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
                 handler.setLevel(parameter.getParamValue());
-                continue;
             }
         }
         handler.setFormatter(appender.getLayoutParamValue());
+
         return handler;
     }
 
@@ -372,11 +372,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
                 handler.setLevel(parameter.getParamValue());
-                continue;
             }
         }
 
         handler.setFormatter(appender.getLayoutParamValue());
+
         return handler;
     }
 
@@ -409,6 +409,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         handler.setSubhandlers(appendersRef);
         handler.setFormatter(appender.getLayoutParamValue());
+
         return handler;
     }
 
@@ -430,11 +431,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
                 handler.setLevel(parameter.getParamValue());
-                continue;
             }
         }
 
         handler.setFormatter(appender.getLayoutParamValue());
+
         return handler;
     }
 
@@ -466,6 +467,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         handler.setProperties(properties);
         handler.setFormatter(appender.getLayoutParamValue());
+
         return handler;
     }
 
@@ -484,45 +486,51 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creating CLI script for adding Logger
      *
      * @param logger object of Logger
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createLoggerScript(LoggerBean logger, MigrationContext ctx) throws CliScriptException{
+    public static String createLoggerScript(LoggerBean logger) throws CliScriptException{
         String errMsg = " in Logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
-        String script = "/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(";
-        script = ctx.checkingMethod(script, "level", logger.getLoggerLevelName());
-        script = ctx.checkingMethod(script, ", use-parent-handlers", logger.getUseParentHandlers());
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(");
+
+        builder.addProperty("level", logger.getLoggerLevelName());
+        builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
+
+        resultScript.append(builder.asString());
 
         if(logger.getHandlers() != null){
-            String handlers = "";
+            StringBuilder handlersBuilder = new StringBuilder();
+
             for(String handler : logger.getHandlers()){
-                handlers = handlers.concat(",\"" + handler + "\"");
+                handlersBuilder.append(",\"").append(handler).append("\"");
             }
+
+            String handlers = handlersBuilder.toString();
+
             if(!handlers.isEmpty()){
                 handlers = handlers.replaceFirst("\\,","");
-                script = script.concat(", handlers=[" + handlers +"])");
+                resultScript.append(", handlers=[").append(handlers).append("])");
             } else{
-                script = script.concat(")");
+                resultScript.append(")");
             }
         } else {
-            script = script.concat(")");
+            resultScript.append(")");
         }
-        return script;
 
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding Periodic-Rotating-File-Handler
      *
      * @param periodic object of Periodic-Rotating-File-Handler
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createPerHandlerScript(PerRotFileHandlerBean periodic, MigrationContext ctx)
+    public static String createPerHandlerScript(PerRotFileHandlerBean periodic)
             throws CliScriptException{
         String errMsg = " in Periodic-Rotating-File-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(periodic.getName(), errMsg, "Name");
@@ -530,88 +538,99 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(periodic.getPath(), errMsg, "Path");
         Utils.throwIfBlank(periodic.getSuffix(), errMsg, "Suffix");
 
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/periodic-rotating-file-handler=");
 
-        String script = "/subsystem=logging/periodic-rotating-file-handler=";
-        script = script.concat(periodic.getName() + ":add(");
-        script = script.concat("file={\"relative-to\"=>\"" + periodic.getRelativeTo()+"\"");
-        script = script.concat(", \"path\"=>\"" + periodic.getPath() + "\"}");
-        script = script.concat(", suffix=" + periodic.getSuffix());
-        script = ctx.checkingMethod(script, ", level", periodic.getLevel());
-        script = ctx.checkingMethod(script, ", formatter", periodic.getFormatter());
-        script = ctx.checkingMethod(script, ", autoflush", periodic.getAutoflush());
-        script = ctx.checkingMethod(script, ", append", periodic.getAppend());
-        script = script.concat(")");
+        resultScript.append(periodic.getName()).append(":add(");
+        resultScript.append("file={\"relative-to\"=>\"").append(periodic.getRelativeTo()).append("\"");
+        resultScript.append(", \"path\"=>\"").append(periodic.getPath()).append("\"}");
+        resultScript.append(", suffix=").append(periodic.getSuffix()).append(", ");
 
-        return script;
+        builder.addProperty("level", periodic.getLevel());
+        builder.addProperty("formatter", periodic.getFormatter());
+        builder.addProperty("autoflush", periodic.getAutoflush());
+        builder.addProperty("append", periodic.getAppend());
+
+        resultScript.append(builder.asString()).append(")");
+
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding Size-Rotating-File-Handler
      *
      * @param sizeHandler object of Size-Rotating-File-Handler
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler, MigrationContext ctx)
+    public static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException{
         String errMsg = " in Size-Rotating-File-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(sizeHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(sizeHandler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(sizeHandler.getPath(), errMsg, "Path");
 
-        String script = "/subsystem=logging/size-rotating-file-handler=";
-        script = script.concat(sizeHandler.getName() + ":add(");
-        script = script.concat("file={\"" + sizeHandler.getRelativeTo() + "\"=>\"" + sizeHandler.getPath() + "\"}");
-        script = ctx.checkingMethod(script, "level", sizeHandler.getLevel());
-        script = ctx.checkingMethod(script, ", filter", sizeHandler.getFilter());
-        script = ctx.checkingMethod(script, ", formatter", sizeHandler.getFormatter());
-        script = ctx.checkingMethod(script, ", autoflush", sizeHandler.getAutoflush());
-        script = ctx.checkingMethod(script, ", append", sizeHandler.getAppend());
-        script = ctx.checkingMethod(script, ", rotate-size", sizeHandler.getRotateSize());
-        script = ctx.checkingMethod(script, ", max-backup-index", sizeHandler.getMaxBackupIndex());
-        script = script.concat(")");
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/size-rotating-file-handler=");
 
-        return script;
+        resultScript.append(sizeHandler.getName()).append(":add(");
+        resultScript.append("file={\"").append(sizeHandler.getRelativeTo()).append("\"=>\"").append(sizeHandler.getPath()).append("\"}");
 
+        builder.addProperty("level", sizeHandler.getLevel());
+        builder.addProperty("filter", sizeHandler.getFilter());
+        builder.addProperty("formatter", sizeHandler.getFormatter());
+        builder.addProperty("autoflush", sizeHandler.getAutoflush());
+        builder.addProperty("append", sizeHandler.getAppend());
+        builder.addProperty("rotate-size", sizeHandler.getRotateSize());
+        builder.addProperty("max-backup-index", sizeHandler.getMaxBackupIndex());
+
+        resultScript.append(builder.asString()).append(")");
+
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding Async-Handler
      *
      * @param asyncHandler object of Async-Handler
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler, MigrationContext ctx)
+    public static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler)
             throws  CliScriptException{
         String errMsg = " in Async-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(asyncHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length");
 
-        String script = "/subsystem=logging/async-handler=";
-        script = script.concat(asyncHandler.getName() + ":add(");
-        script = script.concat("queue-length=" + asyncHandler.getQueueLength());
-        script = ctx.checkingMethod(script, ", level", asyncHandler.getLevel());
-        script = ctx.checkingMethod(script, ", filter", asyncHandler.getFilter());
-        script = ctx.checkingMethod(script, ", formatter", asyncHandler.getFormatter());
-        script = ctx.checkingMethod(script, ", overflow-action", asyncHandler.getOverflowAction());
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/async-handler=");
+
+        resultScript.append(asyncHandler.getName()).append(":add(");
+        resultScript.append("queue-length=").append(asyncHandler.getQueueLength());
+
+        builder.addProperty("level", asyncHandler.getLevel());
+        builder.addProperty("filter", asyncHandler.getFilter());
+        builder.addProperty("formatter", asyncHandler.getFormatter());
+        builder.addProperty("overflow-action", asyncHandler.getOverflowAction());
+
+        resultScript.append(builder.asString());
 
         if(asyncHandler.getSubhandlers() != null){
-            String handlers = "";
-            for(String subhandler  : asyncHandler.getSubhandlers()){
-                handlers=", \"" + subhandler + "\"";
+            StringBuilder handlersBuilder = new StringBuilder();
+            for(String subHandler  : asyncHandler.getSubhandlers()){
+                handlersBuilder.append(", \"").append(subHandler).append("\"");
             }
-            handlers = handlers.replaceFirst("\\, ", "");
+
+            String handlers = handlersBuilder.toString().replaceFirst("\\, ", "");
+
             if(!handlers.isEmpty()){
-                script = script.concat(", subhandlers=[" + handlers +"]");
+                resultScript.append(", subhandlers=[").append(handlers).append("]");
             }
         }
 
-        script = script.concat(")");
+        resultScript.append(")");
 
-        return script;
+        return resultScript.toString();
 
     }
 
@@ -619,66 +638,75 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creating CLI script for adding Console-Handler
      *
      * @param consoleHandler object of Console-Handler
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler, MigrationContext ctx)
+    public static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler)
             throws CliScriptException{
         String errMsg = " in Console-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(consoleHandler.getName(), errMsg, "Name");
 
-        String script = "/subsystem=logging/console-handler=";
-        script = script.concat(consoleHandler.getName() + ":add(");
-        script = ctx.checkingMethod(script, "level", consoleHandler.getLevel());
-        script = ctx.checkingMethod(script, ", filter", consoleHandler.getFilter());
-        script = ctx.checkingMethod(script, ", formatter", consoleHandler.getFormatter());
-        script = ctx.checkingMethod(script, ", autoflush", consoleHandler.getAutoflush());
-        script = ctx.checkingMethod(script, ", target", consoleHandler.getTarget());
-        script = script.concat(")");
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/console-handler=");
 
-        return script;
+        resultScript.append(consoleHandler.getName()).append(":add(");
+
+        builder.addProperty("level", consoleHandler.getLevel());
+        builder.addProperty("filter", consoleHandler.getFilter());
+        builder.addProperty("formatter", consoleHandler.getFormatter());
+        builder.addProperty("autoflush", consoleHandler.getAutoflush());
+        builder.addProperty("target", consoleHandler.getTarget());
+
+        resultScript.append(builder.asString()).append(")");
+
+        return resultScript.toString();
     }
 
     /**
      * Creating CLI script for adding Custom-Handler
      *
      * @param customHandler object ofCustom-Handler
-     * @param ctx  migration context
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createCustomHandlerScript (CustomHandlerBean customHandler, MigrationContext ctx)
+    public static String createCustomHandlerScript (CustomHandlerBean customHandler)
             throws  CliScriptException{
         String errMsg = " in Custom-Handler must be set.";
         Utils.throwIfBlank(customHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(customHandler.getModule(), errMsg, "Module");
         Utils.throwIfBlank(customHandler.getClassValue(), errMsg, "Class-value");
 
-        String script = "/subsystem=logging/custom-handler=";
-        script = script.concat(customHandler.getName() + ":add(");
-        script = ctx.checkingMethod(script, "level", customHandler.getLevel());
-        script = ctx.checkingMethod(script, ", filter", customHandler.getFilter());
-        script = ctx.checkingMethod(script, ", formatter", customHandler.getFormatter());
-        script = ctx.checkingMethod(script, ", class", customHandler.getClassValue());
-        script = ctx.checkingMethod(script, ", module", customHandler.getModule());
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=logging/custom-handler=");
+
+        resultScript.append(customHandler.getName()).append(":add(");
+
+        builder.addProperty("level", customHandler.getLevel());
+        builder.addProperty("filter", customHandler.getFilter());
+        builder.addProperty("formatter", customHandler.getFormatter());
+        builder.addProperty("class", customHandler.getClassValue());
+        builder.addProperty("module", customHandler.getModule());
+
+        resultScript.append(builder.asString());
 
         if(customHandler.getProperties() != null){
-            String properties = "";
+            StringBuilder propertiesBuilder = new StringBuilder();
             for(PropertyBean property : customHandler.getProperties()){
-                properties = properties.concat(", \"" + property.getName() + "\"=>");
-                properties = properties.concat("\"" + property.getValue() + "\"");
+                propertiesBuilder.append(", \"").append(property.getName()).append("\"=>");
+                propertiesBuilder.append("\"").append(property.getValue()).append("\"");
             }
+
+            String properties = propertiesBuilder.toString();
 
             if(!properties.isEmpty()){
                 properties = properties.replaceFirst("\\, ", "");
-                script = script.concat(", properties={" + properties + "}");
+                resultScript.append(", properties={").append(properties).append("}");
             }
         }
 
-        script = script.concat(")");
+        resultScript.append(")");
 
-        return script;
+        return resultScript.toString();
     }
 
 }
