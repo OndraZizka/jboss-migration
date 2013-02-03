@@ -16,7 +16,10 @@ import org.eclipse.persistence.exceptions.JAXBException;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
@@ -39,21 +42,21 @@ public class Migrator {
 
     private MigrationContext ctx;
 
-    private List<IMigrator> migrators ;
+    private List<IMigrator> migrators;
 
-    public Migrator(Configuration config, MigrationContext context){
+    public Migrator(Configuration config, MigrationContext context) {
         this.config = config;
         this.ctx = context;
         this.migrators = createMigrators();
     }
 
-    private List<IMigrator> createMigrators(){
+    private List<IMigrator> createMigrators() {
         List<IMigrator> migrators = new LinkedList();
-        migrators.add( new DatasourceMigrator(this.config.getGlobal(), this.config.getForMigrator(DatasourceMigrator.class)));
-        migrators.add( new ResAdapterMigrator(this.config.getGlobal(), this.config.getForMigrator(ResAdapterMigrator.class)));
-        migrators.add( new SecurityMigrator(this.config.getGlobal(), this.config.getForMigrator(SecurityMigrator.class)));
-        migrators.add( new LoggingMigrator(this.config.getGlobal(), this.config.getForMigrator(LoggingMigrator.class)));
-        migrators.add( new ServerMigrator(this.config.getGlobal(), this.config.getForMigrator(ServerMigrator.class)));
+        migrators.add(new DatasourceMigrator(this.config.getGlobal(), this.config.getForMigrator(DatasourceMigrator.class)));
+        migrators.add(new ResAdapterMigrator(this.config.getGlobal(), this.config.getForMigrator(ResAdapterMigrator.class)));
+        migrators.add(new SecurityMigrator(this.config.getGlobal(), this.config.getForMigrator(SecurityMigrator.class)));
+        migrators.add(new LoggingMigrator(this.config.getGlobal(), this.config.getForMigrator(LoggingMigrator.class)));
+        migrators.add(new ServerMigrator(this.config.getGlobal(), this.config.getForMigrator(ServerMigrator.class)));
 
         return migrators;
     }
@@ -69,7 +72,7 @@ public class Migrator {
      */
     public void loadAS5Data() throws LoadMigrationException {
         try {
-            for(IMigrator mig : this.migrators){
+            for (IMigrator mig : this.migrators) {
                 mig.loadAS5Data(this.ctx);
             }
         } catch (JAXBException e) {
@@ -83,14 +86,14 @@ public class Migrator {
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
     public void apply() throws ApplyMigrationException {
-        for(IMigrator mig : this.migrators){
+        for (IMigrator mig : this.migrators) {
             mig.apply(this.ctx);
         }
         try {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult( new File(this.config.getGlobal().getStandaloneFilePath()));
+            StreamResult result = new StreamResult(new File(this.config.getGlobal().getStandaloneFilePath()));
             //StreamResult result = new StreamResult(System.out);
             DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
             transformer.transform(source, result);
@@ -107,9 +110,9 @@ public class Migrator {
      * @return List containing all generated Nodes
      * @throws MigrationException if migrating of file or generating of nodes fails.
      */
-    public List<Node> getDOMElements() throws MigrationException{
+    public List<Node> getDOMElements() throws MigrationException {
         List<Node> elements = new ArrayList<>();
-        for(IMigrator mig : this.migrators){
+        for (IMigrator mig : this.migrators) {
             elements.addAll(mig.generateDomElements(this.ctx));
         }
 
@@ -122,9 +125,9 @@ public class Migrator {
      * @return List containing generated scripts from all migrated subsystems
      * @throws CliScriptException if creation of scripts fail
      */
-    public List<String> getCLIScripts() throws CliScriptException{
+    public List<String> getCLIScripts() throws CliScriptException {
         List<String> scripts = new ArrayList<>();
-        for(IMigrator mig : this.migrators){
+        for (IMigrator mig : this.migrators) {
             scripts.addAll(mig.generateCliScripts(this.ctx));
         }
 
@@ -136,39 +139,39 @@ public class Migrator {
      *
      * @throws CopyException if copying of files fails.
      */
-    public void copyItems() throws CopyException{
+    public void copyItems() throws CopyException {
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
 
-        for(RollbackData rollData : this.ctx.getRollbackDatas()){
-            if(rollData.getName() == null || rollData.getName().isEmpty()){
+        for (RollbackData rollData : this.ctx.getRollbackDatas()) {
+            if (rollData.getName() == null || rollData.getName().isEmpty()) {
                 throw new NullPointerException();
             }
 
             NameFileFilter nff;
-            if(rollData.getType().equals("driver")){
+            if (rollData.getType().equals("driver")) {
                 final String name = rollData.getName();
-                nff = new NameFileFilter(name){
+                nff = new NameFileFilter(name) {
                     @Override
                     public boolean accept(File file) {
                         return file.getName().contains(name) && file.getName().contains("jar");
                     }
                 };
-            } else{
+            } else {
                 nff = new NameFileFilter(rollData.getName());
             }
 
             List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
 
-            switch(rollData.getType()){
-                case "driver":{
+            switch (rollData.getType()) {
+                case "driver": {
                     // TODO:Can there be only one jar of selected driver or many different versions?
-                    if(list.isEmpty()){
+                    if (list.isEmpty()) {
                         // Special case for freeware jdbc driver jdts.jar
-                        if(rollData.getAltName() != null){
+                        if (rollData.getAltName() != null) {
                             final String altName = rollData.getAltName();
 
-                            nff =  new NameFileFilter(altName){
+                            nff = new NameFileFilter(altName) {
                                 @Override
                                 public boolean accept(File file) {
                                     return file.getName().contains(altName) && file.getName().contains("jar");
@@ -177,17 +180,25 @@ public class Migrator {
                             List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
                                     FileFilterUtils.makeCVSAware(null));
 
-                            Utils.setRollbackData(rollData, altList, targetPath); break;
+                            Utils.setRollbackData(rollData, altList, targetPath);
+                            break;
                         } else {
                             throw new CopyException("Cannot locate driver jar for driver:" + rollData.getName() + "!");
                         }
-                    } else{
+                    } else {
                         Utils.setRollbackData(rollData, list, targetPath);
                     }
-                } break;
-                case "log": Utils.setRollbackData(rollData, list, targetPath); break;
-                case "security": Utils.setRollbackData(rollData, list, targetPath); break;
-                case "resource": Utils.setRollbackData(rollData, list, targetPath); break;
+                }
+                break;
+                case "log":
+                    Utils.setRollbackData(rollData, list, targetPath);
+                    break;
+                case "security":
+                    Utils.setRollbackData(rollData, list, targetPath);
+                    break;
+                case "resource":
+                    Utils.setRollbackData(rollData, list, targetPath);
+                    break;
             }
         }
 
@@ -198,16 +209,16 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for(RollbackData cp : this.ctx.getRollbackDatas()){
-                if(cp.getType().equals("driver")){
+            for (RollbackData cp : this.ctx.getRollbackDatas()) {
+                if (cp.getType().equals("driver")) {
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
                     File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
 
-                    if(module.createNewFile()){
+                    if (module.createNewFile()) {
                         transformer.transform(new DOMSource(AS7ModuleUtils.createModuleXML(cp)), new StreamResult(module));
-                    } else{
-                        throw new CopyException("Cannot create file \"module.xml\" in AS7 structure.");
+                    } else {
+                        throw new CopyException("File \"module.xml\" already exists!");
                     }
                 }
 

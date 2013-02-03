@@ -1,11 +1,14 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.server.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -15,7 +18,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 
-public class ServerMigrator extends AbstractMigrator{
+public class ServerMigrator extends AbstractMigrator {
 
     private Set<SocketBindingBean> socketTemp = new HashSet();
 
@@ -39,9 +41,9 @@ public class ServerMigrator extends AbstractMigrator{
 
     private Integer randomSocket = 1;
 
-    private Integer randomConnector =1 ;
+    private Integer randomConnector = 1;
 
-    public ServerMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
+    public ServerMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
 
@@ -54,28 +56,28 @@ public class ServerMigrator extends AbstractMigrator{
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5Bean.class ).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5Bean.class).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
             File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
                     File.separator + "deploy" + File.separator + "jbossweb.sar" + File.separator + "server.xml");
 
-            if(file.canRead()){
-                ServerAS5Bean serverAS5 = (ServerAS5Bean)unmarshaller.unmarshal(file);
+            if (file.canRead()) {
+                ServerAS5Bean serverAS5 = (ServerAS5Bean) unmarshaller.unmarshal(file);
 
                 MigrationData mData = new MigrationData();
-                for(ServiceBean s : serverAS5.getServices()){
+                for (ServiceBean s : serverAS5.getServices()) {
                     mData.getConfigFragment().add(s.getEngine());
                     mData.getConfigFragment().addAll(s.getConnectorAS5s());
                 }
 
                 ctx.getMigrationData().put(ServerMigrator.class, mData);
 
-            } else{
-                 throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
-                         FileNotFoundException());
+            } else {
+                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                        FileNotFoundException());
             }
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
@@ -83,28 +85,28 @@ public class ServerMigrator extends AbstractMigrator{
     }
 
     @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+    public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for(int i = 0; i < subsystems.getLength(); i++){
-                if(!(subsystems.item(i) instanceof Element)){
+            for (int i = 0; i < subsystems.getLength(); i++) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
-                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("web")){
-                    if(!((Element) subsystems.item(i)).getAttribute("xmlns").contains("web-services")){
+                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("web")) {
+                    if (!((Element) subsystems.item(i)).getAttribute("xmlns").contains("web-services")) {
                         Node parent = subsystems.item(i);
                         Node lastNode = parent.getLastChild();
 
-                        while(!(lastNode instanceof Element)){
+                        while (!(lastNode instanceof Element)) {
                             lastNode = lastNode.getPreviousSibling();
                         }
 
-                        for(Node node : generateDomElements(ctx)){
+                        for (Node node : generateDomElements(ctx)) {
                             Node adopted = doc.adoptNode(node.cloneNode(true));
-                            if(node.getNodeName().equals("virtual-server")){
+                            if (node.getNodeName().equals("virtual-server")) {
                                 parent.appendChild(adopted);
-                            } else{
+                            } else {
                                 parent.insertBefore(adopted, lastNode);
                             }
                         }
@@ -113,19 +115,19 @@ public class ServerMigrator extends AbstractMigrator{
                 }
             }
             NodeList socketGroup = doc.getElementsByTagName("socket-binding-group");
-            for(int i = 0; i < socketGroup.getLength(); i++){
-                if(!(socketGroup.item(i) instanceof Element)){
+            for (int i = 0; i < socketGroup.getLength(); i++) {
+                if (!(socketGroup.item(i) instanceof Element)) {
                     continue;
                 }
                 Node parent = socketGroup.item(i);
                 Node lastNode = parent.getLastChild();
 
-                while(!(lastNode instanceof Element)){
+                while (!(lastNode instanceof Element)) {
                     lastNode = lastNode.getPreviousSibling();
                 }
 
-                for(Node node : generateDomElements(ctx)){
-                    if(node.getNodeName().equals("socket-binding")){
+                for (Node node : generateDomElements(ctx)) {
+                    if (node.getNodeName().equals("socket-binding")) {
                         Node adopted = doc.adoptNode(node.cloneNode(true));
                         parent.insertBefore(adopted, lastNode);
                     }
@@ -138,7 +140,7 @@ public class ServerMigrator extends AbstractMigrator{
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7Bean.class);
             JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServerBean.class);
@@ -150,8 +152,8 @@ public class ServerMigrator extends AbstractMigrator{
             Marshaller virSerMarshaller = virSerCtx.createMarshaller();
             Marshaller socketMarshaller = socketCtx.createMarshaller();
 
-            for(IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()){
-                if(data instanceof ConnectorAS5Bean){
+            for (IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()) {
+                if (data instanceof ConnectorAS5Bean) {
                     ConnectorAS5Bean connector = (ConnectorAS5Bean) data;
                     ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
                     connAS7.setEnabled("true");
@@ -186,7 +188,7 @@ public class ServerMigrator extends AbstractMigrator{
                         connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp", ctx));
                     }
 
-                    if(connector.getSslEnabled() != null){
+                    if (connector.getSslEnabled() != null) {
                         if (connector.getSslEnabled().equals("true")) {
                             connAS7.setScheme("https");
                             connAS7.setSecure(connector.getSecure());
@@ -210,11 +212,11 @@ public class ServerMigrator extends AbstractMigrator{
                         }
                     }
                     Document doc = ctx.getDocBuilder().newDocument();
-                    connMarshaller.marshal(connAS7,doc);
+                    connMarshaller.marshal(connAS7, doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                if(data instanceof EngineBean){
+                if (data instanceof EngineBean) {
                     EngineBean eng = (EngineBean) data;
                     VirtualServerBean virtualServer = new VirtualServerBean();
                     virtualServer.setVirtualServerName(eng.getEngineName());
@@ -230,7 +232,7 @@ public class ServerMigrator extends AbstractMigrator{
                 throw new NodeGenerationException("Object is not part of Server migration!");
             }
 
-            for(SocketBindingBean sb : this.socketBindings){
+            for (SocketBindingBean sb : this.socketBindings) {
                 Document doc = ctx.getDocBuilder().newDocument();
                 socketMarshaller.marshal(sb, doc);
                 nodeList.add(doc.getDocumentElement());
@@ -244,7 +246,7 @@ public class ServerMigrator extends AbstractMigrator{
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
             List<String> list = new ArrayList();
 
@@ -252,18 +254,18 @@ public class ServerMigrator extends AbstractMigrator{
             Unmarshaller virtualUnmarshaller = JAXBContext.newInstance(VirtualServerBean.class).createUnmarshaller();
             Unmarshaller socketUnmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
-            for(Node node : generateDomElements(ctx)){
-                if(node.getNodeName().equals("connector")){
+            for (Node node : generateDomElements(ctx)) {
+                if (node.getNodeName().equals("connector")) {
                     ConnectorAS7Bean conn = (ConnectorAS7Bean) connUnmarshaller.unmarshal(node);
                     list.add(createConnectorScript(conn));
                     continue;
                 }
-                if(node.getNodeName().equals("virtual-server")){
+                if (node.getNodeName().equals("virtual-server")) {
                     VirtualServerBean virtual = (VirtualServerBean) virtualUnmarshaller.unmarshal(node);
                     list.add(createVirtualServerScript(virtual));
                     continue;
                 }
-                if(node.getNodeName().equals("socket-binding")){
+                if (node.getNodeName().equals("socket-binding")) {
                     SocketBindingBean socketBinding = (SocketBindingBean) socketUnmarshaller.unmarshal(node);
                     list.add(createSocketBindingScript(socketBinding));
                 }
@@ -278,21 +280,21 @@ public class ServerMigrator extends AbstractMigrator{
     /**
      * Method for creating socket-bindings, which are already in fresh standalone files.
      *
-     * @param ctx  migration context
+     * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(MigrationContext ctx)  throws LoadMigrationException{
+    private void createDefaultSockets(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class ).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
             NodeList bindings = ctx.getStandaloneDoc().getElementsByTagName("socket-binding");
-            for(int i = 0; i < bindings.getLength(); i++) {
-                if(!(bindings.item(i) instanceof Element)){
+            for (int i = 0; i < bindings.getLength(); i++) {
+                if (!(bindings.item(i) instanceof Element)) {
                     continue;
                 }
-                SocketBindingBean socketBinding = (SocketBindingBean)unmarshaller.unmarshal(bindings.item(i));
-                if((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)){
+                SocketBindingBean socketBinding = (SocketBindingBean) unmarshaller.unmarshal(bindings.item(i));
+                if ((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)) {
                     this.socketTemp.add(socketBinding);
                 }
 
@@ -307,20 +309,18 @@ public class ServerMigrator extends AbstractMigrator{
      * Method for creating socket-binding if it doesn't already exists.
      *
      * @param port port of the connector, which will be converted to socket-binding
-     * @param name  name of the protocol which is used by connector (ajp/http/https)
+     * @param name name of the protocol which is used by connector (ajp/http/https)
      * @return name of the socket-binding so it cant be referenced in connector
      * @throws NodeGenerationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name, MigrationContext ctx) throws NodeGenerationException{
-        if(this.socketTemp.isEmpty()){
+    private String createSocketBinding(String port, String name, MigrationContext ctx) throws NodeGenerationException {
+        if (this.socketTemp.isEmpty()) {
             try {
                 createDefaultSockets(ctx);
             } catch (LoadMigrationException e) {
                 throw new NodeGenerationException(e);
             }
         }
-
-        Set<SocketBindingBean> temp = new HashSet();
 
         for (SocketBindingBean sb : this.socketTemp) {
             if (sb.getSocketPort().equals(port)) {
@@ -364,7 +364,7 @@ public class ServerMigrator extends AbstractMigrator{
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException{
+    public static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException {
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
@@ -391,7 +391,7 @@ public class ServerMigrator extends AbstractMigrator{
 
         resultScript.append(builder.asString()).append(")");
 
-        if(connAS7.getScheme().equals("https"))  {
+        if (connAS7.getScheme().equals("https")) {
             resultScript.append("\n/subsystem=web/connector=").append(connAS7.getConnectorName());
             resultScript.append("/ssl=configuration:add(");
 
@@ -428,16 +428,16 @@ public class ServerMigrator extends AbstractMigrator{
         builder.addProperty("default-web-module", virtualServer.getDefaultWebModule());
 
         String aliases = "";
-        if(virtualServer.getAliasName() != null){
+        if (virtualServer.getAliasName() != null) {
             StringBuilder aliasBuilder = new StringBuilder();
-            for(String alias : virtualServer.getAliasName()){
+            for (String alias : virtualServer.getAliasName()) {
                 aliasBuilder.append(", \"").append(alias).append("\"");
             }
 
             aliases = aliasBuilder.toString();
-            aliases = aliases.replaceFirst("\\, ", "");
+            aliases = aliases.replaceFirst(", ", "");
 
-            if(!aliases.isEmpty()){
+            if (!aliases.isEmpty()) {
                 aliases = ", alias=[" + aliases + "]";
             }
         }
@@ -455,7 +455,7 @@ public class ServerMigrator extends AbstractMigrator{
      * @throws CliScriptException if required attributes are missing
      */
     public static String createSocketBindingScript(SocketBindingBean socketBinding)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socketBinding.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socketBinding.getSocketName(), errMsg, "Name");

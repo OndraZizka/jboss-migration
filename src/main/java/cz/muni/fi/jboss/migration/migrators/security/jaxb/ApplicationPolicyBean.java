@@ -11,21 +11,21 @@ import java.util.Set;
  * Class for unmarshalling and representing application-policy (AS5)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 9:03 PM
+ *         Date: 10/2/12
+ *         Time: 9:03 PM
  */
 
 @XmlRootElement(name = "application-policy")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "application-policy")
 
-public  class ApplicationPolicyBean implements IConfigFragment {
+public class ApplicationPolicyBean implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String applicationPolicyName;
 
     @XmlElementWrapper(name = "authentication")
-    @XmlElements( @XmlElement(name = "login-module", type = LoginModuleAS5Bean.class))
+    @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS5Bean.class))
     private Set<LoginModuleAS5Bean> loginModules;
 
     public String getApplicationPolicyName() {

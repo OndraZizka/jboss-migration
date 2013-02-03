@@ -9,15 +9,15 @@ import java.util.Set;
  * Class for unmarshalling and representing login-module (AS5)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 9:04 PM
+ *         Date: 10/2/12
+ *         Time: 9:04 PM
  */
 
 @XmlRootElement(name = "login-module")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "login-module")
 
-public  class LoginModuleAS5Bean {
+public class LoginModuleAS5Bean {
     @XmlAttribute(name = "code")
     private String loginModule;
 

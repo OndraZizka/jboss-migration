@@ -7,8 +7,8 @@ import org.apache.commons.lang.StringUtils;
  * helping create modules for drivers.
  *
  * @author Roman Jakubco
- * Date: 11/12/12
- * Time: 3:13 PM
+ *         Date: 11/12/12
+ *         Time: 3:13 PM
  */
 public class RollbackData {
     private String name;
@@ -74,34 +74,34 @@ public class RollbackData {
      *
      * @param name driver-class from -ds.xml file from AS5
      */
-    public void setDriverName(String name){
-        if(name.contains("postgres")){
+    public void setDriverName(String name) {
+        if (name.contains("postgres")) {
             this.name = "postgresql";
             return;
         }
-        if(name.contains("microsoft")){
+        if (name.contains("microsoft")) {
             this.name = "sqljdbc";
             this.altName = "jtds";
             return;
         }
-        if(name.contains("db2")){
+        if (name.contains("db2")) {
             this.name = "db2";
             return;
         }
-        if(name.contains("sybase")){
+        if (name.contains("sybase")) {
             this.name = "sybase";
             this.altName = "jtds";
             return;
         }
-        if(name.contains("mysql")){
+        if (name.contains("mysql")) {
             this.name = "sqljdbc";
             return;
         }
-        if(name.contains("oracle")){
+        if (name.contains("oracle")) {
             this.name = "ojdbc";
             return;
         }
-        if(name.contains("hsqldb")){
+        if (name.contains("hsqldb")) {
             this.name = "hsqldb";
             return;
         }

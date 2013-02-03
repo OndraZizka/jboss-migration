@@ -9,8 +9,8 @@ import java.util.Set;
  * Class for marshalling and representing resource-adapter (AS7)
  *
  * @author Roman Jakubco
- * Date: 8/28/12
- * Time: 3:27 PM
+ *         Date: 8/28/12
+ *         Time: 3:27 PM
  */
 
 @XmlRootElement(name = "resource-adapter")
@@ -19,14 +19,14 @@ import java.util.Set;
 
 public class ResourceAdapterBean {
 
-     private String jndiName;
+    private String jndiName;
 
-     @XmlElement(name = "archive")
-     private String archive;
+    @XmlElement(name = "archive")
+    private String archive;
 
     //Problem? No link with AS5? is it required?
-     @XmlElement(name = "transaction-support")
-     private String transactionSupport;
+    @XmlElement(name = "transaction-support")
+    private String transactionSupport;
 
     @XmlElementWrapper(name = "connection-definitions")
     @XmlElement(name = "connection-definition", type = ConnectionDefinitionBean.class)

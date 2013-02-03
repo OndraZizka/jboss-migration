@@ -9,8 +9,8 @@ import java.util.Set;
  * Class for marshalling and representing security-domain (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 9:04 PM
+ *         Date: 10/2/12
+ *         Time: 9:04 PM
  */
 
 @XmlRootElement(name = "security-domain")
@@ -26,7 +26,7 @@ public class SecurityDomainBean {
     private String cacheType;
 
     @XmlElementWrapper(name = "authentication")
-    @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS7Bean.class ))
+    @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS7Bean.class))
     private Set<LoginModuleAS7Bean> loginModules;
 
     public String getSecurityDomainName() {

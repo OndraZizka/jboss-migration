@@ -9,8 +9,8 @@ import java.util.Set;
  * Class for unmarshalling and representing security policy (AS5)
  *
  * @author Roman Jakubco
- * Date: 9/23/12
- * Time: 6:28 PM
+ *         Date: 9/23/12
+ *         Time: 6:28 PM
  */
 
 @XmlRootElement(name = "policy")
@@ -19,8 +19,8 @@ import java.util.Set;
 
 public class SecurityAS5Bean {
 
-      @XmlElements(@XmlElement(name = "application-policy", type = ApplicationPolicyBean.class))
-      private Set<ApplicationPolicyBean> applicationPolicies;
+    @XmlElements(@XmlElement(name = "application-policy", type = ApplicationPolicyBean.class))
+    private Set<ApplicationPolicyBean> applicationPolicies;
 
     public Set<ApplicationPolicyBean> getApplicationPolicies() {
         return applicationPolicies;
@@ -31,9 +31,6 @@ public class SecurityAS5Bean {
         temp.addAll(applicationPolicies);
         this.applicationPolicies = temp;
     }
-
-
-
 
 
 }

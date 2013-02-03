@@ -1,9 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class for building Cli scripts using StringBuilder.
@@ -20,12 +18,12 @@ public class CliAddCommandBuilder {
      * Method for adding new property to script. Method checks if value isn't empty or null before storing.
      *
      * @param property which should be set
-     * @param value value of property
+     * @param value    value of property
      */
-    public void addProperty(String property, String value){
-        if(value != null){
+    public void addProperty(String property, String value) {
+        if (value != null) {
             if (!value.isEmpty()) {
-                this.properties.add(property + "=" +value);
+                this.properties.add(property + "=" + value);
             }
         }
     }
@@ -35,21 +33,21 @@ public class CliAddCommandBuilder {
      *
      * @return string containing all data
      */
-    public String asString(){
-       StringBuilder builder = new StringBuilder();
+    public String asString() {
+        StringBuilder builder = new StringBuilder();
 
-       for(int i = 0; i < this.properties.size(); i++){
-           if(i == this.properties.size()-1){
-              builder.append(this.properties.get(i));
-               continue;
-           }
-           builder.append(this.properties.get(i));
-           builder.append(", ");
-       }
+        for (int i = 0; i < this.properties.size(); i++) {
+            if (i == this.properties.size() - 1) {
+                builder.append(this.properties.get(i));
+                continue;
+            }
+            builder.append(this.properties.get(i));
+            builder.append(", ");
+        }
 
-       properties.clear();
+        properties.clear();
 
-       return builder.toString();
+        return builder.toString();
     }
 
 

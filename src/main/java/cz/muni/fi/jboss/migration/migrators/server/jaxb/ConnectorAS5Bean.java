@@ -8,15 +8,15 @@ import javax.xml.bind.annotation.*;
  * Class for unmarshalling and representing connector in AS5 (AS5)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 9:12 PM
+ *         Date: 10/2/12
+ *         Time: 9:12 PM
  */
 
 @XmlRootElement(name = "connector")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connector")
 
-public  class ConnectorAS5Bean implements IConfigFragment {
+public class ConnectorAS5Bean implements IConfigFragment {
     // Only attributes which can be migrated to AS7
     // AJP+ HTTP ... similar attributes
 
@@ -72,7 +72,7 @@ public  class ConnectorAS5Bean implements IConfigFragment {
     private String ciphers;
 
     @XmlAttribute(name = "keyAlias")
-    private  String keyAlias;
+    private String keyAlias;
 
     @XmlAttribute(name = "truststoreFile")
     private String trustStoreFile;

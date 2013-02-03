@@ -1,13 +1,14 @@
 package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.*;
-
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.w3c.dom.Document;
@@ -23,7 +24,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,29 +39,25 @@ import java.util.Set;
  *         Time: 10:41 AM
  */
 
-public class ResAdapterMigrator implements IMigrator {
+public class ResAdapterMigrator extends AbstractMigrator {
 
-    private GlobalConfiguration globalConfig;
-
-    private List<Pair<String,String>> config;
-
-    public ResAdapterMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
-        this.globalConfig = globalConfig;
-        this.config =  config;
+    public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
+        super(globalConfig, config);
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws  LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
-            File dsFiles = new File(globalConfig.getDirAS5() + globalConfig.getProfileAS5() + File.separator + "deploy");
+            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5()
+                    + File.separator + "deploy");
 
-            if(dsFiles.canRead()){
+            if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
                 List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, null);
-                if(list.isEmpty()){
+                if (list.isEmpty()) {
                     throw new LoadMigrationException("No \"-ds.xml\" to parse!");
                 }
 
@@ -79,12 +75,12 @@ public class ResAdapterMigrator implements IMigrator {
                 }
             } else {
                 throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
-                        + File.separator+"deploy\"");
+                        + File.separator + "deploy\"");
             }
 
             MigrationData mData = new MigrationData();
 
-            for(ConnectionFactoriesBean cf : connFactories){
+            for (ConnectionFactoriesBean cf : connFactories) {
                 mData.getConfigFragment().addAll(cf.getConnectionFactories());
             }
 
@@ -96,18 +92,18 @@ public class ResAdapterMigrator implements IMigrator {
     }
 
     @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+    public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for(int i = 0; i < subsystems.getLength(); i++){
-                if(!(subsystems.item(i) instanceof Element)){
+            for (int i = 0; i < subsystems.getLength(); i++) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
-                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")){
+                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")) {
                     Node parent = doc.createElement("resource-adapters");
 
-                    for(Node node : generateDomElements(ctx)){
+                    for (Node node : generateDomElements(ctx)) {
                         Node adopted = doc.adoptNode(node.cloneNode(true));
                         parent.appendChild(adopted);
                     }
@@ -127,8 +123,8 @@ public class ResAdapterMigrator implements IMigrator {
             List<Node> nodeList = new ArrayList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
-            for(IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()){
-                if(!(fragment instanceof ConnectionFactoryAS5Bean)){
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()) {
+                if (!(fragment instanceof ConnectionFactoryAS5Bean)) {
                     throw new NodeGenerationException("Object is not part of resource-adapter" +
                             "(connection-factories) migration!");
                 }
@@ -199,12 +195,12 @@ public class ResAdapterMigrator implements IMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
             List<String> list = new ArrayList();
             Unmarshaller resUnmarshaller = JAXBContext.newInstance(ResourceAdapterBean.class).createUnmarshaller();
 
-            for(Node node : generateDomElements(ctx)){
+            for (Node node : generateDomElements(ctx)) {
                 ResourceAdapterBean resAdapter = (ResourceAdapterBean) resUnmarshaller.unmarshal(node);
                 list.add(createResAdapterScript(resAdapter));
             }
@@ -223,7 +219,7 @@ public class ResAdapterMigrator implements IMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createResAdapterScript(ResourceAdapterBean resourceAdapter)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in Resource Adapter(Connection-Factories in AS5) must be set.";
         Utils.throwIfBlank(resourceAdapter.getArchive(), errMsg, "Archive name");
 
@@ -238,10 +234,9 @@ public class ResAdapterMigrator implements IMigrator {
         resultBuilder.append(adapterScript);
 
 
-
-        if(resourceAdapter.getConnectionDefinitions() != null){
-            for(ConnectionDefinitionBean connDef : resourceAdapter.getConnectionDefinitions()){
-                if((connDef.getClassName() == null) || (connDef.getClassName().isEmpty())){
+        if (resourceAdapter.getConnectionDefinitions() != null) {
+            for (ConnectionDefinitionBean connDef : resourceAdapter.getConnectionDefinitions()) {
+                if ((connDef.getClassName() == null) || (connDef.getClassName().isEmpty())) {
                     throw new CliScriptException("Class-name in the connection definition cannot be null or empty");
                 }
 
@@ -258,15 +253,15 @@ public class ResAdapterMigrator implements IMigrator {
                 cliBuilder.addProperty("min-pool-size", connDef.getMinPoolSize());
                 cliBuilder.addProperty("max-pool-size", connDef.getMaxPoolSize());
 
-                if(connDef.getSecurityDomain() != null){
+                if (connDef.getSecurityDomain() != null) {
                     cliBuilder.addProperty("security-domain", connDef.getSecurityDomain());
                 }
 
-                if(connDef.getSecDomainAndApp() != null){
+                if (connDef.getSecDomainAndApp() != null) {
                     cliBuilder.addProperty("security-domain-and-application", connDef.getSecDomainAndApp());
                 }
 
-                if(connDef.getAppManagedSec() != null){
+                if (connDef.getAppManagedSec() != null) {
                     cliBuilder.addProperty("application-managed-security", connDef.getAppManagedSec());
                 }
 
@@ -281,8 +276,8 @@ public class ResAdapterMigrator implements IMigrator {
                 connDefScript = connDefScript.concat(cliBuilder.asString() + ")\n");
                 resultBuilder.append(connDefScript);
 
-                if(connDef.getConfigProperties() != null){
-                    for(ConfigPropertyBean configProperty : connDef.getConfigProperties()){
+                if (connDef.getConfigProperties() != null) {
+                    for (ConfigPropertyBean configProperty : connDef.getConfigProperties()) {
                         // TODO: Check if something is required or if something can be not specified
                         resultBuilder.append("/subsystem=resource-adapters/resource-adapter=");
                         resultBuilder.append(resourceAdapter.getArchive());

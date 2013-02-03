@@ -6,9 +6,9 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing property (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:24 PM
-*/
+ *         Date: 10/2/12
+ *         Time: 8:24 PM
+ */
 @XmlRootElement(name = "property")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "property")

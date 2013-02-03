@@ -12,8 +12,8 @@ import java.util.Set;
  * Class for marshalling and representing datasource in AS7 (AS7)
  *
  * @author Roman Jakubco
- * Date: 8/27/12
- * Time: 1:29 PM
+ *         Date: 8/27/12
+ *         Time: 1:29 PM
  */
 @XmlRootElement(name = "datasource")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -55,7 +55,7 @@ public class DatasourceAS7Bean {
     @XmlElement(name = "new-connection-sql")
     private String newConnectionSql;
 
-    @XmlElements(@XmlElement(name ="connection-property", type = ConnectionPropertyBean.class))
+    @XmlElements(@XmlElement(name = "connection-property", type = ConnectionPropertyBean.class))
     private Set<ConnectionPropertyBean> connectionProperties;
 
     // Elements in pool element
@@ -194,6 +194,7 @@ public class DatasourceAS7Bean {
     public void setConnectionUrl(String connectionUrl) {
         this.connectionUrl = connectionUrl;
     }
+
     public String getDriver() {
         return driver;
     }

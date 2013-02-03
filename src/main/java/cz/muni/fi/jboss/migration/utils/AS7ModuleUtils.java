@@ -22,31 +22,31 @@ public class AS7ModuleUtils {
      *
      * @return string containing generate module name
      */
-    public static String createDriverModule(String driverName){
+    public static String createDriverModule(String driverName) {
         String module = "jdbc.drivers.";
-        if(driverName.contains("mysql")){
+        if (driverName.contains("mysql")) {
             module = module + "mysql";
         }
         // Mssql
-        if(driverName.contains("microsoft")){
+        if (driverName.contains("microsoft")) {
             module = module + "mssql";
         }
-        if(driverName.contains("sybase")){
+        if (driverName.contains("sybase")) {
             module = module + "sybase";
         }
-        if(driverName.contains("postgresql")){
+        if (driverName.contains("postgresql")) {
             module = module + "postgresql";
         }
-        if(driverName.contains("oracle")){
+        if (driverName.contains("oracle")) {
             module = module + "oracle";
         }
-        if(driverName.contains("hsqldb")){
+        if (driverName.contains("hsqldb")) {
             module = module + "hsqldb";
         }
-        if(driverName.contains("db2")){
+        if (driverName.contains("db2")) {
             module = module + "db2";
         }
-        if(driverName.contains("jtds")){
+        if (driverName.contains("jtds")) {
             module = module + "jtds";
         }
 
@@ -56,8 +56,9 @@ public class AS7ModuleUtils {
     /**
      * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
      *
-     * @return  Document representing created module.xml for given driver
-     * @throws javax.xml.parsers.ParserConfigurationException  if parser cannot be initialized
+     * @return Document representing created module.xml for given driver
+     * @throws javax.xml.parsers.ParserConfigurationException
+     *          if parser cannot be initialized
      */
     public static Document createModuleXML(RollbackData data) throws ParserConfigurationException {
 
@@ -79,7 +80,7 @@ public class AS7ModuleUtils {
         domFactory.setIgnoringComments(true);
         DocumentBuilder builder = domFactory.newDocumentBuilder();
 
-        Document doc =  builder.getDOMImplementation().createDocument(null, null, null);
+        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
 
         Element root = doc.createElement("module");
         doc.appendChild(root);

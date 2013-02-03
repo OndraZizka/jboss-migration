@@ -12,8 +12,8 @@ import java.util.Set;
  * Class for unmarshalling and representing category (AS5)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:10 PM
+ *         Date: 10/2/12
+ *         Time: 8:10 PM
  */
 
 @XmlRootElement(name = "category")

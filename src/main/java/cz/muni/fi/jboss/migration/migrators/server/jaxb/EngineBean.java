@@ -34,7 +34,7 @@ public class EngineBean implements IConfigFragment {
     private String jvmRoute;
 
     @XmlPath("Realm/@className")
-    private  String realmClassName;
+    private String realmClassName;
 
     @XmlPath("Realm/@certificatePrincipal")
     private String certificatePrincipal;

@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for marshalling and representing socket-binding-group (AS7)
  *
  * @author Roman Jakubco
- * Date: 9/21/12
- * Time: 3:49 PM
+ *         Date: 9/21/12
+ *         Time: 3:49 PM
  */
 
 
@@ -22,8 +22,8 @@ import java.util.Set;
 
 public class SocketBindingGroup {
 
-  @XmlElements(@XmlElement(name = "socket-binding", type = SocketBindingBean.class ))
-   private Set<SocketBindingBean> socketBindings;
+    @XmlElements(@XmlElement(name = "socket-binding", type = SocketBindingBean.class))
+    private Set<SocketBindingBean> socketBindings;
 
     public Set<SocketBindingBean> getSocketBindings() {
         return socketBindings;
@@ -35,14 +35,9 @@ public class SocketBindingGroup {
         this.socketBindings = temp;
     }
 
-    public boolean isEmpty(){
-        if(socketBindings == null){
-            return true;
-        }
-        return socketBindings.isEmpty();
+    public boolean isEmpty() {
+        return socketBindings == null || socketBindings.isEmpty();
     }
-
-
 
 
 }

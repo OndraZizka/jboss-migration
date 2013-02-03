@@ -2,11 +2,10 @@ package cz.muni.fi.jboss.migration.migrators.logging;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.*;
-
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,7 +20,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,16 +36,16 @@ import java.util.Set;
  */
 public class LoggingMigrator extends AbstractMigrator {
 
-    public LoggingMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
+    public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
             File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
-                    File.separator +"conf" + File.separator + "jboss-log4j.xml");
+                    File.separator + "conf" + File.separator + "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -53,9 +53,9 @@ public class LoggingMigrator extends AbstractMigrator {
 
             LoggingAS5Bean loggingAS5;
 
-            if(file.canRead()){
-               loggingAS5 = (LoggingAS5Bean)unmarshaller.unmarshal(xsr);
-            }else{
+            if (file.canRead()) {
+                loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
+            } else {
                 throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
                         FileNotFoundException());
             }
@@ -73,38 +73,38 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+    public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for(int i = 0; i < subsystems.getLength(); i++){
-                if(!(subsystems.item(i) instanceof Element)){
+            for (int i = 0; i < subsystems.getLength(); i++) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
-                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("logging")){
+                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("logging")) {
                     Node parent = subsystems.item(i);
                     Node lastNode = parent.getLastChild();
                     Node firstNode = parent.getFirstChild();
 
-                    while(!(lastNode instanceof Element)){
+                    while (!(lastNode instanceof Element)) {
                         lastNode = lastNode.getPreviousSibling();
                     }
-                    while(!(firstNode instanceof Element)){
+                    while (!(firstNode instanceof Element)) {
                         firstNode = firstNode.getNextSibling();
                     }
 
-                    for(Node node : generateDomElements(ctx)){
+                    for (Node node : generateDomElements(ctx)) {
                         Node adopted = doc.adoptNode(node.cloneNode(true));
-                        if(node.getNodeName().contains("handler")){
+                        if (node.getNodeName().contains("handler")) {
                             parent.insertBefore(adopted, firstNode);
                             continue;
                         }
-                        if(node.getNodeName().equals("logger")){
+                        if (node.getNodeName().equals("logger")) {
                             parent.insertBefore(adopted, lastNode);
                             continue;
                         }
                         // TODO: Only for testing. Need change!
-                        if(node.getNodeName().equals("root-logger")){
+                        if (node.getNodeName().equals("root-logger")) {
                             parent.appendChild(adopted);
                         }
                     }
@@ -112,7 +112,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 }
             }
-        } catch (MigrationException e){
+        } catch (MigrationException e) {
             throw new ApplyMigrationException(e);
         }
     }
@@ -139,7 +139,7 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
-                if(fragment instanceof AppenderBean){
+                if (fragment instanceof AppenderBean) {
                     AppenderBean appender = (AppenderBean) fragment;
                     String type = appender.getAppenderClass();
 
@@ -162,7 +162,7 @@ public class LoggingMigrator extends AbstractMigrator {
                             nodeList.add(doc.getDocumentElement());
                         }
                         break;
-                        case "AsyncAppender":{
+                        case "AsyncAppender": {
                             Document doc = ctx.getDocBuilder().newDocument();
                             asyHandMarshaller.marshal(createAsyncHandler(appender), doc);
                             nodeList.add(doc.getDocumentElement());
@@ -186,7 +186,7 @@ public class LoggingMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                if(fragment instanceof CategoryBean){
+                if (fragment instanceof CategoryBean) {
                     CategoryBean category = (CategoryBean) fragment;
                     LoggerBean logger = new LoggerBean();
                     logger.setLoggerCategory(category.getCategoryName());
@@ -200,8 +200,8 @@ public class LoggingMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                if(fragment instanceof RootLoggerAS5Bean){
-                    RootLoggerAS5Bean root =  (RootLoggerAS5Bean) fragment;
+                if (fragment instanceof RootLoggerAS5Bean) {
+                    RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
                     RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
                     /*
                     TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
@@ -228,7 +228,7 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
             List<String> list = new ArrayList();
 
@@ -240,8 +240,8 @@ public class LoggingMigrator extends AbstractMigrator {
             Unmarshaller cusHandUnmarshaller = JAXBContext.newInstance(CustomHandlerBean.class).createUnmarshaller();
             Unmarshaller conHandUnmarshaller = JAXBContext.newInstance(ConsoleHandlerBean.class).createUnmarshaller();
 
-            for(Node node : generateDomElements(ctx)){
-                if(node.getNodeName().equals("logger")){
+            for (Node node : generateDomElements(ctx)) {
+                if (node.getNodeName().equals("logger")) {
                     LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal(node);
                     list.add(createLoggerScript(log));
                     continue;
@@ -252,27 +252,27 @@ public class LoggingMigrator extends AbstractMigrator {
 //                    list.add(cr(virtual, ctx));
 //                    continue;
 //                }
-                if(node.getNodeName().equals("size-rotating-handler")){
+                if (node.getNodeName().equals("size-rotating-handler")) {
                     SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal(node);
                     list.add(createSizeHandlerScript(sizeHandler));
                     continue;
                 }
-                if(node.getNodeName().equals("periodic-rotating-file-handler")){
+                if (node.getNodeName().equals("periodic-rotating-file-handler")) {
                     PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal(node);
                     list.add(createPerHandlerScript(perHandler));
                     continue;
                 }
-                if(node.getNodeName().equals("custom-handler")){
+                if (node.getNodeName().equals("custom-handler")) {
                     CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal(node);
                     list.add(createCustomHandlerScript(cusHandler));
                     continue;
                 }
-                if(node.getNodeName().equals("async-handler")){
+                if (node.getNodeName().equals("async-handler")) {
                     AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal(node);
                     list.add(createAsyncHandlerScript(asyncHandler));
                     continue;
                 }
-                if(node.getNodeName().equals("console-handler")){
+                if (node.getNodeName().equals("console-handler")) {
                     ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal(node);
                     list.add(createConsoleHandlerScript(conHandler));
                 }
@@ -286,13 +286,13 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating Periodic-Rotating-File-Appender to Handler in AS7
+     * Method for migrating Periodic-Rotating-File-Appender to Handler in AS7
      *
      * @param appender object representing Periodic-Rotating-File-Appender
-     * @param ctx  migration context
+     * @param ctx      migration context
      * @return migrated Periodic-Rotating-File-Handler object
      */
-    public static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx){
+    public static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
         PerRotFileHandlerBean handler = new PerRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
 
@@ -331,13 +331,13 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating Size-Rotating-File-Appender to Handler in AS7
+     * Method for migrating Size-Rotating-File-Appender to Handler in AS7
      *
      * @param appender object representing Size-Rotating-File-Appender
-     * @param ctx  migration context
+     * @param ctx      migration context
      * @return migrated Size-Rotating-File-Handler object
      */
-    public static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx){
+    public static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx) {
         SizeRotFileHandlerBean handler = new SizeRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
 
@@ -381,12 +381,12 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating Async-Appender to Handler in AS7
+     * Method for migrating Async-Appender to Handler in AS7
      *
      * @param appender object representing Async-Appender
      * @return migrated Async-Handler object
      */
-    public static AsyncHandlerBean createAsyncHandler(AppenderBean appender){
+    public static AsyncHandlerBean createAsyncHandler(AppenderBean appender) {
         AsyncHandlerBean handler = new AsyncHandlerBean();
         handler.setName(appender.getAppenderName());
         for (ParameterBean parameter : appender.getParameters()) {
@@ -397,7 +397,6 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (parameter.getParamName().equalsIgnoreCase("Blocking")) {
                 handler.setOverflowAction(parameter.getParamValue());
-                continue;
             }
         }
 
@@ -414,12 +413,12 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating Console-Appender to Handler in AS7
+     * Method for migrating Console-Appender to Handler in AS7
      *
      * @param appender object representing Console-Appender
      * @return migrated Console-Handler object
      */
-    public static ConsoleHandlerBean createConsoleHandler(AppenderBean appender){
+    public static ConsoleHandlerBean createConsoleHandler(AppenderBean appender) {
         ConsoleHandlerBean handler = new ConsoleHandlerBean();
         handler.setName(appender.getAppenderName());
 
@@ -440,12 +439,12 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating Custom-Appender to Handler in AS7
+     * Method for migrating Custom-Appender to Handler in AS7
      *
      * @param appender object representing Custom-Appender
      * @return migrated Custom-Handler object
      */
-    public static CustomHandlerBean createCustomHandler(AppenderBean appender){
+    public static CustomHandlerBean createCustomHandler(AppenderBean appender) {
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
@@ -473,12 +472,12 @@ public class LoggingMigrator extends AbstractMigrator {
 
     /**
      * Not implemented yet. Not sure if it is necesarry..
-     *  Method for migrating File-Appender to Handler in AS7
+     * Method for migrating File-Appender to Handler in AS7
      *
      * @param appender object representing Periodic-Rotating-File-Appender
      * @return migrated File-Handler object
      */
-    public static FileHandlerBean createFileHandler(AppenderBean appender){
+    public static FileHandlerBean createFileHandler(AppenderBean appender) {
         return null;
     }
 
@@ -489,7 +488,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createLoggerScript(LoggerBean logger) throws CliScriptException{
+    public static String createLoggerScript(LoggerBean logger) throws CliScriptException {
         String errMsg = " in Logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
@@ -501,19 +500,19 @@ public class LoggingMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString());
 
-        if(logger.getHandlers() != null){
+        if (logger.getHandlers() != null) {
             StringBuilder handlersBuilder = new StringBuilder();
 
-            for(String handler : logger.getHandlers()){
+            for (String handler : logger.getHandlers()) {
                 handlersBuilder.append(",\"").append(handler).append("\"");
             }
 
             String handlers = handlersBuilder.toString();
 
-            if(!handlers.isEmpty()){
-                handlers = handlers.replaceFirst("\\,","");
+            if (!handlers.isEmpty()) {
+                handlers = handlers.replaceFirst(",", "");
                 resultScript.append(", handlers=[").append(handlers).append("])");
-            } else{
+            } else {
                 resultScript.append(")");
             }
         } else {
@@ -531,7 +530,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createPerHandlerScript(PerRotFileHandlerBean periodic)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in Periodic-Rotating-File-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(periodic.getName(), errMsg, "Name");
         Utils.throwIfBlank(periodic.getRelativeTo(), errMsg, "Relative-to");
@@ -564,7 +563,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in Size-Rotating-File-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(sizeHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(sizeHandler.getRelativeTo(), errMsg, "Relative-to");
@@ -597,7 +596,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler)
-            throws  CliScriptException{
+            throws CliScriptException {
         String errMsg = " in Async-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(asyncHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length");
@@ -615,15 +614,15 @@ public class LoggingMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString());
 
-        if(asyncHandler.getSubhandlers() != null){
+        if (asyncHandler.getSubhandlers() != null) {
             StringBuilder handlersBuilder = new StringBuilder();
-            for(String subHandler  : asyncHandler.getSubhandlers()){
+            for (String subHandler : asyncHandler.getSubhandlers()) {
                 handlersBuilder.append(", \"").append(subHandler).append("\"");
             }
 
-            String handlers = handlersBuilder.toString().replaceFirst("\\, ", "");
+            String handlers = handlersBuilder.toString().replaceFirst(", ", "");
 
-            if(!handlers.isEmpty()){
+            if (!handlers.isEmpty()) {
                 resultScript.append(", subhandlers=[").append(handlers).append("]");
             }
         }
@@ -642,7 +641,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in Console-Handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(consoleHandler.getName(), errMsg, "Name");
 
@@ -669,8 +668,8 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createCustomHandlerScript (CustomHandlerBean customHandler)
-            throws  CliScriptException{
+    public static String createCustomHandlerScript(CustomHandlerBean customHandler)
+            throws CliScriptException {
         String errMsg = " in Custom-Handler must be set.";
         Utils.throwIfBlank(customHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(customHandler.getModule(), errMsg, "Module");
@@ -689,17 +688,17 @@ public class LoggingMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString());
 
-        if(customHandler.getProperties() != null){
+        if (customHandler.getProperties() != null) {
             StringBuilder propertiesBuilder = new StringBuilder();
-            for(PropertyBean property : customHandler.getProperties()){
+            for (PropertyBean property : customHandler.getProperties()) {
                 propertiesBuilder.append(", \"").append(property.getName()).append("\"=>");
                 propertiesBuilder.append("\"").append(property.getValue()).append("\"");
             }
 
             String properties = propertiesBuilder.toString();
 
-            if(!properties.isEmpty()){
-                properties = properties.replaceFirst("\\, ", "");
+            if (!properties.isEmpty()) {
+                properties = properties.replaceFirst(", ", "");
                 resultScript.append(", properties={").append(properties).append("}");
             }
         }

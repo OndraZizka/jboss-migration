@@ -6,8 +6,8 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing module-option (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 9:05 PM
+ *         Date: 10/2/12
+ *         Time: 9:05 PM
  */
 
 @XmlRootElement(name = "module-option")

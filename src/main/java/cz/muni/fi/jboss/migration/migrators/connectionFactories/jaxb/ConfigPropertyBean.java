@@ -6,8 +6,8 @@ import javax.xml.bind.annotation.*;
  * Class for unmarshalling and representing of config-property (AS5)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:52 PM
+ *         Date: 10/2/12
+ *         Time: 8:52 PM
  */
 
 @XmlRootElement(name = "config-property")

@@ -7,7 +7,7 @@ package cz.muni.fi.jboss.migration.ex;
  *         Date: 1/24/13
  *         Time: 10:38 AM
  */
-public class ApplyMigrationException extends MigrationException{
+public class ApplyMigrationException extends MigrationException {
 
     public ApplyMigrationException(String message) {
         super(message);

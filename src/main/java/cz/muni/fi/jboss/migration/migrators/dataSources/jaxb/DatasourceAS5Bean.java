@@ -4,14 +4,16 @@ package cz.muni.fi.jboss.migration.migrators.dataSources.jaxb;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Class for unmarshalling and representing local-tx-datasource (AS5)
  *
  * @author Roman Jakubco
- * Date: 8/26/12
- * Time: 2:17 PM
+ *         Date: 8/26/12
+ *         Time: 2:17 PM
  */
 
 @XmlRootElement(name = "local-tx-datasource")
@@ -27,7 +29,7 @@ public class DatasourceAS5Bean implements IConfigFragment {
     private String useJavaContext;
 
     @XmlElement(name = "url-delimeter")
-    private  String urlDelimeter;
+    private String urlDelimeter;
 
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelectStratClName;
@@ -38,10 +40,10 @@ public class DatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "driver-class")
     private String driverClass;
 
-    @XmlElement(name = "transaction-isolation" )
+    @XmlElement(name = "transaction-isolation")
     private String transIsolation;
 
-    @XmlElement(name = "new-connection-sql" )
+    @XmlElement(name = "new-connection-sql")
     private String newConnectionSql;
 
     @XmlElement(name = "prefill")
@@ -59,7 +61,7 @@ public class DatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "password")
     private String password;
 
-    @XmlElement(name = "security-domain" )
+    @XmlElement(name = "security-domain")
     private String securityDomain;
 
     @XmlElement(name = "blocking-timeout-millis")
@@ -92,7 +94,7 @@ public class DatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "background-validation")
     private String backgroundValid;
 
-    @XmlElement(name = "background-validation-millis" )
+    @XmlElement(name = "background-validation-millis")
     private String backgroundValidMillis;
 
     @XmlElement(name = "exception-sorter-class-name")

@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for unmarshalling and representing xa-datasource in AS5 (AS5)
  *
  * @author Roman Jakubco
- * Date: 8/26/12
- * Time: 2:17 PM
+ *         Date: 8/26/12
+ *         Time: 2:17 PM
  */
 
 @XmlRootElement(name = "xa-datasource")
@@ -21,14 +21,14 @@ import java.util.Set;
 
 public class XaDatasourceAS5Bean implements IConfigFragment {
 
-   @XmlElement(name = "jndi-name")
+    @XmlElement(name = "jndi-name")
     private String jndiName;
 
     @XmlElement(name = "use-java-context")
     private String useJavaContext;
 
     @XmlElement(name = "url-delimeter")
-    private  String urlDelimeter;
+    private String urlDelimeter;
 
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelectorStratClName;
@@ -55,14 +55,14 @@ public class XaDatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "interleaving")
     private String interleaving;
 
-   @XmlElement(name = "no-tx-separate-pools")
+    @XmlElement(name = "no-tx-separate-pools")
     private String noTxSeparatePools;
 
     @XmlElement(name = "xa-resource-timeout")
     private String xaResourceTimeout;
 
 
-    @XmlElement(name = "transaction-isolation" )
+    @XmlElement(name = "transaction-isolation")
     private String transIsolation;
 
     @XmlElement(name = "min-pool-size")
@@ -77,7 +77,7 @@ public class XaDatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "idle-timeout-minutes")
     private String idleTimeoutMinutes;
 
-    @XmlElement(name = "new-connection-sql" )
+    @XmlElement(name = "new-connection-sql")
     private String newConnectionSql;
 
     @XmlElement(name = "check-valid-connection-sql")
@@ -92,7 +92,7 @@ public class XaDatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "prepared-statement-cache-size")
     private String preStatementCacheSize;
 
-    @XmlElement(name = "security-domain" )
+    @XmlElement(name = "security-domain")
     private String securityDomain;
 
     @XmlElement(name = "validate-on-match")
@@ -101,7 +101,7 @@ public class XaDatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "background-validation")
     private String backgroundValid;
 
-    @XmlElement(name = "background-validation-millis" )
+    @XmlElement(name = "background-validation-millis")
     private String backgroundValidMillis;
 
     @XmlElement(name = "exception-sorter-class-name")

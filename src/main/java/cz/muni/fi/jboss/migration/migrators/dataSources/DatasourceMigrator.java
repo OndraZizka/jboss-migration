@@ -1,12 +1,15 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
@@ -23,7 +26,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,12 +47,13 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     private Set<String> xaDatasourceClasses = new HashSet();
 
-    public DatasourceMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
-        super(globalConfig, config);;
+    public DatasourceMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
+        super(globalConfig, config);
+
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DataSourcesBean.class).createUnmarshaller();
             List<DataSourcesBean> dsColl = new ArrayList();
@@ -58,11 +61,11 @@ public class DatasourceMigrator extends AbstractMigrator {
             File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
                     File.separator + "deploy");
 
-            if(dsFiles.canRead()){
+            if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
                 List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, null);
 
-                if(list.isEmpty()){
+                if (list.isEmpty()) {
                     throw new LoadMigrationException("No \"-ds.xml\" to parse!");
                 }
 
@@ -80,17 +83,17 @@ public class DatasourceMigrator extends AbstractMigrator {
                 }
             } else {
                 throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
-                        + File.separator+"deploy\"");
+                        + File.separator + "deploy\"");
 
             }
 
             MigrationData mData = new MigrationData();
 
-            for(DataSourcesBean ds : dsColl){
-                if(ds.getLocalDatasourceAS5s() != null){
+            for (DataSourcesBean ds : dsColl) {
+                if (ds.getLocalDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getLocalDatasourceAS5s());
                 }
-                if(ds.getXaDatasourceAS5s() != null) {
+                if (ds.getXaDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getXaDatasourceAS5s());
                 }
 
@@ -105,34 +108,34 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+    public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for(int i = 0; i < subsystems.getLength(); i++){
-                if(!(subsystems.item(i) instanceof Element)){
+            for (int i = 0; i < subsystems.getLength(); i++) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
-                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")){
+                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")) {
                     Node parent = subsystems.item(i).getFirstChild();
-                    while(!(parent instanceof Element)){
+                    while (!(parent instanceof Element)) {
                         parent = parent.getNextSibling();
                     }
 
                     Node lastNode = parent.getLastChild();
 
-                    while(!(lastNode instanceof Element)){
+                    while (!(lastNode instanceof Element)) {
                         lastNode = lastNode.getPreviousSibling();
                     }
 
-                    for(Node node : generateDomElements(ctx)){
+                    for (Node node : generateDomElements(ctx)) {
                         ((Element) node).setAttribute("xmlns", "urn:jboss:domain:datasources:1.1");
                         Node adopted = doc.adoptNode(node.cloneNode(true));
 
 
-                        if(node.getNodeName().equals("driver")){
+                        if (node.getNodeName().equals("driver")) {
                             lastNode.appendChild(adopted);
-                        } else{
+                        } else {
                             parent.insertBefore(adopted, lastNode);
                         }
 
@@ -148,7 +151,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             List<Node> nodeList = new ArrayList();
             Marshaller dataMarshaller = JAXBContext.newInstance(DatasourceAS7Bean.class).createMarshaller();
@@ -156,22 +159,22 @@ public class DatasourceMigrator extends AbstractMigrator {
             Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragment()) {
-                if(fragment instanceof DatasourceAS5Bean){
+                if (fragment instanceof DatasourceAS5Bean) {
                     Document doc = ctx.getDocBuilder().newDocument();
-                    dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean)fragment), doc);
-                    nodeList.add(doc.getDocumentElement()   );
+                    dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                if(fragment instanceof XaDatasourceAS5Bean){
+                if (fragment instanceof XaDatasourceAS5Bean) {
                     Document doc = ctx.getDocBuilder().newDocument();
-                    xaDataMarshaller.marshal(xaDatasourceMigration((XaDatasourceAS5Bean)fragment), doc);
+                    xaDataMarshaller.marshal(xaDatasourceMigration((XaDatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 throw new NodeGenerationException("Object is not part of Datasource migration!");
             }
 
-            for(String driverClass : this.drivers){
+            for (String driverClass : this.drivers) {
                 DriverBean driver = new DriverBean();
                 driver.setDriverClass(driverClass);
                 driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
@@ -189,7 +192,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 nodeList.add(doc.getDocumentElement());
             }
 
-            for(String xaDsClass : this.xaDatasourceClasses){
+            for (String xaDsClass : this.xaDatasourceClasses) {
                 DriverBean driver = new DriverBean();
                 driver.setXaDatasourceClass(xaDsClass);
                 driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
@@ -214,24 +217,24 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
             List<String> list = new ArrayList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourceAS7Bean.class).createUnmarshaller();
             Unmarshaller driverUnmarshaller = JAXBContext.newInstance(DriverBean.class).createUnmarshaller();
             Unmarshaller xaDataUnmarshaller = JAXBContext.newInstance(XaDatasourceAS7Bean.class).createUnmarshaller();
-            for(Node node : generateDomElements(ctx)){
-                if(node.getNodeName().equals("datasource")){
+            for (Node node : generateDomElements(ctx)) {
+                if (node.getNodeName().equals("datasource")) {
                     DatasourceAS7Bean data = (DatasourceAS7Bean) dataUnmarshaller.unmarshal(node);
                     list.add(createDatasourceScriptOld(data));
                     continue;
                 }
-                if(node.getNodeName().equals("xa-datasource")){
+                if (node.getNodeName().equals("xa-datasource")) {
                     XaDatasourceAS7Bean xaData = (XaDatasourceAS7Bean) xaDataUnmarshaller.unmarshal(node);
                     list.add(createXaDatasourceScriptOld(xaData));
                     continue;
                 }
-                if(node.getNodeName().endsWith("driver")){
+                if (node.getNodeName().endsWith("driver")) {
                     DriverBean driver = (DriverBean) driverUnmarshaller.unmarshal(node);
                     list.add(createDriverScript(driver));
                 }
@@ -265,7 +268,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         datasourceAS7.setUrlSelector(datasourceAS5.getUrlSelectStratClName());
         datasourceAS7.setConnectionUrl(datasourceAS5.getConnectionUrl());
 
-        if(datasourceAS5.getConnectionProperties() != null){
+        if (datasourceAS5.getConnectionProperties() != null) {
             datasourceAS7.setConnectionProperties(datasourceAS5.getConnectionProperties());
         }
 
@@ -304,7 +307,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         datasourceAS7.setStaleConChecker(datasourceAS5.getStaleConCheckerClName());
         // Millis represents Milliseconds?
         if (datasourceAS5.getBackgroundValidMillis() != null) {
-            Integer tmp = Integer.valueOf(datasourceAS5.getBackgroundValidMillis())/ 60000;
+            Integer tmp = Integer.valueOf(datasourceAS5.getBackgroundValidMillis()) / 60000;
             datasourceAS7.setBackgroundValidMin(tmp.toString());
 
         }
@@ -370,7 +373,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         xaDataAS7.setStaleConChecker(xaDataAS5.getStaleConCheckerClName());
         // Millis represents Milliseconds?:p
         if (xaDataAS5.getBackgroundValidMillis() != null) {
-            Integer tmp= Integer.valueOf(xaDataAS5.getBackgroundValidMillis()) / 60000;
+            Integer tmp = Integer.valueOf(xaDataAS5.getBackgroundValidMillis()) / 60000;
             xaDataAS7.setBackgroundValidMin(tmp.toString());
         }
 
@@ -462,8 +465,8 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static  String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
-            throws  CliScriptException{
+    public static String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
+            throws CliScriptException {
         String errMsg = " in XaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
@@ -513,8 +516,8 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString()).append(")\n");
 
-        if(xaDatasourceAS7.getXaDatasourceProps() != null){
-            for(XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()){
+        if (xaDatasourceAS7.getXaDatasourceProps() != null) {
+            for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
                 resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
                 resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
                 resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");
@@ -556,8 +559,8 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
 
-
     // TODO: It seems that CLI script for adding Datasource and Xa-Datasource was changed.
+
     /**
      * Creating CLI script for adding Datasource. New format of script.
      *
@@ -626,7 +629,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws  CliScriptException{
+    public static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws CliScriptException {
         String errMsg = " in XaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
@@ -678,8 +681,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         resultScript.append("\n");
 
         // TODO: check if something is required...
-        if(xaDatasourceAS7.getXaDatasourceProps() != null){
-            for(XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()){
+        if (xaDatasourceAS7.getXaDatasourceProps() != null) {
+            for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
                 resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
                 resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
                 resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");

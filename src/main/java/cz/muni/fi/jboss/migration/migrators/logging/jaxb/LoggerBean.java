@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for marshalling and representing logger (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:11 PM
+ *         Date: 10/2/12
+ *         Time: 8:11 PM
  */
 
 @XmlRootElement(name = "logger")

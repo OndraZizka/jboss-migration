@@ -12,8 +12,8 @@ import java.util.Set;
  * Class for marshalling and representing web subsystem (AS7)
  *
  * @author Roman Jakubco
- * Date: 8/30/12
- * Time: 5:03 PM
+ *         Date: 8/30/12
+ *         Time: 5:03 PM
  */
 
 @XmlRootElement(name = "server")
@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * and when it is in this order {"connectors", "virtualServers"} it is exact opposite....
  */
-@XmlType(name = "", propOrder = {"virtualServers", "connectors" })
+@XmlType(name = "", propOrder = {"virtualServers", "connectors"})
 
 public class ServerSub {
 
@@ -40,7 +40,7 @@ public class ServerSub {
     @XmlElements(@XmlElement(name = "connector", type = ConnectorAS7Bean.class))
     private Set<ConnectorAS7Bean> connectors;
 
-    @XmlElements(@XmlElement(name = "virtual-server", type = VirtualServerBean.class ))
+    @XmlElements(@XmlElement(name = "virtual-server", type = VirtualServerBean.class))
     private Set<VirtualServerBean> virtualServers;
 
     public String getDefVirtualServer() {
@@ -78,7 +78,6 @@ public class ServerSub {
         temp.addAll(virtualServers);
         this.virtualServers = temp;
     }
-
 
 
 }

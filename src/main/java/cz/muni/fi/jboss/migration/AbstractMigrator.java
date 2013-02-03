@@ -1,9 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
-import javafx.util.Pair;
-
-import java.util.List;
+import org.apache.commons.collections.map.MultiValueMap;
 
 /**
  * Abstract class for Migrators containing configurations of Migrators.
@@ -12,15 +10,15 @@ import java.util.List;
  *         Date: 2/2/13
  *         Time: 11:07 AM
  */
- public abstract class AbstractMigrator implements IMigrator {
+public abstract class AbstractMigrator implements IMigrator {
 
     private GlobalConfiguration globalConfig;
 
-    private List<Pair<String,String>> config;
+    private MultiValueMap config;
 
-    public AbstractMigrator(GlobalConfiguration globalConfig, List<Pair<String,String>> config){
+    public AbstractMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         this.globalConfig = globalConfig;
-        this.config =  config;
+        this.config = config;
     }
 
     public GlobalConfiguration getGlobalConfig() {
@@ -31,12 +29,11 @@ import java.util.List;
         this.globalConfig = globalConfig;
     }
 
-    public List<Pair<String, String>> getConfig() {
+    public MultiValueMap getConfig() {
         return config;
     }
 
-    public void setConfig(List<Pair<String, String>> config) {
+    public void setConfig(MultiValueMap config) {
         this.config = config;
     }
-
 }

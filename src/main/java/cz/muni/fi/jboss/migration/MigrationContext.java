@@ -6,7 +6,10 @@ import org.w3c.dom.Document;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.
@@ -52,7 +55,7 @@ public class MigrationContext {
         this.rollbackDatas = rollbackDatas;
     }
 
-    public void createBuilder() throws ParserConfigurationException{
+    public void createBuilder() throws ParserConfigurationException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         docBuilder = dbf.newDocumentBuilder();

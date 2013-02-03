@@ -1,9 +1,8 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,26 +15,27 @@ public class Configuration {
 
     private GlobalConfiguration options;
 
-    private Map<Class<? extends IMigrator>, List<Pair<String,String>>> moduleOtions;
+    private Map<Class<? extends IMigrator>, MultiValueMap> moduleOtions;
 
-    public GlobalConfiguration getGlobal(){
-         return options;
+    public GlobalConfiguration getGlobal() {
+        return options;
     }
 
     public void setOptions(GlobalConfiguration options) {
         this.options = options;
     }
 
-    public Map<Class<? extends IMigrator>, List<Pair<String, String>>> getModuleOtions() {
+    public Map<Class<? extends IMigrator>, MultiValueMap> getModuleOtions() {
         return moduleOtions;
     }
 
-    public void setModuleOtions(Map<Class<? extends IMigrator>, List<Pair<String, String>>> moduleOtions) {
+    public void setModuleOtions(Map<Class<? extends IMigrator>, MultiValueMap> moduleOtions) {
         this.moduleOtions = moduleOtions;
     }
 
-    public List<Pair<String,String>> getForMigrator(Class<? extends IMigrator> migrator){
-         return moduleOtions.get(migrator);
+
+    public MultiValueMap getForMigrator(Class<? extends IMigrator> migrator) {
+        return moduleOtions.get(migrator);
 
     }
 }

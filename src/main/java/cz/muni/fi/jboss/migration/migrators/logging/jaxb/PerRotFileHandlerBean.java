@@ -8,15 +8,15 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing periodic-rotating-file-handler (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:21 PM
+ *         Date: 10/2/12
+ *         Time: 8:21 PM
  */
 
 @XmlRootElement(name = "periodic-rotating-file-handler")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "periodic-rotating-file-handler")
 
-public  class PerRotFileHandlerBean {
+public class PerRotFileHandlerBean {
 
     @XmlAttribute(name = "name")
     private String name;
@@ -42,7 +42,7 @@ public  class PerRotFileHandlerBean {
     private String relativeTo;
 
     @XmlPath("file/@path")
-    private String path ;
+    private String path;
 
     @XmlPath("suffix/@value")
     private String suffix;

@@ -1,7 +1,10 @@
 package cz.muni.fi.jboss.migration.spi;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import org.w3c.dom.Node;
 
 import java.util.List;

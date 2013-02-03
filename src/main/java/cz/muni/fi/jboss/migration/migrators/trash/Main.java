@@ -1,13 +1,17 @@
 package cz.muni.fi.jboss.migration.migrators.trash;
 
-import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.Configuration;
+import cz.muni.fi.jboss.migration.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.MigrationContext;
+import cz.muni.fi.jboss.migration.Migrator;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
-import cz.muni.fi.jboss.migration.migrators.dataSources.*;
+import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
 import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
-import cz.muni.fi.jboss.migration.migrators.server.*;
+import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.w3c.dom.Node;
 
 import javax.xml.transform.OutputKeys;
@@ -16,14 +20,17 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Roman Jakubco
- * Date: 8/26/12
- * Time: 3:15 PM
+ *         Date: 8/26/12
+ *         Time: 3:15 PM
  */
-public class main {
+public class Main {
     public static void main(String[] args) {
         // Basic implementation for testing
         try {
@@ -65,8 +72,8 @@ public class main {
 
             global.setStandalonePath();
 
-            Map<Class<? extends IMigrator>, List<Pair<String, String>>> moduleOtions = new HashMap<>();
-            List<Pair<String,String>> temp = new ArrayList<>();
+            Map<Class<? extends IMigrator>, MultiValueMap> moduleOtions = new HashMap<>();
+            MultiValueMap temp = new MultiValueMap();
             moduleOtions.put(DatasourceMigrator.class, temp);
             moduleOtions.put(ServerMigrator.class, temp);
             moduleOtions.put(LoggingMigrator.class, temp);
@@ -83,14 +90,13 @@ public class main {
 
             migrator.loadAS5Data();
             //migrator.apply();
-            for (String s : migrator.getCLIScripts()){
+            for (String s : migrator.getCLIScripts()) {
                 System.out.println(s);
             }
 
 
-
             List<Node> nodeList = migrator.getDOMElements();
-            for(Node n : nodeList){
+            for (Node n : nodeList) {
                 StringWriter out = new StringWriter();
                 Transformer xform = TransformerFactory.newInstance().newTransformer();
                 xform.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -98,7 +104,6 @@ public class main {
                 xform.transform(new DOMSource(n), new StreamResult(out));
                 System.out.println(out.toString());
             }
-
 
 
 //            Migration migration=new MigrationImpl(true);
@@ -178,8 +183,6 @@ public class main {
 //            }
 //
 //            System.out.println(cliScript.createHandlersScript(loggingAS7));
-
-
 
 
 //        } catch (JAXBException e) {

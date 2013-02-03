@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for marshalling and representing custom-handler (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:24 PM
+ *         Date: 10/2/12
+ *         Time: 8:24 PM
  */
 
 @XmlRootElement(name = "custom-handler")
@@ -35,7 +35,7 @@ public class CustomHandlerBean {
     @XmlPath("formatter/pattern-formatter/@pattern")
     private String formatter;
 
-    @XmlAttribute(name ="class")
+    @XmlAttribute(name = "class")
     private String classValue;
 
     @XmlAttribute(name = "module")

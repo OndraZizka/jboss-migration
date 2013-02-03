@@ -7,22 +7,18 @@ import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
-import javafx.util.Pair;
+import cz.muni.fi.jboss.migration.utils.Utils;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main class of the application
@@ -32,88 +28,88 @@ import java.util.*;
 
 public class MigratorApp {
     public static void main(String[] args) {
-        if(args.length == 0){
-            writeHelp();
+        if (args.length == 0) {
+            Utils.writeHelp();
             return;
         }
         GlobalConfiguration global = new GlobalConfiguration();
         Configuration configuration = new Configuration();
 
-        Map< Class<? extends IMigrator>,List<Pair<String, String>>> moduleOptions = new HashMap();
-        moduleOptions.put(SecurityMigrator.class, new ArrayList());
-        moduleOptions.put(ServerMigrator.class, new ArrayList());
-        moduleOptions.put(DatasourceMigrator.class, new ArrayList());
-        moduleOptions.put(ResAdapterMigrator.class, new ArrayList());
-        moduleOptions.put(LoggingMigrator.class, new ArrayList());
+        Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
+        moduleOptions.put(SecurityMigrator.class, new MultiValueMap());
+        moduleOptions.put(ServerMigrator.class, new MultiValueMap());
+        moduleOptions.put(DatasourceMigrator.class, new MultiValueMap());
+        moduleOptions.put(ResAdapterMigrator.class, new MultiValueMap());
+        moduleOptions.put(LoggingMigrator.class, new MultiValueMap());
 
-        for( int i = 0; i < args.length; i++ ) {
-            if( args[i].contains("as5.dir") ) {
-                global.setDirAS5(StringUtils.substringAfter(args[i], "=") + File.separator + "server" + File.separator);
+        for (String arg : args) {
+            if (arg.contains("as5.dir")) {
+                global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if( args[i].contains("as7.dir") ) {
-                global.setDirAS7(StringUtils.substringAfter(args[i], "="));
+            if (arg.contains("as7.dir")) {
+                global.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( args[i].contains("as5.profile") ) {
-                global.setProfileAS5(StringUtils.substringAfter(args[i], "="));
+            if (arg.contains("as5.profile")) {
+                global.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( args[i].contains("as7.confPath") ) {
-                global.setConfPathAS7(StringUtils.substringAfter(args[i], "="));
+            if (arg.contains("as7.confPath")) {
+                global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( args[i].contains("conf") ) {
-                switch (StringUtils.substringAfter(args[i], ".")){
-                     case "datasource":{
-                         String property = StringUtils.substringAfterLast(args[i], ".");
-                         String value =    StringUtils.substringAfter(args[i], "=");
-                         moduleOptions.get(DatasourceMigrator.class).add(new Pair(property, value));
-                     }
-                     break;
-                     case "logging":{
-                         String property = StringUtils.substringAfterLast(args[i], ".");
-                         String value =    StringUtils.substringAfter(args[i], "=");
-                         moduleOptions.get(LoggingMigrator.class).add(new Pair(property, value));
-                     }
-                     break;
-                     case "security":{
-                         String property = StringUtils.substringAfterLast(args[i], ".");
-                         String value =    StringUtils.substringAfter(args[i], "=");
-                         moduleOptions.get(SecurityMigrator.class).add(new Pair(property, value));
-                     }
-                     break;
-                     case "resource-adapter":{
-                         String property = StringUtils.substringAfterLast(args[i], ".");
-                         String value =    StringUtils.substringAfter(args[i], "=");
-                         moduleOptions.get(ResAdapterMigrator.class).add(new Pair(property, value));
-                     }
-                     break;
-                     case "server":{
-                         String property = StringUtils.substringAfterLast(args[i], ".");
-                         String value =    StringUtils.substringAfter(args[i], "=");
-                         moduleOptions.get(ServerMigrator.class).add(new Pair(property, value));
-                     }
-                     default:{
-                         System.err.println("Error: Wrong command : " + args[i] + " !");
-                         writeHelp();
-                         return;
-                     }
+            if (arg.contains("conf")) {
+                String conf = StringUtils.substringAfter(arg, ".");
+                if (conf.contains("datasource")) {
+                    String property = StringUtils.substringBetween(conf, ".", "=");
+                    String value = StringUtils.substringAfter(conf, "=");
+                    moduleOptions.get(DatasourceMigrator.class).put(property, value);
                 }
-                continue;
+
+                if (conf.contains("logging")) {
+                    String property = StringUtils.substringBetween(conf, ".", "=");
+                    String value = StringUtils.substringAfter(conf, "=");
+                    moduleOptions.get(LoggingMigrator.class).put(property, value);
+                }
+
+                if (conf.contains("security")) {
+                    String property = StringUtils.substringBetween(conf, ".", "=");
+                    String value = StringUtils.substringAfter(conf, "=");
+                    moduleOptions.get(SecurityMigrator.class).put(property, value);
+                }
+
+                if (conf.contains("resource")) {
+                    String property = StringUtils.substringBetween(conf, ".", "=");
+                    String value = StringUtils.substringAfter(conf, "=");
+                    moduleOptions.get(ResAdapterMigrator.class).put(property, value);
+                }
+
+                if (conf.contains("server")) {
+                    String property = StringUtils.substringBetween(conf, ".", "=");
+                    String value = StringUtils.substringAfter(conf, "=");
+                    moduleOptions.get(ServerMigrator.class).put(property, value);
+                }
+
+                System.err.println("Error: Wrong command : " + arg + " !");
+                Utils.writeHelp();
+
+                return;
             }
 
-            System.err.println("Error: Wrong command : " + args[i] + " !");
-            writeHelp();
+            System.err.println("Error: Wrong command : " + arg + " !");
+            Utils.writeHelp();
             return;
         }
         global.setStandalonePath();
+
         configuration.setModuleOtions(moduleOptions);
         configuration.setOptions(global);
+
         Migrator migrator;
         MigrationContext ctx;
         Document nonAlteredStandalone;
@@ -132,7 +128,7 @@ public class MigratorApp {
 
             migrator.loadAS5Data();
         } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            e.printStackTrace();
+            System.err.println(e.toString());
             return;
         }
 
@@ -140,18 +136,16 @@ public class MigratorApp {
             migrator.getDOMElements();
         } catch (MigrationException e) {
             System.err.println(e.toString());
-            e.printStackTrace();
             return;
         }
 
         // TODO: Where write scripts?
         try {
-           for(String script : migrator.getCLIScripts()){
-               System.out.println(script);
-           }
+            for (String script : migrator.getCLIScripts()) {
+                System.out.println(script);
+            }
         } catch (CliScriptException e) {
             System.err.println(e.toString());
-            e.printStackTrace();
             return;
         }
 
@@ -159,8 +153,7 @@ public class MigratorApp {
             migrator.copyItems();
         } catch (CopyException e) {
             System.err.println(e.toString());
-            e.printStackTrace();
-            removeData(ctx.getRollbackDatas());
+            Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
         }
@@ -169,69 +162,12 @@ public class MigratorApp {
             migrator.apply();
         } catch (ApplyMigrationException e) {
             System.err.println(e.toString());
-            cleanStandalone(nonAlteredStandalone, configuration);
-            e.printStackTrace(); removeData(ctx.getRollbackDatas());
+            Utils.cleanStandalone(nonAlteredStandalone, configuration);
+            Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
-            return;
         }
     }
 
-    /**
-     * Helping method for writing help.
-     */
-    private static void writeHelp(){
-        System.out.println("Usage:");
-        System.out.println();
-        System.out.println("    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>");
-        System.out.println();
-        System.out.println("Options:");
-        System.out.println();
-        System.out.println("    as5.profile=<name>");
-        System.out.println("        Path to AS 5 profile.");
-        System.out.println("        Default: \"default\"");
-        System.out.println();
-        System.out.println("    as7.confPath=<path> ");
-        System.out.println("        Path to AS 7 config file.");
-        System.out.println("        Default: \"standalone/configuration/standalone.xml\"");
-        System.out.println();
-        System.out.println("    conf.<module>.<property>=<value> := Module-specific options.");
-        System.out.println("        <module> := Name of one of modules. E.g. datasource, jaas, security, ...");
-        System.out.println("        <property> := Name of the property to set. Specific per module. " +
-                "May occur multiple times.");
-    }
-
-    /**
-     * Method for removing copied required data for migration from AS5 server if the app fails.
-     *
-     * @param rollbackDatas files, which where copied to AS7 folder
-     */
-    private static void removeData(Collection<RollbackData> rollbackDatas){
-        for(RollbackData cp : rollbackDatas){
-            if(!(cp.getType().equals("driver"))){
-                FileUtils.deleteQuietly(new File(cp.getTargetPath() + File.separator + cp.getName()));
-            }
-        }
-    }
-
-    /**
-     * Method for returning standalone file to its original state before migration if the app fails.
-     *
-     * @param doc object of Document representing original standalone file
-     * @param config configuration of app
-     */
-    private static void cleanStandalone(Document doc, Configuration config){
-        try {
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StreamResult result = new StreamResult(new File(config.getGlobal().getStandaloneFilePath()));
-
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        }
-    }
 
     // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
 

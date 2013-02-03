@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for marshalling and representing security subsystem (AS7)
  *
  * @author Roman Jakubco
- * Date: 9/23/12
- * Time: 6:28 PM
+ *         Date: 9/23/12
+ *         Time: 6:28 PM
  */
 
 @XmlRootElement(name = "security-domains")
@@ -33,8 +33,6 @@ public class SecurityAS7 {
         temp.addAll(securityDomains);
         this.securityDomains = temp;
     }
-
-
 
 
 }

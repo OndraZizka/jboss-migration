@@ -9,8 +9,8 @@ import java.util.Set;
  * Class for unmarshalling and representing connection-factories (AS5)
  *
  * @author Roman Jakubco
- * Date: 8/28/12
- * Time: 3:27 PM
+ *         Date: 8/28/12
+ *         Time: 3:27 PM
  */
 
 @XmlRootElement(name = "connection-factories")

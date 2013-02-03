@@ -1,11 +1,14 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import javafx.util.Pair;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -16,10 +19,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,20 +35,20 @@ import java.util.Set;
  */
 public class SecurityMigrator extends AbstractMigrator {
 
-    public SecurityMigrator(GlobalConfiguration globalConfig, List<Pair<String, String>> config){
+    public SecurityMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
 
             File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
-                    File.separator +"conf" + File.separator + "login-config.xml");
+                    File.separator + "conf" + File.separator + "login-config.xml");
 
-            if(file.canRead()){
-                SecurityAS5Bean securityAS5 = (SecurityAS5Bean)unmarshaller.unmarshal(file);
+            if (file.canRead()) {
+                SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
 
                 MigrationData mData = new MigrationData();
                 mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
@@ -65,21 +66,21 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException{
+    public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for(int i = 0; i < subsystems.getLength(); i++){
-                if(!(subsystems.item(i) instanceof Element)){
+            for (int i = 0; i < subsystems.getLength(); i++) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
-                if(((Element) subsystems.item(i)).getAttribute("xmlns").contains("security")){
+                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("security")) {
                     Node parent = subsystems.item(i).getFirstChild();
-                    while(!(parent instanceof Element)){
+                    while (!(parent instanceof Element)) {
                         parent = parent.getNextSibling();
                     }
 
-                    for(Node node : generateDomElements(ctx)){
+                    for (Node node : generateDomElements(ctx)) {
                         Node adopted = doc.adoptNode(node.cloneNode(true));
                         parent.appendChild(adopted);
                     }
@@ -92,14 +93,14 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     @Override
-    public  List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException{
+    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             JAXBContext secDomainCtx = JAXBContext.newInstance(SecurityDomainBean.class);
             List<Node> nodeList = new ArrayList();
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
             for (IConfigFragment data : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
-                if(!(data instanceof ApplicationPolicyBean)){
+                if (!(data instanceof ApplicationPolicyBean)) {
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }
                 ApplicationPolicyBean appPolicy = (ApplicationPolicyBean) data;
@@ -190,11 +191,11 @@ public class SecurityMigrator extends AbstractMigrator {
                             moAS7.setModuleOptionName(moAS5.getModuleName());
 
                             // TODO: Module-option using file can only use .properties?
-                            if(moAS5.getModuleValue().contains("properties")){
+                            if (moAS5.getModuleValue().contains("properties")) {
                                 String value;
-                                if(moAS5.getModuleValue().contains("/")){
+                                if (moAS5.getModuleValue().contains("/")) {
                                     value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
-                                } else{
+                                } else {
                                     value = moAS5.getModuleValue();
                                 }
                                 moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
@@ -203,7 +204,7 @@ public class SecurityMigrator extends AbstractMigrator {
                                 cp.setName(value);
                                 cp.setType("security");
                                 ctx.getRollbackDatas().add(cp);
-                            } else{
+                            } else {
                                 moAS7.setModuleOptionValue(moAS5.getModuleValue());
                             }
 
@@ -229,12 +230,12 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException{
+    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
             List<String> list = new ArrayList();
             Unmarshaller secUnmarshaller = JAXBContext.newInstance(SecurityDomainBean.class).createUnmarshaller();
 
-            for(Node node : generateDomElements(ctx)){
+            for (Node node : generateDomElements(ctx)) {
                 SecurityDomainBean securityDomain = (SecurityDomainBean) secUnmarshaller.unmarshal(node);
                 list.add(createSecurityDomainScript(securityDomain));
             }
@@ -253,7 +254,7 @@ public class SecurityMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createSecurityDomainScript(SecurityDomainBean securityDomain)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(securityDomain.getSecurityDomainName(), errMsg, "Security name");
 
@@ -265,32 +266,32 @@ public class SecurityMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString()).append(")\n");
 
-        if(securityDomain.getLoginModules() != null){
-            for(LoginModuleAS7Bean loginModAS7 : securityDomain.getLoginModules()){
+        if (securityDomain.getLoginModules() != null) {
+            for (LoginModuleAS7Bean loginModAS7 : securityDomain.getLoginModules()) {
                 resultScript.append("/subsystem=security/security-domain=").append(securityDomain.getSecurityDomainName());
                 resultScript.append("/authentication=classic:add(login-modules=[{");
 
-                if((loginModAS7.getLoginModuleCode() != null) || !(loginModAS7.getLoginModuleCode().isEmpty())){
+                if ((loginModAS7.getLoginModuleCode() != null) || !(loginModAS7.getLoginModuleCode().isEmpty())) {
                     resultScript.append("\"code\"=>\"").append(loginModAS7.getLoginModuleCode()).append("\"");
                 }
-                if((loginModAS7.getLoginModuleFlag() != null) || !(loginModAS7.getLoginModuleFlag().isEmpty())){
+                if ((loginModAS7.getLoginModuleFlag() != null) || !(loginModAS7.getLoginModuleFlag().isEmpty())) {
                     resultScript.append(", \"flag\"=>\"").append(loginModAS7.getLoginModuleFlag()).append("\"");
                 }
 
                 resultScript.append(builder.asString());
 
-                if(loginModAS7.getModuleOptions() != null){
-                    if(!loginModAS7.getModuleOptions().isEmpty()) {
+                if (loginModAS7.getModuleOptions() != null) {
+                    if (!loginModAS7.getModuleOptions().isEmpty()) {
                         StringBuilder modulesBuilder = new StringBuilder();
-                        for(ModuleOptionAS7Bean moduleOptionAS7 : loginModAS7.getModuleOptions()){
+                        for (ModuleOptionAS7Bean moduleOptionAS7 : loginModAS7.getModuleOptions()) {
                             modulesBuilder.append(", (\"").append(moduleOptionAS7.getModuleOptionName()).append("\"=>");
                             modulesBuilder.append("\"").append(moduleOptionAS7.getModuleOptionValue()).append("\")");
                         }
 
-                        String modules = modulesBuilder.toString().replaceFirst("\\,", "");
+                        String modules = modulesBuilder.toString().replaceFirst(",", "");
                         modules = modules.replaceFirst(" ", "");
 
-                        if(!modules.isEmpty()){
+                        if (!modules.isEmpty()) {
                             resultScript.append(", \"module-option\"=>[").append(modules).append("]");
                         }
                     }

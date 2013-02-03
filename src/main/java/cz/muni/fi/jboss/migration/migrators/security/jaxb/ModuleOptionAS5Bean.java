@@ -5,9 +5,9 @@ import javax.xml.bind.annotation.*;
 /**
  * Class for unmarshalling and representing module-option (AS5)
  *
- * @author  Roman Jakubco
- * Date: 10/2/12
- * Time: 9:04 PM
+ * @author Roman Jakubco
+ *         Date: 10/2/12
+ *         Time: 9:04 PM
  */
 
 @XmlRootElement(name = "module-option")

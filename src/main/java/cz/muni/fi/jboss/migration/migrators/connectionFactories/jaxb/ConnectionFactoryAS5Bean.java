@@ -11,8 +11,8 @@ import java.util.Set;
  * Class for unmarshalling and representing tx-connection-factory (AS5)
  *
  * @author Roman Jakubco
- * Date: 8/28/12
- * Time: 3:26 PM
+ *         Date: 8/28/12
+ *         Time: 3:26 PM
  */
 
 @XmlRootElement(name = "tx-connection-factory")
@@ -25,7 +25,7 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
     private String jndiName;
 
     @XmlElement(name = "no-tx-separate-pools")
-    private  String noTxSeparatePools;
+    private String noTxSeparatePools;
 
     @XmlElement(name = "prefill")
     private String prefill;
@@ -77,7 +77,7 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
     private String useFastFail;
 
     // Special class for storing connection-property
-    @XmlElements(@XmlElement(name ="config-property", type=ConfigPropertyBean.class))
+    @XmlElements(@XmlElement(name = "config-property", type = ConfigPropertyBean.class))
     private Set<ConfigPropertyBean> configProperties;
 
 

@@ -14,7 +14,7 @@ import java.util.Set;
  *         Time: 5:22 PM
  */
 
-@XmlRootElement(name = "root-logger" )
+@XmlRootElement(name = "root-logger")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "root-logger")
 

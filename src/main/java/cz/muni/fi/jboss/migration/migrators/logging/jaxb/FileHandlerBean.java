@@ -8,8 +8,8 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing file-handler (AS7)
  *
  * @author Roman Jakubco
- * Date: 10/2/12
- * Time: 8:15 PM
+ *         Date: 10/2/12
+ *         Time: 8:15 PM
  */
 
 @XmlRootElement(name = "file-handler")
@@ -37,10 +37,10 @@ public class FileHandlerBean {
     private Boolean append;
 
     @XmlPath("file/@relative-to")
-    private String file ;
+    private String file;
 
     @XmlPath("file/@path")
-    private String path ;
+    private String path;
 
     public String getName() {
         return name;
