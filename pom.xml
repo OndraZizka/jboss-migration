@@ -26,7 +26,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <mainClass>cz.muni.fi.jboss.migration.main</mainClass>
+                    <mainClass>cz.muni.fi.jboss.migration.MigratorApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
@@ -66,6 +66,12 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
         </dependency>
 
         <dependency>
