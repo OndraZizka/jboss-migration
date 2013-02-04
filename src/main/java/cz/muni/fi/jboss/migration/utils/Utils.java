@@ -73,7 +73,18 @@ public class Utils {
                     throw new CopyException("Error: Module for driver is null!");
                 }
             } else {
-                rollData.setTargetPath(targetPath + File.separator + "standalone" + File.separator + "log");
+                switch (rollData.getType()){
+                    case "log": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                            File.separator + "log");
+                        break;
+                    case "resource": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                            File.separator + "deployments");
+                        break;
+                    case "security": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                            File.separator + "configuration");
+                }
+
+
             }
         }
     }

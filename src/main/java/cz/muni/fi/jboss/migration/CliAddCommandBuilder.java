@@ -50,5 +50,27 @@ public class CliAddCommandBuilder {
         return builder.toString();
     }
 
+    /**
+     * Method for writing stored data to string in predefine format(property=value property2=value2).
+     *
+     * @return string containing all data
+     */
+    public String asStringDriverNew() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < this.properties.size(); i++) {
+            if (i == this.properties.size() - 1) {
+                builder.append(this.properties.get(i));
+                continue;
+            }
+            builder.append(this.properties.get(i));
+            builder.append(" ");
+        }
+
+        properties.clear();
+
+        return builder.toString();
+    }
+
 
 }

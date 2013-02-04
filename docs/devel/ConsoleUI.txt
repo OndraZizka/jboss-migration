@@ -1,4 +1,4 @@
-Concole UI
+Console UI
 ==========
 
 Usage:

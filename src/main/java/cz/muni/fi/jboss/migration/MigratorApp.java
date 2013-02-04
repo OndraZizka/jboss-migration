@@ -36,6 +36,7 @@ public class MigratorApp {
         Configuration configuration = new Configuration();
 
         Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
+
         moduleOptions.put(SecurityMigrator.class, new MultiValueMap());
         moduleOptions.put(ServerMigrator.class, new MultiValueMap());
         moduleOptions.put(DatasourceMigrator.class, new MultiValueMap());
@@ -43,27 +44,31 @@ public class MigratorApp {
         moduleOptions.put(LoggingMigrator.class, new MultiValueMap());
 
         for (String arg : args) {
-            if (arg.contains("as5.dir")) {
+            if(arg.contains("--help")){
+                Utils.writeHelp();
+                return;
+            }
+            if (arg.contains("--as5.dir")) {
                 global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if (arg.contains("as7.dir")) {
+            if (arg.contains("--as7.dir")) {
                 global.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("as5.profile")) {
+            if (arg.contains("--as5.profile")) {
                 global.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("as7.confPath")) {
+            if (arg.contains("--as7.confPath")) {
                 global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("conf")) {
+            if (arg.contains("--conf")) {
                 String conf = StringUtils.substringAfter(arg, ".");
                 if (conf.contains("datasource")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
@@ -114,7 +119,7 @@ public class MigratorApp {
         MigrationContext ctx;
         Document nonAlteredStandalone;
 
-
+        System.out.println("Migration:");
         try {
             ctx = new MigrationContext();
             ctx.createBuilder();
@@ -141,6 +146,7 @@ public class MigratorApp {
 
         // TODO: Where write scripts?
         try {
+            System.out.println("Generated Cli scripts:");
             for (String script : migrator.getCLIScripts()) {
                 System.out.println(script);
             }
@@ -152,7 +158,7 @@ public class MigratorApp {
         try {
             migrator.copyItems();
         } catch (CopyException e) {
-            System.err.println(e.toString());
+            System.err.println(e.toString() + " => rollback!");
             Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
@@ -160,8 +166,10 @@ public class MigratorApp {
 
         try {
             migrator.apply();
+            System.out.println();
+            System.out.println("Migration was success full");
         } catch (ApplyMigrationException e) {
-            System.err.println(e.toString());
+            System.err.println(e.toString() + " => rollback!");
             Utils.cleanStandalone(nonAlteredStandalone, configuration);
             Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
