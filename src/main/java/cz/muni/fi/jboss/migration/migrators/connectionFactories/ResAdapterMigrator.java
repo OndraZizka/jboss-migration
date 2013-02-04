@@ -139,7 +139,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
                 resAdapter.setArchive(connFactoryAS5.getRarName());
 
-                // TODO: Not sure what exactly this element represents and what it is in AS5
                 resAdapter.setTransactionSupport("XATransaction");
 
                 ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();

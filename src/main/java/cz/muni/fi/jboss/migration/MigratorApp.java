@@ -133,32 +133,31 @@ public class MigratorApp {
 
             migrator.loadAS5Data();
         } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            System.err.println(e.toString());
+            e.printStackTrace();
             return;
         }
 
         try {
             migrator.getDOMElements();
         } catch (MigrationException e) {
-            System.err.println(e.toString());
+            e.printStackTrace();
             return;
         }
 
-        // TODO: Where write scripts?
         try {
             System.out.println("Generated Cli scripts:");
             for (String script : migrator.getCLIScripts()) {
                 System.out.println(script);
             }
         } catch (CliScriptException e) {
-            System.err.println(e.toString());
+            e.printStackTrace();
             return;
         }
 
         try {
             migrator.copyItems();
         } catch (CopyException e) {
-            System.err.println(e.toString() + " => rollback!");
+            e.printStackTrace();
             Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
@@ -167,9 +166,9 @@ public class MigratorApp {
         try {
             migrator.apply();
             System.out.println();
-            System.out.println("Migration was success full");
+            System.out.println("Migration was successful");
         } catch (ApplyMigrationException e) {
-            System.err.println(e.toString() + " => rollback!");
+            e.printStackTrace();
             Utils.cleanStandalone(nonAlteredStandalone, configuration);
             Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));

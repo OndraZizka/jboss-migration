@@ -47,14 +47,6 @@ public class ServerMigrator extends AbstractMigrator {
         super(globalConfig, config);
     }
 
-    public Set<SocketBindingBean> getSocketTemp() {
-        return socketTemp;
-    }
-
-    public void setSocketTemp(Set<SocketBindingBean> socketTemp) {
-        this.socketTemp = socketTemp;
-    }
-
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
@@ -225,6 +217,9 @@ public class ServerMigrator extends AbstractMigrator {
 
                     Document doc = ctx.getDocBuilder().newDocument();
                     virSerMarshaller.marshal(virtualServer, doc);
+//                    new XmlNamespaceTranslator().addTranslation(null,"urn:jboss:domain:web:1.2" )
+//                            .addTranslation("", "urn:jboss:domain:web:1.2")
+//                            .translateNamespaces(doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }

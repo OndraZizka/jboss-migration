@@ -165,7 +165,7 @@ public class Migrator {
 
             switch (rollData.getType()) {
                 case "driver": {
-                    // TODO:Can there be only one jar of selected driver or many different versions?
+                    // For now only expecting one jar for driver. Pick the first one.
                     if (list.isEmpty()) {
                         // Special case for freeware jdbc driver jdts.jar
                         if (rollData.getAltName() != null) {
