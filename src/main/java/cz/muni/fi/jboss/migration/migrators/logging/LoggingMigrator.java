@@ -101,9 +101,10 @@ public class LoggingMigrator extends AbstractMigrator {
                         }
                         if (node.getNodeName().equals("logger")) {
                             parent.insertBefore(adopted, lastNode);
+
                             continue;
                         }
-                        // TODO: Only for testing. Need change!
+                        // Only appending to xml what is wrong. Only for testing
                         if (node.getNodeName().equals("root-logger")) {
                             parent.appendChild(adopted);
                         }
@@ -246,12 +247,11 @@ public class LoggingMigrator extends AbstractMigrator {
                     list.add(createLoggerScript(log));
                     continue;
                 }
-                // TODO: Check how add root-logger or change with CLI then implement
-//                if(node.getNodeName().equals("root-logger")){
-//                    RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal(node);
-//                    list.add(cr(virtual, ctx));
-//                    continue;
-//                }
+                if(node.getNodeName().equals("root-logger")){
+                    RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal(node);
+                    list.add(createRootLoggerScript(root));
+                    continue;
+                }
                 if (node.getNodeName().equals("size-rotating-handler")) {
                     SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal(node);
                     list.add(createSizeHandlerScript(sizeHandler));
@@ -489,7 +489,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createLoggerScript(LoggerBean logger) throws CliScriptException {
-        String errMsg = " in Logger(Category in AS5) must be set.";
+        String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
@@ -531,7 +531,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     public static String createPerHandlerScript(PerRotFileHandlerBean periodic)
             throws CliScriptException {
-        String errMsg = " in Periodic-Rotating-File-Handler(Appender in AS5) must be set.";
+        String errMsg = " in periodic-rotating-file-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(periodic.getName(), errMsg, "Name");
         Utils.throwIfBlank(periodic.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(periodic.getPath(), errMsg, "Path");
@@ -564,7 +564,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     public static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {
-        String errMsg = " in Size-Rotating-File-Handler(Appender in AS5) must be set.";
+        String errMsg = " in size-rotating-file-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(sizeHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(sizeHandler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(sizeHandler.getPath(), errMsg, "Path");
@@ -597,7 +597,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     public static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler)
             throws CliScriptException {
-        String errMsg = " in Async-Handler(Appender in AS5) must be set.";
+        String errMsg = " in async-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(asyncHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length");
 
@@ -642,7 +642,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     public static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler)
             throws CliScriptException {
-        String errMsg = " in Console-Handler(Appender in AS5) must be set.";
+        String errMsg = " in console-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(consoleHandler.getName(), errMsg, "Name");
 
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
@@ -670,7 +670,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     public static String createCustomHandlerScript(CustomHandlerBean customHandler)
             throws CliScriptException {
-        String errMsg = " in Custom-Handler must be set.";
+        String errMsg = " in custom-handler must be set.";
         Utils.throwIfBlank(customHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(customHandler.getModule(), errMsg, "Module");
         Utils.throwIfBlank(customHandler.getClassValue(), errMsg, "Class-value");
@@ -704,6 +704,39 @@ public class LoggingMigrator extends AbstractMigrator {
         }
 
         resultScript.append(")");
+
+        return resultScript.toString();
+    }
+
+    /**
+     *  Method for creating Cli script for root-logger. Root-logger can be only modified with Cli not added. So this method
+     *  creates script for change level, filter, handlers. Required attribute is level.
+     *  (Changes possible in future)
+     *
+     * @param rootLogger object representing root-logger in AS7
+     * @return  String containing scripts
+     * @throws CliScriptException if attribute level is missing.
+     */
+    public static String createRootLoggerScript(RootLoggerAS7Bean rootLogger) throws CliScriptException{
+        String errMsg = " in root-logger must be set.";
+        Utils.throwIfBlank(rootLogger.getRootLoggerLevel(), errMsg, "Level");
+
+        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        StringBuilder resultScript = new StringBuilder();
+        if(rootLogger.getRootLogFilValue() != null){
+            resultScript.append("/subsystem=logging/root-logger=ROOT:write-attribute(");
+            builder.addProperty("filter", rootLogger.getRootLogFilValue());
+            resultScript.append(builder.asString()).append(")\n");
+        }
+
+        resultScript.append("/subsystem=logging/root-logger=ROOT:write-attribute(");
+        builder.addProperty("level", rootLogger.getRootLoggerLevel());
+        resultScript.append(builder.asString()).append(")\n");
+
+        for(String handler : rootLogger.getRootLoggerHandlers()){
+            resultScript.append("/subsystem=logging/root-logger=ROOT:root-logger-assign-handler(name=");
+            resultScript.append(handler).append(")\n");
+        }
 
         return resultScript.toString();
     }

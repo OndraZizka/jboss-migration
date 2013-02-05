@@ -157,8 +157,7 @@ public class ServerMigrator extends AbstractMigrator {
                     connAS7.setProxyPort(connector.getProxyPort());
                     connAS7.setRedirectPort(connector.getRedirectPort());
 
-                    // TODO: Getting error in AS7 when deploying ajp connector with empty scheme or without attribute.
-                    // TODO: Only solution is http?
+                    // Ajp connector need scheme too. So http is set.
                     connAS7.setScheme("http");
 
                     connAS7.setConnectorName("connector" + this.randomConnector);
@@ -203,6 +202,7 @@ public class ServerMigrator extends AbstractMigrator {
                             connAS7.setPassword(connector.getKeystorePass());
                         }
                     }
+
                     Document doc = ctx.getDocBuilder().newDocument();
                     connMarshaller.marshal(connAS7, doc);
                     nodeList.add(doc.getDocumentElement());
@@ -217,10 +217,8 @@ public class ServerMigrator extends AbstractMigrator {
 
                     Document doc = ctx.getDocBuilder().newDocument();
                     virSerMarshaller.marshal(virtualServer, doc);
-//                    new XmlNamespaceTranslator().addTranslation(null,"urn:jboss:domain:web:1.2" )
-//                            .addTranslation("", "urn:jboss:domain:web:1.2")
-//                            .translateNamespaces(doc);
                     nodeList.add(doc.getDocumentElement());
+
                     continue;
                 }
 
@@ -414,7 +412,10 @@ public class ServerMigrator extends AbstractMigrator {
      * @param virtualServer object representing migrated virtual-server
      * @return string containing created CLI script
      */
-    public static String createVirtualServerScript(VirtualServerBean virtualServer) {
+    public static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException{
+        String errMsg = "in virtual-server (engine in AS5) must be set";
+        Utils.throwIfBlank(virtualServer.getVirtualServerName(), errMsg, "Server name");
+
         CliAddCommandBuilder builder = new CliAddCommandBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=web/virtual-server=");
         resultScript.append(virtualServer.getVirtualServerName()).append(":add(");

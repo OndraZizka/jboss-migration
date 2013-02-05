@@ -219,8 +219,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
      */
     public static String createResAdapterScript(ResourceAdapterBean resourceAdapter)
             throws CliScriptException {
-        String errMsg = " in Resource Adapter(Connection-Factories in AS5) must be set.";
+        String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(resourceAdapter.getArchive(), errMsg, "Archive name");
+
 
         StringBuilder resultBuilder = new StringBuilder();
         CliAddCommandBuilder cliBuilder = new CliAddCommandBuilder();
@@ -235,9 +236,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         if (resourceAdapter.getConnectionDefinitions() != null) {
             for (ConnectionDefinitionBean connDef : resourceAdapter.getConnectionDefinitions()) {
-                if ((connDef.getClassName() == null) || (connDef.getClassName().isEmpty())) {
-                    throw new CliScriptException("Class-name in the connection definition cannot be null or empty");
-                }
+                errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
+                Utils.throwIfBlank(connDef.getClassName(), errMsg, "Class-name");
+                Utils.throwIfBlank(connDef.getPoolName(), errMsg, "Pool-name");
 
                 String connDefScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive();
                 connDefScript = connDefScript.concat("/connection-definitions=" + connDef.getPoolName() + ":add(");
@@ -277,7 +278,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
                 if (connDef.getConfigProperties() != null) {
                     for (ConfigPropertyBean configProperty : connDef.getConfigProperties()) {
-                        // TODO: Check if something is required or if something can be not specified
+                        errMsg = "of config-property in connection-definition in resource-adapter must be set.";
+                        Utils.throwIfBlank(configProperty.getConfigPropertyName(), errMsg, "Name");
+
                         resultBuilder.append("/subsystem=resource-adapters/resource-adapter=");
                         resultBuilder.append(resourceAdapter.getArchive());
 

@@ -277,7 +277,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         datasourceAS7.setTransIsolation(datasourceAS5.getTransIsolation());
         datasourceAS7.setNewConnectionSql(datasourceAS5.getNewConnectionSql());
 
-        // TODO: First implementation.
         datasourceAS7.setDriver(StringUtils.substringAfter(datasourceAS5.getDriverClass(), "."));
 
         // Elements in element <security> in AS7
@@ -409,7 +408,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      */
     public static String createDatasourceScriptOld(DatasourceAS7Bean datasourceAS7)
             throws CliScriptException {
-        String errMsg = " in Datasource must be set.";
+        String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(datasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
@@ -471,7 +470,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      */
     public static String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
             throws CliScriptException {
-        String errMsg = " in XaDatasource must be set.";
+        String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(xaDatasourceAS7.getDriver(), errMsg, "Driver name");
@@ -524,6 +523,9 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         if (xaDatasourceAS7.getXaDatasourceProps() != null) {
             for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
+                errMsg = "in xa-datasource property must be set";
+                Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
+
                 resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
                 resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
                 resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");
@@ -544,7 +546,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createDriverScript(DriverBean driver) throws CliScriptException {
-        String errMsg = " in Driver must be set.";
+        String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
 
@@ -564,9 +566,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-
-    // TODO: It seems that CLI script for adding Datasource and Xa-Datasource was changed.
-
     /**
      * Creating CLI script for adding Datasource. New format of script.
      *
@@ -575,7 +574,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createDatasourceScriptNew(DatasourceAS7Bean datasourceAS7) throws CliScriptException {
-        String errMsg = " in Datasource must be set.";
+        String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(datasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
@@ -637,7 +636,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes are missing
      */
     public static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws CliScriptException {
-        String errMsg = " in XaDatasource must be set.";
+        String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(xaDatasourceAS7.getDriver(), errMsg, "Driver name");
@@ -684,13 +683,15 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
         builder.addProperty("track-statements", xaDatasourceAS7.getTrackStatements());
         builder.addProperty("share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
-        // TODO:
+
         resultScript.append(builder.asStringDriverNew());
         resultScript.append("\n");
 
-        // TODO: check if something is required...
         if (xaDatasourceAS7.getXaDatasourceProps() != null) {
             for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
+                errMsg = "in xa-datasource property must be set";
+                Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
+
                 resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
                 resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
                 resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");
