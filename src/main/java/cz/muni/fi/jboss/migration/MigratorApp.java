@@ -44,57 +44,57 @@ public class MigratorApp {
         moduleOptions.put(LoggingMigrator.class, new MultiValueMap());
 
         for (String arg : args) {
-            if(arg.contains("--help")){
+            if(arg.startsWith("--help")){
                 Utils.writeHelp();
                 return;
             }
-            if (arg.contains("--as5.dir")) {
+            if (arg.startsWith("--as5.dir=")) {
                 global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if (arg.contains("--as7.dir")) {
+            if (arg.startsWith("--as7.dir=")) {
                 global.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--as5.profile")) {
+            if (arg.startsWith("--as5.profile=")) {
                 global.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--as7.confPath")) {
+            if (arg.startsWith("--as7.confPath=")) {
                 global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--conf")) {
+            if (arg.startsWith("--conf.")) {
                 String conf = StringUtils.substringAfter(arg, ".");
-                if (conf.contains("datasource")) {
+                if (conf.startsWith("datasource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(DatasourceMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("logging")) {
+                if (conf.startsWith("logging.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(LoggingMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("security")) {
+                if (conf.startsWith("security.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(SecurityMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("resource")) {
+                if (conf.startsWith("resource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ResAdapterMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("server")) {
+                if (conf.startsWith("server.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ServerMigrator.class).put(property, value);
