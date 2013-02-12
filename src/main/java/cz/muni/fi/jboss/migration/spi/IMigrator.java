@@ -1,5 +1,7 @@
 package cz.muni.fi.jboss.migration.spi;
 
+import cz.muni.fi.jboss.migration.Configuration;
+import cz.muni.fi.jboss.migration.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -18,6 +20,9 @@ import java.util.List;
  */
 
 public interface IMigrator {
+    
+    public GlobalConfiguration getGlobalConfig();
+    public void setGlobalConfig( GlobalConfiguration conf );
 
     /**
      * Method for loading all files from AS5 and converting them to objects for migration which are then stored in Mig-
@@ -61,5 +66,7 @@ public interface IMigrator {
      * 
      *  @param value May be null, e.g. if the property didn't have '=value' part.
      */
-    public int examineConfigProperty(String moduleName, String propName, String value);
+    public int examineConfigProperty(Configuration.ModuleSpecificProperty moduleOption);
+    //public int examineConfigProperty(String moduleName, String propName, String value);
+    
 }

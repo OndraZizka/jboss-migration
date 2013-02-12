@@ -22,10 +22,12 @@ public abstract class AbstractMigrator implements IMigrator {
         this.config = config;
     }
 
+    @Override
     public GlobalConfiguration getGlobalConfig() {
         return globalConfig;
     }
 
+    @Override
     public void setGlobalConfig(GlobalConfiguration globalConfig) {
         this.globalConfig = globalConfig;
     }
@@ -44,10 +46,11 @@ public abstract class AbstractMigrator implements IMigrator {
      *  Simply puts it in a MultiValueMap if the module prefix belongs to the implementation.
      */
     @Override
-    public int examineConfigProperty(String moduleName, String propName, String value) {
-        if( ! this.getConfigPropertyModuleName().equals(moduleName) )  return 0;
+    //public int examineConfigProperty(String moduleName, String propName, String value) {
+    public int examineConfigProperty(Configuration.ModuleSpecificProperty prop) {
+        if( ! this.getConfigPropertyModuleName().equals(prop.getModuleId()) )  return 0;
         if( this.config == null )  this.config = new MultiValueMap();
-        this.config.put(propName, value);
+        this.config.put(prop.getPropName(), prop.getValue());
         return 1;
     }
     

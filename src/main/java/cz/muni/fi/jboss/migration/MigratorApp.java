@@ -2,14 +2,7 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.ex.*;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
-import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
-import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
-import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
-import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
-import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -18,10 +11,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,20 +32,9 @@ public class MigratorApp {
             Utils.writeHelp();
             return;
         }
-        
-        
-
-        // Find IMigrator implementations.
-        List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
-        
-        // Initialize migrator instances and pass that; 
-        // and let parseArguments() let migrators process module-specific args.
-        // TODO: Move to migrate.
-        Map<Class<? extends IMigrator>, IMigrator> migrators = createMigrators( migratorClasses );
-        
-                
+                        
         // Parse arguments.
-        Configuration configuration = parseArguments( args, migrators );
+        Configuration configuration = parseArguments( args );
         if( null == configuration )  System.exit(1);
         
         // Migrate.
@@ -67,28 +47,12 @@ public class MigratorApp {
     // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
 
     
-    /**
-     *  Find implementation of IMigrator.
-     *  TODO: Implement scanning for classes.
-     */
-    private static List<Class<? extends IMigrator>> findMigratorClasses() {
-        
-        LinkedList<Class<? extends IMigrator>> migrators = new LinkedList();
-        migrators.add( SecurityMigrator.class );
-        migrators.add( ServerMigrator.class );
-        migrators.add( DatasourceMigrator.class );
-        migrators.add( ResAdapterMigrator.class );
-        migrators.add( LoggingMigrator.class );
-        
-        return migrators;
-    }
-
     
     /**
      *  Parses app's arguments.
      *  @returns  Configuration initialized according to args.
      */
-    private static Configuration parseArguments(String[] args, Map<Class<? extends IMigrator>, IMigrator> migrators) {
+    private static Configuration parseArguments(String[] args) {
     
         // Global config
         GlobalConfiguration global = new GlobalConfiguration();
@@ -166,6 +130,8 @@ public class MigratorApp {
     }// parseArguments()
 
     
+    
+    
     /**
      *  Performs the migration.
      *  TODO: Should probably be in Migrator{}.
@@ -179,6 +145,7 @@ public class MigratorApp {
         System.out.println("Migration:");
         try {
             ctx = new MigrationContext();
+            
             ctx.createBuilder();
             File standalone = new File(conf.getGlobal().getStandaloneFilePath());
 
@@ -186,6 +153,7 @@ public class MigratorApp {
             nonAlteredStandalone = ctx.getDocBuilder().parse(standalone);
             ctx.setStandaloneDoc(doc);
 
+            // Create Migrator
             migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
@@ -233,21 +201,5 @@ public class MigratorApp {
         
     }// migrate()
 
-    private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(List<Class<? extends IMigrator>> migratorClasses) {
-        
-        Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
-        List<Exception> exs  = new LinkedList<>();
-        
-        for( Class<? extends IMigrator> cls : migratorClasses ){
-            try {
-                IMigrator mig = cls.newInstance();
-                migs.put(cls, mig);
-            } catch (InstantiationException | IllegalAccessException ex) {
-                log.error("Failed instantiating " + cls.getSimpleName() + ": " + ex.toString());
-                exs.add(ex);
-            }
-        }
-        return migs;
-    }// createMigrators()
 
 }// class
