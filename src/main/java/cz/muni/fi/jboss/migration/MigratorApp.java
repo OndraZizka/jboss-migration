@@ -34,23 +34,23 @@ public class MigratorApp {
             Utils.writeHelp();
             return;
         }
-        GlobalConfiguration global = new GlobalConfiguration();
-        Configuration configuration = new Configuration();
+        
+        
 
         // Find IMigrator implementations.
-        List<Class<? extends IMigrator>> migrators = findMigratorClasses();
+        List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
         
+        // TODO: Initialize migrator instances and pass that; 
+        //       and let parseArguments() let migrators process module-specific args.
+        //List<? extends IMigrator> migrators = createMigrators( migratorClasses );
         
-        // Create and initialize options map for all modules. TODO: Could be wrapped into class of it's own.
-        Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
-        for (Class<? extends IMigrator> cls : migrators) {
-            moduleOptions.put(cls, new MultiValueMap());
-        }
-        
+                
         // Parse arguments.
-        parseArguments( args, global, configuration, moduleOptions );
+        Configuration configuration = parseArguments( args, migratorClasses );
+        if( null == configuration )  System.exit(1);
         
-        migrate( global, configuration, moduleOptions );
+        // Migrate.
+        migrate( configuration );
 
         
     }// main()
@@ -77,15 +77,26 @@ public class MigratorApp {
 
     
     /**
-     * 
+     *  Parses app's arguments.
+     *  @returns  Configuration initialized according to args.
      */
-    private static void parseArguments(String[] args, GlobalConfiguration global, Configuration configuration, Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions) {
+    private static Configuration parseArguments(String[] args, List<Class<? extends IMigrator>> migratorClasses) {
+    
+        // Global config
+        GlobalConfiguration global = new GlobalConfiguration();
+        
+        // Module-specific options map. TODO: Could be wrapped into class of it's own.
+        Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
+        for (Class<? extends IMigrator> cls : migratorClasses) {
+            moduleOptions.put(cls, new MultiValueMap());
+        }
+        
         
         // For each argument...
         for (String arg : args) {
             if(arg.startsWith("--help")){
                 Utils.writeHelp();
-                return;
+                return null;
             }
             if (arg.startsWith("--as5.dir=")) {
                 global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
@@ -108,6 +119,7 @@ public class MigratorApp {
             }
 
             // Module-specific configurations.
+            // TODO: Process by calling IMigrator instances' callback.
             if (arg.startsWith("--conf.")) {
                 String conf = StringUtils.substringAfter(arg, ".");
                 String module = StringUtils.substringBefore(conf, ".");
@@ -146,14 +158,17 @@ public class MigratorApp {
                     System.err.println("Error: No module knows the argument: " + arg + " !");
             }
 
-            System.err.println("Error: Unknown argument: " + arg + " !");
+            System.err.println("Warning: Unknown argument: " + arg + " !");
             Utils.writeHelp();
-            return;
+            continue;
         }
         global.setStandalonePath();
 
+        Configuration configuration = new Configuration();
         configuration.setModuleOtions(moduleOptions);
         configuration.setOptions(global);
+        
+        return configuration;
         
     }// parseArguments()
 
@@ -161,7 +176,7 @@ public class MigratorApp {
     /**
      *  Performs the migration.
      */
-    private static void migrate(GlobalConfiguration global, Configuration configuration, Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions) {
+    private static void migrate( Configuration conf ) {
         
         Migrator migrator;
         MigrationContext ctx;
@@ -171,13 +186,13 @@ public class MigratorApp {
         try {
             ctx = new MigrationContext();
             ctx.createBuilder();
-            File standalone = new File(configuration.getGlobal().getStandaloneFilePath());
+            File standalone = new File(conf.getGlobal().getStandaloneFilePath());
 
             Document doc = ctx.getDocBuilder().parse(standalone);
             nonAlteredStandalone = ctx.getDocBuilder().parse(standalone);
             ctx.setStandaloneDoc(doc);
 
-            migrator = new Migrator(configuration, ctx);
+            migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
         } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
@@ -207,7 +222,7 @@ public class MigratorApp {
         } catch (CopyException e) {
             e.printStackTrace();
             Utils.removeData(ctx.getRollbackDatas());
-            FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
         }
 
@@ -217,11 +232,11 @@ public class MigratorApp {
             System.out.println("Migration was successful");
         } catch (ApplyMigrationException e) {
             e.printStackTrace();
-            Utils.cleanStandalone(nonAlteredStandalone, configuration);
+            Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackDatas());
-            FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
         }
         
-    }
+    }// migrate()
 
 }// class
