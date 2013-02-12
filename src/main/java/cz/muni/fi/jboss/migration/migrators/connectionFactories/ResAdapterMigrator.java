@@ -41,6 +41,10 @@ import java.util.Set;
 
 public class ResAdapterMigrator extends AbstractMigrator {
 
+    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
+    
+    
+
     public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }

@@ -32,8 +32,6 @@ import java.util.List;
  * Migrator is class, which represents all functions of the application.
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:25 AM
  */
 
 public class Migrator {
@@ -44,7 +42,7 @@ public class Migrator {
 
     private List<IMigrator> migrators;
 
-    public Migrator(Configuration config, MigrationContext context) {
+    public Migrator( Configuration config, MigrationContext context ) {
         this.config = config;
         this.ctx = context;
         this.migrators = createMigrators();

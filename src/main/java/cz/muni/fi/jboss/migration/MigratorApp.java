@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
@@ -46,13 +47,14 @@ public class MigratorApp {
         // Find IMigrator implementations.
         List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
         
-        // TODO: Initialize migrator instances and pass that; 
-        //       and let parseArguments() let migrators process module-specific args.
-        //List<? extends IMigrator> migrators = createMigrators( migratorClasses );
+        // Initialize migrator instances and pass that; 
+        // and let parseArguments() let migrators process module-specific args.
+        // TODO: Move to migrate.
+        Map<Class<? extends IMigrator>, IMigrator> migrators = createMigrators( migratorClasses );
         
                 
         // Parse arguments.
-        Configuration configuration = parseArguments( args, migratorClasses );
+        Configuration configuration = parseArguments( args, migrators );
         if( null == configuration )  System.exit(1);
         
         // Migrate.
@@ -86,16 +88,13 @@ public class MigratorApp {
      *  Parses app's arguments.
      *  @returns  Configuration initialized according to args.
      */
-    private static Configuration parseArguments(String[] args, List<Class<? extends IMigrator>> migratorClasses) {
+    private static Configuration parseArguments(String[] args, Map<Class<? extends IMigrator>, IMigrator> migrators) {
     
         // Global config
         GlobalConfiguration global = new GlobalConfiguration();
         
-        // Module-specific options map. TODO: Could be wrapped into class of it's own.
-        Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
-        for (Class<? extends IMigrator> cls : migratorClasses) {
-            moduleOptions.put(cls, new MultiValueMap());
-        }
+        // Module-specific options.
+        List<ModuleSpecificProperty> moduleOptions = new LinkedList<>();
         
         
         // For each argument...
@@ -127,41 +126,29 @@ public class MigratorApp {
             // Module-specific configurations.
             // TODO: Process by calling IMigrator instances' callback.
             if (arg.startsWith("--conf.")) {
+                
+                // --conf.<module>.<property.name>[=<value>]
                 String conf = StringUtils.substringAfter(arg, ".");
                 String module = StringUtils.substringBefore(conf, ".");
+                String propName = StringUtils.substringAfter(conf, ".");
+                int pos = propName.indexOf('=');
+                String value = null;
+                if( pos == -1 ){
+                    value = propName.substring(pos+1);
+                    propName = propName.substring(0, pos);
+                }
                 
-                if (conf.startsWith("datasource.")) {
-                    String property = StringUtils.substringBetween(conf, ".", "=");
-                    String value = StringUtils.substringAfter(conf, "=");
-                    moduleOptions.get(DatasourceMigrator.class).put(property, value);
+                /*// Let all migrator instances process the property.
+                int pickedUp = 0;
+                for( IMigrator mig : migrators.values() ){
+                    pickedUp += mig.examineConfigProperty(module, property, value);
                 }
-
-                else if (conf.startsWith("logging.")) {
-                    String property = StringUtils.substringBetween(conf, ".", "=");
-                    String value = StringUtils.substringAfter(conf, "=");
-                    moduleOptions.get(LoggingMigrator.class).put(property, value);
-                }
-
-                else if (conf.startsWith("security.")) {
-                    String property = StringUtils.substringBetween(conf, ".", "=");
-                    String value = StringUtils.substringAfter(conf, "=");
-                    moduleOptions.get(SecurityMigrator.class).put(property, value);
-                }
-
-                else if (conf.startsWith("resource.")) {
-                    String property = StringUtils.substringBetween(conf, ".", "=");
-                    String value = StringUtils.substringAfter(conf, "=");
-                    moduleOptions.get(ResAdapterMigrator.class).put(property, value);
-                }
-
-                else if (conf.startsWith("server.")) {
-                    String property = StringUtils.substringBetween(conf, ".", "=");
-                    String value = StringUtils.substringAfter(conf, "=");
-                    moduleOptions.get(ServerMigrator.class).put(property, value);
-                }
-
-                else
-                    System.err.println("Error: No module knows the argument: " + arg + " !");
+                if( pickedUp == 0 )
+                    System.err.println("Warning: No module recognized the argument: " + arg + " !");
+                */
+                // TODO: Move this to Migrator{}.
+                
+                moduleOptions.add( new ModuleSpecificProperty(module, propName, value));
             }
 
             System.err.println("Warning: Unknown argument: " + arg + " !");
@@ -181,6 +168,7 @@ public class MigratorApp {
     
     /**
      *  Performs the migration.
+     *  TODO: Should probably be in Migrator{}.
      */
     private static void migrate( Configuration conf ) {
         
@@ -244,5 +232,22 @@ public class MigratorApp {
         }
         
     }// migrate()
+
+    private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(List<Class<? extends IMigrator>> migratorClasses) {
+        
+        Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
+        List<Exception> exs  = new LinkedList<>();
+        
+        for( Class<? extends IMigrator> cls : migratorClasses ){
+            try {
+                IMigrator mig = cls.newInstance();
+                migs.put(cls, mig);
+            } catch (InstantiationException | IllegalAccessException ex) {
+                log.error("Failed instantiating " + cls.getSimpleName() + ": " + ex.toString());
+                exs.add(ex);
+            }
+        }
+        return migs;
+    }// createMigrators()
 
 }// class

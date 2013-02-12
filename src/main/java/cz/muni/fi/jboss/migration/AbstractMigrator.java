@@ -15,6 +15,7 @@ public abstract class AbstractMigrator implements IMigrator {
     private GlobalConfiguration globalConfig;
 
     private MultiValueMap config;
+    
 
     public AbstractMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         this.globalConfig = globalConfig;
@@ -36,4 +37,24 @@ public abstract class AbstractMigrator implements IMigrator {
     public void setConfig(MultiValueMap config) {
         this.config = config;
     }
-}
+
+    
+    /**
+     *  Default implementation of examineConfigProperty();
+     *  Simply puts it in a MultiValueMap if the module prefix belongs to the implementation.
+     */
+    @Override
+    public int examineConfigProperty(String moduleName, String propName, String value) {
+        if( ! this.getConfigPropertyModuleName().equals(moduleName) )  return 0;
+        if( this.config == null )  this.config = new MultiValueMap();
+        this.config.put(propName, value);
+        return 1;
+    }
+    
+    /**
+     *  "ID" of this IMigrator implementation, e.g "logging";
+     *  Used  by #examineConfigProperty() to decide whether to store the property.
+     */
+    abstract protected String getConfigPropertyModuleName();
+    
+}// class

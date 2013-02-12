@@ -34,6 +34,9 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 public class SecurityMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "security"; }
+    
 
     public SecurityMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
