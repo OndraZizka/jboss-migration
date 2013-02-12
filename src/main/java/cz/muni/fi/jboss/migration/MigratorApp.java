@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main class of the application
@@ -29,6 +31,10 @@ import java.util.Map;
  */
 
 public class MigratorApp {
+    
+    private static final Logger log = LoggerFactory.getLogger(MigratorApp.class);
+    
+    
     public static void main(String[] args) {
         if (args.length == 0) {
             Utils.writeHelp();
