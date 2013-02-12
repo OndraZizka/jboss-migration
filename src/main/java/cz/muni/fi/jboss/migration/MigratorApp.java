@@ -18,6 +18,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,14 +37,51 @@ public class MigratorApp {
         GlobalConfiguration global = new GlobalConfiguration();
         Configuration configuration = new Configuration();
 
+        // Find IMigrator implementations.
+        List<Class<? extends IMigrator>> migrators = findMigratorClasses();
+        
+        
+        // Create and initialize options map for all modules. TODO: Could be wrapped into class of it's own.
         Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
+        for (Class<? extends IMigrator> cls : migrators) {
+            moduleOptions.put(cls, new MultiValueMap());
+        }
+        
+        // Parse arguments.
+        parseArguments( args, global, configuration, moduleOptions );
+        
+        migrate( global, configuration, moduleOptions );
 
-        moduleOptions.put(SecurityMigrator.class, new MultiValueMap());
-        moduleOptions.put(ServerMigrator.class, new MultiValueMap());
-        moduleOptions.put(DatasourceMigrator.class, new MultiValueMap());
-        moduleOptions.put(ResAdapterMigrator.class, new MultiValueMap());
-        moduleOptions.put(LoggingMigrator.class, new MultiValueMap());
+        
+    }// main()
 
+
+    // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
+
+    
+    /**
+     *  Find implementation of IMigrator.
+     *  TODO: Implement scanning for classes.
+     */
+    private static List<Class<? extends IMigrator>> findMigratorClasses() {
+        
+        LinkedList<Class<? extends IMigrator>> migrators = new LinkedList();
+        migrators.add( SecurityMigrator.class );
+        migrators.add( ServerMigrator.class );
+        migrators.add( DatasourceMigrator.class );
+        migrators.add( ResAdapterMigrator.class );
+        migrators.add( LoggingMigrator.class );
+        
+        return migrators;
+    }
+
+    
+    /**
+     * 
+     */
+    private static void parseArguments(String[] args, GlobalConfiguration global, Configuration configuration, Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions) {
+        
+        // For each argument...
         for (String arg : args) {
             if(arg.startsWith("--help")){
                 Utils.writeHelp();
@@ -68,45 +107,46 @@ public class MigratorApp {
                 continue;
             }
 
+            // Module-specific configurations.
             if (arg.startsWith("--conf.")) {
                 String conf = StringUtils.substringAfter(arg, ".");
+                String module = StringUtils.substringBefore(conf, ".");
+                
                 if (conf.startsWith("datasource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(DatasourceMigrator.class).put(property, value);
                 }
 
-                if (conf.startsWith("logging.")) {
+                else if (conf.startsWith("logging.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(LoggingMigrator.class).put(property, value);
                 }
 
-                if (conf.startsWith("security.")) {
+                else if (conf.startsWith("security.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(SecurityMigrator.class).put(property, value);
                 }
 
-                if (conf.startsWith("resource.")) {
+                else if (conf.startsWith("resource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ResAdapterMigrator.class).put(property, value);
                 }
 
-                if (conf.startsWith("server.")) {
+                else if (conf.startsWith("server.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ServerMigrator.class).put(property, value);
                 }
 
-                System.err.println("Error: Wrong command : " + arg + " !");
-                Utils.writeHelp();
-
-                return;
+                else
+                    System.err.println("Error: No module knows the argument: " + arg + " !");
             }
 
-            System.err.println("Error: Wrong command : " + arg + " !");
+            System.err.println("Error: Unknown argument: " + arg + " !");
             Utils.writeHelp();
             return;
         }
@@ -114,7 +154,15 @@ public class MigratorApp {
 
         configuration.setModuleOtions(moduleOptions);
         configuration.setOptions(global);
+        
+    }// parseArguments()
 
+    
+    /**
+     *  Performs the migration.
+     */
+    private static void migrate(GlobalConfiguration global, Configuration configuration, Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions) {
+        
         Migrator migrator;
         MigrationContext ctx;
         Document nonAlteredStandalone;
@@ -173,11 +221,7 @@ public class MigratorApp {
             Utils.removeData(ctx.getRollbackDatas());
             FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
         }
+        
     }
 
-
-    // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
-
-
-}
-
+}// class
