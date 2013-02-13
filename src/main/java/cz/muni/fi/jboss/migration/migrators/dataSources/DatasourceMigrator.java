@@ -42,6 +42,9 @@ import java.util.Set;
  */
 
 public class DatasourceMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "datasource"; }
+    
 
     private Set<String> drivers = new HashSet();
 

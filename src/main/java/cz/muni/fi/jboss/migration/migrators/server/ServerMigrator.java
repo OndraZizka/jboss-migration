@@ -34,6 +34,9 @@ import java.util.Set;
  */
 
 public class ServerMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "server"; }
+    
 
     private Set<SocketBindingBean> socketTemp = new HashSet();
 

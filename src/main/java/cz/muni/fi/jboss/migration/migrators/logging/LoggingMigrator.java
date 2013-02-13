@@ -35,6 +35,9 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 public class LoggingMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "logging"; }
+    
 
     public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
