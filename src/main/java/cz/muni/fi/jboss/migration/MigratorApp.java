@@ -18,7 +18,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main class of the application
@@ -27,94 +31,159 @@ import java.util.Map;
  */
 
 public class MigratorApp {
+    
+    private static final Logger log = LoggerFactory.getLogger(MigratorApp.class);
+    
+    
     public static void main(String[] args) {
         if (args.length == 0) {
             Utils.writeHelp();
             return;
         }
+        
+        
+
+        // Find IMigrator implementations.
+        List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
+        
+        // TODO: Initialize migrator instances and pass that; 
+        //       and let parseArguments() let migrators process module-specific args.
+        //List<? extends IMigrator> migrators = createMigrators( migratorClasses );
+        
+                
+        // Parse arguments.
+        Configuration configuration = parseArguments( args, migratorClasses );
+        if( null == configuration )  System.exit(1);
+        
+        // Migrate.
+        migrate( configuration );
+
+        
+    }// main()
+
+
+    // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
+
+    
+    /**
+     *  Find implementation of IMigrator.
+     *  TODO: Implement scanning for classes.
+     */
+    private static List<Class<? extends IMigrator>> findMigratorClasses() {
+        
+        LinkedList<Class<? extends IMigrator>> migrators = new LinkedList();
+        migrators.add( SecurityMigrator.class );
+        migrators.add( ServerMigrator.class );
+        migrators.add( DatasourceMigrator.class );
+        migrators.add( ResAdapterMigrator.class );
+        migrators.add( LoggingMigrator.class );
+        
+        return migrators;
+    }
+
+    
+    /**
+     *  Parses app's arguments.
+     *  @returns  Configuration initialized according to args.
+     */
+    private static Configuration parseArguments(String[] args, List<Class<? extends IMigrator>> migratorClasses) {
+    
+        // Global config
         GlobalConfiguration global = new GlobalConfiguration();
-        Configuration configuration = new Configuration();
-
+        
+        // Module-specific options map. TODO: Could be wrapped into class of it's own.
         Map<Class<? extends IMigrator>, MultiValueMap> moduleOptions = new HashMap();
-
-        moduleOptions.put(SecurityMigrator.class, new MultiValueMap());
-        moduleOptions.put(ServerMigrator.class, new MultiValueMap());
-        moduleOptions.put(DatasourceMigrator.class, new MultiValueMap());
-        moduleOptions.put(ResAdapterMigrator.class, new MultiValueMap());
-        moduleOptions.put(LoggingMigrator.class, new MultiValueMap());
-
+        for (Class<? extends IMigrator> cls : migratorClasses) {
+            moduleOptions.put(cls, new MultiValueMap());
+        }
+        
+        
+        // For each argument...
         for (String arg : args) {
-            if(arg.contains("--help")){
+            if(arg.startsWith("--help")){
                 Utils.writeHelp();
-                return;
+                return null;
             }
-            if (arg.contains("--as5.dir")) {
+            if (arg.startsWith("--as5.dir=")) {
                 global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if (arg.contains("--as7.dir")) {
+            if (arg.startsWith("--as7.dir=")) {
                 global.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--as5.profile")) {
+            if (arg.startsWith("--as5.profile=")) {
                 global.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--as7.confPath")) {
+            if (arg.startsWith("--as7.confPath=")) {
                 global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.contains("--conf")) {
+            // Module-specific configurations.
+            // TODO: Process by calling IMigrator instances' callback.
+            if (arg.startsWith("--conf.")) {
                 String conf = StringUtils.substringAfter(arg, ".");
-                if (conf.contains("datasource")) {
+                String module = StringUtils.substringBefore(conf, ".");
+                
+                if (conf.startsWith("datasource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(DatasourceMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("logging")) {
+                else if (conf.startsWith("logging.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(LoggingMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("security")) {
+                else if (conf.startsWith("security.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(SecurityMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("resource")) {
+                else if (conf.startsWith("resource.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ResAdapterMigrator.class).put(property, value);
                 }
 
-                if (conf.contains("server")) {
+                else if (conf.startsWith("server.")) {
                     String property = StringUtils.substringBetween(conf, ".", "=");
                     String value = StringUtils.substringAfter(conf, "=");
                     moduleOptions.get(ServerMigrator.class).put(property, value);
                 }
 
-                System.err.println("Error: Wrong command : " + arg + " !");
-                Utils.writeHelp();
-
-                return;
+                else
+                    System.err.println("Error: No module knows the argument: " + arg + " !");
             }
 
-            System.err.println("Error: Wrong command : " + arg + " !");
+            System.err.println("Warning: Unknown argument: " + arg + " !");
             Utils.writeHelp();
-            return;
+            continue;
         }
         global.setStandalonePath();
 
+        Configuration configuration = new Configuration();
         configuration.setModuleOtions(moduleOptions);
         configuration.setOptions(global);
+        
+        return configuration;
+        
+    }// parseArguments()
 
+    
+    /**
+     *  Performs the migration.
+     */
+    private static void migrate( Configuration conf ) {
+        
         Migrator migrator;
         MigrationContext ctx;
         Document nonAlteredStandalone;
@@ -123,13 +192,13 @@ public class MigratorApp {
         try {
             ctx = new MigrationContext();
             ctx.createBuilder();
-            File standalone = new File(configuration.getGlobal().getStandaloneFilePath());
+            File standalone = new File(conf.getGlobal().getStandaloneFilePath());
 
             Document doc = ctx.getDocBuilder().parse(standalone);
             nonAlteredStandalone = ctx.getDocBuilder().parse(standalone);
             ctx.setStandaloneDoc(doc);
 
-            migrator = new Migrator(configuration, ctx);
+            migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
         } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
@@ -159,7 +228,7 @@ public class MigratorApp {
         } catch (CopyException e) {
             e.printStackTrace();
             Utils.removeData(ctx.getRollbackDatas());
-            FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
             return;
         }
 
@@ -169,15 +238,11 @@ public class MigratorApp {
             System.out.println("Migration was successful");
         } catch (ApplyMigrationException e) {
             e.printStackTrace();
-            Utils.cleanStandalone(nonAlteredStandalone, configuration);
+            Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackDatas());
-            FileUtils.deleteQuietly(new File(global.getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
         }
-    }
+        
+    }// migrate()
 
-
-    // TODO: Some files are declared for example in standard profile in AS5 but files which they reference are not? security web-console*
-
-
-}
-
+}// class

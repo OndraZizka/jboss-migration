@@ -93,6 +93,7 @@ public class Utils {
      * Helping method for writing help.
      */
     public static void writeHelp() {
+        System.out.println();
         System.out.println("Usage:");
         System.out.println();
         System.out.println("    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>");
@@ -111,6 +112,7 @@ public class Utils {
         System.out.println("        <module> := Name of one of modules. E.g. datasource, jaas, security, ...");
         System.out.println("        <property> := Name of the property to set. Specific per module. " +
                 "May occur multiple times.");
+        System.out.println();
     }
 
     /**
