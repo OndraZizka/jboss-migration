@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author Roman Jakubco
  */
-
 public class MigratorApp {
     
     private static final Logger log = LoggerFactory.getLogger(MigratorApp.class);
@@ -35,10 +34,27 @@ public class MigratorApp {
                         
         // Parse arguments.
         Configuration configuration = parseArguments( args );
-        if( null == configuration )  System.exit(1);
+        if( null == configuration )
+            System.exit(1);
+        
+        // Apply defaults.
+        applyDefaults( configuration );
+        
+        // Validate config.
+        List<String> problems = validateConfiguration( configuration );
+        if( !problems.isEmpty() ){
+            for( String problem : problems )
+                log.error(problem);
+            System.exit(1);
+        }
         
         // Migrate.
-        migrate( configuration );
+        try {
+            migrate( configuration );
+        } catch (MigrationException ex) {
+            log.error("Migration failed (details at DEBUG level): " + ex.getMessage());
+            log.debug("Migration failed: ", ex);
+        }
 
         
     }// main()
@@ -55,35 +71,35 @@ public class MigratorApp {
     private static Configuration parseArguments(String[] args) {
     
         // Global config
-        GlobalConfiguration global = new GlobalConfiguration();
+        GlobalConfiguration globalConfig = new GlobalConfiguration();
         
         // Module-specific options.
-        List<ModuleSpecificProperty> moduleOptions = new LinkedList<>();
+        List<ModuleSpecificProperty> moduleConfigs = new LinkedList<>();
         
         
         // For each argument...
         for (String arg : args) {
-            if(arg.startsWith("--help")){
+            if( arg.startsWith("--help") ){
                 Utils.writeHelp();
                 return null;
             }
-            if (arg.startsWith("--as5.dir=")) {
-                global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
+            if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
+                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if (arg.startsWith("--as7.dir=")) {
-                global.setDirAS7(StringUtils.substringAfter(arg, "="));
+            if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
+                globalConfig.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.startsWith("--as5.profile=")) {
-                global.setProfileAS5(StringUtils.substringAfter(arg, "="));
+            if( arg.startsWith("--as5.profile=") ) {
+                globalConfig.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.startsWith("--as7.confPath=")) {
-                global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
+            if( arg.startsWith("--as7.confPath=") ) {
+                globalConfig.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -112,37 +128,85 @@ public class MigratorApp {
                 */
                 // TODO: Move this to Migrator{}.
                 
-                moduleOptions.add( new ModuleSpecificProperty(module, propName, value));
+                moduleConfigs.add( new ModuleSpecificProperty(module, propName, value));
             }
 
             System.err.println("Warning: Unknown argument: " + arg + " !");
             Utils.writeHelp();
             continue;
         }
-        global.setStandalonePath();
+        globalConfig.setStandalonePath();
 
         Configuration configuration = new Configuration();
-        configuration.setModuleOtions(moduleOptions);
-        configuration.setOptions(global);
+        configuration.setModuleConfigs(moduleConfigs);
+        configuration.setGlobalConfig(globalConfig);
         
         return configuration;
         
     }// parseArguments()
 
     
+
+    /**
+     *  Sets the default values.
+     */
+    private static void applyDefaults(Configuration configuration) {
+        // TODO
+    }
+
+    
+    
+    /**
+     *  Validates the config - checks if the paths exist, contain the expected files etc.
+     * 
+     *  @returns  True if everything is OK.
+     */
+    private static List<String> validateConfiguration(Configuration config) {
+        LinkedList<String> problems = new LinkedList<>();
+        
+        String path = config.getGlobal().getDirAS5();
+        if( null == path )
+            problems.add("as5.dir was not set.");
+        else if( ! new File(path).isDirectory() )
+            problems.add("as5.dir is not a directory: " + path);
+        else {
+            String configPath = config.getGlobal().getProfileAS5();
+            if( null == configPath )
+                ; // problems.add("as5.profile was not set."); // TODO: Put defaults to the config.
+            else if( ! new File(path, configPath).exists() )
+                problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+        }
+        
+        path = config.getGlobal().getDirAS7();
+        if( null == path )
+            problems.add("as7.dir was not set.");
+        else if( ! new File(path).isDirectory() )
+            problems.add("as7.dir is not a directory: " + path);
+        else {
+            String configPath = config.getGlobal().getStandaloneFilePath();
+            if( null == configPath )
+                ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
+            else if( ! new File(path, configPath).exists() )
+                problems.add("as7.confPath is not a subpath under AS 5 dir: " + path);
+        }
+        
+        return problems;
+    }
+
+
     
     
     /**
      *  Performs the migration.
      *  TODO: Should probably be in Migrator{}.
      */
-    private static void migrate( Configuration conf ) {
+    private static void migrate( Configuration conf ) throws MigrationException {
         
         Migrator migrator;
         MigrationContext ctx;
         Document nonAlteredStandalone;
 
-        System.out.println("Migration:");
+        log.info("Commencing migration.");
         try {
             ctx = new MigrationContext();
             
@@ -157,49 +221,52 @@ public class MigratorApp {
             migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
-        } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            e.printStackTrace();
-            return;
+        } 
+        catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
+            throw new MigrationException(e);
         }
 
         try {
             migrator.getDOMElements();
-        } catch (MigrationException e) {
-            e.printStackTrace();
-            return;
+        }
+        catch (MigrationException e) {
+            throw new MigrationException(e);
         }
 
         try {
-            System.out.println("Generated Cli scripts:");
+            StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
             for (String script : migrator.getCLIScripts()) {
-                System.out.println(script);
+                sb.append("        ").append(script).append("\n");
             }
-        } catch (CliScriptException e) {
-            e.printStackTrace();
-            return;
+            log.info( sb.toString() );
+        } 
+        catch (CliScriptException ex) {
+            throw ex;
         }
 
         try {
             migrator.copyItems();
-        } catch (CopyException e) {
-            e.printStackTrace();
-            Utils.removeData(ctx.getRollbackDatas());
+        }
+        catch (CopyException ex) {
+            // TODO: Move this procedure into some rollback() method.
+            Utils.removeData(ctx.getRollbackData());
+            // TODO: Can't just blindly delete, we need to keep info if we really created it.
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
-            return;
+            throw new MigrationException(ex);
         }
 
         try {
             migrator.apply();
-            System.out.println();
-            System.out.println("Migration was successful");
-        } catch (ApplyMigrationException e) {
-            e.printStackTrace();
+            log.info("");
+            log.info("Migration was successful.");
+        } catch (ApplyMigrationException ex) {
             Utils.cleanStandalone(nonAlteredStandalone, conf);
-            Utils.removeData(ctx.getRollbackDatas());
+            Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            throw ex;
         }
         
     }// migrate()
 
-
+    
 }// class

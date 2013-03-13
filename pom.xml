@@ -9,8 +9,16 @@
     <version>1.0</version>
 
     <name>JBoss AS 5 to 7 Config Migration</name>
-
+    
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <filtering>false</filtering>
+                <excludes> <exclude>**/*.java</exclude> </excludes>
+            </resource>
+        </resources>
+        
         <plugins>
             <!-- Java language version -->
             <plugin>

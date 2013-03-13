@@ -188,7 +188,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 cp.setModule(AS7ModuleUtils.createDriverModule(driverClass));
                 driver.setDriverModule(AS7ModuleUtils.createDriverModule(driverClass));
 
-                ctx.getRollbackDatas().add(cp);
+                ctx.getRollbackData().add(cp);
 
                 Document doc = ctx.getDocBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
@@ -206,7 +206,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 cp.setModule(AS7ModuleUtils.createDriverModule(xaDsClass));
                 driver.setDriverModule(AS7ModuleUtils.createDriverModule(xaDsClass));
 
-                ctx.getRollbackDatas().add(cp);
+                ctx.getRollbackData().add(cp);
 
                 Document doc = ctx.getDocBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
