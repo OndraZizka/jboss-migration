@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author Roman Jakubco
  */
-
 public class MigratorApp {
     
     private static final Logger log = LoggerFactory.getLogger(MigratorApp.class);
@@ -35,7 +34,19 @@ public class MigratorApp {
                         
         // Parse arguments.
         Configuration configuration = parseArguments( args );
-        if( null == configuration )  System.exit(1);
+        if( null == configuration )
+            System.exit(1);
+        
+        // Apply defaults.
+        applyDefaults( configuration );
+        
+        // Validate config.
+        List<String> problems = validateConfiguration( configuration );
+        if( !problems.isEmpty() ){
+            for( String problem : problems )
+                log.error(problem);
+            System.exit(1);
+        }
         
         // Migrate.
         migrate( configuration );
@@ -130,6 +141,54 @@ public class MigratorApp {
     }// parseArguments()
 
     
+
+    /**
+     *  Sets the default values.
+     */
+    private static void applyDefaults(Configuration configuration) {
+        // TODO
+    }
+
+    
+    
+    /**
+     *  Validates the config - checks if the paths exist, contain the expected files etc.
+     * 
+     *  @returns  True if everything is OK.
+     */
+    private static List<String> validateConfiguration(Configuration config) {
+        LinkedList<String> problems = new LinkedList<>();
+        
+        String path = config.getGlobal().getDirAS5();
+        if( null == path )
+            problems.add("as5.dir was not set.");
+        else if( ! new File(path).isDirectory() )
+            problems.add("as5.dir is not a directory: " + path);
+        else {
+            String configPath = config.getGlobal().getProfileAS5();
+            if( null == configPath )
+                ; // problems.add("as5.profile was not set."); // TODO: Put defaults to the config.
+            else if( ! new File(path, configPath).exists() )
+                problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+        }
+        
+        path = config.getGlobal().getDirAS7();
+        if( null == path )
+            problems.add("as7.dir was not set.");
+        else if( ! new File(path).isDirectory() )
+            problems.add("as7.dir is not a directory: " + path);
+        else {
+            String configPath = config.getGlobal().getStandaloneFilePath();
+            if( null == configPath )
+                ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
+            else if( ! new File(path, configPath).exists() )
+                problems.add("as7.confPath is not a subpath under AS 5 dir: " + path);
+        }
+        
+        return problems;
+    }
+
+
     
     
     /**
@@ -201,5 +260,5 @@ public class MigratorApp {
         
     }// migrate()
 
-
+    
 }// class
