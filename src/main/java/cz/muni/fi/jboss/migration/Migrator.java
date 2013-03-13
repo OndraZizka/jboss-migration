@@ -196,7 +196,7 @@ public class Migrator {
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
 
-        for (RollbackData rollData : this.ctx.getRollbackDatas()) {
+        for (RollbackData rollData : this.ctx.getRollbackData()) {
             if (rollData.getName() == null || rollData.getName().isEmpty()) {
                 throw new NullPointerException();
             }
@@ -262,7 +262,7 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for (RollbackData cp : this.ctx.getRollbackDatas()) {
+            for (RollbackData cp : this.ctx.getRollbackData()) {
                 if (cp.getType().equals("driver")) {
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);

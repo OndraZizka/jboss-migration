@@ -49,7 +49,12 @@ public class MigratorApp {
         }
         
         // Migrate.
-        migrate( configuration );
+        try {
+            migrate( configuration );
+        } catch (MigrationException ex) {
+            log.error("Migration failed (details at DEBUG level): " + ex.getMessage());
+            log.debug("Migration failed: ", ex);
+        }
 
         
     }// main()
@@ -195,7 +200,7 @@ public class MigratorApp {
      *  Performs the migration.
      *  TODO: Should probably be in Migrator{}.
      */
-    private static void migrate( Configuration conf ) {
+    private static void migrate( Configuration conf ) throws MigrationException {
         
         Migrator migrator;
         MigrationContext ctx;
@@ -216,16 +221,15 @@ public class MigratorApp {
             migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
-        } catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            e.printStackTrace();
-            return;
+        } 
+        catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
+            throw new MigrationException(e);
         }
 
         try {
             migrator.getDOMElements();
         } catch (MigrationException e) {
-            e.printStackTrace();
-            return;
+            throw new MigrationException(e);
         }
 
         try {
@@ -234,17 +238,17 @@ public class MigratorApp {
                 System.out.println(script);
             }
         } catch (CliScriptException e) {
-            e.printStackTrace();
-            return;
+            throw new MigrationException(e);
         }
 
         try {
             migrator.copyItems();
         } catch (CopyException e) {
-            e.printStackTrace();
-            Utils.removeData(ctx.getRollbackDatas());
+            // TODO: Move this procedure into some rollback() method.
+            Utils.removeData(ctx.getRollbackData());
+            // TODO: Can't just blindly delete, we need to keep info if we really created it.
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
-            return;
+            throw new MigrationException(e);
         }
 
         try {
@@ -252,10 +256,10 @@ public class MigratorApp {
             System.out.println();
             System.out.println("Migration was successful");
         } catch (ApplyMigrationException e) {
-            e.printStackTrace();
             Utils.cleanStandalone(nonAlteredStandalone, conf);
-            Utils.removeData(ctx.getRollbackDatas());
+            Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            throw new MigrationException(e);
         }
         
     }// migrate()

@@ -139,7 +139,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(connFactoryAS5.getRarName());
                 rollbackData.setType("resource");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
 
                 resAdapter.setArchive(connFactoryAS5.getRarName());
 

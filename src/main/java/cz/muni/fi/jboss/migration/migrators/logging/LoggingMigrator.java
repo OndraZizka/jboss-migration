@@ -315,7 +315,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType("log");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
             }
 
             if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -360,7 +360,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType("log");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
             }
 
             if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
