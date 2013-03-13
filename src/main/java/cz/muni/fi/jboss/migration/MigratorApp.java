@@ -55,10 +55,10 @@ public class MigratorApp {
     private static Configuration parseArguments(String[] args) {
     
         // Global config
-        GlobalConfiguration globalConf = new GlobalConfiguration();
+        GlobalConfiguration globalConfig = new GlobalConfiguration();
         
         // Module-specific options.
-        List<ModuleSpecificProperty> moduleOptions = new LinkedList<>();
+        List<ModuleSpecificProperty> moduleConfigs = new LinkedList<>();
         
         
         // For each argument...
@@ -68,22 +68,22 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConf.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
+                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
             if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
-                globalConf.setDirAS7(StringUtils.substringAfter(arg, "="));
+                globalConfig.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as5.profile=") ) {
-                globalConf.setProfileAS5(StringUtils.substringAfter(arg, "="));
+                globalConfig.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as7.confPath=") ) {
-                globalConf.setConfPathAS7(StringUtils.substringAfter(arg, "="));
+                globalConfig.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -112,18 +112,18 @@ public class MigratorApp {
                 */
                 // TODO: Move this to Migrator{}.
                 
-                moduleOptions.add( new ModuleSpecificProperty(module, propName, value));
+                moduleConfigs.add( new ModuleSpecificProperty(module, propName, value));
             }
 
             System.err.println("Warning: Unknown argument: " + arg + " !");
             Utils.writeHelp();
             continue;
         }
-        globalConf.setStandalonePath();
+        globalConfig.setStandalonePath();
 
         Configuration configuration = new Configuration();
-        configuration.setModuleConfigs(moduleOptions);
-        configuration.setGlobalConfig(globalConf);
+        configuration.setModuleConfigs(moduleConfigs);
+        configuration.setGlobalConfig(globalConfig);
         
         return configuration;
         
