@@ -75,7 +75,7 @@ public class Migrator {
             mig.setGlobalConfig( this.config.getGlobal() );
             
             // Let migrators process module-specific args.
-            for( Configuration.ModuleSpecificProperty moduleOption : config.getModuleOtions() ){
+            for( Configuration.ModuleSpecificProperty moduleOption : config.getModuleConfigs() ){
                 mig.examineConfigProperty( moduleOption );
             }
         }

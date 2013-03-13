@@ -55,7 +55,7 @@ public class MigratorApp {
     private static Configuration parseArguments(String[] args) {
     
         // Global config
-        GlobalConfiguration global = new GlobalConfiguration();
+        GlobalConfiguration globalConf = new GlobalConfiguration();
         
         // Module-specific options.
         List<ModuleSpecificProperty> moduleOptions = new LinkedList<>();
@@ -68,22 +68,22 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
+                globalConf.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
             if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
-                global.setDirAS7(StringUtils.substringAfter(arg, "="));
+                globalConf.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as5.profile=") ) {
-                global.setProfileAS5(StringUtils.substringAfter(arg, "="));
+                globalConf.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as7.confPath=") ) {
-                global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
+                globalConf.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -119,11 +119,11 @@ public class MigratorApp {
             Utils.writeHelp();
             continue;
         }
-        global.setStandalonePath();
+        globalConf.setStandalonePath();
 
         Configuration configuration = new Configuration();
-        configuration.setModuleOtions(moduleOptions);
-        configuration.setOptions(global);
+        configuration.setModuleConfigs(moduleOptions);
+        configuration.setGlobalConfig(globalConf);
         
         return configuration;
         

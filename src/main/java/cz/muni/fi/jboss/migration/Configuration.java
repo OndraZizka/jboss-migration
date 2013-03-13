@@ -5,28 +5,31 @@ import java.util.List;
 import org.apache.commons.collections.map.MultiValueMap;
 
 /**
+ *  Holds global configuration and plugin-specific configuration.
+ * 
  *  @author Roman Jakubco
  */
 public class Configuration {
 
-    private GlobalConfiguration options;
+    private GlobalConfiguration globalConfig;
 
-    private List<ModuleSpecificProperty> moduleOtions;
+    private List<ModuleSpecificProperty> moduleConfigs;
 
+    
     public GlobalConfiguration getGlobal() {
-        return options;
+        return globalConfig;
     }
 
-    public void setOptions(GlobalConfiguration options) {
-        this.options = options;
+    public void setGlobalConfig(GlobalConfiguration options) {
+        this.globalConfig = options;
     }
 
-    public List<ModuleSpecificProperty> getModuleOtions() {
-        return moduleOtions;
+    public List<ModuleSpecificProperty> getModuleConfigs() {
+        return moduleConfigs;
     }
 
-    public void setModuleOtions(List<ModuleSpecificProperty> moduleOtions) {
-        this.moduleOtions = moduleOtions;
+    public void setModuleConfigs(List<ModuleSpecificProperty> moduleConfigs) {
+        this.moduleConfigs = moduleConfigs;
     }
 
 
