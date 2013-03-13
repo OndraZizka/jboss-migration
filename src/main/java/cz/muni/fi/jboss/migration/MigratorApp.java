@@ -206,7 +206,7 @@ public class MigratorApp {
         MigrationContext ctx;
         Document nonAlteredStandalone;
 
-        System.out.println("Migration:");
+        log.info("Commencing migration.");
         try {
             ctx = new MigrationContext();
             
@@ -228,7 +228,8 @@ public class MigratorApp {
 
         try {
             migrator.getDOMElements();
-        } catch (MigrationException e) {
+        }
+        catch (MigrationException e) {
             throw new MigrationException(e);
         }
 
@@ -238,29 +239,31 @@ public class MigratorApp {
                 sb.append("        ").append(script).append("\n");
             }
             log.info( sb.toString() );
-        } catch (CliScriptException e) {
-            throw new MigrationException(e);
+        } 
+        catch (CliScriptException ex) {
+            throw ex;
         }
 
         try {
             migrator.copyItems();
-        } catch (CopyException e) {
+        }
+        catch (CopyException ex) {
             // TODO: Move this procedure into some rollback() method.
             Utils.removeData(ctx.getRollbackData());
             // TODO: Can't just blindly delete, we need to keep info if we really created it.
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
-            throw new MigrationException(e);
+            throw new MigrationException(ex);
         }
 
         try {
             migrator.apply();
             log.info("");
             log.info("Migration was successful.");
-        } catch (ApplyMigrationException e) {
+        } catch (ApplyMigrationException ex) {
             Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
-            throw new MigrationException(e);
+            throw ex;
         }
         
     }// migrate()

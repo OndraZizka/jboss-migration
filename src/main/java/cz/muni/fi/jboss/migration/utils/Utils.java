@@ -52,53 +52,52 @@ public class Utils {
      */
     public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath)
             throws CopyException {
-        if ((list.isEmpty()) && !(rollData.getType().equals("driver"))) {
-            throw new CopyException("Cannot locate log file: " + rollData.getName() + "!");
-        } else {
-            rollData.setHomePath(list.get(0).getAbsolutePath());
+        if( (list.isEmpty()) && !(rollData.getType().equals("driver")) ) {
+            throw new CopyException("Cannot locate log file: " + rollData.getName());
+        } 
+        
+        rollData.setHomePath(list.get(0).getAbsolutePath());
 
-            if (rollData.getType().equals("driver")) {
-                rollData.setName(list.get(0).getName());
-                String module;
+        if( rollData.getType().equals("driver") ) {  // TODO: Enum
+            rollData.setName(list.get(0).getName());
+            String module;
 
-                if (rollData.getModule() != null) {
-                    String[] parts = rollData.getModule().split("\\.");
-                    module = "";
-                    for (String s : parts) {
-                        module = module + s + File.separator;
-                    }
-                    rollData.setTargetPath(targetPath + File.separator + "modules" + File.separator +
-                            module + "main");
-                } else {
-                    throw new CopyException("Error: Module for driver is null!");
-                }
-            } else {
-                switch (rollData.getType()){
-                    case "log": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                            File.separator + "log");
-                        break;
-                    case "resource": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                            File.separator + "deployments");
-                        break;
-                    case "security": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                            File.separator + "configuration");
-                }
-
-
+            if( rollData.getModule() == null)
+                throw new CopyException("Module for the driver is null.");
+            
+            String[] parts = rollData.getModule().split("\\.");
+            module = "";
+            for (String s : parts) {
+                module = module + s + File.separator;
+            }
+            // TODO: Configurable modules dir.
+            rollData.setTargetPath(targetPath + File.separator + "modules" + File.separator +
+                    module + "main");
+        } 
+        else {
+            switch (rollData.getType()){
+                case "log": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                        File.separator + "log");
+                    break;
+                case "resource": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                        File.separator + "deployments");
+                    break;
+                case "security": rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                        File.separator + "configuration");
             }
         }
-    }
+    }// setRollbackData()
 
     /**
      * Helping method for writing help.
      */
     public static void writeHelp() {
         System.out.println();
-        System.out.println("Usage:");
+        System.out.println(" Usage:");
         System.out.println();
         System.out.println("    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>");
         System.out.println();
-        System.out.println("Options:");
+        System.out.println(" Options:");
         System.out.println();
         System.out.println("    as5.profile=<name>");
         System.out.println("        Path to AS 5 profile.");
