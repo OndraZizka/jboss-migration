@@ -233,10 +233,11 @@ public class MigratorApp {
         }
 
         try {
-            System.out.println("Generated Cli scripts:");
+            StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
             for (String script : migrator.getCLIScripts()) {
-                System.out.println(script);
+                sb.append("        ").append(script).append("\n");
             }
+            log.info( sb.toString() );
         } catch (CliScriptException e) {
             throw new MigrationException(e);
         }
@@ -253,8 +254,8 @@ public class MigratorApp {
 
         try {
             migrator.apply();
-            System.out.println();
-            System.out.println("Migration was successful");
+            log.info("");
+            log.info("Migration was successful.");
         } catch (ApplyMigrationException e) {
             Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackData());
