@@ -63,26 +63,26 @@ public class MigratorApp {
         
         // For each argument...
         for (String arg : args) {
-            if(arg.startsWith("--help")){
+            if( arg.startsWith("--help") ){
                 Utils.writeHelp();
                 return null;
             }
-            if (arg.startsWith("--as5.dir=")) {
+            if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
                 global.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
                 continue;
             }
 
-            if (arg.startsWith("--as7.dir=")) {
+            if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
                 global.setDirAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.startsWith("--as5.profile=")) {
+            if( arg.startsWith("--as5.profile=") ) {
                 global.setProfileAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if (arg.startsWith("--as7.confPath=")) {
+            if( arg.startsWith("--as7.confPath=") ) {
                 global.setConfPathAS7(StringUtils.substringAfter(arg, "="));
                 continue;
             }
