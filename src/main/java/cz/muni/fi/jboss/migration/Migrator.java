@@ -94,6 +94,7 @@ public class Migrator {
                 migs.put(cls, mig);
             } catch (InstantiationException | IllegalAccessException ex) {
                 log.error("Failed instantiating " + cls.getSimpleName() + ": " + ex.toString());
+                log.debug("Stack trace: ", ex);
                 exs.add(ex);
             }
         }
