@@ -34,6 +34,9 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 public class SecurityMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "security"; }
+    
 
     public SecurityMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -200,10 +203,10 @@ public class SecurityMigrator extends AbstractMigrator {
                                 }
                                 moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-                                RollbackData cp = new RollbackData();
-                                cp.setName(value);
-                                cp.setType("security");
-                                ctx.getRollbackDatas().add(cp);
+                                RollbackData rd = new RollbackData();
+                                rd.setName(value);
+                                rd.setType("security");
+                                ctx.getRollbackData().add(rd);
                             } else {
                                 moAS7.setModuleOptionValue(moAS5.getModuleValue());
                             }

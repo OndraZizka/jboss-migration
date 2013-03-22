@@ -47,7 +47,7 @@ public class MigrationContext {
         this.migrationData = migrationData;
     }
 
-    public Set<RollbackData> getRollbackDatas() {
+    public Set<RollbackData> getRollbackData() {
         return rollbackDatas;
     }
 

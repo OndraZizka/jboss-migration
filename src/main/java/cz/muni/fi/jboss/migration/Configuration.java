@@ -1,41 +1,65 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import java.util.List;
 import org.apache.commons.collections.map.MultiValueMap;
 
-import java.util.Map;
-
 /**
- * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:36 AM
+ *  Holds global configuration and plugin-specific configuration.
+ * 
+ *  @author Roman Jakubco
  */
-
 public class Configuration {
 
-    private GlobalConfiguration options;
+    private GlobalConfiguration globalConfig;
 
-    private Map<Class<? extends IMigrator>, MultiValueMap> moduleOtions;
+    private List<ModuleSpecificProperty> moduleConfigs;
 
+    
     public GlobalConfiguration getGlobal() {
-        return options;
+        return globalConfig;
     }
 
-    public void setOptions(GlobalConfiguration options) {
-        this.options = options;
+    public void setGlobalConfig(GlobalConfiguration options) {
+        this.globalConfig = options;
     }
 
-    public Map<Class<? extends IMigrator>, MultiValueMap> getModuleOtions() {
-        return moduleOtions;
+    public List<ModuleSpecificProperty> getModuleConfigs() {
+        return moduleConfigs;
     }
 
-    public void setModuleOtions(Map<Class<? extends IMigrator>, MultiValueMap> moduleOtions) {
-        this.moduleOtions = moduleOtions;
+    public void setModuleConfigs(List<ModuleSpecificProperty> moduleConfigs) {
+        this.moduleConfigs = moduleConfigs;
     }
 
 
-    public MultiValueMap getForMigrator(Class<? extends IMigrator> migrator) {
-        return moduleOtions.get(migrator);
-
+    private MultiValueMap getForMigrator(Class<? extends IMigrator> migrator) {
+        //return moduleOtions.get(migrator);
+        throw new UnsupportedOperationException();
     }
-}
+    
+    
+    /**
+     *  Triplet for module specific property, e.g --conf.logging.merge=true .
+     */
+    public static class ModuleSpecificProperty{
+        
+        private String moduleId;
+        private String propName;
+        private String value;
+
+        public ModuleSpecificProperty(String moduleId, String propName, String value) {
+            this.moduleId = moduleId;
+            this.propName = propName;
+            this.value = value;
+        }
+
+        public String getModuleId() { return moduleId; }
+        public void setModuleId(String moduleId) { this.moduleId = moduleId; }
+        public String getPropName() { return propName; }
+        public void setPropName(String propName) { this.propName = propName; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }        
+    }
+    
+}// class

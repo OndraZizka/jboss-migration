@@ -35,6 +35,9 @@ import java.util.Set;
  *         Time: 10:42 AM
  */
 public class LoggingMigrator extends AbstractMigrator {
+    
+    @Override protected String getConfigPropertyModuleName() { return "logging"; }
+    
 
     public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -312,7 +315,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType("log");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
             }
 
             if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -357,7 +360,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType("log");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
             }
 
             if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {

@@ -41,6 +41,10 @@ import java.util.Set;
 
 public class ResAdapterMigrator extends AbstractMigrator {
 
+    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
+    
+    
+
     public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
@@ -135,7 +139,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(connFactoryAS5.getRarName());
                 rollbackData.setType("resource");
-                ctx.getRollbackDatas().add(rollbackData);
+                ctx.getRollbackData().add(rollbackData);
 
                 resAdapter.setArchive(connFactoryAS5.getRarName());
 

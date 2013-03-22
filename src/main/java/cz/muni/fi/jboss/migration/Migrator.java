@@ -24,46 +24,122 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import org.apache.commons.collections.map.MultiValueMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Migrator is class, which represents all functions of the application.
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:25 AM
  */
-
 public class Migrator {
+    
+    private static final Logger log = LoggerFactory.getLogger(Migrator.class);
+    
 
     private Configuration config;
 
     private MigrationContext ctx;
 
     private List<IMigrator> migrators;
+    
+    
 
-    public Migrator(Configuration config, MigrationContext context) {
+    public Migrator( Configuration config, MigrationContext context ) {
         this.config = config;
         this.ctx = context;
-        this.migrators = createMigrators();
+        this.init();
     }
 
-    private List<IMigrator> createMigrators() {
-        List<IMigrator> migrators = new LinkedList();
-        migrators.add(new DatasourceMigrator(this.config.getGlobal(), this.config.getForMigrator(DatasourceMigrator.class)));
-        migrators.add(new ResAdapterMigrator(this.config.getGlobal(), this.config.getForMigrator(ResAdapterMigrator.class)));
-        migrators.add(new SecurityMigrator(this.config.getGlobal(), this.config.getForMigrator(SecurityMigrator.class)));
-        migrators.add(new LoggingMigrator(this.config.getGlobal(), this.config.getForMigrator(LoggingMigrator.class)));
-        migrators.add(new ServerMigrator(this.config.getGlobal(), this.config.getForMigrator(ServerMigrator.class)));
+    /**
+     *  Initializes this Migrator, especially instantiates the IMigrators.
+     */
+    private void init() {
+        
+        // Find IMigrator implementations.
+        List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
 
-        return migrators;
+        // Initialize migrator instances. 
+        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
+                createMigrators( migratorClasses, config.getGlobal(), null); // TODO! MultiValueMap of plugin-specific config values.
+        
+        this.migrators = new ArrayList(migratorsMap.values());
+        
+        // For each migrator (AKA module, AKA plugin)...
+        for( IMigrator mig : this.migrators ){
+            
+            // Supply some references.
+            mig.setGlobalConfig( this.config.getGlobal() );
+            
+            // Let migrators process module-specific args.
+            for( Configuration.ModuleSpecificProperty moduleOption : config.getModuleConfigs() ){
+                mig.examineConfigProperty( moduleOption );
+            }
+        }
+        
+    }// init()
+    
+    
+    
+    /**
+     *  Instantiate the plugins.
+     */
+    private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(
+            List<Class<? extends IMigrator>> migratorClasses,
+            GlobalConfiguration globalConfig,
+            MultiValueMap config
+        ) {
+        
+        Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
+        List<Exception> exs  = new LinkedList<>();
+        
+        for( Class<? extends IMigrator> cls : migratorClasses ){
+            try {
+                //IMigrator mig = cls.newInstance();
+                //GlobalConfiguration globalConfig, MultiValueMap config
+                Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class, MultiValueMap.class);
+                IMigrator mig = ctor.newInstance(globalConfig, config);
+                migs.put(cls, mig);
+            }
+            catch( NoSuchMethodException ex ){
+                String msg = cls.getName() + " doesn't have constructor ...(GlobalConfiguration globalConfig, MultiValueMap config).";
+                log.error( msg );
+                exs.add( new MigrationException(msg) );
+            }
+            catch( InvocationTargetException | InstantiationException | IllegalAccessException ex) {
+                log.error("Failed instantiating " + cls.getSimpleName() + ": " + ex.toString());
+                log.debug("Stack trace: ", ex);
+                exs.add(ex);
+            }
+        }
+        return migs;
+    }// createMigrators()
+    
+    /**
+     *  Find implementation of IMigrator.
+     *  TODO: Implement scanning for classes.
+     */
+    private static List<Class<? extends IMigrator>> findMigratorClasses() {
+        
+        LinkedList<Class<? extends IMigrator>> migratorClasses = new LinkedList();
+        migratorClasses.add( SecurityMigrator.class );
+        migratorClasses.add( ServerMigrator.class );
+        migratorClasses.add( DatasourceMigrator.class );
+        migratorClasses.add( ResAdapterMigrator.class );
+        migratorClasses.add( LoggingMigrator.class );
+        
+        return migratorClasses;
     }
+    
 
-//    public void init(){
-//
-//    }
 
     /**
      * Method which calls method for loading configuration data from AS5 on all migrators.
@@ -94,11 +170,10 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
             StreamResult result = new StreamResult(new File(this.config.getGlobal().getStandaloneFilePath()));
-            //StreamResult result = new StreamResult(System.out);
             DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
             transformer.transform(source, result);
-        } catch (TransformerException e) {
-            e.printStackTrace();
+        } catch (TransformerException ex) {
+            throw new ApplyMigrationException(ex);
         }
 
 
@@ -143,7 +218,7 @@ public class Migrator {
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
 
-        for (RollbackData rollData : this.ctx.getRollbackDatas()) {
+        for (RollbackData rollData : this.ctx.getRollbackData()) {
             if (rollData.getName() == null || rollData.getName().isEmpty()) {
                 throw new NullPointerException();
             }
@@ -210,7 +285,7 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for (RollbackData cp : this.ctx.getRollbackDatas()) {
+            for (RollbackData cp : this.ctx.getRollbackData()) {
                 if (cp.getType().equals("driver")) {
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
