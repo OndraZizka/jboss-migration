@@ -265,7 +265,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     /**
      * Method for migrating no-tx-datasource from AS5 to AS7
      *
-     * @param noTxDatasourceAS5 object of Datasource in AS5
+     * @param noTxDatasourceAS5 object representing no-tx-datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
     public DatasourceAS7Bean noTxDatasourceMigration(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
@@ -339,7 +339,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     /**
      * Method for migrating local-tx-datasource from AS5 to AS7
      *
-     * @param datasourceAS5 object of Datasource in AS5
+     * @param datasourceAS5 object representing local-tx-datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
     public DatasourceAS7Bean datasourceMigration(DatasourceAS5Bean datasourceAS5) {
@@ -413,7 +413,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     /**
      * Method for migrating XaDatasource from AS5 to AS7
      *
-     * @param xaDataAS5 object of XaDatasource in AS5
+     * @param xaDataAS5 object representing xa-datasource in AS5
      * @return object representing migrated XaDatasource in AS7
      */
     public XaDatasourceAS7Bean xaDatasourceMigration(XaDatasourceAS5Bean xaDataAS5) {

@@ -25,7 +25,7 @@ public class ConnectionFactoriesBean {
     // No idea what is this. But it can be a element in AS5
     // TODO: find more about this element. Can it be transform to As7?
     @XmlElement(name = "no-tx-connection-factory")
-    private String pom;
+    private Set<NoTxConnectionFactoryAS5Bean> noTxConnectionFactories;
 
     public Set<ConnectionFactoryAS5Bean> getConnectionFactories() {
         return connectionFactories;
@@ -35,5 +35,15 @@ public class ConnectionFactoriesBean {
         Set<ConnectionFactoryAS5Bean> temp = new HashSet();
         temp.addAll(connectionFactories);
         this.connectionFactories = temp;
+    }
+
+    public Set<NoTxConnectionFactoryAS5Bean> getNoTxConnectionFactories() {
+        return noTxConnectionFactories;
+    }
+
+    public void setNoTxConnectionFactories(Collection<NoTxConnectionFactoryAS5Bean> noTxConnectionFactories) {
+        Set<NoTxConnectionFactoryAS5Bean> temp = new HashSet();
+        temp.addAll(noTxConnectionFactories);
+        this.noTxConnectionFactories = temp;
     }
 }

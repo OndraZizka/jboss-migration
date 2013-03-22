@@ -8,36 +8,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing tx-connection-factory (AS5)
+ * Class for unmarshalling and representing no-tx-connection-factory (AS5)
  *
  * @author Roman Jakubco
- *         Date: 8/28/12
- *         Time: 3:26 PM
+ *         Date: 3/22/13
+ *         Time: 3:56 PM
  */
-
-@XmlRootElement(name = "tx-connection-factory")
+@XmlRootElement(name = "no-tx-connection-factory")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "tx-connection-factory")
+@XmlType(name = "no-tx-connection-factory")
 
-public class ConnectionFactoryAS5Bean implements IConfigFragment {
-
+public class NoTxConnectionFactoryAS5Bean implements IConfigFragment{
     @XmlElement(name = "jndi-name")
     private String jndiName;
 
-    @XmlElement(name = "local-transaction")
-    private String localTransaction;
-
-    @XmlElement(name = "xa-transaction")
-    private String xaTransaction;
-
-    @XmlElement(name = "no-tx-separate-pools")
-    private String noTxSeparatePools;
-
     @XmlElement(name = "prefill")
     private String prefill;
-
-    @XmlElement(name = "xa-resource-timeout")
-    private String xaResourceTimeout;
 
     @XmlElement(name = "rar-name")
     private String rarName;
@@ -86,7 +72,6 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
     @XmlElements(@XmlElement(name = "config-property", type = ConfigPropertyBean.class))
     private Set<ConfigPropertyBean> configProperties;
 
-
     public String getJndiName() {
         return jndiName;
     }
@@ -95,44 +80,12 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
         this.jndiName = jndiName;
     }
 
-    public String getXaTransaction() {
-        return xaTransaction;
-    }
-
-    public void setXaTransaction(String xaTransaction) {
-        this.xaTransaction = xaTransaction;
-    }
-
-    public String getLocalTransaction() {
-        return localTransaction;
-    }
-
-    public void setLocalTransaction(String localTransaction) {
-        this.localTransaction = localTransaction;
-    }
-
-    public String getNoTxSeparatePools() {
-        return noTxSeparatePools;
-    }
-
-    public void setNoTxSeparatePools(String noTxSeparatePools) {
-        this.noTxSeparatePools = noTxSeparatePools;
-    }
-
     public String getPrefill() {
         return prefill;
     }
 
     public void setPrefill(String prefill) {
         this.prefill = prefill;
-    }
-
-    public String getXaResourceTimeout() {
-        return xaResourceTimeout;
-    }
-
-    public void setXaResourceTimeout(String xaResourceTimeout) {
-        this.xaResourceTimeout = xaResourceTimeout;
     }
 
     public String getRarName() {
@@ -231,6 +184,14 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
         this.allocRetryWaitMillis = allocRetryWaitMillis;
     }
 
+    public String getBlockingTimeoutMillis() {
+        return blockingTimeoutMillis;
+    }
+
+    public void setBlockingTimeoutMillis(String blockingTimeoutMillis) {
+        this.blockingTimeoutMillis = blockingTimeoutMillis;
+    }
+
     public String getUseFastFail() {
         return useFastFail;
     }
@@ -247,13 +208,5 @@ public class ConnectionFactoryAS5Bean implements IConfigFragment {
         Set<ConfigPropertyBean> temp = new HashSet();
         temp.addAll(configProperties);
         this.configProperties = temp;
-    }
-
-    public String getBlockingTimeoutMillis() {
-        return blockingTimeoutMillis;
-    }
-
-    public void setBlockingTimeoutMillis(String blockingTimeoutMillis) {
-        this.blockingTimeoutMillis = blockingTimeoutMillis;
     }
 }

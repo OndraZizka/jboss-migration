@@ -10,6 +10,7 @@ import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,6 +42,8 @@ import java.util.Set;
 
 public class ResAdapterMigrator extends AbstractMigrator {
 
+    private Set<String> rars = new HashSet<>();
+
     @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
     
     
@@ -60,7 +63,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, null);
+                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
                 if (list.isEmpty()) {
                     throw new LoadMigrationException("No \"-ds.xml\" to parse!");
                 }
@@ -85,7 +88,13 @@ public class ResAdapterMigrator extends AbstractMigrator {
             MigrationData mData = new MigrationData();
 
             for (ConnectionFactoriesBean cf : connFactories) {
-                mData.getConfigFragment().addAll(cf.getConnectionFactories());
+                if(cf.getConnectionFactories() != null){
+                    mData.getConfigFragment().addAll(cf.getConnectionFactories());
+                }
+                if(cf.getNoTxConnectionFactories() != null){
+                    mData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
+                }
+
             }
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, mData);
@@ -128,66 +137,29 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()) {
-                if (!(fragment instanceof ConnectionFactoryAS5Bean)) {
-                    throw new NodeGenerationException("Object is not part of resource-adapter" +
-                            "(connection-factories) migration!");
+                if (fragment instanceof ConnectionFactoryAS5Bean) {
+                    ConnectionFactoryAS5Bean connFactory = (ConnectionFactoryAS5Bean) fragment;
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
+                    continue;
                 }
-                ConnectionFactoryAS5Bean connFactoryAS5 = (ConnectionFactoryAS5Bean) fragment;
-                ResourceAdapterBean resAdapter = new ResourceAdapterBean();
-                resAdapter.setJndiName(connFactoryAS5.getJndiName());
+                if(fragment instanceof NoTxConnectionFactoryAS5Bean) {
+                   NoTxConnectionFactoryAS5Bean noTxConnFactory = (NoTxConnectionFactoryAS5Bean) fragment;
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    resAdapMarshaller.marshal(noTxConnFactoryMigration((NoTxConnectionFactoryAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
+                    continue;
+                }
+                throw new NodeGenerationException("Object is not part of resource-adapter" +
+                        "(connection-factories) migration!");
+            }
 
+            for(String rar : this.rars){
                 RollbackData rollbackData = new RollbackData();
-                rollbackData.setName(connFactoryAS5.getRarName());
+                rollbackData.setName(rar);
                 rollbackData.setType("resource");
                 ctx.getRollbackData().add(rollbackData);
-
-                resAdapter.setArchive(connFactoryAS5.getRarName());
-
-                resAdapter.setTransactionSupport("XATransaction");
-
-                ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
-                connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
-                connDef.setPoolName(connFactoryAS5.getJndiName());
-                connDef.setEnabled("true");
-                connDef.setUseJavaCont("true");
-                connDef.setEnabled("true");
-                connDef.setClassName(connFactoryAS5.getConnectionDefinition());
-                connDef.setPrefill(connFactoryAS5.getPrefill());
-
-                for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
-                    configProperty.setType(null);
-                }
-                connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
-
-                if (connFactoryAS5.getApplicationManagedSecurity() != null) {
-                    connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
-                }
-                if (connFactoryAS5.getSecurityDomain() != null) {
-                    connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
-                }
-                if (connFactoryAS5.getSecDomainAndApp() != null) {
-                    connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
-                }
-
-                connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
-                connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
-
-                connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
-                connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
-
-                connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
-                connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
-                connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
-                connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
-                connDef.setXaResourceTimeout(connFactoryAS5.getXaResourceTimeout());
-
-                Set<ConnectionDefinitionBean> connDefColl = new HashSet();
-                connDefColl.add(connDef);
-                resAdapter.setConnectionDefinitions(connDefColl);
-
-                Document doc = ctx.getDocBuilder().newDocument();
-                resAdapMarshaller.marshal(resAdapter, doc);
-                nodeList.add(doc.getDocumentElement());
             }
 
             return nodeList;
@@ -213,6 +185,128 @@ public class ResAdapterMigrator extends AbstractMigrator {
             throw new CliScriptException(e);
         }
     }
+
+    /**
+     *
+     *
+     * @param connFactoryAS5
+     * @return
+     */
+    public ResourceAdapterBean txConnFactoryMigration(ConnectionFactoryAS5Bean connFactoryAS5){
+
+        ResourceAdapterBean resAdapter = new ResourceAdapterBean();
+        resAdapter.setJndiName(connFactoryAS5.getJndiName());
+        this.rars.add(connFactoryAS5.getRarName());
+
+        resAdapter.setArchive(connFactoryAS5.getRarName());
+
+        if(connFactoryAS5.getXaTransaction() != null){
+            resAdapter.setTransactionSupport("XATransaction");
+        } else {
+            resAdapter.setTransactionSupport("LocalTransaction");
+        }
+
+        ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
+        connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
+        connDef.setPoolName(connFactoryAS5.getJndiName());
+        connDef.setEnabled("true");
+        connDef.setUseJavaCont("true");
+        connDef.setEnabled("true");
+        connDef.setClassName(connFactoryAS5.getConnectionDefinition());
+        connDef.setPrefill(connFactoryAS5.getPrefill());
+
+        for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
+            configProperty.setType(null);
+        }
+        connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
+
+        if (connFactoryAS5.getApplicationManagedSecurity() != null) {
+            connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
+        }
+        if (connFactoryAS5.getSecurityDomain() != null) {
+            connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
+        }
+        if (connFactoryAS5.getSecDomainAndApp() != null) {
+            connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
+        }
+
+        connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
+        connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
+
+        connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
+        connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
+
+        connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
+        connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
+        connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
+        connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
+        connDef.setXaResourceTimeout(connFactoryAS5.getXaResourceTimeout());
+
+        Set<ConnectionDefinitionBean> connDefColl = new HashSet();
+        connDefColl.add(connDef);
+        resAdapter.setConnectionDefinitions(connDefColl);
+
+        return resAdapter;
+    }
+
+    /**
+     *  Method for migrating no-tx-connection-factory from AS5 to AS7
+     *
+     * @param connFactoryAS5  object representing no-tx-connection-factory
+     * @return created resource adapter
+     */
+    public ResourceAdapterBean noTxConnFactoryMigration(NoTxConnectionFactoryAS5Bean connFactoryAS5){
+
+        ResourceAdapterBean resAdapter = new ResourceAdapterBean();
+        resAdapter.setJndiName(connFactoryAS5.getJndiName());
+        this.rars.add(connFactoryAS5.getRarName());
+
+        resAdapter.setArchive(connFactoryAS5.getRarName());
+
+        resAdapter.setTransactionSupport("NoTransaction");
+
+        ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
+        connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
+        connDef.setPoolName(connFactoryAS5.getJndiName());
+        connDef.setEnabled("true");
+        connDef.setUseJavaCont("true");
+        connDef.setEnabled("true");
+        connDef.setClassName(connFactoryAS5.getConnectionDefinition());
+        connDef.setPrefill(connFactoryAS5.getPrefill());
+
+        for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
+            configProperty.setType(null);
+        }
+        connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
+
+        if (connFactoryAS5.getApplicationManagedSecurity() != null) {
+            connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
+        }
+        if (connFactoryAS5.getSecurityDomain() != null) {
+            connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
+        }
+        if (connFactoryAS5.getSecDomainAndApp() != null) {
+            connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
+        }
+
+        connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
+        connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
+
+        connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
+        connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
+
+        connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
+        connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
+        connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
+        connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
+
+        Set<ConnectionDefinitionBean> connDefColl = new HashSet();
+        connDefColl.add(connDef);
+        resAdapter.setConnectionDefinitions(connDefColl);
+
+        return resAdapter;
+    }
+
 
     /**
      * Creating CLI script for adding Resource-Adapter
