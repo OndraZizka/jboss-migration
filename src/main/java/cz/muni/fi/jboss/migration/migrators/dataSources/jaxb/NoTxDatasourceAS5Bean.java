@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Class for unmarshalling and representing no-tx-datasource (AS5)
+ *
  * @author Roman Jakubco
  *         Date: 3/22/13
  *         Time: 2:00 PM

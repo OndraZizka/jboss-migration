@@ -151,6 +151,7 @@ public class Migrator {
             NameFileFilter nff;
             if (rollData.getType().equals("driver")) {
                 final String name = rollData.getName();
+
                 nff = new NameFileFilter(name) {
                     @Override
                     public boolean accept(File file) {

@@ -96,6 +96,9 @@ public class DatasourceMigrator extends AbstractMigrator {
                 if (ds.getXaDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getXaDatasourceAS5s());
                 }
+                if(ds.getNoTxDatasourceAS5s() !=null){
+                    mData.getConfigFragment().addAll(ds.getNoTxDatasourceAS5s());
+                }
 
             }
 
