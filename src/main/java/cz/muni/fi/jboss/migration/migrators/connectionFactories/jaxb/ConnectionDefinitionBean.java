@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling/unmarshalling and representing connection-definition (AS5, AS7)
+ * Class for marshalling/unmarshalling and representing connection-definition ( AS7)
  *
  * @author Roman Jakubco
  *         Date: 10/2/12

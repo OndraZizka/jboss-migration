@@ -18,7 +18,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "root-logger")
 
-public class    RootLoggerAS7Bean {
+public class RootLoggerAS7Bean {
 
     @XmlPath("level/@name")
     private String rootLoggerLevel;

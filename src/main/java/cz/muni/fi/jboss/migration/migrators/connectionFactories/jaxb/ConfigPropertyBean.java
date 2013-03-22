@@ -3,7 +3,7 @@ package cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for unmarshalling and representing of config-property (AS5)
+ * Class for unmarshalling and representing of config-property (AS5, AS7)
  *
  * @author Roman Jakubco
  *         Date: 10/2/12

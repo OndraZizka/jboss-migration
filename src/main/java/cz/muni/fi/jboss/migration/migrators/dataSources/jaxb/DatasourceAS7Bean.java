@@ -28,8 +28,10 @@ public class DatasourceAS7Bean {
     private String jndiName;
 
     @XmlPath("@pool-name")
-
     private String poolName;
+
+    @XmlPath("@jta")
+    private String jta;
 
     @XmlPath("@enabled")
     private String enabled;
@@ -134,6 +136,14 @@ public class DatasourceAS7Bean {
 
     @XmlPath("/statement/share-prepared-statements/text()")
     private String sharePreStatements;
+
+    public String getJta() {
+        return jta;
+    }
+
+    public void setJta(String jta) {
+        this.jta = jta;
+    }
 
     public String getLinkedSecurity() {
         return linkedSecurity;

@@ -55,8 +55,8 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DataSourcesBean.class).createUnmarshaller();
-            List<DataSourcesBean> dsColl = new ArrayList();
+            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
+            List<DatasourcesBean> dsColl = new ArrayList();
 
             File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
                     File.separator + "deploy");
@@ -77,7 +77,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     Element element = doc.getDocumentElement();
 
                     if (element.getTagName().equalsIgnoreCase("datasources")) {
-                        DataSourcesBean dataSources = (DataSourcesBean) dataUnmarshaller.unmarshal(aList);
+                        DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(aList);
                         dsColl.add(dataSources);
                     }
                 }
@@ -89,7 +89,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             MigrationData mData = new MigrationData();
 
-            for (DataSourcesBean ds : dsColl) {
+            for (DatasourcesBean ds : dsColl) {
                 if (ds.getLocalDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getLocalDatasourceAS5s());
                 }
@@ -171,6 +171,13 @@ public class DatasourceMigrator extends AbstractMigrator {
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
+                if(fragment instanceof NoTxDatasourceAS5Bean){
+                    Document doc = ctx.getDocBuilder().newDocument();
+                    dataMarshaller.marshal(noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
+                    continue;
+                }
+
                 throw new NodeGenerationException("Object is not part of Datasource migration!");
             }
 
@@ -249,9 +256,82 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     // TODO: Security-Domain must reference something what exists in subsystem security...
+    /**
+     * Method for migrating no-tx-datasource from AS5 to AS7
+     *
+     * @param noTxDatasourceAS5 object of Datasource in AS5
+     * @return object representing migrated Datasource in AS7
+     */
+    public DatasourceAS7Bean noTxDatasourceMigration(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
+        DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
+
+        this.drivers.add(noTxDatasourceAS5.getDriverClass());
+
+        // Standalone elements in AS7
+        datasourceAS7.setJta("false");
+        datasourceAS7.setJndiName("java:jboss/datasources/" + noTxDatasourceAS5.getJndiName());
+        datasourceAS7.setPoolName(noTxDatasourceAS5.getJndiName());
+        datasourceAS7.setEnabled("true");
+        datasourceAS7.setUseJavaContext(noTxDatasourceAS5.getUseJavaContext());
+        datasourceAS7.setUrlDelimeter(noTxDatasourceAS5.getUrlDelimeter());
+        datasourceAS7.setUrlSelector(noTxDatasourceAS5.getUrlSelectStratClName());
+        datasourceAS7.setConnectionUrl(noTxDatasourceAS5.getConnectionUrl());
+
+        if (noTxDatasourceAS5.getConnectionProperties() != null) {
+            datasourceAS7.setConnectionProperties(noTxDatasourceAS5.getConnectionProperties());
+        }
+
+        datasourceAS7.setNewConnectionSql(noTxDatasourceAS5.getNewConnectionSql());
+
+        datasourceAS7.setDriver(StringUtils.substringAfter(noTxDatasourceAS5.getDriverClass(), "."));
+
+        // Elements in element <security> in AS7
+        datasourceAS7.setUserName(noTxDatasourceAS5.getUserName());
+        datasourceAS7.setPassword(noTxDatasourceAS5.getPassword());
+        // TODO: Some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
+        datasourceAS7.setSecurityDomain(noTxDatasourceAS5.getSecurityDomain());
+
+        // Elements in element <pool> in AS7
+        datasourceAS7.setMinPoolSize(noTxDatasourceAS5.getMinPoolSize());
+        datasourceAS7.setMaxPoolSize(noTxDatasourceAS5.getMaxPoolSize());
+        datasourceAS7.setPrefill(noTxDatasourceAS5.getPrefill());
+
+        // Elements in element <timeout> in AS7
+        datasourceAS7.setBlockingTimeoutMillis(noTxDatasourceAS5.getBlockingTimeMillis());
+        datasourceAS7.setIdleTimeoutMin(noTxDatasourceAS5.getIdleTimeoutMinutes());
+        datasourceAS7.setQueryTimeout(noTxDatasourceAS5.getQueryTimeout());
+        datasourceAS7.setAllocationRetry(noTxDatasourceAS5.getAllocationRetry());
+        datasourceAS7.setAllocRetryWaitMillis(noTxDatasourceAS5.getAllocRetryWaitMillis());
+        datasourceAS7.setSetTxQueryTimeout(noTxDatasourceAS5.getSetTxQueryTime());
+        datasourceAS7.setUseTryLock(noTxDatasourceAS5.getUseTryLock());
+
+        // Elements in element <validation> in AS7
+        datasourceAS7.setCheckValidConSql(noTxDatasourceAS5.getCheckValidConSql());
+        datasourceAS7.setValidateOnMatch(noTxDatasourceAS5.getValidateOnMatch());
+        datasourceAS7.setBackgroundValid(noTxDatasourceAS5.getBackgroundValid());
+        datasourceAS7.setExceptionSorter(noTxDatasourceAS5.getExcepSorterClName());
+        datasourceAS7.setValidConChecker(noTxDatasourceAS5.getValidConCheckerClName());
+        datasourceAS7.setStaleConChecker(noTxDatasourceAS5.getStaleConCheckerClName());
+        // Millis represents Milliseconds?
+        if (noTxDatasourceAS5.getBackgroundValidMillis() != null) {
+            Integer tmp = Integer.valueOf(noTxDatasourceAS5.getBackgroundValidMillis()) / 60000;
+            datasourceAS7.setBackgroundValidMin(tmp.toString());
+
+        }
+
+        // Elements in element <statement> in AS7
+        datasourceAS7.setTrackStatements(noTxDatasourceAS5.getTrackStatements());
+        datasourceAS7.setSharePreStatements(noTxDatasourceAS5.getSharePreStatements());
+        datasourceAS7.setQueryTimeout(noTxDatasourceAS5.getQueryTimeout());
+
+        // Strange element use-fast-fail
+        //datasourceAS7.setUseFastFail(datasourceAS5.gF);
+
+        return datasourceAS7;
+    }
 
     /**
-     * Method for migrating Datasource from AS5 to AS7
+     * Method for migrating local-tx-datasource from AS5 to AS7
      *
      * @param datasourceAS5 object of Datasource in AS5
      * @return object representing migrated Datasource in AS7
@@ -420,9 +500,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         resultScript.append(datasourceAS7.getPoolName()).append(":add(");
 
         builder.addProperty("jndi-name", datasourceAS7.getJndiName());
-
-        //builder.addProperty("enabled", datasourceAS7.getEnabled());
-
+        builder.addProperty("jta", datasourceAS7.getJta());
         builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
         builder.addProperty("driver-name", datasourceAS7.getDriver());
         builder.addProperty("connection-url", datasourceAS7.getConnectionUrl());
@@ -481,9 +559,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         resultScript.append(xaDatasourceAS7.getPoolName()).append(":add(");
 
         builder.addProperty("jndi-name", xaDatasourceAS7.getJndiName());
-
-        //builder.addProperty("enabled", xaDatasourceAS7.getEnabled());
-
         builder.addProperty("use-java-context", xaDatasourceAS7.getUseJavaContext());
         builder.addProperty("driver-name", xaDatasourceAS7.getDriver());
         builder.addProperty("url-delimeter", xaDatasourceAS7.getUrlDelimeter());
@@ -585,9 +660,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         builder.addProperty("name", datasourceAS7.getPoolName());
         builder.addProperty("jndi-name", datasourceAS7.getJndiName());
-
-        //builder.addProperty("--enabled", datasourceAS7.getEnabled());
-
+        builder.addProperty("jta", datasourceAS7.getJta());
         builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
         builder.addProperty("driver-name", datasourceAS7.getDriver());
         builder.addProperty("connection-url", datasourceAS7.getConnectionUrl());
@@ -646,9 +719,6 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         builder.addProperty("name", xaDatasourceAS7.getPoolName());
         builder.addProperty("jndi-name", xaDatasourceAS7.getJndiName());
-
-        //builder.addProperty("--enabled", xaDatasourceAS7.getEnabled());
-
         builder.addProperty("use-java-context", xaDatasourceAS7.getUseJavaContext());
         builder.addProperty("driver-name", xaDatasourceAS7.getDriver());
         builder.addProperty("url-delimeter", xaDatasourceAS7.getUrlDelimeter());

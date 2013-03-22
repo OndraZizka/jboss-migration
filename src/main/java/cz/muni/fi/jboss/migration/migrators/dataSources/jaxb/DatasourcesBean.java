@@ -18,7 +18,10 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "datasources")
 
-public class DataSourcesBean {
+public class DatasourcesBean {
+
+    @XmlElements(@XmlElement(name = "no-tx-datasource", type = NoTxDatasourceAS5Bean.class))
+    private Set<NoTxDatasourceAS5Bean> noTxDatasourceAS5s;
 
     @XmlElements(@XmlElement(name = "local-tx-datasource", type = DatasourceAS5Bean.class))
     private Set<DatasourceAS5Bean> localDatasourceAS5s;
@@ -44,5 +47,15 @@ public class DataSourcesBean {
         Set<DatasourceAS5Bean> temp = new HashSet();
         temp.addAll(localDatasourceAS5s);
         this.localDatasourceAS5s = temp;
+    }
+
+    public Set<NoTxDatasourceAS5Bean> getNoTxDatasourceAS5s() {
+        return noTxDatasourceAS5s;
+    }
+
+    public void setNoTxDatasourceAS5s(Collection<NoTxDatasourceAS5Bean> noTxDatasourceAS5s) {
+        Set<NoTxDatasourceAS5Bean> temp = new HashSet();
+        temp.addAll(noTxDatasourceAS5s);
+        this.noTxDatasourceAS5s = temp;
     }
 }
