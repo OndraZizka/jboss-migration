@@ -47,8 +47,8 @@ public class SecurityMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
 
-            File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
-                    File.separator + "conf" + File.separator + "login-config.xml");
+            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+                    super.getGlobalConfig().getProfileAS5() + File.separator + "conf" + File.separator + "login-config.xml");
 
             if (file.canRead()) {
                 SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
@@ -205,7 +205,7 @@ public class SecurityMigrator extends AbstractMigrator {
 
                                 RollbackData rd = new RollbackData();
                                 rd.setName(value);
-                                rd.setType("security");
+                                rd.setType(RollbackData.Type.SECURITY);
                                 ctx.getRollbackData().add(rd);
                             } else {
                                 moAS7.setModuleOptionValue(moAS5.getModuleValue());

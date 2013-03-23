@@ -5,6 +5,8 @@ import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -13,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Main class of the application
@@ -41,12 +41,12 @@ public class MigratorApp {
         applyDefaults( configuration );
         
         // Validate config.
-        List<String> problems = validateConfiguration( configuration );
-        if( !problems.isEmpty() ){
-            for( String problem : problems )
-                log.error(problem);
-            System.exit(1);
-        }
+        //List<String> problems = validateConfiguration( configuration );
+//        if( !problems.isEmpty() ){
+//            for( String problem : problems )
+//                log.error(problem);
+//            System.exit(1);
+//        }
         
         // Migrate.
         try {
@@ -84,7 +84,7 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator + "server" + File.separator);
+                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator);
                 continue;
             }
 

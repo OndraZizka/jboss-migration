@@ -58,8 +58,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5()
-                    + File.separator + "deploy");
+            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy");
 
             if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
@@ -137,16 +137,13 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()) {
+                Document doc = ctx.getDocBuilder().newDocument();
                 if (fragment instanceof ConnectionFactoryAS5Bean) {
-                    ConnectionFactoryAS5Bean connFactory = (ConnectionFactoryAS5Bean) fragment;
-                    Document doc = ctx.getDocBuilder().newDocument();
                     resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if(fragment instanceof NoTxConnectionFactoryAS5Bean) {
-                   NoTxConnectionFactoryAS5Bean noTxConnFactory = (NoTxConnectionFactoryAS5Bean) fragment;
-                    Document doc = ctx.getDocBuilder().newDocument();
                     resAdapMarshaller.marshal(noTxConnFactoryMigration((NoTxConnectionFactoryAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
@@ -158,7 +155,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             for(String rar : this.rars){
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(rar);
-                rollbackData.setType("resource");
+                rollbackData.setType(RollbackData.Type.RESOURCE);
                 ctx.getRollbackData().add(rollbackData);
             }
 

@@ -47,8 +47,8 @@ public class LoggingMigrator extends AbstractMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
-            File file = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
-                    File.separator + "conf" + File.separator + "jboss-log4j.xml");
+            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+                    super.getGlobalConfig().getProfileAS5() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -107,7 +107,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                             continue;
                         }
-                        // Only appending to xml what is wrong. Only for testing
+                        // Only appending to xml what is wrong. Only for testing of migration
                         if (node.getNodeName().equals("root-logger")) {
                             parent.appendChild(adopted);
                         }
@@ -143,50 +143,32 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
+                Document doc = ctx.getDocBuilder().newDocument();
+
                 if (fragment instanceof AppenderBean) {
                     AppenderBean appender = (AppenderBean) fragment;
                     String type = appender.getAppenderClass();
 
-                    switch (StringUtils.substringAfterLast(type, ".")) {
-                        case "DailyRollingFileAppender": {
-                            Document doc = ctx.getDocBuilder().newDocument();
-                            perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc);
-                            nodeList.add(doc.getDocumentElement());
-                        }
-                        break;
-                        case "RollingFileAppender": {
-                            Document doc = ctx.getDocBuilder().newDocument();
-                            sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc);
-                            nodeList.add(doc.getDocumentElement());
-                        }
-                        break;
-                        case "ConsoleAppender": {
-                            Document doc = ctx.getDocBuilder().newDocument();
-                            conHandMarshaller.marshal(createConsoleHandler(appender), doc);
-                            nodeList.add(doc.getDocumentElement());
-                        }
-                        break;
-                        case "AsyncAppender": {
-                            Document doc = ctx.getDocBuilder().newDocument();
-                            asyHandMarshaller.marshal(createAsyncHandler(appender), doc);
-                            nodeList.add(doc.getDocumentElement());
-                        }
-                        break;
-                        // TODO: There is not such thing as FileAppender in AS5. Only sizeRotating or dailyRotating
-                        // TODO: So i think that FileAppender in AS7 is then useless?
-                        // THINK !!
+                    // Selection of classes which are stored in log4j or jboss logging jars.
+                    if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+                        switch (StringUtils.substringAfterLast(type, ".")) {
+                            case "DailyRollingFileAppender":
+                                perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc); break;
+                            case "RollingFileAppender":
+                                sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc); break;
+                            case "ConsoleAppender": conHandMarshaller.marshal(createConsoleHandler(appender), doc); break;
+                            case "AsyncAppender": asyHandMarshaller.marshal(createAsyncHandler(appender), doc); break;
 
-                        //case "FileAppender" :
-
-                        // Basic implementation of Custom Handler
-                        //TODO: Problem with module
-                        default: {
-                            Document doc = ctx.getDocBuilder().newDocument();
-                            cusHandMarshaller.marshal(createCustomHandler(appender), doc);
-                            nodeList.add(doc.getDocumentElement());
+                            //  If the class don't correspond to any type of AS7 handler => CustomHandler
+                            default: cusHandMarshaller.marshal(createCustomHandler(appender, ctx, false), doc);
                         }
-                        break;
+
+                    } else{
+                        // Selection of classes which are created by the user
+                        // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
+                        cusHandMarshaller.marshal(createCustomHandler(appender, ctx, true), doc);
                     }
+                    nodeList.add(doc.getDocumentElement());
                     continue;
                 }
 
@@ -197,7 +179,6 @@ public class LoggingMigrator extends AbstractMigrator {
                     logger.setLoggerLevelName(category.getCategoryValue());
                     logger.setHandlers(category.getAppenderRef());
 
-                    Document doc = ctx.getDocBuilder().newDocument();
                     logMarshaller.marshal(logger, doc);
                     nodeList.add(doc.getDocumentElement());
 
@@ -214,7 +195,6 @@ public class LoggingMigrator extends AbstractMigrator {
                     rootLoggerAS7.setRootLoggerLevel("INFO");
                     rootLoggerAS7.setRootLoggerHandlers(root.getRootAppenderRefs());
 
-                    Document doc = ctx.getDocBuilder().newDocument();
                     rootLogMarshaller.marshal(rootLoggerAS7, doc);
                     nodeList.add(doc.getDocumentElement());
 
@@ -314,7 +294,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType("log");
+                rollbackData.setType(RollbackData.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -359,7 +339,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 RollbackData rollbackData = new RollbackData();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType("log");
+                rollbackData.setType(RollbackData.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -442,18 +422,47 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for migrating Custom-Appender to Handler in AS7
+     * Method for migrating Custom-Appender to Handler in AS7. The method cannot be static because it needs to find jar
+     * file in AS5 dir and then generate module.
      *
      * @param appender object representing Custom-Appender
+     * @param ctx   migration context
+     * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
-    public static CustomHandlerBean createCustomHandler(AppenderBean appender) {
+    public CustomHandlerBean createCustomHandler(AppenderBean appender, MigrationContext ctx, Boolean custom)
+            throws NodeGenerationException{
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
-        Set<PropertyBean> properties = new HashSet();
 
-        // TODO: Required attr is module. So probably something need to be copied and set.
+        if(custom){
+            // Jar file containing class from appender must be found and set to RollbackData.
+            RollbackData rollbackData = new RollbackData();
+            try {
+                String name = Utils.findJarFileWithClass(appender.getAppenderClass(),
+                        super.getGlobalConfig().getDirAS5(), super.getGlobalConfig().getProfileAS5());
+
+                rollbackData.setName(name);
+                rollbackData.setType(RollbackData.Type.LOGMODULE);
+
+                // Setting of module for logging. Each jar module path migration.logging.<jar-name>
+                String module = "migration.logging." + StringUtils.substringBefore(name, ".");
+                handler.setModule(module);
+                rollbackData.setModule(module);
+
+                ctx.getRollbackData().add(rollbackData);
+
+            } catch (FileNotFoundException e) {
+                throw new NodeGenerationException(e + "=> Cannot create module!" );
+            }
+
+        } else{
+            // Only possibility is class in log4j=> log4j module in AS7
+            handler.setModule("org.apache.log4j");
+        }
+
+        Set<PropertyBean> properties = new HashSet();
 
         for (ParameterBean parameter : appender.getParameters()) {
             if (parameter.getParamName().equalsIgnoreCase("Threshold")) {

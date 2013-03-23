@@ -5,6 +5,10 @@ import cz.muni.fi.jboss.migration.RollbackData;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 
 import javax.xml.transform.OutputKeys;
@@ -14,8 +18,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Utils class containing helping classes
@@ -52,40 +61,42 @@ public class Utils {
      */
     public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath)
             throws CopyException {
-        if( (list.isEmpty()) && !(rollData.getType().equals("driver")) ) {
-            throw new CopyException("Cannot locate log file: " + rollData.getName());
+        if( (list.isEmpty()) ) {
+            throw new CopyException("Cannot locate file: " + rollData.getName());
         } 
         
         rollData.setHomePath(list.get(0).getAbsolutePath());
 
-        if( rollData.getType().equals("driver") ) {  // TODO: Enum
-            rollData.setName(list.get(0).getName());
-            String module;
+        switch (rollData.getType()){
+            case LOG: rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                    File.separator + "log");
+                break;
+            case RESOURCE: rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                    File.separator + "deployments");
+                break;
+            case SECURITY: rollData.setTargetPath(targetPath + File.separator + "standalone" +
+                    File.separator + "configuration");
+                break;
+            case DRIVER: case LOGMODULE:{
+                rollData.setName(list.get(0).getName());
+                String module;
 
-            if( rollData.getModule() == null)
-                throw new CopyException("Module for the driver is null.");
-            
-            String[] parts = rollData.getModule().split("\\.");
-            module = "";
-            for (String s : parts) {
-                module = module + s + File.separator;
-            }
-            // TODO: Configurable modules dir.
-            rollData.setTargetPath(targetPath + File.separator + "modules" + File.separator +
-                    module + "main");
-        } 
-        else {
-            switch (rollData.getType()){
-                case "log": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                        File.separator + "log");
-                    break;
-                case "resource": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                        File.separator + "deployments");
-                    break;
-                case "security": rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                        File.separator + "configuration");
-            }
+                if( rollData.getModule() == null)
+                    throw new CopyException("Module is null!");
+
+                String[] parts = rollData.getModule().split("\\.");
+                module = "";
+                for (String s : parts) {
+                    module = module + s + File.separator;
+                }
+                // TODO: Configurable modules dir.
+                rollData.setTargetPath(targetPath + File.separator + "modules" + File.separator +
+                        module + "main");
+            } break;
+
         }
+
+
     }// setRollbackData()
 
     /**
@@ -122,7 +133,7 @@ public class Utils {
      */
     public static void removeData(Collection<RollbackData> rollbackDatas) {
         for (RollbackData rolldata : rollbackDatas) {
-            if (!(rolldata.getType().equals("driver"))) {
+            if (!(rolldata.getType().equals(RollbackData.Type.DRIVER))) {
                 FileUtils.deleteQuietly(new File(rolldata.getTargetPath() + File.separator + rolldata.getName()));
             }
         }
@@ -146,5 +157,105 @@ public class Utils {
         } catch (TransformerException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Utils class for finding name of jar file containing class from logging configuration.
+     *
+     * @param className  name of the class which must be found
+     * @param dirAS5   AS5 home dir
+     * @param profileAS5  name of AS5 profile
+     * @return  name of jar file which contains given class
+     * @throws FileNotFoundException if the jar file is not found
+     */
+    public static String findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException{
+        JarFile jarFile = null;
+        try {
+            // jar file can be in two different places in AS5 structure.
+            for(int i = 0; i < 2; i++){
+                File dir;
+                if( i == 0){
+                    // First look for jar file in lib directory in given AS5 profile
+                    dir = new File(dirAS5 + File.separator + "server" + File.separator +
+                            profileAS5 + File.separator + "lib");
+                } else{
+                    // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
+                    dir = new File(dirAS5 + File.separator + "common" + File.separator + "lib");
+                }
+
+                SuffixFileFilter sf = new SuffixFileFilter(".jar");
+                List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
+                className = className.replace(".", "/");
+
+                for (File file : list) {
+                    jarFile = new JarFile(file);
+                    final Enumeration<JarEntry> entries = jarFile.entries();
+                    while (entries.hasMoreElements()) {
+                        final JarEntry entry = entries.nextElement();
+
+                        if ((entry.getName().contains(className)) && !(entry.isDirectory())) {
+
+                            // Assuming that jar file contains some package with class (common Java practice)
+                            return  StringUtils.substringAfterLast(file.getPath(), "/");
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new FileNotFoundException(e.toString());
+        }
+
+        throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
+    }
+
+    /**
+     *
+     * @param rollData
+     * @param dir
+     * @return
+     */
+    public static List<File> searchForFile(RollbackData rollData, File dir) {
+        NameFileFilter nff;
+
+        if (rollData.getType().equals(RollbackData.Type.DRIVER)) {
+            final String name = rollData.getName();
+
+            nff = new NameFileFilter(name) {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().contains(name) && file.getName().contains("jar");
+                }
+            };
+        } else {
+            nff = new NameFileFilter(rollData.getName());
+        }
+
+        List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
+
+        // One more search for driver jar. Other types of rollbackData just return list.
+        if(rollData.getType().equals(RollbackData.Type.DRIVER)) {
+
+            // For now only expecting one jar for driver. Pick the first one.
+            if (list.isEmpty()) {
+
+                // Special case for freeware jdbc driver jdts.jar
+                if (rollData.getAltName() != null) {
+                    final String altName = rollData.getAltName();
+
+                    nff = new NameFileFilter(altName) {
+                        @Override
+                        public boolean accept(File file) {
+                            return file.getName().contains(altName) && file.getName().contains("jar");
+                        }
+                    };
+                    List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
+                            FileFilterUtils.makeCVSAware(null));
+
+                    return altList;
+                }
+            }
+        }
+
+        return list;
     }
 }

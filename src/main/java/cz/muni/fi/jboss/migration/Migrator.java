@@ -9,10 +9,11 @@ import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.persistence.exceptions.JAXBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,14 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 /**
  * Migrator is class, which represents all functions of the application.
@@ -216,65 +210,38 @@ public class Migrator {
      */
     public void copyItems() throws CopyException {
         String targetPath = this.config.getGlobal().getDirAS7();
-        File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + this.config.getGlobal().getProfileAS5());
+        File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + "server" + File.separator
+                + this.config.getGlobal().getProfileAS5());
+        File altDir = new File(this.config.getGlobal().getDirAS5() + File.separator + "common" + File.separator + "lib");
 
         for (RollbackData rollData : this.ctx.getRollbackData()) {
             if (rollData.getName() == null || rollData.getName().isEmpty()) {
                 throw new NullPointerException();
             }
 
-            NameFileFilter nff;
-            if (rollData.getType().equals("driver")) {
-                final String name = rollData.getName();
-
-                nff = new NameFileFilter(name) {
-                    @Override
-                    public boolean accept(File file) {
-                        return file.getName().contains(name) && file.getName().contains("jar");
-                    }
-                };
-            } else {
-                nff = new NameFileFilter(rollData.getName());
-            }
-
-            List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
+            List<File> list = Utils.searchForFile(rollData, dir);
 
             switch (rollData.getType()) {
-                case "driver": {
+                case DRIVER: case LOGMODULE:{
                     // For now only expecting one jar for driver. Pick the first one.
                     if (list.isEmpty()) {
-                        // Special case for freeware jdbc driver jdts.jar
-                        if (rollData.getAltName() != null) {
-                            final String altName = rollData.getAltName();
-
-                            nff = new NameFileFilter(altName) {
-                                @Override
-                                public boolean accept(File file) {
-                                    return file.getName().contains(altName) && file.getName().contains("jar");
-                                }
-                            };
-                            List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
-                                    FileFilterUtils.makeCVSAware(null));
-
-                            Utils.setRollbackData(rollData, altList, targetPath);
-                            break;
-                        } else {
-                            throw new CopyException("Cannot locate driver jar for driver:" + rollData.getName() + "!");
-                        }
+                        List<File> altList = Utils.searchForFile(rollData, altDir);
+                        Utils.setRollbackData(rollData, altList, targetPath);
                     } else {
                         Utils.setRollbackData(rollData, list, targetPath);
                     }
                 }
                 break;
-                case "log":
+                case LOG:
                     Utils.setRollbackData(rollData, list, targetPath);
                     break;
-                case "security":
+                case SECURITY:
                     Utils.setRollbackData(rollData, list, targetPath);
                     break;
-                case "resource":
+                case RESOURCE:
                     Utils.setRollbackData(rollData, list, targetPath);
                     break;
+
             }
         }
 
@@ -286,13 +253,21 @@ public class Migrator {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
             for (RollbackData cp : this.ctx.getRollbackData()) {
-                if (cp.getType().equals("driver")) {
+                RollbackData.Type type = cp.getType();
+                if ((type.equals(RollbackData.Type.DRIVER)) || (type.equals(RollbackData.Type.LOGMODULE))) {
                     File directories = new File(cp.getTargetPath() + File.separator);
                     FileUtils.forceMkdir(directories);
                     File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
 
                     if (module.createNewFile()) {
-                        transformer.transform(new DOMSource(AS7ModuleUtils.createModuleXML(cp)), new StreamResult(module));
+                        if(type.equals(RollbackData.Type.DRIVER)){
+                            transformer.transform(new DOMSource(AS7ModuleUtils.createDriverModuleXML(cp)),
+                                    new StreamResult(module));
+                        } else {
+                            transformer.transform(new DOMSource(AS7ModuleUtils.createLogModuleXML(cp)),
+                                    new StreamResult(module));
+                        }
+
                     } else {
                         throw new CopyException("File \"module.xml\" already exists!");
                     }

@@ -11,6 +11,7 @@ import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -61,26 +62,26 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             List<DatasourcesBean> dsColl = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + super.getGlobalConfig().getProfileAS5() +
-                    File.separator + "deploy");
+            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy");
 
             if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, null);
+                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
 
                 if (list.isEmpty()) {
                     throw new LoadMigrationException("No \"-ds.xml\" to parse!");
                 }
 
-                for (File aList : list) {
+                for (File file : list) {
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     DocumentBuilder db = dbf.newDocumentBuilder();
-                    Document doc = db.parse(aList);
+                    Document doc = db.parse(file);
 
                     Element element = doc.getDocumentElement();
 
                     if (element.getTagName().equalsIgnoreCase("datasources")) {
-                        DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(aList);
+                        DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(file);
                         dsColl.add(dataSources);
                     }
                 }
@@ -165,20 +166,19 @@ public class DatasourceMigrator extends AbstractMigrator {
             Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragment()) {
+                Document doc = ctx.getDocBuilder().newDocument();
+
                 if (fragment instanceof DatasourceAS5Bean) {
-                    Document doc = ctx.getDocBuilder().newDocument();
                     dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if (fragment instanceof XaDatasourceAS5Bean) {
-                    Document doc = ctx.getDocBuilder().newDocument();
                     xaDataMarshaller.marshal(xaDatasourceMigration((XaDatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if(fragment instanceof NoTxDatasourceAS5Bean){
-                    Document doc = ctx.getDocBuilder().newDocument();
                     dataMarshaller.marshal(noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
@@ -194,7 +194,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
                 RollbackData cp = new RollbackData();
                 cp.setDriverName(driverClass);
-                cp.setType("driver");
+                cp.setType(RollbackData.Type.DRIVER);
                 cp.setModule(AS7ModuleUtils.createDriverModule(driverClass));
                 driver.setDriverModule(AS7ModuleUtils.createDriverModule(driverClass));
 
@@ -212,7 +212,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
                 RollbackData cp = new RollbackData();
                 cp.setDriverName(xaDsClass);
-                cp.setType("driver");
+                cp.setType(RollbackData.Type.DRIVER);
                 cp.setModule(AS7ModuleUtils.createDriverModule(xaDsClass));
                 driver.setDriverModule(AS7ModuleUtils.createDriverModule(xaDsClass));
 

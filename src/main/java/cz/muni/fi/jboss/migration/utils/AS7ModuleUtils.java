@@ -23,7 +23,7 @@ public class AS7ModuleUtils {
      * @return string containing generate module name
      */
     public static String createDriverModule(String driverName) {
-        String module = "jdbc.drivers.";
+        String module = "migration.jdbc.drivers.";
         if (driverName.contains("mysql")) {
             module = module + "mysql";
         }
@@ -56,13 +56,16 @@ public class AS7ModuleUtils {
     /**
      * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
      *
+     * @param data object storing all the necessary information about driver
      * @return Document representing created module.xml for given driver
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createModuleXML(RollbackData data) throws ParserConfigurationException {
+    public static Document createDriverModuleXML(RollbackData data) throws ParserConfigurationException {
 
         /**
+         * module.xml for jdb driver module
+         *
          * Example of module xml,
          *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
          *       <resources>
@@ -112,4 +115,54 @@ public class AS7ModuleUtils {
 
         return doc;
     }
+
+    /**
+     * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
+     *
+     * @param data object storing all the necessary information about logging jar file
+     * @return Document representing created module.xml for given logging jar file
+     * @throws javax.xml.parsers.ParserConfigurationException
+     *          if parser cannot be initialized
+     */
+    public static Document createLogModuleXML(RollbackData data) throws ParserConfigurationException{
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+
+        Element root = doc.createElement("module");
+        doc.appendChild(root);
+
+        root.setAttribute("xmlns", "urn:jboss:module:1.1");
+        root.setAttribute("module", data.getModule());
+
+        Element resources = doc.createElement("resources");
+        root.appendChild(resources);
+
+        Element resource = doc.createElement("resource-root");
+        resource.setAttribute("path", data.getName());
+        resources.appendChild(resource);
+
+        Element dependencies = doc.createElement("dependencies");
+        Element module1 = doc.createElement("module");
+        module1.setAttribute("name", "javax.api");
+        Element module2 = doc.createElement("module");
+
+        // Default dependencies for logging
+        module2.setAttribute("name", "org.jboss.logging");
+        Element module3 = doc.createElement("module");
+        module3.setAttribute("name", "org.apache.log4j");
+        module3.setAttribute("optional", "true");
+
+        dependencies.appendChild(module1);
+        dependencies.appendChild(module2);
+        dependencies.appendChild(module3);
+
+        root.appendChild(dependencies);
+
+        return doc;
+    }
+
+    
 }

@@ -11,9 +11,12 @@ import org.apache.commons.lang.StringUtils;
  *         Time: 3:13 PM
  */
 public class RollbackData {
+    public static enum Type{
+        DRIVER, LOG, RESOURCE, SECURITY, LOGMODULE
+    }
     private String name;
 
-    private String type;
+    private Type type;
 
     private String targetPath;
 
@@ -41,11 +44,11 @@ public class RollbackData {
         this.targetPath = targetPath;
     }
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Type type) {
         this.type = type;
     }
 
@@ -115,6 +118,15 @@ public class RollbackData {
         if (!(o instanceof RollbackData)) return false;
 
         RollbackData that = (RollbackData) o;
+
+        if(type.equals(Type.LOGMODULE)){
+            if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
+            if (module != null ? !module.equals(that.module) : that.module != null) return false;
+            if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
+            if (type != null ? !type.equals(that.type) : that.type != null) return false;
+
+            return true;
+        }
 
         if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
         if (module != null ? !module.equals(that.module) : that.module != null) return false;
