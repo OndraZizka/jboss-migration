@@ -31,7 +31,7 @@
         <jndi-name>GenericXADS</jndi-name>
         <use-java-context>true</use-java-context>
         <track-connection-by-tx/>
-        <xa-datasource-class>[fully qualified name of class implementing javax.sql.XADataSource goes here]</xa-datasource-class>
+        <xa-datasource-class>org.hsqldb.xaJdbcDriver</xa-datasource-class>
         <xa-datasource-property name="SomeProperty">SomePropertyValue</xa-datasource-property>
         <xa-datasource-property name="SomeOtherProperty">SomeOtherValue</xa-datasource-property>
         <url-selector-strategy-class-name>org.test.Selector</url-selector-strategy-class-name>
