@@ -64,7 +64,15 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             MigrationData mData = new MigrationData();
-            mData.getConfigFragment().addAll(loggingAS5.getCategories());
+
+            if(loggingAS5.getCategories() != null){
+                mData.getConfigFragment().addAll(loggingAS5.getCategories());
+            }
+
+            if(loggingAS5.getLoggers() != null){
+                mData.getConfigFragment().addAll(loggingAS5.getLoggers());
+            }
+
             mData.getConfigFragment().addAll(loggingAS5.getAppenders());
             mData.getConfigFragment().add(loggingAS5.getRootLoggerAS5());
 

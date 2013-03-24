@@ -21,7 +21,8 @@ public class ConsoleHandlerBean {
     @XmlAttribute(name = "name")
     private String name;
 
-    // TODO: @XmlPath("encoding")
+    @XmlPath("encoding/@value")
+    private String encoding;
 
     @XmlPath("level/@name")
     private String level;
@@ -84,5 +85,13 @@ public class ConsoleHandlerBean {
 
     public void setTarget(String target) {
         this.target = target;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

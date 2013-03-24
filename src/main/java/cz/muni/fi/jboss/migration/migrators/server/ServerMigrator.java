@@ -148,81 +148,16 @@ public class ServerMigrator extends AbstractMigrator {
             Marshaller virSerMarshaller = virSerCtx.createMarshaller();
             Marshaller socketMarshaller = socketCtx.createMarshaller();
 
-            for (IConfigFragment data : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()) {
-                if (data instanceof ConnectorAS5Bean) {
-                    ConnectorAS5Bean connector = (ConnectorAS5Bean) data;
-                    ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
-                    connAS7.setEnabled("true");
-                    connAS7.setEnableLookups(connector.getEnableLookups());
-                    connAS7.setMaxPostSize(connector.getMaxPostSize());
-                    connAS7.setMaxSavePostSize(connector.getMaxSavePostSize());
-                    connAS7.setProtocol(connector.getProtocol());
-                    connAS7.setProxyName(connector.getProxyName());
-                    connAS7.setProxyPort(connector.getProxyPort());
-                    connAS7.setRedirectPort(connector.getRedirectPort());
-
-                    // Ajp connector need scheme too. So http is set.
-                    connAS7.setScheme("http");
-
-                    connAS7.setConnectorName("connector" + this.randomConnector);
-                    this.randomConnector++;
-
-                    // Socket-binding.. first try
-                    if (connector.getProtocol().equals("HTTP/1.1")) {
-
-                        if (connector.getSslEnabled() == null) {
-                            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
-                        } else {
-                            if (connector.getSslEnabled().equals("true")) {
-                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https", ctx));
-                            } else {
-                                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
-                            }
-                        }
-                    } else {
-                        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp", ctx));
-                    }
-
-                    if (connector.getSslEnabled() != null) {
-                        if (connector.getSslEnabled().equals("true")) {
-                            connAS7.setScheme("https");
-                            connAS7.setSecure(connector.getSecure());
-
-                            connAS7.setSslName("ssl");
-                            connAS7.setVerifyClient(connector.getClientAuth());
-                            // TODO: Problem with place of the file
-                            connAS7.setCertifKeyFile(connector.getKeystoreFile());
-
-                            // TODO: No sure which protocols can be in AS5. Hard to find..
-                            if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
-                                connAS7.setSslProtocol("TLSv1");
-                            }
-                            connAS7.setSslProtocol(connector.getSslProtocol());
-
-                            connAS7.setCiphers(connector.getCiphers());
-                            connAS7.setKeyAlias(connAS7.getKeyAlias());
-
-                            // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
-                            connAS7.setPassword(connector.getKeystorePass());
-                        }
-                    }
-
-                    Document doc = ctx.getDocBuilder().newDocument();
-                    connMarshaller.marshal(connAS7, doc);
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()) {
+                Document doc = ctx.getDocBuilder().newDocument();
+                if (fragment instanceof ConnectorAS5Bean) {
+                    connMarshaller.marshal(connectorMigration((ConnectorAS5Bean) fragment, ctx), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                if (data instanceof EngineBean) {
-                    EngineBean eng = (EngineBean) data;
-                    VirtualServerBean virtualServer = new VirtualServerBean();
-                    virtualServer.setVirtualServerName(eng.getEngineName());
-                    virtualServer.setEnableWelcomeRoot("true");
-                    virtualServer.setAliasName(eng.getHostNames());
-
-                    Document doc = ctx.getDocBuilder().newDocument();
-                    virSerMarshaller.marshal(virtualServer, doc);
+                if (fragment instanceof EngineBean) {
+                    virSerMarshaller.marshal(engineMigration((EngineBean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
-
                     continue;
                 }
 
@@ -272,6 +207,96 @@ public class ServerMigrator extends AbstractMigrator {
         } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
+    }
+
+    /**
+     * Method for migration of connector from AS5 to AS7
+     *
+     * @param connector object representing connector in AS5
+     * @param ctx  migration context
+     * @return  migrated AS7's connector
+     * @throws NodeGenerationException
+     *         if socket-binding cannot be created or set
+     */
+    public ConnectorAS7Bean connectorMigration(ConnectorAS5Bean connector, MigrationContext ctx)
+            throws NodeGenerationException{
+        ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
+
+        connAS7.setEnabled("true");
+        connAS7.setEnableLookups(connector.getEnableLookups());
+        connAS7.setMaxPostSize(connector.getMaxPostSize());
+        connAS7.setMaxSavePostSize(connector.getMaxSavePostSize());
+        connAS7.setProtocol(connector.getProtocol());
+        connAS7.setProxyName(connector.getProxyName());
+        connAS7.setProxyPort(connector.getProxyPort());
+        connAS7.setRedirectPort(connector.getRedirectPort());
+
+        // Ajp connector need scheme too. So http is set.
+        connAS7.setScheme("http");
+
+        connAS7.setConnectorName("connector" + this.randomConnector);
+        this.randomConnector++;
+
+        // Socket-binding.. first try
+        if (connector.getProtocol().equals("HTTP/1.1")) {
+
+            if (connector.getSslEnabled() == null) {
+                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
+            } else {
+                if (connector.getSslEnabled().equals("true")) {
+                    connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https", ctx));
+                } else {
+                    connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
+                }
+            }
+        } else {
+            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp", ctx));
+        }
+
+        if (connector.getSslEnabled() != null) {
+            if (connector.getSslEnabled().equals("true")) {
+                connAS7.setScheme("https");
+                connAS7.setSecure(connector.getSecure());
+
+                connAS7.setSslName("ssl");
+                connAS7.setVerifyClient(connector.getClientAuth());
+                // TODO: Problem with place of the file
+                connAS7.setCertifKeyFile(connector.getKeystoreFile());
+
+                // TODO: No sure which protocols can be in AS5. Hard to find..
+                if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
+                    connAS7.setSslProtocol("TLSv1");
+                }
+                connAS7.setSslProtocol(connector.getSslProtocol());
+
+                connAS7.setCiphers(connector.getCiphers());
+                connAS7.setKeyAlias(connAS7.getKeyAlias());
+
+                // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+                connAS7.setPassword(connector.getKeystorePass());
+            }
+        }
+
+        return connAS7;
+    }
+
+    /**
+     * Method for migration of Engine rom AS5 to AS7
+     *
+     * @param engine object representing Engine
+     * @return  created virtual-server
+     */
+    public static VirtualServerBean engineMigration(EngineBean engine){
+        VirtualServerBean virtualServer = new VirtualServerBean();
+        virtualServer.setVirtualServerName(engine.getEngineName());
+        virtualServer.setEnableWelcomeRoot("true");
+        virtualServer.setAliasName(engine.getHostNames());
+
+        if(engine.getAliases() != null){
+            virtualServer.getAliasName().addAll(engine.getAliases());
+        }
+
+        return virtualServer;
     }
 
     /**

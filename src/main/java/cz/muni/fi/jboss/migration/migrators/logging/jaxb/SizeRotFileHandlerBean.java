@@ -21,7 +21,8 @@ public class SizeRotFileHandlerBean {
     @XmlAttribute(name = "name")
     private String name;
 
-    // TODO: encoding...
+    @XmlPath("encoding/@value")
+    private String encoding;
 
     @XmlPath("level/@name")
     private String level;
@@ -128,5 +129,13 @@ public class SizeRotFileHandlerBean {
 
     public void setMaxBackupIndex(String maxBackupIndex) {
         this.maxBackupIndex = maxBackupIndex;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

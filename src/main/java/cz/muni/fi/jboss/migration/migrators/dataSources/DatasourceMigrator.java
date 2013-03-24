@@ -97,9 +97,11 @@ public class DatasourceMigrator extends AbstractMigrator {
                 if (ds.getLocalDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getLocalDatasourceAS5s());
                 }
+
                 if (ds.getXaDatasourceAS5s() != null) {
                     mData.getConfigFragment().addAll(ds.getXaDatasourceAS5s());
                 }
+
                 if(ds.getNoTxDatasourceAS5s() !=null){
                     mData.getConfigFragment().addAll(ds.getNoTxDatasourceAS5s());
                 }
@@ -123,6 +125,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
+
                 if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")) {
                     Node parent = subsystems.item(i).getFirstChild();
                     while (!(parent instanceof Element)) {
@@ -145,11 +148,8 @@ public class DatasourceMigrator extends AbstractMigrator {
                         } else {
                             parent.insertBefore(adopted, lastNode);
                         }
-
-
                     }
                     break;
-
                 }
             }
         } catch (NodeGenerationException e) {
@@ -261,7 +261,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
     }
 
-    // TODO: Security-Domain must reference something what exists in subsystem security...
     /**
      * Method for migrating no-tx-datasource from AS5 to AS7
      *
@@ -294,7 +293,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // Elements in element <security> in AS7
         datasourceAS7.setUserName(noTxDatasourceAS5.getUserName());
         datasourceAS7.setPassword(noTxDatasourceAS5.getPassword());
-        // TODO: Some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
+
         datasourceAS7.setSecurityDomain(noTxDatasourceAS5.getSecurityDomain());
 
         // Elements in element <pool> in AS7
@@ -368,7 +367,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // Elements in element <security> in AS7
         datasourceAS7.setUserName(datasourceAS5.getUserName());
         datasourceAS7.setPassword(datasourceAS5.getPassword());
-        // TODO: Some problems with elements in AS5(security-domain/application-managed-security/security-domain-and-application)
+
         datasourceAS7.setSecurityDomain(datasourceAS5.getSecurityDomain());
 
         // Elements in element <pool> in AS7
@@ -448,7 +447,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // Elements in element <security> in AS7
         xaDataAS7.setUserName(xaDataAS5.getUserName());
         xaDataAS7.setPassword(xaDataAS5.getPassword());
-        // TODO: Same problem as in datasourceMigration()
+
         xaDataAS7.setSecurityDomain(xaDataAS5.getSecurityDomain());
 
         // Elements in element <validation> in AS7

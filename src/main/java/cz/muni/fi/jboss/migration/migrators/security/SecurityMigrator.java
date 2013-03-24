@@ -102,127 +102,13 @@ public class SecurityMigrator extends AbstractMigrator {
             List<Node> nodeList = new ArrayList();
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
-            for (IConfigFragment data : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
-                if (!(data instanceof ApplicationPolicyBean)) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
+                if (!(fragment instanceof ApplicationPolicyBean)) {
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }
-                ApplicationPolicyBean appPolicy = (ApplicationPolicyBean) data;
-
-                Set<LoginModuleAS7Bean> loginModules = new HashSet();
-                SecurityDomainBean securityDomain = new SecurityDomainBean();
-                securityDomain.setSecurityDomainName(appPolicy.getApplicationPolicyName());
-                securityDomain.setCacheType("default");
-
-                for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
-                    Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
-                    LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
-                    lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
-
-                    switch (StringUtils.substringAfterLast(lmAS5.getLoginModule(), ".")) {
-                        case "ClientLoginModule":
-                            lmAS7.setLoginModuleCode("Client");
-                            break;
-                        //*
-                        case "BaseCertLoginModule":
-                            lmAS7.setLoginModuleCode("Certificate");
-                            break;
-                        case "CertRolesLoginModule":
-                            lmAS7.setLoginModuleCode("CertificateRoles");
-                            break;
-                        //*
-                        case "DatabaseServerLoginModule":
-                            lmAS7.setLoginModuleCode("Database");
-                            break;
-                        case "DatabaseCertLoginModule":
-                            lmAS7.setLoginModuleCode("DatabaseCertificate");
-                            break;
-                        case "IdentityLoginModule":
-                            lmAS7.setLoginModuleCode("Identity");
-                            break;
-                        case "LdapLoginModule":
-                            lmAS7.setLoginModuleCode("Ldap");
-                            break;
-                        case "LdapExtLoginModule":
-                            lmAS7.setLoginModuleCode("LdapExtended");
-                            break;
-                        case "RoleMappingLoginModule":
-                            lmAS7.setLoginModuleCode("RoleMapping");
-                            break;
-                        case "RunAsLoginModule":
-                            lmAS7.setLoginModuleCode("RunAs");
-                            break;
-                        case "SimpleServerLoginModule":
-                            lmAS7.setLoginModuleCode("Simple");
-                            break;
-                        case "ConfiguredIdentityLoginModule":
-                            lmAS7.setLoginModuleCode("ConfiguredIdentity");
-                            break;
-                        case "SecureIdentityLoginModule":
-                            lmAS7.setLoginModuleCode("SecureIdentity");
-                            break;
-                        case "PropertiesUsersLoginModule":
-                            lmAS7.setLoginModuleCode("PropertiesUsers");
-                            break;
-                        case "SimpleUsersLoginModule":
-                            lmAS7.setLoginModuleCode("SimpleUsers");
-                            break;
-                        case "LdapUsersLoginModule":
-                            lmAS7.setLoginModuleCode("LdapUsers");
-                            break;
-                        case "Krb5loginModule":
-                            lmAS7.setLoginModuleCode("Kerberos");
-                            break;
-                        case "SPNEGOLoginModule":
-                            lmAS7.setLoginModuleCode("SPNEGOUsers");
-                            break;
-                        case "AdvancedLdapLoginModule":
-                            lmAS7.setLoginModuleCode("AdvancedLdap");
-                            break;
-                        case "AdvancedADLoginModule":
-                            lmAS7.setLoginModuleCode("AdvancedADldap");
-                            break;
-                        case "UsersRolesLoginModule":
-                            lmAS7.setLoginModuleCode("UsersRoles");
-                            break;
-                        default:
-                            lmAS7.setLoginModuleCode(lmAS5.getLoginModule());
-                    }
-
-                    if (lmAS5.getModuleOptions() != null) {
-                        for (ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions()) {
-                            ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();
-                            moAS7.setModuleOptionName(moAS5.getModuleName());
-
-                            // TODO: Module-option using file can only use .properties?
-                            if (moAS5.getModuleValue().contains("properties")) {
-                                String value;
-                                if (moAS5.getModuleValue().contains("/")) {
-                                    value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
-                                } else {
-                                    value = moAS5.getModuleValue();
-                                }
-                                moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
-
-                                RollbackData rd = new RollbackData();
-                                rd.setName(value);
-                                rd.setType(RollbackData.Type.SECURITY);
-                                ctx.getRollbackData().add(rd);
-                            } else {
-                                moAS7.setModuleOptionValue(moAS5.getModuleValue());
-                            }
-
-                            moduleOptions.add(moAS7);
-                        }
-                    }
-
-                    lmAS7.setModuleOptions(moduleOptions);
-                    loginModules.add(lmAS7);
-                }
-
-                securityDomain.setLoginModules(loginModules);
 
                 Document doc = ctx.getDocBuilder().newDocument();
-                secDomMarshaller.marshal(securityDomain, doc);
+                secDomMarshaller.marshal(appPolicyMigration((ApplicationPolicyBean) fragment, ctx), doc);
                 nodeList.add(doc.getDocumentElement());
             }
 
@@ -247,6 +133,131 @@ public class SecurityMigrator extends AbstractMigrator {
         } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
+    }
+
+    /**
+     * Method for migrating application-policy from AS5 to AS7
+     *
+     * @param appPolicy object representing application-policy
+     * @param ctx  migration context
+     * @return  created security-domain
+     */
+    public static SecurityDomainBean appPolicyMigration(ApplicationPolicyBean appPolicy, MigrationContext ctx){
+        Set<LoginModuleAS7Bean> loginModules = new HashSet();
+        SecurityDomainBean securityDomain = new SecurityDomainBean();
+
+        securityDomain.setSecurityDomainName(appPolicy.getApplicationPolicyName());
+        securityDomain.setCacheType("default");
+
+        for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
+            Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
+            LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
+            lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
+
+            switch (StringUtils.substringAfterLast(lmAS5.getLoginModule(), ".")) {
+                case "ClientLoginModule":
+                    lmAS7.setLoginModuleCode("Client");
+                    break;
+                //*
+                case "BaseCertLoginModule":
+                    lmAS7.setLoginModuleCode("Certificate");
+                    break;
+                case "CertRolesLoginModule":
+                    lmAS7.setLoginModuleCode("CertificateRoles");
+                    break;
+                //*
+                case "DatabaseServerLoginModule":
+                    lmAS7.setLoginModuleCode("Database");
+                    break;
+                case "DatabaseCertLoginModule":
+                    lmAS7.setLoginModuleCode("DatabaseCertificate");
+                    break;
+                case "IdentityLoginModule":
+                    lmAS7.setLoginModuleCode("Identity");
+                    break;
+                case "LdapLoginModule":
+                    lmAS7.setLoginModuleCode("Ldap");
+                    break;
+                case "LdapExtLoginModule":
+                    lmAS7.setLoginModuleCode("LdapExtended");
+                    break;
+                case "RoleMappingLoginModule":
+                    lmAS7.setLoginModuleCode("RoleMapping");
+                    break;
+                case "RunAsLoginModule":
+                    lmAS7.setLoginModuleCode("RunAs");
+                    break;
+                case "SimpleServerLoginModule":
+                    lmAS7.setLoginModuleCode("Simple");
+                    break;
+                case "ConfiguredIdentityLoginModule":
+                    lmAS7.setLoginModuleCode("ConfiguredIdentity");
+                    break;
+                case "SecureIdentityLoginModule":
+                    lmAS7.setLoginModuleCode("SecureIdentity");
+                    break;
+                case "PropertiesUsersLoginModule":
+                    lmAS7.setLoginModuleCode("PropertiesUsers");
+                    break;
+                case "SimpleUsersLoginModule":
+                    lmAS7.setLoginModuleCode("SimpleUsers");
+                    break;
+                case "LdapUsersLoginModule":
+                    lmAS7.setLoginModuleCode("LdapUsers");
+                    break;
+                case "Krb5loginModule":
+                    lmAS7.setLoginModuleCode("Kerberos");
+                    break;
+                case "SPNEGOLoginModule":
+                    lmAS7.setLoginModuleCode("SPNEGOUsers");
+                    break;
+                case "AdvancedLdapLoginModule":
+                    lmAS7.setLoginModuleCode("AdvancedLdap");
+                    break;
+                case "AdvancedADLoginModule":
+                    lmAS7.setLoginModuleCode("AdvancedADldap");
+                    break;
+                case "UsersRolesLoginModule":
+                    lmAS7.setLoginModuleCode("UsersRoles");
+                    break;
+                default:
+                    lmAS7.setLoginModuleCode(lmAS5.getLoginModule());
+            }
+
+            if (lmAS5.getModuleOptions() != null) {
+                for (ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions()) {
+                    ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();
+                    moAS7.setModuleOptionName(moAS5.getModuleName());
+
+                    // TODO: Module-option using file can only use .properties?
+                    if (moAS5.getModuleValue().contains("properties")) {
+                        String value;
+                        if (moAS5.getModuleValue().contains("/")) {
+                            value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
+                        } else {
+                            value = moAS5.getModuleValue();
+                        }
+                        moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
+
+                        RollbackData rd = new RollbackData();
+                        rd.setName(value);
+                        rd.setType(RollbackData.Type.SECURITY);
+                        ctx.getRollbackData().add(rd);
+                    } else {
+                        moAS7.setModuleOptionValue(moAS5.getModuleValue());
+                    }
+
+                    moduleOptions.add(moAS7);
+                }
+            }
+
+            lmAS7.setModuleOptions(moduleOptions);
+            loginModules.add(lmAS7);
+        }
+
+        securityDomain.setLoginModules(loginModules);
+
+        return securityDomain;
     }
 
     /**

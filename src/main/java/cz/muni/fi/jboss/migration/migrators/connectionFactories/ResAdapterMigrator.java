@@ -184,10 +184,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
+     * Method for migrating tx-connection-factory from AS5 to AS7
      *
-     *
-     * @param connFactoryAS5
-     * @return
+     * @param connFactoryAS5 object representing tx-connection-factory
+     * @return created resource-adapter
      */
     public ResourceAdapterBean txConnFactoryMigration(ConnectionFactoryAS5Bean connFactoryAS5){
 
@@ -250,7 +250,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      *  Method for migrating no-tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5  object representing no-tx-connection-factory
-     * @return created resource adapter
+     * @return created resource-adapter
      */
     public ResourceAdapterBean noTxConnFactoryMigration(NoTxConnectionFactoryAS5Bean connFactoryAS5){
 

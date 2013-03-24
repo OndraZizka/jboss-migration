@@ -28,6 +28,9 @@ public class LoggingAS5Bean implements IConfigFragment {
     @XmlElements(@XmlElement(name = "category", type = CategoryBean.class))
     private Set<CategoryBean> categories;
 
+    @XmlElements(@XmlElement(name = "logger", type = CategoryBean.class))
+    private Set<CategoryBean> loggers;
+
     @XmlElement(name = "root")
     private RootLoggerAS5Bean rootLoggerAS5;
 
@@ -57,5 +60,13 @@ public class LoggingAS5Bean implements IConfigFragment {
 
     public void setRootLoggerAS5(RootLoggerAS5Bean rootLoggerAS5) {
         this.rootLoggerAS5 = rootLoggerAS5;
+    }
+
+    public Set<CategoryBean> getLoggers() {
+        return loggers;
+    }
+
+    public void setLoggers(Set<CategoryBean> loggers) {
+        this.loggers = loggers;
     }
 }

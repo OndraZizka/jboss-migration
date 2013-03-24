@@ -209,10 +209,11 @@ public class Utils {
     }
 
     /**
+     * Searching for file, which is represented as RollbackData in the application, in given directory
      *
-     * @param rollData
-     * @param dir
-     * @return
+     * @param rollData object representing file for search
+     * @param dir directory for searching
+     * @return list of found files
      */
     public static List<File> searchForFile(RollbackData rollData, File dir) {
         NameFileFilter nff;

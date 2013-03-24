@@ -4,6 +4,8 @@ import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 import javax.xml.bind.annotation.*;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -44,6 +46,9 @@ public class EngineBean implements IConfigFragment {
 
     @XmlPath("Host/@name")
     private Set<String> hostNames;
+
+    @XmlPath("Host/Alias/@name")
+    private Set<String> aliases;
 
     public String getEngineName() {
         return engineName;
@@ -113,7 +118,19 @@ public class EngineBean implements IConfigFragment {
         return hostNames;
     }
 
-    public void setHostNames(Set<String> hostNames) {
-        this.hostNames = hostNames;
+    public void setHostNames(Collection<String> hostNames) {
+        Set<String> temp = new HashSet();
+        temp.addAll(hostNames);
+        this.hostNames = temp;
+    }
+
+    public Set<String> getAliases() {
+        return aliases;
+    }
+
+    public void setAliases(Collection<String> aliases) {
+        Set<String> temp = new HashSet();
+        temp.addAll(aliases);
+        this.aliases = temp;
     }
 }

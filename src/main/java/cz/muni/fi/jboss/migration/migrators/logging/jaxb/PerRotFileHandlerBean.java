@@ -21,7 +21,8 @@ public class PerRotFileHandlerBean {
     @XmlAttribute(name = "name")
     private String name;
 
-    // TODO: encoding...
+    @XmlPath("encoding/@value")
+    private String encoding;
 
     @XmlPath("level/@name")
     private String level;
@@ -117,5 +118,13 @@ public class PerRotFileHandlerBean {
 
     public void setSuffix(String suffix) {
         this.suffix = suffix;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }

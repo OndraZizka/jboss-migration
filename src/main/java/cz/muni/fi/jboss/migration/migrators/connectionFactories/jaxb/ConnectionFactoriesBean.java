@@ -22,8 +22,6 @@ public class ConnectionFactoriesBean {
     @XmlElement(name = "tx-connection-factory")
     private Set<ConnectionFactoryAS5Bean> connectionFactories;
 
-    // No idea what is this. But it can be a element in AS5
-    // TODO: find more about this element. Can it be transform to As7?
     @XmlElement(name = "no-tx-connection-factory")
     private Set<NoTxConnectionFactoryAS5Bean> noTxConnectionFactories;
 
