@@ -13,7 +13,6 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,11 +44,14 @@ import java.util.Set;
 public class DatasourceMigrator extends AbstractMigrator {
     
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
-    
 
-    private Set<String> drivers = new HashSet();
+    // iterating number for names of drivers
+    private int it = 0;
 
-    private Set<String> xaDatasourceClasses = new HashSet();
+    //private Set<String> drivers = new HashSet();
+    private Set<DriverBean> drivers = new HashSet();
+
+    //private Set<String> xaDatasourceClasses = new HashSet();
 
     public DatasourceMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -187,41 +189,28 @@ public class DatasourceMigrator extends AbstractMigrator {
                 throw new NodeGenerationException("Object is not part of Datasource migration!");
             }
 
-            for (String driverClass : this.drivers) {
-                DriverBean driver = new DriverBean();
-                driver.setDriverClass(driverClass);
-                driver.setDriverName(StringUtils.substringAfter(driverClass, "."));
+            for (DriverBean driver : this.drivers) {
+                RollbackData rollbackData = new RollbackData();
+                rollbackData.setType(RollbackData.Type.DRIVER);
 
-                RollbackData cp = new RollbackData();
-                cp.setDriverName(driverClass);
-                cp.setType(RollbackData.Type.DRIVER);
-                cp.setModule(AS7ModuleUtils.createDriverModule(driverClass));
-                driver.setDriverModule(AS7ModuleUtils.createDriverModule(driverClass));
+                if(driver.getDriverClass() != null){
+                    rollbackData.setDriverName(driver.getDriverClass());
+                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
+                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
+                } else {
+                    rollbackData.setName(driver.getXaDatasourceClass());
+                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
+                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
+                }
 
-                ctx.getRollbackData().add(cp);
-
-                Document doc = ctx.getDocBuilder().newDocument();
-                driverMarshaller.marshal(driver, doc);
-                nodeList.add(doc.getDocumentElement());
-            }
-
-            for (String xaDsClass : this.xaDatasourceClasses) {
-                DriverBean driver = new DriverBean();
-                driver.setXaDatasourceClass(xaDsClass);
-                driver.setDriverName(StringUtils.substringAfter(xaDsClass, "."));
-
-                RollbackData cp = new RollbackData();
-                cp.setDriverName(xaDsClass);
-                cp.setType(RollbackData.Type.DRIVER);
-                cp.setModule(AS7ModuleUtils.createDriverModule(xaDsClass));
-                driver.setDriverModule(AS7ModuleUtils.createDriverModule(xaDsClass));
-
-                ctx.getRollbackData().add(cp);
+                ctx.getRollbackData().add(rollbackData);
 
                 Document doc = ctx.getDocBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
                 nodeList.add(doc.getDocumentElement());
             }
+
+
 
             return nodeList;
         } catch (JAXBException e) {
@@ -270,7 +259,22 @@ public class DatasourceMigrator extends AbstractMigrator {
     public DatasourceAS7Bean noTxDatasourceMigration(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
-        this.drivers.add(noTxDatasourceAS5.getDriverClass());
+        // Setting name for driver
+        DriverBean driver = new DriverBean();
+        driver.setDriverClass(noTxDatasourceAS5.getDriverClass());
+        if(this.drivers.add(driver)){
+            datasourceAS7.setDriver("createdDriver" + ++this.it);
+            driver.setDriverName("createdDriver" + this.it);
+        } else{
+            for (DriverBean temp : this.drivers) {
+                if (temp.equals(driver)) {
+                    datasourceAS7.setDriver(temp.getDriverName());
+                    break;
+                }
+            }
+        }
+
+        //this.drivers.add(noTxDatasourceAS5.getDriverClass());
 
         // Standalone elements in AS7
         datasourceAS7.setJta("false");
@@ -287,8 +291,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
 
         datasourceAS7.setNewConnectionSql(noTxDatasourceAS5.getNewConnectionSql());
-
-        datasourceAS7.setDriver(StringUtils.substringAfter(noTxDatasourceAS5.getDriverClass(), "."));
 
         // Elements in element <security> in AS7
         datasourceAS7.setUserName(noTxDatasourceAS5.getUserName());
@@ -344,7 +346,19 @@ public class DatasourceMigrator extends AbstractMigrator {
     public DatasourceAS7Bean datasourceMigration(DatasourceAS5Bean datasourceAS5) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
-        this.drivers.add(datasourceAS5.getDriverClass());
+        DriverBean driver = new DriverBean();
+        driver.setDriverClass(datasourceAS5.getDriverClass());
+        if(this.drivers.add(driver)){
+            datasourceAS7.setDriver("createdDriver" + ++this.it);
+            driver.setDriverName("createdDriver" + this.it);
+        } else{
+            for (DriverBean temp : this.drivers) {
+                if (temp.equals(driver)) {
+                    datasourceAS7.setDriver(temp.getDriverName());
+                    break;
+                }
+            }
+        }
 
         // Standalone elements in AS7
         datasourceAS7.setJndiName("java:jboss/datasources/" + datasourceAS5.getJndiName());
@@ -361,8 +375,6 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         datasourceAS7.setTransIsolation(datasourceAS5.getTransIsolation());
         datasourceAS7.setNewConnectionSql(datasourceAS5.getNewConnectionSql());
-
-        datasourceAS7.setDriver(StringUtils.substringAfter(datasourceAS5.getDriverClass(), "."));
 
         // Elements in element <security> in AS7
         datasourceAS7.setUserName(datasourceAS5.getUserName());
@@ -423,12 +435,19 @@ public class DatasourceMigrator extends AbstractMigrator {
         xaDataAS7.setUseJavaContext(xaDataAS5.getUseJavaContext());
         xaDataAS7.setEnabled("true");
 
-        // xa-datasource-class should be declared in drivers no in datasource.
-        // xa-datasource then reference xa-datasource-class with element name
-        //xaDatasourceAS7.setXaDatasourceClass(xaDatasourceAS5.getXaDatasourceClass());
-        this.xaDatasourceClasses.add(xaDataAS5.getXaDatasourceClass());
-
-        xaDataAS7.setDriver(StringUtils.substringAfter(xaDataAS5.getXaDatasourceClass(), "."));
+        DriverBean driver = new DriverBean();
+        driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
+        if(this.drivers.add(driver)){
+            xaDataAS7.setDriver("createdDriver" + ++this.it);
+            driver.setDriverName("createdDriver" + this.it);
+        } else{
+            for (DriverBean temp : this.drivers) {
+                if (temp.equals(driver)) {
+                    xaDataAS7.setDriver(temp.getDriverName());
+                    break;
+                }
+            }
+        }
 
         xaDataAS7.setXaDatasourceProps(xaDataAS5.getXaDatasourceProps());
         xaDataAS7.setUrlDelimeter(xaDataAS5.getUrlDelimeter());
@@ -634,7 +653,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         StringBuilder resultScript = new StringBuilder("/subsystem=datasources/jdbc-driver=");
 
         resultScript.append(driver.getDriverName()).append(":add(");
-        resultScript.append("driver-module-name=").append(driver.getDriverModule());
+        resultScript.append("driver-module-name=").append(driver.getDriverModule() + ", ");
 
         builder.addProperty("driver-class-name", driver.getDriverClass());
         builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());

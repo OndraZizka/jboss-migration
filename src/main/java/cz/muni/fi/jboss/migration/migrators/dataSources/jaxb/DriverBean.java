@@ -81,4 +81,25 @@ public class DriverBean {
     public void setXaDatasourceClass(String xaDatasourceClass) {
         this.xaDatasourceClass = xaDatasourceClass;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DriverBean)) return false;
+
+        DriverBean that = (DriverBean) o;
+
+        if (driverClass != null ? !driverClass.equals(that.driverClass) : that.driverClass != null) return false;
+        if (xaDatasourceClass != null ? !xaDatasourceClass.equals(that.xaDatasourceClass) : that.xaDatasourceClass != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = driverClass != null ? driverClass.hashCode() : 0;
+        result = 31 * result + (xaDatasourceClass != null ? xaDatasourceClass.hashCode() : 0);
+        return result;
+    }
 }
