@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    All referenced rar files must be deployed in AS5 if not the migration will be unsuccessful(application tries to
+    find them and copy to AS7.
+
+    All three types of connection factories!(local transaction, xa-transaction, no transaction support)
+ -->
+
+<connection-factories>
+    <no-tx-connection-factory>
+        <jndi-name>eis/XUConnectionFactory</jndi-name>
+        <application-managed-security/>
+        <rar-name>jms-ra.rar</rar-name>
+        <connection-definition>javax.resource.cci.ConnectionFactory</connection-definition>
+        <config-property name="ConcurrentOpenClose" type="java.lang.Boolean">true</config-property>
+        <adapter-display-name>XU</adapter-display-name>
+        <min-pool-size>0</min-pool-size>
+        <max-pool-size>50</max-pool-size>
+        <blocking-timeout-millis>50000</blocking-timeout-millis>
+        <idle-timeout-minutes>15</idle-timeout-minutes>
+    </no-tx-connection-factory>
+    <tx-connection-factory>
+        <jndi-name>JBossTestCF</jndi-name>
+        <no-tx-separate-pools>test</no-tx-separate-pools>
+        <prefill>true</prefill>
+        <local-transaction/>
+        <rar-name>jbosstestadapter.rar</rar-name>
+        <connection-definition>javax.resource.cci.ConnectionFactory</connection-definition>
+        <config-property name="IntegerProperty" type="java.lang.Integer">2</config-property>
+        <config-property name="BooleanProperty" type="java.lang.Boolean">false</config-property>
+        <config-property name="DoubleProperty" type="java.lang.Double">5.5</config-property>
+        <config-property name="UrlProperty" type="java.net.URL">http://www.jboss.org</config-property>
+        <config-property name="sleepInStart" type="long">200</config-property>
+        <config-property name="sleepInStop" type="long">200</config-property>
+        <security-domain/>
+        <min-pool-size>20</min-pool-size>
+        <max-pool-size>50</max-pool-size>
+        <background-validation>true</background-validation>
+        <background-validation-millis>5000</background-validation-millis>
+        <blocking-timeout-millis>4000</blocking-timeout-millis>
+        <idle-timeout-minutes>1</idle-timeout-minutes>
+        <allocation-retry>2</allocation-retry>
+        <allocation-retry-wait-millis>6000</allocation-retry-wait-millis>
+        <use-fast-fail>true</use-fast-fail>
+    </tx-connection-factory>
+    <tx-connection-factory>
+        <jndi-name>JBossTestCF2</jndi-name>
+        <xa-transaction/>
+        <rar-name>jbosstestadapter.rar</rar-name>
+        <connection-definition>javax.resource.cci.ConnectionFactory</connection-definition>
+        <config-property name="IntegerProperty" type="java.lang.Integer">2</config-property>
+        <config-property name="BooleanProperty" type="java.lang.Boolean">false</config-property>
+        <config-property name="DoubleProperty" type="java.lang.Double">5.5</config-property>
+        <config-property name="UrlProperty" type="java.net.URL">http://www.jboss.org</config-property>
+        <config-property name="sleepInStart" type="long">200</config-property>
+        <config-property name="sleepInStop" type="long">200</config-property>
+    </tx-connection-factory>
+</connection-factories>

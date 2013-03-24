@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+ <!-- Default jboss-login.xml from AS5 -->
+
+<policy>
+    <application-policy name="client-login">
+        <authentication>
+            <login-module code="org.jboss.security.ClientLoginModule"
+                          flag="required">
+                <!-- Any existing security context will be restored on logout -->
+                <module-option name="restore-login-identity">true</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="HsqlDbRealm">
+        <authentication>
+            <login-module code="org.jboss.resource.security.ConfiguredIdentityLoginModule"
+                          flag="required">
+                <module-option name="principal">sa</module-option>
+                <module-option name="userName">sa</module-option>
+                <module-option name="password">sa</module-option>
+                <module-option name="managedConnectionFactoryName">jboss.jca:service=LocalTxCM,name=DefaultDS</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="JmsXARealm">
+        <authentication>
+            <login-module code="org.jboss.resource.security.ConfiguredIdentityLoginModule"
+                          flag="required">
+                <module-option name="principal">guest</module-option>
+                <module-option name="userName">guest</module-option>
+                <module-option name="password">guest</module-option>
+                <module-option name="managedConnectionFactoryName">jboss.jca:service=TxCM,name=JmsXA</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="jmx-console">
+        <authentication>
+            <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule"
+                          flag="required">
+                <module-option name="usersProperties">props/jmx-console-users.properties</module-option>
+                <module-option name="rolesProperties">props/jmx-console-roles.properties</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="web-console">
+        <authentication>
+            <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule"
+                          flag="required">
+                <module-option name="usersProperties">web-console-users.properties</module-option>
+                <module-option name="rolesProperties">web-console-roles.properties</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="JBossWS">
+        <authentication>
+            <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule"
+                          flag="required">
+                <module-option name="usersProperties">props/jbossws-users.properties</module-option>
+                <module-option name="rolesProperties">props/jbossws-roles.properties</module-option>
+                <module-option name="unauthenticatedIdentity">anonymous</module-option>
+            </login-module>
+        </authentication>
+    </application-policy>
+
+    <application-policy name="other">
+        <authentication>
+            <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule"
+                          flag="required"/>
+        </authentication>
+    </application-policy>
+
+</policy>

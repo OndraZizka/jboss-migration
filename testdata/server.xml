@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Modified configuration of server with https connectors and more Hosts with Aliases
+-->
+
+<Server>
+
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+    <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
+    <Listener className="org.apache.catalina.core.JasperListener" />
+
+    <Service name="jboss.web">
+        <!-- A HTTP/1.1 ConnectorAS5 on port 8080 -->
+        <Connector protocol="HTTP/1.1" port="8080" address="${jboss.bind.address}"
+                   connectionTimeout="20000" redirectPort="8443" />
+
+        <Connector protocol="AJP/1.3" port="8009" address="${jboss.bind.address}"
+                   redirectPort="8443" />
+        <!-- SSL/TLS ConnectorAS5 configuration using the admin devl guide keystore     -->
+        <Connector protocol="HTTP/1.1" SSLEnabled="true"
+             port="8449" address="${jboss.bind.address}"
+             scheme="https" secure="true" clientAuth="false"
+             keystoreFile="${jboss.server.home.dir}/conf/chap8.keystore"
+             keystorePass="rmi+ssl" sslProtocol = "TLS" />
+        <Connector protocol="HTTP/1.1" SSLEnabled="true"
+                   port="8446" address="${jboss.bind.address}"
+                   scheme="https" secure="true" clientAuth="false"
+                   keystoreFile="${jboss.server.home.dir}/conf/chap8.keystore"
+                   keystorePass="rmi+ssl" sslProtocol = "SSL" />
+        <Engine name="jboss.web" defaultHost="localhost">
+            <Realm className="org.jboss.web.tomcat.security.JBossWebRealm"
+                   certificatePrincipal="org.jboss.security.auth.certs.SubjectDNMapping"
+                   allRolesMode="authOnly"/>
+            <Host name="localhost">
+                <Alias name="company.com"/>
+                <Valve className="org.jboss.web.tomcat.service.jca.CachedConnectionValve"
+                       cachedConnectionManagerObjectName="jboss.jca:service=CachedConnectionManager"
+                       transactionManagerObjectName="jboss:service=TransactionManager" />
+            </Host>
+            <Host name="example.com">
+                <Alias name="example.org"/>
+            </Host>
+        </Engine>
+    </Service>
+    <Service name="secondServiceTest">
+        <Connector protocol="HTTP/1.1" port="8770" address="${jboss.bind.address}"
+                   connectionTimeout="50000" redirectPort="8003" />
+        <Engine name="secondService" defaultHost="hostTest.com">
+
+            <Realm className="org.jboss.web.tomcat.security.JBossWebRealm"
+                   certificatePrincipal="org.jboss.security.auth.certs.SubjectDNMapping"
+                   allRolesMode="authOnly"
+                    />
+            <Host name="hostTes.comt">
+                <Alias name="hostTest.org"/>
+                <Valve className="org.jboss.web.tomcat.service.jca.CachedConnectionValve"
+                       cachedConnectionManagerObjectName="jboss.jca:service=CachedConnectionManager"
+                       transactionManagerObjectName="jboss:service=TransactionManager" />
+            </Host>
+            <Host name="example2.com">
+                <Alias name="example2.org"/>
+            </Host>
+        </Engine>
+    </Service>
+
+</Server>

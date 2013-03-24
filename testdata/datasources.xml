@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Random attributes in all three possible types of datasources -->
+
+<datasources>
+    <no-tx-datasource>
+        <jndi-name>MediaWikiDBImporterRoleDS</jndi-name>
+        <connection-url>jdbc:mysql://localhost:3306/MediaWikiDB</connection-url>
+        <driver-class>org.hsqldb.jdbcDriver</driver-class>
+        <user-name>username</user-name>
+        <password>password</password>
+    </no-tx-datasource>
+    <local-tx-datasource>
+        <connection-property name="char.encoding">UTF-8</connection-property>
+        <connection-property name="test">testing</connection-property>
+        <jndi-name>DefaultDS5</jndi-name>
+        <connection-url>jdbc:hsqldb:${jboss.server.data.dir}${/}hypersonic${/}localDB</connection-url>
+        <driver-class>org.hsqldb.jdbcDriver</driver-class>
+        <user-name>sa</user-name>
+        <min-pool-size>5</min-pool-size>
+        <max-pool-size>20</max-pool-size>
+        <idle-timeout-minutes>1</idle-timeout-minutes>
+        <security-domain>HsqlDbRealm</security-domain>
+        <prepared-statement-cache-size>32</prepared-statement-cache-size>
+        <metadata>
+            <type-mapping>Hypersonic SQL</type-mapping>
+        </metadata>
+        <depends>jboss:service=Hypersonic,database=localDB</depends>
+    </local-tx-datasource>
+    <xa-datasource>
+        <jndi-name>GenericXADS</jndi-name>
+        <use-java-context>true</use-java-context>
+        <track-connection-by-tx/>
+        <xa-datasource-class>[fully qualified name of class implementing javax.sql.XADataSource goes here]</xa-datasource-class>
+        <xa-datasource-property name="SomeProperty">SomePropertyValue</xa-datasource-property>
+        <xa-datasource-property name="SomeOtherProperty">SomeOtherValue</xa-datasource-property>
+        <url-selector-strategy-class-name>org.test.Selector</url-selector-strategy-class-name>
+        <isSameRM-override-value>false</isSameRM-override-value>
+        <user-name>x</user-name>
+        <password>y</password>
+        <transaction-isolation>TRANSACTION_SERIALIZABLE</transaction-isolation>
+        <min-pool-size>5</min-pool-size>
+        <max-pool-size>100</max-pool-size>
+        <blocking-timeout-millis>5000</blocking-timeout-millis>
+        <idle-timeout-minutes>15</idle-timeout-minutes>
+        <new-connection-sql>some arbitrary sql</new-connection-sql>
+        <check-valid-connection-sql>some arbitrary sql</check-valid-connection-sql>
+        <security-domain>Domain</security-domain>
+    </xa-datasource>
+</datasources>

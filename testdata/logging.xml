@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+ <!--
+      Few special cases of appenders with logging class created by user and deployed into AS5 in jar. The application
+      will try to find this jar containing referenced class and copy it into AS7 (if not deployed then migration will be
+      unsuccessful).
+  -->
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+    <appender name="FILE" class="org.jboss.logging.appender.DailyRollingFileAppender">
+        <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+        <param name="File" value="${jboss.server.log.dir}/server.log"/>
+        <param name="Append" value="true"/>
+
+        <param name="DatePattern" value="'.'yyyy-MM-dd"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p [%c] (%t) %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+        <param name="Target" value="System.out"/>
+        <param name="Threshold" value="INFO"/>
+
+        <layout class="org.apache.log4j.PatternLayout">
+            <!-- The default pattern: Date Priority [Category] Message\n -->
+            <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="ASYNC" class="org.apache.log4j.AsyncAppender">
+      <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="SMTP"/>
+    </appender>
+
+
+
+    <appender name="SMTP" class="org.apache.log4j.net.SMTPAppender">
+      <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+      <param name="Threshold" value="ERROR"/>
+      <param name="To" value="admin@myhost.domain.com"/>
+      <param name="From" value="nobody@myhost.domain.com"/>
+      <param name="Subject" value="JBoss Sever Errors"/>
+      <param name="SMTPHost" value="localhost"/>
+      <param name="BufferSize" value="10"/>
+      <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="[%d{ABSOLUTE},%c{1}] %m%n"/>
+      </layout>
+    </appender>
+
+
+    <!-- Class referenced in this appender must be deployed in jar in AS5 because application will look for it -->
+    <appender name="SYSLOG" class="org.user.created.logging.class.Test">
+      <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+      <param name="Facility" value="LOCAL7"/>
+      <param name="FacilityPrinting" value="true"/>
+      <param name="SyslogHost" value="localhost"/>
+      <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="[%d{ABSOLUTE},%c{1}] %m%n"/>
+      </layout>
+    </appender>
+
+
+    <category name="org.apache">
+        <priority value="INFO"/>
+    </category>
+
+    <!-- Limit the jacorb category to WARN as its INFO is verbose -->
+    <category name="jacorb">
+        <priority value="WARN"/>
+    </category>
+
+    <category name="org.quartz">
+        <priority value="INFO"/>
+        <priority appender-ref="FILE"/>
+        <priority appender-ref="Console"/>
+    </category>
+    <root>
+        <priority value="${jboss.server.log.threshold}"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</log4j:configuration>
