@@ -145,7 +145,7 @@ public class MigratorApp {
             Utils.writeHelp();
             continue;
         }
-        globalConfig.setStandalonePath();
+        //globalConfig.setStandaloneFilePath();
 
         Configuration configuration = new Configuration();
         configuration.setModuleConfigs(moduleConfigs);

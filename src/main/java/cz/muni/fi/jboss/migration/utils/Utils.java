@@ -34,6 +34,8 @@ import java.util.jar.JarFile;
  *         Time: 1:05 PM
  */
 public class Utils {
+
+    
     /**
      * Method for testing if given string is null or empty and if it is then CliScriptException is thrown with given message
      *
@@ -48,6 +50,7 @@ public class Utils {
         }
     }
 
+    
     /**
      * Helping method for copying files from AS5 to AS7. It checks if list is empty and if not then set HomePath and
      * targetPath of object of RollbackData. Plus for driver it creates special path from module of the driver.
@@ -61,13 +64,13 @@ public class Utils {
      */
     public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath)
             throws CopyException {
-        if( (list.isEmpty()) ) {
+        if( list.isEmpty() ) {
             throw new CopyException("Cannot locate file: " + rollData.getName());
         } 
         
         rollData.setHomePath(list.get(0).getAbsolutePath());
 
-        switch (rollData.getType()){
+        switch( rollData.getType() ){
             case LOG: rollData.setTargetPath(targetPath + File.separator + "standalone" +
                     File.separator + "log");
                 break;
@@ -94,11 +97,11 @@ public class Utils {
                         module + "main");
             } break;
 
-        }
-
+        }// switch( rollData.type )
 
     }// setRollbackData()
 
+    
     /**
      * Helping method for writing help.
      */
@@ -208,6 +211,7 @@ public class Utils {
         throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
     }
 
+    
     /**
      * Searching for file, which is represented as RollbackData in the application, in given directory
      *
@@ -259,4 +263,5 @@ public class Utils {
 
         return list;
     }
-}
+    
+}// class
