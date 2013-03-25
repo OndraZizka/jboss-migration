@@ -20,6 +20,8 @@ public class GlobalConfiguration {
     private String confPathAS7 = "standalone/configuration/standalone.xml";
 
     private String standaloneFilePath;
+    
+    private String appPath;
 
     private boolean skipValidation;
 
@@ -37,6 +39,10 @@ public class GlobalConfiguration {
     public void setDirAS5(String dirAS5) { this.dirAS5 = dirAS5; }
     public String getStandaloneFilePath() { return standaloneFilePath; }
     public void setStandalonePath() { standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7(); }
+
+    public String getAppPath() { return appPath; }
+    public void setAppPath(String appPath) { this.appPath = appPath; }
+    
     public boolean isSkipValidation() { return skipValidation; }
     public void setSkipValidation(boolean skipValidation) { this.skipValidation = skipValidation; }
     //</editor-fold>

@@ -103,6 +103,11 @@ public class MigratorApp {
                 continue;
             }
 
+            if( arg.startsWith("--app.path=") ) {
+                globalConfig.setAppPath(StringUtils.substringAfter(arg, "="));
+                continue;
+            }
+
             if( arg.startsWith("--valid.skip") ) {
                 globalConfig.setSkipValidation(true);
                 continue;
