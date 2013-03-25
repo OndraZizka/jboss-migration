@@ -41,12 +41,12 @@ public class MigratorApp {
         applyDefaults( configuration );
         
         // Validate config.
-        //List<String> problems = validateConfiguration( configuration );
-//        if( !problems.isEmpty() ){
-//            for( String problem : problems )
-//                log.error(problem);
-//            System.exit(1);
-//        }
+        List<String> problems = validateConfiguration( configuration );
+        if( !problems.isEmpty() ){
+            for( String problem : problems )
+                log.error(problem);
+            System.exit(1);
+        }
         
         // Migrate.
         try {
@@ -100,6 +100,11 @@ public class MigratorApp {
 
             if( arg.startsWith("--as7.confPath=") ) {
                 globalConfig.setConfPathAS7(StringUtils.substringAfter(arg, "="));
+                continue;
+            }
+
+            if( arg.startsWith("--valid.skip") ) {
+                globalConfig.setSkipValidation(true);
                 continue;
             }
 
