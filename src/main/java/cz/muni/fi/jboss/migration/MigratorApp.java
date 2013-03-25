@@ -174,6 +174,7 @@ public class MigratorApp {
     private static List<String> validateConfiguration(Configuration config) {
         LinkedList<String> problems = new LinkedList<>();
         
+        // AS 5
         String path = config.getGlobal().getDirAS5();
         if( null == path )
             problems.add("as5.dir was not set.");
@@ -187,6 +188,7 @@ public class MigratorApp {
                 problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
         }
         
+        // AS 7
         path = config.getGlobal().getDirAS7();
         if( null == path )
             problems.add("as7.dir was not set.");
@@ -199,6 +201,11 @@ public class MigratorApp {
             else if( ! new File(path, configPath).exists() )
                 problems.add("as7.confPath is not a subpath under AS 5 dir: " + path);
         }
+        
+        // App (deployment)
+        path = config.getGlobal().getAppPath();
+        if( null != path && ! new File(path).exists())
+            problems.add("App path was set but does not exist: " + path);
         
         return problems;
     }
