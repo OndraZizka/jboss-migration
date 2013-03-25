@@ -73,6 +73,7 @@ public interface IMigrator {
      *  Examines a configuration property, typically acquired as console app params.
      * 
      *  @param moduleOption  It's value May be null, e.g. if the property didn't have '=value' part.
+     *  @returns  0 if the property wasn't recognized, non-zero otherwise.
      */
     public int examineConfigProperty(Configuration.ModuleSpecificProperty moduleOption);
     
