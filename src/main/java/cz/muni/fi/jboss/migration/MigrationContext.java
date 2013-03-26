@@ -23,19 +23,26 @@ public class MigrationContext {
 
     private Set<RollbackData> rollbackDatas = new HashSet();
 
-    private Document as7XmlDoc;
-
+    private Document as7ConfigXmlDoc;
+    private Document as7ConfigXmlDocOriginal;
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public void setMigrators(Map<Class<? extends IMigrator>, IMigrator> migrators) { this.migrators = migrators; }
+    
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) { this.migrationData = migrationData; }
+    
     public Set<RollbackData> getRollbackData() { return rollbackDatas; }
     public void setRollbackDatas(Set<RollbackData> rollbackDatas) { this.rollbackDatas = rollbackDatas; }
-    public Document getAS7ConfigXmlDoc() { return as7XmlDoc; }
-    public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7XmlDoc = standaloneDoc; }
+    
+    public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
+    public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7ConfigXmlDoc = standaloneDoc; }
+    
+    public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
+    public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
     //</editor-fold>
+
     
 }// class

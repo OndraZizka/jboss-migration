@@ -228,7 +228,6 @@ public class MigratorApp {
     private static void migrate( Configuration conf ) throws MigrationException {
         
         MigrationContext ctx = new MigrationContext();
-        Document backupAS7ConfigXmlDoc;
 
         log.info("Commencing migration.");
         
@@ -237,8 +236,10 @@ public class MigratorApp {
         try {
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
             Document doc = db.parse(as7configFile);
-            backupAS7ConfigXmlDoc = db.parse(as7configFile); // TODO: Do backup at file level, instead of parsing and writing back.
             ctx.setAS7ConfigXmlDoc(doc);
+            // TODO: Do backup at file level, instead of parsing and writing back.
+            doc = db.parse(as7configFile);
+            ctx.setAs7ConfigXmlDocOriginal(doc);
         } 
         catch ( SAXException | IOException ex ) {
             throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
@@ -287,10 +288,11 @@ public class MigratorApp {
             migrator.apply();
             log.info("");
             log.info("Migration was successful.");
-        } catch (ApplyMigrationException ex) {
+        }
+        catch (ApplyMigrationException ex) {
             // TODO: Rollback handling needs to be wrapped behind an abstract API.
             //       Calls such like this have to be encapsulated in some RollbackManager.
-            Utils.cleanStandalone(backupAS7ConfigXmlDoc, conf);
+            Utils.cleanStandalone(ctx.getAs7ConfigXmlDocOriginal(), conf);
             Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
             throw ex;
