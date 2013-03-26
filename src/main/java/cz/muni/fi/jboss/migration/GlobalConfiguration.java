@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.utils.Utils;
 import java.io.File;
 
 /**
@@ -23,6 +24,10 @@ public class GlobalConfiguration {
 
     public File getProfileDir(){
         return new File( as5dir, GlobalConfiguration.AS5_PROFILES_DIR + as5profileName );
+    }
+    
+    public File getAS5DeployDir() {
+        return Utils.createPath( getAS5Dir(), "server", getAS5ProfileName(), "deploy" );
     }
 
     // Non-server stuff
@@ -53,5 +58,6 @@ public class GlobalConfiguration {
     public boolean isSkipValidation() { return skipValidation; }
     public void setSkipValidation(boolean skipValidation) { this.skipValidation = skipValidation; }
     //</editor-fold>
+
     
 }// class

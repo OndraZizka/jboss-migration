@@ -59,9 +59,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
             // Deployments AS 5 dir.
-            File dsFiles = Utils.createPath(
-                    super.getGlobalConfig().getAS5Dir(), "server",
-                    super.getGlobalConfig().getAS5ProfileName(), "deploy");
+            File dsFiles = getGlobalConfig().getAS5DeployDir();
 
             if( ! dsFiles.canRead() ) {
                 throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
@@ -115,7 +113,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
+                if( ! (subsystems.item(i) instanceof Element)) {
                     continue;
                 }
                 if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")) {

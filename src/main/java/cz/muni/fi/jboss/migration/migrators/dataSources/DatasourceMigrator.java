@@ -64,8 +64,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             List<DatasourcesBean> dsColl = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
-                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy");
+            File dsFiles = getGlobalConfig().getAS5DeployDir();
 
             if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
