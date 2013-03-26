@@ -192,7 +192,8 @@ public class DatasourceMigrator extends AbstractMigrator {
                 rollbackData.setType(RollbackData.Type.DRIVER);
 
                 if(driver.getDriverClass() != null){
-                    rollbackData.deriveDriverName(driver.getDriverClass());
+                    //rollbackData.deriveDriverName(driver.getDriverClass());
+                    Util.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
                     rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
                     driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
                 } else {

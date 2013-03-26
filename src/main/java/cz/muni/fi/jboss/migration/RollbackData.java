@@ -1,10 +1,8 @@
 package cz.muni.fi.jboss.migration;
 
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Helper class to store files which will be copied from AS5 to AS7 so they can be deleted if app fails.
- * Also helps to create modules for drivers.
  *
  * @author Roman Jakubco
  */
@@ -24,6 +22,7 @@ public class RollbackData {
     // Only if it is driver
     private String module;
 
+    // TODO: Too specific fod DS module. Generalize.
     // Different name for jdbc driver. For Sybase and Mssql
     private String altName;
 
@@ -38,47 +37,11 @@ public class RollbackData {
     public void setModule(String module) { this.module = module; }
     public String getHomePath() { return homePath; }
     public void setHomePath(String homePath) { this.homePath = homePath; }
+
+    public void setAltName(String altName) { this.altName = altName; }
     public String getAltName() { return altName; }
     //</editor-fold>
     
-    
-    /**
-     * Setting name of the Copy Memory for drivers. In special cases altName is set for alternative JDBC driver (JTDS)
-     *
-     * @param className  Driver class from -ds.xml file from AS5 config.
-     */
-    public void deriveDriverName(String className) {
-        this.name = this.altName = null;
-        
-        if (className.contains("postgres")) {
-            this.name = "postgresql";
-        }
-        else if (className.contains("microsoft")) {
-            this.name = "sqljdbc";
-            this.altName = "jtds";
-        }
-        else if (className.contains("db2")) {
-            this.name = "db2";
-        }
-        else if (className.contains("sybase")) {
-            this.name = "sybase";
-            this.altName = "jtds";
-        }
-        else if (className.contains("mysql")) {
-            this.name = "sqljdbc";
-        }
-        else if (className.contains("oracle")) {
-            this.name = "ojdbc";
-        }
-        else if (className.contains("hsqldb")) {
-            this.name = "hsqldb";
-        }
-        else {
-            // Guesstimate the value from the classname: org.foo.Bar -> "foo".
-            String temp = StringUtils.substringAfter(className, ".");
-            this.name = StringUtils.substringBefore(temp, ".");
-        }
-    }
 
     
     // TBC: Do we need this?
@@ -119,4 +82,5 @@ public class RollbackData {
         return result;
     }
     //</editor-fold>
-}
+    
+}// class
