@@ -227,33 +227,36 @@ public class MigratorApp {
      */
     private static void migrate( Configuration conf ) throws MigrationException {
         
-        Migrator migrator;
         MigrationContext ctx = new MigrationContext();
-        Document nonAlteredStandalone;
+        Document backupAS7ConfigXmlDoc;
 
         log.info("Commencing migration.");
         
         File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
+        // Parse AS 7 config.
         try {
-            // Parse AS 7 config.
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
             Document doc = db.parse(as7configFile);
-            nonAlteredStandalone = db.parse(as7configFile); // TODO: Do backup at file level, instead of parsing and writing back.
+            backupAS7ConfigXmlDoc = db.parse(as7configFile); // TODO: Do backup at file level, instead of parsing and writing back.
             ctx.setAS7ConfigXmlDoc(doc);
-
-            // Create Migrator
-            migrator = new Migrator(conf, ctx);
-
+        } 
+        catch ( SAXException | IOException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
+        }
+        // Create Migrator & load AS 5 data.
+        Migrator migrator = new Migrator(conf, ctx);
+        try {
             migrator.loadAS5Data();
         } 
-        catch ( LoadMigrationException | SAXException | IOException e) {
-            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, e);
+        catch ( LoadMigrationException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
         }
 
+        
         try {
             migrator.getDOMElements();
         }
-        catch (MigrationException e) {
+        catch( MigrationException e ) {
             throw new MigrationException(e);
         }
 
@@ -264,7 +267,7 @@ public class MigratorApp {
             }
             log.info( sb.toString() );
         } 
-        catch (CliScriptException ex) {
+        catch( CliScriptException ex ) {
             throw ex;
         }
 
@@ -287,7 +290,7 @@ public class MigratorApp {
         } catch (ApplyMigrationException ex) {
             // TODO: Rollback handling needs to be wrapped behind an abstract API.
             //       Calls such like this have to be encapsulated in some RollbackManager.
-            Utils.cleanStandalone(nonAlteredStandalone, conf);
+            Utils.cleanStandalone(backupAS7ConfigXmlDoc, conf);
             Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
             throw ex;
