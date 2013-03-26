@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import org.w3c.dom.Document;
 
 /**
  * Migrator is class, which represents all functions of the application.
@@ -163,7 +164,7 @@ public class Migrator {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(this.config.getGlobal().getStandaloneFilePath()));
+            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAs7ConfigFilePath()));
             DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {
@@ -209,23 +210,24 @@ public class Migrator {
      * @throws CopyException if copying of files fails.
      */
     public void copyItems() throws CopyException {
-        String targetPath = this.config.getGlobal().getDirAS7();
-        File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + "server" + File.separator
-                + this.config.getGlobal().getProfileAS5());
-        File altDir = new File(this.config.getGlobal().getDirAS5() + File.separator + "common" + File.separator + "lib");
+        
+        String targetPath = this.config.getGlobal().getAS7Dir();
+        File as5ProfileDir = this.config.getGlobal().getAS5ProfileDir();
+        File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Dir(), "common", "lib");
 
         for (RollbackData rollData : this.ctx.getRollbackData()) {
+            
             if (rollData.getName() == null || rollData.getName().isEmpty()) {
-                throw new NullPointerException();
+                throw new IllegalStateException("Rollback data name is not set.");
             }
 
-            List<File> list = Utils.searchForFile(rollData, dir);
+            List<File> list = Utils.searchForFile(rollData, as5ProfileDir);
 
             switch (rollData.getType()) {
                 case DRIVER: case LOGMODULE:{
                     // For now only expecting one jar for driver. Pick the first one.
                     if (list.isEmpty()) {
-                        List<File> altList = Utils.searchForFile(rollData, altDir);
+                        List<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
                         Utils.setRollbackData(rollData, altList, targetPath);
                     } else {
                         Utils.setRollbackData(rollData, list, targetPath);
@@ -252,25 +254,22 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for (RollbackData cp : this.ctx.getRollbackData()) {
+            for( RollbackData cp : this.ctx.getRollbackData() ) {
+                
                 RollbackData.Type type = cp.getType();
-                if ((type.equals(RollbackData.Type.DRIVER)) || (type.equals(RollbackData.Type.LOGMODULE))) {
-                    File directories = new File(cp.getTargetPath() + File.separator);
+                if( type.equals(RollbackData.Type.DRIVER) || type.equals(RollbackData.Type.LOGMODULE) ) {
+                    File directories = new File(cp.getTargetPath());
                     FileUtils.forceMkdir(directories);
-                    File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
+                    File moduleXml = new File(directories.getAbsolutePath(), "module.xml");
 
-                    if (module.createNewFile()) {
-                        if(type.equals(RollbackData.Type.DRIVER)){
-                            transformer.transform(new DOMSource(AS7ModuleUtils.createDriverModuleXML(cp)),
-                                    new StreamResult(module));
-                        } else {
-                            transformer.transform(new DOMSource(AS7ModuleUtils.createLogModuleXML(cp)),
-                                    new StreamResult(module));
-                        }
-
-                    } else {
-                        throw new CopyException("File \"module.xml\" already exists!");
-                    }
+                    if( ! moduleXml.createNewFile() )
+                        throw new CopyException("File already exists: " + moduleXml.getPath());
+                    
+                    Document doc = RollbackData.Type.DRIVER.equals(type)
+                            ? AS7ModuleUtils.createDriverModuleXML(cp)
+                            : AS7ModuleUtils.createLogModuleXML(cp);
+                    
+                    transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));

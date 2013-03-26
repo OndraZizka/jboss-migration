@@ -15,27 +15,21 @@ public class Configuration {
 
     private List<ModuleSpecificProperty> moduleConfigs;
 
-    
-    public GlobalConfiguration getGlobal() {
-        return globalConfig;
-    }
 
-    public void setGlobalConfig(GlobalConfiguration options) {
-        this.globalConfig = options;
-    }
-
-    public List<ModuleSpecificProperty> getModuleConfigs() {
-        return moduleConfigs;
-    }
-
-    public void setModuleConfigs(List<ModuleSpecificProperty> moduleConfigs) {
-        this.moduleConfigs = moduleConfigs;
-    }
-
-
-    private MultiValueMap getForMigrator(Class<? extends IMigrator> migrator) {
-        //return moduleOtions.get(migrator);
+    /**
+     *  Returns all config migrator-specific values for the given migrator.
+     */
+    private MultiValueMap getForMigrator(Class<? extends IMigrator> migratorClass) {
+        //return moduleConfigs.get(migrator);
+        
+        MultiValueMap map = new MultiValueMap();
+        /*IMigrator mig = ...  // or migratorClass.getMethod("", parameterTypes);
+                
+        for( ModuleSpecificProperty prop : moduleConfigs ){
+            if( 0 != mig.examineConfigProperty(prop) )
+        }*/
         throw new UnsupportedOperationException();
+        // TODO: This method must be in a context - only the instances have the list of values they have taken.
     }
     
     
@@ -61,5 +55,13 @@ public class Configuration {
         public String getValue() { return value; }
         public void setValue(String value) { this.value = value; }        
     }
+    
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public GlobalConfiguration getGlobal() { return globalConfig; }
+    public void setGlobalConfig(GlobalConfiguration options) { this.globalConfig = options; }
+    public List<ModuleSpecificProperty> getModuleConfigs() { return moduleConfigs; }
+    public void setModuleConfigs(List<ModuleSpecificProperty> moduleConfigs) { this.moduleConfigs = moduleConfigs; }
+    //</editor-fold>    
     
 }// class

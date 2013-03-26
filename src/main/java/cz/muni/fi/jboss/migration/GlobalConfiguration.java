@@ -1,64 +1,68 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.utils.Utils;
 import java.io.File;
 
 /**
  * Class for storing global information needed for migration. Like dir of AS7, AS5, and profiles
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:48 AM
  */
 public class GlobalConfiguration {
+    
+    // TODO: With regard of possibility to migrate from other vendors' AS,
+    //       split to AS 7 config class, and then 1 class per server (AS 5, WebLogic, ...)
 
-    private String dirAS5;
+    // AS 7 stuff
+    private String as7dir;
+    private String as7configPath = "standalone/configuration/standalone.xml";
 
-    private String dirAS7;
+    // AS 5 stuff
+    private String as5dir;
+    private String as5profileName = "default";
+    public static final String AS5_PROFILES_DIR = "server"; 
+    public static final String AS5_DEPLOY_DIR = "deploy";
+    public static final String AS5_CONF_DIR = "conf";
 
-    private String profileAS5 = "default";
-
-    private String confPathAS7 = "standalone/configuration/standalone.xml";
-
-    private String standaloneFilePath;
-
-    public String getConfPathAS7() {
-        return confPathAS7;
+    public File getAS5ProfileDir(){
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName );
+    }
+    
+    public File getAS5DeployDir() {
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_DEPLOY_DIR );
     }
 
-    public void setConfPathAS7(String confPathAS7) {
-        this.confPathAS7 = confPathAS7;
+    public File getAS5ConfDir() {
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_CONF_DIR );
     }
 
-    public String getDirAS7() {
-        return dirAS7;
+    // Non-server stuff
+    private String appPath;
+
+    private boolean skipValidation;
+    
+    
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public String getAS7Dir() { return as7dir; }
+    public void setAS7Dir(String dirAS7) { this.as7dir = dirAS7; }
+    public String getAS7ConfigPath() { return as7configPath; }
+    public void setAS7ConfigPath(String confPathAS7) { this.as7configPath = confPathAS7; }
+    public String getAs7ConfigFilePath() {
+        return new File(getAS7Dir(), getAS7ConfigPath()).getPath();  // TODO: Return File and use that.
     }
 
-    public void setDirAS7(String dirAS7) {
-        this.dirAS7 = dirAS7;
-    }
+    public String getAS5Dir() { return as5dir; }
+    public void setAS5Dir(String as5dir) { this.as5dir = as5dir; }
+    public String getAS5ProfileName() { return as5profileName; }
+    public void setAS5ProfileName(String profileName) { this.as5profileName = profileName; }
 
-    public String getProfileAS5() {
-        return profileAS5;
-    }
+    public String getAppPath() { return appPath; }
+    public void setAppPath(String appPath) { this.appPath = appPath; }
+    
+    public boolean isSkipValidation() { return skipValidation; }
+    public void setSkipValidation(boolean skipValidation) { this.skipValidation = skipValidation; }
+    //</editor-fold>
 
-    public void setProfileAS5(String profileAS5) {
-        this.profileAS5 = profileAS5;
-    }
-
-    public String getDirAS5() {
-        return dirAS5;
-    }
-
-    public void setDirAS5(String dirAS5) {
-        this.dirAS5 = dirAS5;
-    }
-
-    public String getStandaloneFilePath() {
-        return standaloneFilePath;
-    }
-
-    public void setStandalonePath() {
-        standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7();
-
-    }
-}
+    
+}// class

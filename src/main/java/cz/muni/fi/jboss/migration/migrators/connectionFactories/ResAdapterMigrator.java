@@ -28,6 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,46 +59,49 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy");
+            // Deployments AS 5 dir.
+            File dsFiles = getGlobalConfig().getAS5DeployDir();
 
-            if (dsFiles.canRead()) {
-                SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-                if (list.isEmpty()) {
-                    throw new LoadMigrationException("No \"-ds.xml\" to parse!");
+            if( ! dsFiles.canRead() ) {
+                throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
+            }
+            
+            // -ds.xml files.
+            //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+            //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
+            
+            if( dsXmls.isEmpty() ) {
+                return;
+            }
+            
+            // For each -ds.xml
+            for (File dsXml : dsXmls) {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(dsXml);
+
+                Element element = doc.getDocumentElement();
+
+                if (element.getTagName().equalsIgnoreCase("connection-factories")) {
+                    ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(dsXml);
+                    connFactories.add(conn);
                 }
-
-                for (File aList : list) {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder db = dbf.newDocumentBuilder();
-                    Document doc = db.parse(aList);
-
-                    Element element = doc.getDocumentElement();
-
-                    if (element.getTagName().equalsIgnoreCase("connection-factories")) {
-                        ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(aList);
-                        connFactories.add(conn);
-                    }
-                }
-            } else {
-                throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
-                        + File.separator + "deploy\"");
             }
 
-            MigrationData mData = new MigrationData();
+            MigrationData migrData = new MigrationData();
 
             for (ConnectionFactoriesBean cf : connFactories) {
                 if(cf.getConnectionFactories() != null){
-                    mData.getConfigFragment().addAll(cf.getConnectionFactories());
+                    migrData.getConfigFragment().addAll(cf.getConnectionFactories());
                 }
                 if(cf.getNoTxConnectionFactories() != null){
-                    mData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
+                    migrData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
                 }
 
             }
 
-            ctx.getMigrationData().put(ResAdapterMigrator.class, mData);
+            ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
 
         } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
@@ -110,7 +114,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Document doc = ctx.getStandaloneDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
+                if( ! (subsystems.item(i) instanceof Element)) {
                     continue;
                 }
                 if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")) {

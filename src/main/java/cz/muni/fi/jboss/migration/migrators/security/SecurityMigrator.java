@@ -45,24 +45,18 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
-
-            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "conf" + File.separator + "login-config.xml");
-
-            if (file.canRead()) {
-                SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
-
-                MigrationData mData = new MigrationData();
-                mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
-
-                ctx.getMigrationData().put(SecurityMigrator.class, mData);
-
-            } else {
-                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
-                        FileNotFoundException());
+            File file = new File( getGlobalConfig().getAS5ConfDir(), "login-config.xml");
+            if( ! file.canRead() ) {
+                throw new LoadMigrationException("Can't read: " + file.getAbsolutePath());
             }
 
+            Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
+            SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
+
+            MigrationData mData = new MigrationData();
+            mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
+
+            ctx.getMigrationData().put(SecurityMigrator.class, mData);
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
         }

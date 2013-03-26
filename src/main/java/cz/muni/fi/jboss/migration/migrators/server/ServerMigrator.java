@@ -52,31 +52,31 @@ public class ServerMigrator extends AbstractMigrator {
 
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+        
+        // TBC: Maybe use FileUtils and list all files with that name?
+        File file = Utils.createPath(
+                super.getGlobalConfig().getAS5Dir(), "server",
+                super.getGlobalConfig().getAS5ProfileName(), "deploy",
+                "jbossweb.sar", "server.xml");
+        
+        if( ! file.canRead() )
+            throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new FileNotFoundException());
+
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5Bean.class).createUnmarshaller();
 
-            // Or maybe use FileUtils and list all files with that name?
-            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy" + File.separator +
-                    "jbossweb.sar" + File.separator + "server.xml");
+            ServerAS5Bean serverAS5 = (ServerAS5Bean) unmarshaller.unmarshal(file);
 
-            if (file.canRead()) {
-                ServerAS5Bean serverAS5 = (ServerAS5Bean) unmarshaller.unmarshal(file);
-
-                MigrationData mData = new MigrationData();
-                for (ServiceBean s : serverAS5.getServices()) {
-                    mData.getConfigFragment().add(s.getEngine());
-                    mData.getConfigFragment().addAll(s.getConnectorAS5s());
-                }
-
-                ctx.getMigrationData().put(ServerMigrator.class, mData);
-
-            } else {
-                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
-                        FileNotFoundException());
+            MigrationData mData = new MigrationData();
+            for (ServiceBean s : serverAS5.getServices()) {
+                mData.getConfigFragment().add(s.getEngine());
+                mData.getConfigFragment().addAll(s.getConnectorAS5s());
             }
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
+
+            ctx.getMigrationData().put(ServerMigrator.class, mData);
+        }
+        catch (JAXBException e) {
+            throw new LoadMigrationException("Failed parsing logging config file: " + file.getPath(), e);
         }
     }
 

@@ -29,6 +29,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,11 @@ public class DatasourceMigrator extends AbstractMigrator {
     
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
 
+    
+    private static final String ROOT_ELEMENT_NAME = "datasources";
+
     // iterating number for names of drivers
+    // TODO: Perhaps move this property to migration context.
     private int it = 0;
 
     //private Set<String> drivers = new HashSet();
@@ -64,33 +69,28 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             List<DatasourcesBean> dsColl = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy");
+            File dsFiles = getGlobalConfig().getAS5DeployDir();
+            if( ! dsFiles.canRead() )
+                throw new LoadMigrationException("Can't read: " + dsFiles);
+            
+            SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
 
-            if (dsFiles.canRead()) {
-                SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            if( dsXmls.isEmpty() ) {
+                return;
+            }
 
-                if (list.isEmpty()) {
-                    throw new LoadMigrationException("No \"-ds.xml\" to parse!");
+            for( File file : dsXmls ) {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(file);
+
+                Element element = doc.getDocumentElement();
+
+                if (element.getTagName().equals(ROOT_ELEMENT_NAME)) {
+                    DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(file);
+                    dsColl.add(dataSources);
                 }
-
-                for (File file : list) {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder db = dbf.newDocumentBuilder();
-                    Document doc = db.parse(file);
-
-                    Element element = doc.getDocumentElement();
-
-                    if (element.getTagName().equalsIgnoreCase("datasources")) {
-                        DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(file);
-                        dsColl.add(dataSources);
-                    }
-                }
-            } else {
-                throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
-                        + File.separator + "deploy\"");
-
             }
 
             MigrationData mData = new MigrationData();
@@ -143,7 +143,6 @@ public class DatasourceMigrator extends AbstractMigrator {
                     for (Node node : generateDomElements(ctx)) {
                         ((Element) node).setAttribute("xmlns", "urn:jboss:domain:datasources:1.1");
                         Node adopted = doc.adoptNode(node.cloneNode(true));
-
 
                         if (node.getNodeName().equals("driver")) {
                             lastNode.appendChild(adopted);

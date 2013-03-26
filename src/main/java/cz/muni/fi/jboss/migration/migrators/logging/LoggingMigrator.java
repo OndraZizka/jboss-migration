@@ -22,6 +22,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,19 +48,21 @@ public class LoggingMigrator extends AbstractMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
-            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
+            File log4jConfFile = Utils.createPath( 
+                    super.getGlobalConfig().getAS5Dir(),  "server",  
+                    super.getGlobalConfig().getAS5ProfileName(),
+                    "conf", "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-            XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(file));
+            XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(log4jConfFile));
 
             LoggingAS5Bean loggingAS5;
 
-            if (file.canRead()) {
+            if (log4jConfFile.canRead()) {
                 loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
             } else {
-                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath(), new
                         FileNotFoundException());
             }
 
@@ -438,18 +441,24 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
-    public CustomHandlerBean createCustomHandler(AppenderBean appender, MigrationContext ctx, Boolean custom)
-            throws NodeGenerationException{
+    public CustomHandlerBean createCustomHandler(AppenderBean appender, MigrationContext ctx, Boolean custom) throws NodeGenerationException {
+        
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
 
-        if(custom){
+        if( ! custom ){
+            // Only possibility is class in log4j=> log4j module in AS7
+            handler.setModule("org.apache.log4j");
+        }
+        else {
             // Jar file containing class from appender must be found and set to RollbackData.
             RollbackData rollbackData = new RollbackData();
             try {
-                String name = Utils.findJarFileWithClass(appender.getAppenderClass(),
-                        super.getGlobalConfig().getDirAS5(), super.getGlobalConfig().getProfileAS5());
+                String name = Utils.findJarFileWithClass(
+                        appender.getAppenderClass(),
+                        getGlobalConfig().getAS5Dir(),
+                        getGlobalConfig().getAS5ProfileName());
 
                 rollbackData.setName(name);
                 rollbackData.setType(RollbackData.Type.LOGMODULE);
@@ -460,15 +469,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 rollbackData.setModule(module);
 
                 ctx.getRollbackData().add(rollbackData);
-
-            } catch (FileNotFoundException e) {
-                throw new NodeGenerationException(e + "=> Cannot create module!" );
             }
-
-        } else{
-            // Only possibility is class in log4j=> log4j module in AS7
-            handler.setModule("org.apache.log4j");
+            catch( IOException ex ) {
+                throw new NodeGenerationException("Cannot create module ", ex);
+            }
         }
+
 
         Set<PropertyBean> properties = new HashSet();
 
@@ -491,7 +497,7 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     * Not implemented yet. Not sure if it is necesarry..
+     * Not implemented yet. Not sure if it is necessary..
      * Method for migrating File-Appender to Handler in AS7
      *
      * @param appender object representing Periodic-Rotating-File-Appender
