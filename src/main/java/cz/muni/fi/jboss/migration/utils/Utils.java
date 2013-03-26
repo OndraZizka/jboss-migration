@@ -64,6 +64,9 @@ public class Utils {
      */
     public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath)
             throws CopyException {
+        // TODO: What is list good for? It's not really used.
+        
+        // Huh? TODO: This should be wereever list is created.
         if( list.isEmpty() ) {
             throw new CopyException("Cannot locate file: " + rollData.getName());
         } 
@@ -71,14 +74,11 @@ public class Utils {
         rollData.setHomePath(list.get(0).getAbsolutePath());
 
         switch( rollData.getType() ){
-            case LOG: rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                    File.separator + "log");
+            case LOG: rollData.setTargetPath( Utils.createPath(targetPath, "standalone", "log").getPath() );
                 break;
-            case RESOURCE: rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                    File.separator + "deployments");
+            case RESOURCE: rollData.setTargetPath(Utils.createPath(targetPath, "standalone", "deployments").getPath());
                 break;
-            case SECURITY: rollData.setTargetPath(targetPath + File.separator + "standalone" +
-                    File.separator + "configuration");
+            case SECURITY: rollData.setTargetPath(Utils.createPath(targetPath, "standalone", "configuration").getPath());
                 break;
             case DRIVER: case LOGMODULE:{
                 rollData.setName(list.get(0).getName());
