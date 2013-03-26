@@ -45,37 +45,37 @@ public class RollbackData {
     /**
      * Setting name of the Copy Memory for drivers. In special cases altName is set for alternative JDBC driver (JTDS)
      *
-     * @param name driver-class from -ds.xml file from AS5
+     * @param className  Driver class from -ds.xml file from AS5 config.
      */
-    public void deriveDriverName(String name) {
+    public void deriveDriverName(String className) {
         this.name = this.altName = null;
         
-        if (name.contains("postgres")) {
+        if (className.contains("postgres")) {
             this.name = "postgresql";
         }
-        else if (name.contains("microsoft")) {
+        else if (className.contains("microsoft")) {
             this.name = "sqljdbc";
             this.altName = "jtds";
         }
-        else if (name.contains("db2")) {
+        else if (className.contains("db2")) {
             this.name = "db2";
         }
-        else if (name.contains("sybase")) {
+        else if (className.contains("sybase")) {
             this.name = "sybase";
             this.altName = "jtds";
         }
-        else if (name.contains("mysql")) {
+        else if (className.contains("mysql")) {
             this.name = "sqljdbc";
         }
-        else if (name.contains("oracle")) {
+        else if (className.contains("oracle")) {
             this.name = "ojdbc";
         }
-        else if (name.contains("hsqldb")) {
+        else if (className.contains("hsqldb")) {
             this.name = "hsqldb";
         }
         else {
             // Guesstimate the value from the classname: org.foo.Bar -> "foo".
-            String temp = StringUtils.substringAfter(name, ".");
+            String temp = StringUtils.substringAfter(className, ".");
             this.name = StringUtils.substringBefore(temp, ".");
         }
     }
