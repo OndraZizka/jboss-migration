@@ -165,7 +165,7 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
             StreamResult result = new StreamResult(new File(this.config.getGlobal().getAs7ConfigFilePath()));
-            DOMSource source = new DOMSource(this.ctx.getAS7XmlDoc());
+            DOMSource source = new DOMSource(this.ctx.getAS7ConfigXmlDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {
             throw new ApplyMigrationException(ex);

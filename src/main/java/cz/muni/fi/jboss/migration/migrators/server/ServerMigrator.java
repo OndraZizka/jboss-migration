@@ -81,7 +81,7 @@ public class ServerMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getAS7XmlDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -308,7 +308,7 @@ public class ServerMigrator extends AbstractMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            NodeList bindings = ctx.getAS7XmlDoc().getElementsByTagName("socket-binding");
+            NodeList bindings = ctx.getAS7ConfigXmlDoc().getElementsByTagName("socket-binding");
             for (int i = 0; i < bindings.getLength(); i++) {
                 if (!(bindings.item(i) instanceof Element)) {
                     continue;

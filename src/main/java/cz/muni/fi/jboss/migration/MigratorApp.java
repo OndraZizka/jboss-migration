@@ -239,7 +239,7 @@ public class MigratorApp {
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
             Document doc = db.parse(as7configFile);
             nonAlteredStandalone = db.parse(as7configFile); // TODO: Do backup at file level, instead of parsing and writing back.
-            ctx.setAS7XmlDoc(doc);
+            ctx.setAS7ConfigXmlDoc(doc);
 
             // Create Migrator
             migrator = new Migrator(conf, ctx);
