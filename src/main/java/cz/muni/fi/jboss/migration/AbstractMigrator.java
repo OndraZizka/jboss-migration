@@ -1,5 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.apache.commons.collections.map.MultiValueMap;
 

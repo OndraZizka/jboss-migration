@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.Configuration;
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.RollbackData;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;

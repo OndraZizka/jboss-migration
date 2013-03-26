@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.spi;
 
-import cz.muni.fi.jboss.migration.Configuration;
-import cz.muni.fi.jboss.migration.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;

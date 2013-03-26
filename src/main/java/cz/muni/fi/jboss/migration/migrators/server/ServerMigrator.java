@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;

@@ -1,4 +1,4 @@
-package cz.muni.fi.jboss.migration;
+package cz.muni.fi.jboss.migration.conf;
 
 import cz.muni.fi.jboss.migration.utils.Utils;
 import java.io.File;

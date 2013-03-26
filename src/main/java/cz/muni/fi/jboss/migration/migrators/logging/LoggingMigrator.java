@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;

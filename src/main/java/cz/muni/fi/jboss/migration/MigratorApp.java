@@ -1,6 +1,8 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.Configuration.ModuleSpecificProperty;
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.conf.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
