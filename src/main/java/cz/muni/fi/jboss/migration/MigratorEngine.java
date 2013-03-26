@@ -123,7 +123,7 @@ public class MigratorEngine {
     }// createMigrators()
     
     /**
-     *  Finds tje implementations of the IMigrator.
+     *  Finds the implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
      */
     private static List<Class<? extends IMigrator>> findMigratorClasses() {
