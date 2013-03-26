@@ -138,7 +138,7 @@ public class Utils {
     public static void removeData(Collection<RollbackData> rollbackDatas) {
         for (RollbackData rolldata : rollbackDatas) {
             if (!(rolldata.getType().equals(RollbackData.Type.DRIVER))) {
-                FileUtils.deleteQuietly(new File(rolldata.getTargetPath() + File.separator + rolldata.getName()));
+                FileUtils.deleteQuietly(new File(rolldata.getTargetPath(), rolldata.getName()));
             }
         }
     }
@@ -173,26 +173,28 @@ public class Utils {
      * @throws FileNotFoundException if the jar file is not found
      */
     public static String findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException{
-        JarFile jarFile = null;
+        
+        className = className.replace(".", "/");
+        
+        // TODO: Rewrite to two calls of a method.
         try {
             // jar file can be in two different places in AS5 structure.
             for(int i = 0; i < 2; i++){
                 File dir;
                 if( i == 0){
                     // First look for jar file in lib directory in given AS5 profile
-                    dir = new File(dirAS5 + File.separator + "server" + File.separator +
-                            profileAS5 + File.separator + "lib");
+                    dir = Utils.createPath(dirAS5, "server", profileAS5, "lib");
                 } else{
                     // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
-                    dir = new File(dirAS5 + File.separator + "common" + File.separator + "lib");
+                    dir = Utils.createPath(dirAS5, "common", profileAS5, "lib");
                 }
+                
+                //SuffixFileFilter sf = new SuffixFileFilter(".jar");
+                //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
+                Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
 
-                SuffixFileFilter sf = new SuffixFileFilter(".jar");
-                List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
-                className = className.replace(".", "/");
-
-                for (File file : list) {
-                    jarFile = new JarFile(file);
+                for( File file : list ) {
+                    JarFile jarFile = new JarFile(file);
                     final Enumeration<JarEntry> entries = jarFile.entries();
                     while (entries.hasMoreElements()) {
                         final JarEntry entry = entries.nextElement();
