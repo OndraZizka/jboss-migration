@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import org.w3c.dom.Document;
 
 /**
  * Migrator is class, which represents all functions of the application.
@@ -253,25 +254,22 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for (RollbackData cp : this.ctx.getRollbackData()) {
+            for( RollbackData cp : this.ctx.getRollbackData() ) {
+                
                 RollbackData.Type type = cp.getType();
-                if ((type.equals(RollbackData.Type.DRIVER)) || (type.equals(RollbackData.Type.LOGMODULE))) {
-                    File directories = new File(cp.getTargetPath() + File.separator);
+                if( type.equals(RollbackData.Type.DRIVER) || type.equals(RollbackData.Type.LOGMODULE) ) {
+                    File directories = new File(cp.getTargetPath());
                     FileUtils.forceMkdir(directories);
-                    File module = new File(directories.getAbsolutePath() + File.separator + "module.xml");
+                    File moduleXml = new File(directories.getAbsolutePath(), "module.xml");
 
-                    if (module.createNewFile()) {
-                        if(type.equals(RollbackData.Type.DRIVER)){
-                            transformer.transform(new DOMSource(AS7ModuleUtils.createDriverModuleXML(cp)),
-                                    new StreamResult(module));
-                        } else {
-                            transformer.transform(new DOMSource(AS7ModuleUtils.createLogModuleXML(cp)),
-                                    new StreamResult(module));
-                        }
-
-                    } else {
-                        throw new CopyException("File \"module.xml\" already exists!");
-                    }
+                    if( ! moduleXml.createNewFile() )
+                        throw new CopyException("File already exists: " + moduleXml.getPath());
+                    
+                    Document doc = RollbackData.Type.DRIVER.equals(type)
+                            ? AS7ModuleUtils.createDriverModuleXML(cp)
+                            : AS7ModuleUtils.createLogModuleXML(cp);
+                    
+                    transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));

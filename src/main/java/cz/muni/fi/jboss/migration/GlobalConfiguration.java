@@ -20,14 +20,15 @@ public class GlobalConfiguration {
     // AS 5 stuff
     private String as5dir;
     private String as5profileName = "default";
-    public static final String AS5_PROFILES_DIR = "server" + File.separator; // TODO: Move to AS5-specific class method.
+    public static final String AS5_PROFILES_DIR = "server"; 
+    public static final String AS5_DEPLOY_DIR = "deploy";
 
-    public File getProfileDir(){
-        return new File( as5dir, GlobalConfiguration.AS5_PROFILES_DIR + as5profileName );
+    public File getAS5ProfileDir(){
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName );
     }
     
     public File getAS5DeployDir() {
-        return Utils.createPath( getAS5Dir(), "server", getAS5ProfileName(), "deploy" );
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_DEPLOY_DIR );
     }
 
     // Non-server stuff
@@ -45,7 +46,6 @@ public class GlobalConfiguration {
     public String getAs7ConfigFilePath() {
         return new File(getAS7Dir(), getAS7ConfigPath()).getPath();  // TODO: Return File and use that.
     }
-    //public void setStandaloneFilePath() { standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7(); }
 
     public String getAS5Dir() { return as5dir; }
     public void setAS5Dir(String as5dir) { this.as5dir = as5dir; }
