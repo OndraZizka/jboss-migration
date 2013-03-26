@@ -119,7 +119,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getAS7XmlDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
