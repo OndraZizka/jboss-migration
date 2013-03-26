@@ -22,6 +22,7 @@ public class GlobalConfiguration {
     private String as5profileName = "default";
     public static final String AS5_PROFILES_DIR = "server"; 
     public static final String AS5_DEPLOY_DIR = "deploy";
+    public static final String AS5_CONF_DIR = "conf";
 
     public File getAS5ProfileDir(){
         return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName );
@@ -29,6 +30,10 @@ public class GlobalConfiguration {
     
     public File getAS5DeployDir() {
         return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_DEPLOY_DIR );
+    }
+
+    public File getAS5ConfDir() {
+        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_CONF_DIR );
     }
 
     // Non-server stuff
