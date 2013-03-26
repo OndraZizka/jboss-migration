@@ -119,7 +119,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7XmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -165,7 +165,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof DatasourceAS5Bean) {
                     dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean) fragment), doc);
@@ -202,7 +202,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
                 ctx.getRollbackData().add(rollbackData);
 
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
                 nodeList.add(doc.getDocumentElement());
             }

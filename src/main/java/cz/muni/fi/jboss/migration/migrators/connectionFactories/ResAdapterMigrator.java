@@ -109,7 +109,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7XmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if( ! (subsystems.item(i) instanceof Element)) {
@@ -139,7 +139,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 if (fragment instanceof ConnectionFactoryAS5Bean) {
                     resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());

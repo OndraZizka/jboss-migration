@@ -26,20 +26,8 @@ public class MigrationContext {
 
     private Set<RollbackData> rollbackDatas = new HashSet();
 
-    private DocumentBuilder docBuilder;
+    private Document as7XmlDoc;
 
-    private Document standaloneDoc;
-
-    
-    public void createDocBuilder() throws ParserConfigurationException {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(false);
-        docBuilder = dbf.newDocumentBuilder();
-    }
-
-    public DocumentBuilder getDocBuilder() {
-        return docBuilder;
-    }
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -49,8 +37,8 @@ public class MigrationContext {
     public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) { this.migrationData = migrationData; }
     public Set<RollbackData> getRollbackData() { return rollbackDatas; }
     public void setRollbackDatas(Set<RollbackData> rollbackDatas) { this.rollbackDatas = rollbackDatas; }
-    public Document getStandaloneDoc() { return standaloneDoc; }
-    public void setStandaloneDoc(Document standaloneDoc) { this.standaloneDoc = standaloneDoc; }
+    public Document getAS7XmlDoc() { return as7XmlDoc; }
+    public void setAS7XmlDoc(Document standaloneDoc) { this.as7XmlDoc = standaloneDoc; }
     //</editor-fold>
     
 }// class

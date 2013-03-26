@@ -25,6 +25,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Utils class containing helping classes
@@ -276,5 +279,22 @@ public class Utils {
         }
         return file;
     }
+
+    
+    /**
+     *  Creates a new default document builder.
+     */
+    public static DocumentBuilder createXmlDocumentBuilder() {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(false);
+        try {
+            return dbf.newDocumentBuilder();
+        }
+        catch( ParserConfigurationException ex ){
+            throw new RuntimeException(ex); // Tunnel
+        }
+    }
+
+    
     
 }// class

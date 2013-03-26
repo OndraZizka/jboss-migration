@@ -15,9 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
 
 /**
- * Main class of the application
+ * Main class of the application.
+ * Contains app-specific code, like arguments parsing, instantiating the Migrator etc.
  *
  * @author Roman Jakubco
  */
@@ -233,18 +235,18 @@ public class MigratorApp {
         
         File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
         try {
-            ctx.createDocBuilder();
+            // Parse AS 7 config.
+            DocumentBuilder db = Utils.createXmlDocumentBuilder();
+            Document doc = db.parse(as7configFile);
+            nonAlteredStandalone = db.parse(as7configFile); // TODO: Do backup at file level, instead of parsing and writing back.
+            ctx.setAS7XmlDoc(doc);
 
-            Document doc = ctx.getDocBuilder().parse(as7configFile);
-            nonAlteredStandalone = ctx.getDocBuilder().parse(as7configFile);
-            ctx.setStandaloneDoc(doc);
-
-            // Create Migrator // TODO: Move above try{}.
+            // Create Migrator
             migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
         } 
-        catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
+        catch ( LoadMigrationException | SAXException | IOException e) {
             throw new MigrationException("Failed loading AS 7 config from " + as7configFile, e);
         }
 

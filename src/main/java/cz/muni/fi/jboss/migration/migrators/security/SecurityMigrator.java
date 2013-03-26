@@ -63,7 +63,7 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7XmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -99,7 +99,7 @@ public class SecurityMigrator extends AbstractMigrator {
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }
 
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 secDomMarshaller.marshal(appPolicyMigration((ApplicationPolicyBean) fragment, ctx), doc);
                 nodeList.add(doc.getDocumentElement());
             }
