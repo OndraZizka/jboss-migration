@@ -7,9 +7,11 @@ package cz.muni.fi.jboss.migration;
  * @author Roman Jakubco
  */
 public class RollbackData {
+    
     public static enum Type{
         DRIVER, LOG, RESOURCE, SECURITY, LOGMODULE
     }
+    
     private String name;
 
     private Type type;
@@ -26,6 +28,8 @@ public class RollbackData {
     // Different name for jdbc driver. For Sybase and Mssql
     private String altName;
 
+    
+    
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -46,7 +50,6 @@ public class RollbackData {
     
     // TBC: Do we need this?
     //<editor-fold defaultstate="collapsed" desc="hash/eq">
-    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
