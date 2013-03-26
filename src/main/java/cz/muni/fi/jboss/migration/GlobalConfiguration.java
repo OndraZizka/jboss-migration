@@ -13,8 +13,8 @@ public class GlobalConfiguration {
     //       split to AS 7 config class, and then 1 class per server (AS 5, WebLogic, ...)
 
     // AS 7 stuff
-    private String dirAS7;
-    private String confPathAS7 = "standalone/configuration/standalone.xml";
+    private String as7dir;
+    private String as7configPath = "standalone/configuration/standalone.xml";
 
     // AS 5 stuff
     private String as5dir;
@@ -33,11 +33,11 @@ public class GlobalConfiguration {
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public String getAS7Dir() { return dirAS7; }
-    public void setAS7Dir(String dirAS7) { this.dirAS7 = dirAS7; }
-    public String getAS7ConfigPath() { return confPathAS7; }
-    public void setAS7ConfigPath(String confPathAS7) { this.confPathAS7 = confPathAS7; }
-    public String getStandaloneFilePath() {
+    public String getAS7Dir() { return as7dir; }
+    public void setAS7Dir(String dirAS7) { this.as7dir = dirAS7; }
+    public String getAS7ConfigPath() { return as7configPath; }
+    public void setAS7ConfigPath(String confPathAS7) { this.as7configPath = confPathAS7; }
+    public String getAs7ConfigFilePath() {
         return new File(getAS7Dir(), getAS7ConfigPath()).getPath();  // TODO: Return File and use that.
     }
     //public void setStandaloneFilePath() { standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7(); }

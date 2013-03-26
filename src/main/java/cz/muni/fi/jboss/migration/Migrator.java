@@ -163,7 +163,7 @@ public class Migrator {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(this.config.getGlobal().getStandaloneFilePath()));
+            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAs7ConfigFilePath()));
             DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {

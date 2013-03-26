@@ -47,19 +47,21 @@ public class LoggingMigrator extends AbstractMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
-            File file = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
-                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
+            File log4jConfFile = Utils.createPath( 
+                    super.getGlobalConfig().getAS5Dir(),  "server",  
+                    super.getGlobalConfig().getAS5ProfileName(),
+                    "conf", "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-            XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(file));
+            XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(log4jConfFile));
 
             LoggingAS5Bean loggingAS5;
 
-            if (file.canRead()) {
+            if (log4jConfFile.canRead()) {
                 loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
             } else {
-                throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new
+                throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath(), new
                         FileNotFoundException());
             }
 

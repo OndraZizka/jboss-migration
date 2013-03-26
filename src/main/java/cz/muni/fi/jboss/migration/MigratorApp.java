@@ -198,7 +198,7 @@ public class MigratorApp {
         else if( ! new File(path).isDirectory() )
             problems.add("as7.dir is not a directory: " + path);
         else {
-            String configPath = config.getGlobal().getStandaloneFilePath();
+            String configPath = config.getGlobal().getAs7ConfigFilePath();
             if( null == configPath )
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
             else if( ! new File(path, configPath).exists() )
@@ -223,27 +223,26 @@ public class MigratorApp {
     private static void migrate( Configuration conf ) throws MigrationException {
         
         Migrator migrator;
-        MigrationContext ctx;
+        MigrationContext ctx = new MigrationContext();
         Document nonAlteredStandalone;
 
         log.info("Commencing migration.");
+        
+        File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
         try {
-            ctx = new MigrationContext();
-            
             ctx.createBuilder();
-            File standalone = new File(conf.getGlobal().getStandaloneFilePath());
 
-            Document doc = ctx.getDocBuilder().parse(standalone);
-            nonAlteredStandalone = ctx.getDocBuilder().parse(standalone);
+            Document doc = ctx.getDocBuilder().parse(as7configFile);
+            nonAlteredStandalone = ctx.getDocBuilder().parse(as7configFile);
             ctx.setStandaloneDoc(doc);
 
-            // Create Migrator
+            // Create Migrator // TODO: Move above try{}.
             migrator = new Migrator(conf, ctx);
 
             migrator.loadAS5Data();
         } 
         catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            throw new MigrationException(e);
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, e);
         }
 
         try {
