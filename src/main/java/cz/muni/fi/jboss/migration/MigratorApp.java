@@ -233,7 +233,7 @@ public class MigratorApp {
         
         File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
         try {
-            ctx.createBuilder();
+            ctx.createDocBuilder();
 
             Document doc = ctx.getDocBuilder().parse(as7configFile);
             nonAlteredStandalone = ctx.getDocBuilder().parse(as7configFile);

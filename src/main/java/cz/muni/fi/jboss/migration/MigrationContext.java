@@ -16,11 +16,12 @@ import java.util.Set;
  *
  * @author Roman Jakubco
  */
-
 public class MigrationContext {
 
+    /** Instances of IMigrator; In a form of map Class -> instance.  */
     private Map<Class<? extends IMigrator>, IMigrator> migrators = new HashMap();
 
+    
     private Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
 
     private Set<RollbackData> rollbackDatas = new HashSet();
@@ -29,31 +30,8 @@ public class MigrationContext {
 
     private Document standaloneDoc;
 
-    public Map<Class<? extends IMigrator>, IMigrator> getMigrators() {
-        return migrators;
-    }
-
-    public void setMigrators(Map<Class<? extends IMigrator>, IMigrator> migrators) {
-        this.migrators = migrators;
-    }
-
-    public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() {
-        return migrationData;
-    }
-
-    public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) {
-        this.migrationData = migrationData;
-    }
-
-    public Set<RollbackData> getRollbackData() {
-        return rollbackDatas;
-    }
-
-    public void setRollbackDatas(Set<RollbackData> rollbackDatas) {
-        this.rollbackDatas = rollbackDatas;
-    }
-
-    public void createBuilder() throws ParserConfigurationException {
+    
+    public void createDocBuilder() throws ParserConfigurationException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         docBuilder = dbf.newDocumentBuilder();
@@ -62,12 +40,17 @@ public class MigrationContext {
     public DocumentBuilder getDocBuilder() {
         return docBuilder;
     }
-
-    public Document getStandaloneDoc() {
-        return standaloneDoc;
-    }
-
-    public void setStandaloneDoc(Document standaloneDoc) {
-        this.standaloneDoc = standaloneDoc;
-    }
-}
+    
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
+    public void setMigrators(Map<Class<? extends IMigrator>, IMigrator> migrators) { this.migrators = migrators; }
+    public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
+    public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) { this.migrationData = migrationData; }
+    public Set<RollbackData> getRollbackData() { return rollbackDatas; }
+    public void setRollbackDatas(Set<RollbackData> rollbackDatas) { this.rollbackDatas = rollbackDatas; }
+    public Document getStandaloneDoc() { return standaloneDoc; }
+    public void setStandaloneDoc(Document standaloneDoc) { this.standaloneDoc = standaloneDoc; }
+    //</editor-fold>
+    
+}// class
