@@ -8,6 +8,7 @@ import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
+import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -29,6 +30,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import org.w3c.dom.Document;
+
 
 /**
  * Migrator is class, which represents all functions of the application.
@@ -228,20 +230,20 @@ public class MigratorEngine {
                     // For now only expecting one jar for driver. Pick the first one.
                     if (list.isEmpty()) {
                         List<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
-                        Utils.setRollbackData(rollData, altList, targetPath);
+                        RollbackUtils.setRollbackData(rollData, altList, targetPath);
                     } else {
-                        Utils.setRollbackData(rollData, list, targetPath);
+                        RollbackUtils.setRollbackData(rollData, list, targetPath);
                     }
                 }
                 break;
                 case LOG:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, list, targetPath);
                     break;
                 case SECURITY:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, list, targetPath);
                     break;
                 case RESOURCE:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, list, targetPath);
                     break;
 
             }

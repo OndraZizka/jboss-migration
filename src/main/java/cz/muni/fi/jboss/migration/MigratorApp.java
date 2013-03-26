@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -277,7 +278,7 @@ public class MigratorApp {
         }
         catch (CopyException ex) {
             // TODO: Move this procedure into some rollback() method.
-            Utils.removeData(ctx.getRollbackData());
+            RollbackUtils.removeData(ctx.getRollbackData());
             // TODO: Can't just blindly delete, we need to keep info if we really created it!
             // TODO: Create some dedicated module dir manager.
             FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
@@ -292,8 +293,8 @@ public class MigratorApp {
         catch (ApplyMigrationException ex) {
             // TODO: Rollback handling needs to be wrapped behind an abstract API.
             //       Calls such like this have to be encapsulated in some RollbackManager.
-            Utils.cleanStandalone(ctx.getAs7ConfigXmlDocOriginal(), conf);
-            Utils.removeData(ctx.getRollbackData());
+            RollbackUtils.cleanStandalone(ctx.getAs7ConfigXmlDocOriginal(), conf);
+            RollbackUtils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
             throw ex;
         }
