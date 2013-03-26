@@ -97,15 +97,15 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             for (DatasourcesBean ds : dsColl) {
                 if (ds.getLocalDatasourceAS5s() != null) {
-                    mData.getConfigFragment().addAll(ds.getLocalDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getLocalDatasourceAS5s());
                 }
 
                 if (ds.getXaDatasourceAS5s() != null) {
-                    mData.getConfigFragment().addAll(ds.getXaDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getXaDatasourceAS5s());
                 }
 
                 if(ds.getNoTxDatasourceAS5s() !=null){
-                    mData.getConfigFragment().addAll(ds.getNoTxDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
                 }
 
             }
@@ -166,7 +166,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             Marshaller xaDataMarshaller = JAXBContext.newInstance(XaDatasourceAS7Bean.class).createMarshaller();
             Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
                 Document doc = ctx.getDocBuilder().newDocument();
 
                 if (fragment instanceof DatasourceAS5Bean) {

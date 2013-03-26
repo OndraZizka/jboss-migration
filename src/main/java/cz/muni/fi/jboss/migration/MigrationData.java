@@ -17,7 +17,7 @@ public class MigrationData {
 
     List<IConfigFragment> configFragment = new ArrayList();
 
-    public List<IConfigFragment> getConfigFragment() {
+    public List<IConfigFragment> getConfigFragments() {
         return configFragment;
     }
 

@@ -18,6 +18,7 @@ public class RollbackData {
 
     private Type type;
 
+    // TODO: Change to File.
     private String targetPath;
 
     private String homePath;
@@ -28,50 +29,21 @@ public class RollbackData {
     // Different name for jdbc driver. For Sybase and Mssql
     private String altName;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getTargetPath() {
-        return targetPath;
-    }
-
-    public void setTargetPath(String targetPath) {
-        this.targetPath = targetPath;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public String getModule() {
-        return module;
-    }
-
-    public void setModule(String module) {
-        this.module = module;
-    }
-
-    public String getHomePath() {
-        return homePath;
-    }
-
-    public void setHomePath(String homePath) {
-        this.homePath = homePath;
-    }
-
-    public String getAltName() {
-        return altName;
-    }
-
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getTargetPath() { return targetPath; }
+    public void setTargetPath(String targetPath) { this.targetPath = targetPath; }
+    public Type getType() { return type; }
+    public void setType(Type type) { this.type = type; }
+    public String getModule() { return module; }
+    public void setModule(String module) { this.module = module; }
+    public String getHomePath() { return homePath; }
+    public void setHomePath(String homePath) { this.homePath = homePath; }
+    public String getAltName() { return altName; }
+    //</editor-fold>
+    
+    
     /**
      * Setting name of the Copy Memory for drivers. In special cases altName is set for alternative JDBC driver (JTDS)
      *

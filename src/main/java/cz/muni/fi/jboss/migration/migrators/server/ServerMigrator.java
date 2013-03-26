@@ -69,8 +69,8 @@ public class ServerMigrator extends AbstractMigrator {
 
             MigrationData mData = new MigrationData();
             for (ServiceBean s : serverAS5.getServices()) {
-                mData.getConfigFragment().add(s.getEngine());
-                mData.getConfigFragment().addAll(s.getConnectorAS5s());
+                mData.getConfigFragments().add(s.getEngine());
+                mData.getConfigFragments().addAll(s.getConnectorAS5s());
             }
 
             ctx.getMigrationData().put(ServerMigrator.class, mData);
@@ -148,7 +148,7 @@ public class ServerMigrator extends AbstractMigrator {
             Marshaller virSerMarshaller = virSerCtx.createMarshaller();
             Marshaller socketMarshaller = socketCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
                 Document doc = ctx.getDocBuilder().newDocument();
                 if (fragment instanceof ConnectorAS5Bean) {
                     connMarshaller.marshal(connectorMigration((ConnectorAS5Bean) fragment, ctx), doc);

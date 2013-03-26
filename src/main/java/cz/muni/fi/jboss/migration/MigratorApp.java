@@ -185,9 +185,9 @@ public class MigratorApp {
             if( null == profileName )
                 ;
             else {
-                File profileDir = new File(path, GlobalConfiguration.AS5_PROFILES_DIR + profileName);
+                File profileDir = config.getGlobal().getAS5ProfileDir();
                 if( ! profileDir.exists() )
-                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
             }
         }
         
@@ -201,8 +201,11 @@ public class MigratorApp {
             String configPath = config.getGlobal().getAs7ConfigFilePath();
             if( null == configPath )
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
-            else if( ! new File(path, configPath).exists() )
-                problems.add("as7.confPath is not a subpath under AS 5 dir: " + path);
+            else{
+                File configFile = new File(path, configPath);
+                if( ! configFile.exists() )
+                problems.add("as7.confPath is not a subpath under AS 5 dir: " + configFile.getPath());
+            }
         }
         
         // App (deployment)

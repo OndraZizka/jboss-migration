@@ -69,15 +69,15 @@ public class LoggingMigrator extends AbstractMigrator {
             MigrationData mData = new MigrationData();
 
             if(loggingAS5.getCategories() != null){
-                mData.getConfigFragment().addAll(loggingAS5.getCategories());
+                mData.getConfigFragments().addAll(loggingAS5.getCategories());
             }
 
             if(loggingAS5.getLoggers() != null){
-                mData.getConfigFragment().addAll(loggingAS5.getLoggers());
+                mData.getConfigFragments().addAll(loggingAS5.getLoggers());
             }
 
-            mData.getConfigFragment().addAll(loggingAS5.getAppenders());
-            mData.getConfigFragment().add(loggingAS5.getRootLoggerAS5());
+            mData.getConfigFragments().addAll(loggingAS5.getAppenders());
+            mData.getConfigFragments().add(loggingAS5.getRootLoggerAS5());
 
             ctx.getMigrationData().put(LoggingMigrator.class, mData);
 
@@ -153,7 +153,7 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller sizeHandMarshaller = sizeHandlerCtx.createMarshaller();
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments()) {
                 Document doc = ctx.getDocBuilder().newDocument();
 
                 if (fragment instanceof AppenderBean) {

@@ -54,7 +54,7 @@ public class SecurityMigrator extends AbstractMigrator {
             SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
 
             MigrationData mData = new MigrationData();
-            mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
+            mData.getConfigFragments().addAll(securityAS5.getApplicationPolicies());
 
             ctx.getMigrationData().put(SecurityMigrator.class, mData);
         } catch (JAXBException e) {
@@ -96,7 +96,7 @@ public class SecurityMigrator extends AbstractMigrator {
             List<Node> nodeList = new ArrayList();
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
                 if (!(fragment instanceof ApplicationPolicyBean)) {
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }

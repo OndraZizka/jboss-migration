@@ -93,10 +93,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             for (ConnectionFactoriesBean cf : connFactories) {
                 if(cf.getConnectionFactories() != null){
-                    migrData.getConfigFragment().addAll(cf.getConnectionFactories());
+                    migrData.getConfigFragments().addAll(cf.getConnectionFactories());
                 }
                 if(cf.getNoTxConnectionFactories() != null){
-                    migrData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
+                    migrData.getConfigFragments().addAll(cf.getNoTxConnectionFactories());
                 }
 
             }
@@ -140,7 +140,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             List<Node> nodeList = new ArrayList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
                 Document doc = ctx.getDocBuilder().newDocument();
                 if (fragment instanceof ConnectionFactoryAS5Bean) {
                     resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
