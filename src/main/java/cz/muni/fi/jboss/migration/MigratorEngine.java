@@ -179,7 +179,7 @@ public class MigratorEngine {
     }
 
     /**
-     * Method which calls method for generating Dom Nodes on all migrators.
+     * Calls all migrators' callback for generating Dom Nodes.
      *
      * @return List containing all generated Nodes
      * @throws MigrationException if migrating of file or generating of nodes fails.
@@ -194,7 +194,7 @@ public class MigratorEngine {
     }
 
     /**
-     * Method which calls method for generating Cli scripts on all migrators.
+     * Calls all migrators' callback for generating CLI scripts.
      *
      * @return List containing generated scripts from all migrated subsystems
      * @throws CliScriptException if creation of scripts fail
@@ -209,7 +209,7 @@ public class MigratorEngine {
     }
 
     /**
-     * Method for copying all necessary files for migration from AS5 to their place in AS7 home folder.
+     * Copies all necessary files for migration from AS5 to their place in the AS7 home folder.
      *
      * @throws CopyException if copying of files fails.
      */
