@@ -19,9 +19,17 @@ public class Configuration {
     /**
      *  Returns all config migrator-specific values for the given migrator.
      */
-    private MultiValueMap getForMigrator(Class<? extends IMigrator> migrator) {
+    private MultiValueMap getForMigrator(Class<? extends IMigrator> migratorClass) {
         //return moduleConfigs.get(migrator);
+        
+        MultiValueMap map = new MultiValueMap();
+        /*IMigrator mig = ...  // or migratorClass.getMethod("", parameterTypes);
+                
+        for( ModuleSpecificProperty prop : moduleConfigs ){
+            if( 0 != mig.examineConfigProperty(prop) )
+        }*/
         throw new UnsupportedOperationException();
+        // TODO: This method must be in a context - only the instances have the list of values they have taken.
     }
     
     

@@ -48,7 +48,7 @@ public class LoggingMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
             File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
+                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "conf" + File.separator + "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -449,7 +449,7 @@ public class LoggingMigrator extends AbstractMigrator {
             RollbackData rollbackData = new RollbackData();
             try {
                 String name = Utils.findJarFileWithClass(appender.getAppenderClass(),
-                        super.getGlobalConfig().getDirAS5(), super.getGlobalConfig().getProfileAS5());
+                        super.getGlobalConfig().getDirAS5(), super.getGlobalConfig().getAS5ProfileName());
 
                 rollbackData.setName(name);
                 rollbackData.setType(RollbackData.Type.LOGMODULE);

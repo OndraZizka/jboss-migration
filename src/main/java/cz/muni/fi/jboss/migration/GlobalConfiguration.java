@@ -8,19 +8,29 @@ import java.io.File;
  * @author Roman Jakubco
  */
 public class GlobalConfiguration {
+    
+    // TODO: With regard of possibility to migrate from other vendors' AS,
+    //       split to AS 7 config class, and then 1 class per server (AS 5, WebLogic, ...)
 
-    private String dirAS5;
-
+    // AS 7 stuff
     private String dirAS7;
-
-    private String profileAS5 = "default";
-
     private String confPathAS7 = "standalone/configuration/standalone.xml";
 
+    // AS 5 stuff
+    private String dirAS5;
+    private String as5profileName = "default";
+    public static final String AS5_PROFILES_DIR = "server" + File.separator; // TODO: Move to AS5-specific class method.
+
+    public File getProfileDir(){
+        return new File( dirAS5, GlobalConfiguration.AS5_PROFILES_DIR + as5profileName );
+    }
+
+    // Non-server stuff
     private String appPath;
 
     private boolean skipValidation;
-
+    
+    
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getDirAS7() { return dirAS7; }
@@ -34,8 +44,8 @@ public class GlobalConfiguration {
 
     public String getDirAS5() { return dirAS5; }
     public void setDirAS5(String dirAS5) { this.dirAS5 = dirAS5; }
-    public String getProfileAS5() { return profileAS5; }
-    public void setProfileAS5(String profileAS5) { this.profileAS5 = profileAS5; }
+    public String getAS5ProfileName() { return as5profileName; }
+    public void setAS5ProfileName(String profileName) { this.as5profileName = profileName; }
 
     public String getAppPath() { return appPath; }
     public void setAppPath(String appPath) { this.appPath = appPath; }

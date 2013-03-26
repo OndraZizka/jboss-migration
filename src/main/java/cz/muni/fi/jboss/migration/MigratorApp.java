@@ -84,7 +84,7 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "=") + File.separator);
+                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -94,7 +94,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--as5.profile=") ) {
-                globalConfig.setProfileAS5(StringUtils.substringAfter(arg, "="));
+                globalConfig.setAS5ProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -181,11 +181,14 @@ public class MigratorApp {
         else if( ! new File(path).isDirectory() )
             problems.add("as5.dir is not a directory: " + path);
         else {
-            String configPath = config.getGlobal().getProfileAS5();
-            if( null == configPath )
-                ; // problems.add("as5.profile was not set."); // TODO: Put defaults to the config.
-            else if( ! new File(path, configPath).exists() )
-                problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+            String profileName = config.getGlobal().getAS5ProfileName();
+            if( null == profileName )
+                ;
+            else {
+                File profileDir = new File(path, GlobalConfiguration.AS5_PROFILES_DIR + profileName);
+                if( ! profileDir.exists() )
+                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+            }
         }
         
         // AS 7

@@ -59,7 +59,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
             File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy");
+                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy");
 
             if (dsFiles.canRead()) {
                 SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");

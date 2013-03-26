@@ -211,7 +211,7 @@ public class Migrator {
     public void copyItems() throws CopyException {
         String targetPath = this.config.getGlobal().getDirAS7();
         File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + "server" + File.separator
-                + this.config.getGlobal().getProfileAS5());
+                + this.config.getGlobal().getAS5ProfileName());
         File altDir = new File(this.config.getGlobal().getDirAS5() + File.separator + "common" + File.separator + "lib");
 
         for (RollbackData rollData : this.ctx.getRollbackData()) {

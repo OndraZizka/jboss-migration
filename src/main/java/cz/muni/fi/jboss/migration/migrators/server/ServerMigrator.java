@@ -57,7 +57,7 @@ public class ServerMigrator extends AbstractMigrator {
 
             // Or maybe use FileUtils and list all files with that name?
             File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
-                    super.getGlobalConfig().getProfileAS5() + File.separator + "deploy" + File.separator +
+                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy" + File.separator +
                     "jbossweb.sar" + File.separator + "server.xml");
 
             if (file.canRead()) {
