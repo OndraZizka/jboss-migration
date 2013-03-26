@@ -48,38 +48,36 @@ public class RollbackData {
      * @param name driver-class from -ds.xml file from AS5
      */
     public void deriveDriverName(String name) {
+        this.name = this.altName = null;
+        
         if (name.contains("postgres")) {
             this.name = "postgresql";
-            return;
         }
-        if (name.contains("microsoft")) {
+        else if (name.contains("microsoft")) {
             this.name = "sqljdbc";
             this.altName = "jtds";
-            return;
         }
-        if (name.contains("db2")) {
+        else if (name.contains("db2")) {
             this.name = "db2";
-            return;
         }
-        if (name.contains("sybase")) {
+        else if (name.contains("sybase")) {
             this.name = "sybase";
             this.altName = "jtds";
-            return;
         }
-        if (name.contains("mysql")) {
+        else if (name.contains("mysql")) {
             this.name = "sqljdbc";
-            return;
         }
-        if (name.contains("oracle")) {
+        else if (name.contains("oracle")) {
             this.name = "ojdbc";
-            return;
         }
-        if (name.contains("hsqldb")) {
+        else if (name.contains("hsqldb")) {
             this.name = "hsqldb";
-            return;
         }
-        String temp = StringUtils.substringAfter(name, ".");
-        this.name = StringUtils.substringBefore(temp, ".");
+        else {
+            // Guesstimate the value from the classname: org.foo.Bar -> "foo".
+            String temp = StringUtils.substringAfter(name, ".");
+            this.name = StringUtils.substringBefore(temp, ".");
+        }
     }
 
     
