@@ -10,8 +10,6 @@ import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -51,6 +49,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
         super(globalConfig, config);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
@@ -106,6 +107,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
@@ -131,6 +136,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
@@ -168,6 +177,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
@@ -185,8 +198,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
     /**
-     * Method for migrating tx-connection-factory from AS5 to AS7
+     * Migrates a tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5 object representing tx-connection-factory
      * @return created resource-adapter
@@ -249,7 +263,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating no-tx-connection-factory from AS5 to AS7
+     *  Migrates a no-tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5  object representing no-tx-connection-factory
      * @return created resource-adapter
@@ -308,7 +322,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
 
     /**
-     * Creating CLI script for adding Resource-Adapter
+     * Creates CLI script for adding Resource-Adapter
      *
      * @param resourceAdapter object of Resource-Adapter
      * @return string containing created CLI script
@@ -395,4 +409,5 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         return resultBuilder.toString();
     }
-}
+
+}// ResAdapterMigrator
