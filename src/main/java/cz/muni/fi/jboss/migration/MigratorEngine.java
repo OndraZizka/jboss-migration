@@ -35,9 +35,9 @@ import org.w3c.dom.Document;
  *
  * @author Roman Jakubco
  */
-public class Migrator {
+public class MigratorEngine {
     
-    private static final Logger log = LoggerFactory.getLogger(Migrator.class);
+    private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
     
 
     private Configuration config;
@@ -48,7 +48,7 @@ public class Migrator {
     
     
 
-    public Migrator( Configuration config, MigrationContext context ) {
+    public MigratorEngine( Configuration config, MigrationContext context ) {
         this.config = config;
         this.ctx = context;
         this.init();

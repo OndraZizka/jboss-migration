@@ -245,7 +245,7 @@ public class MigratorApp {
             throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
         }
         // Create Migrator & load AS 5 data.
-        Migrator migrator = new Migrator(conf, ctx);
+        MigratorEngine migrator = new MigratorEngine(conf, ctx);
         try {
             migrator.loadAS5Data();
         } 
