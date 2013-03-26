@@ -153,7 +153,7 @@ public class Utils {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(config.getGlobal().getStandaloneFilePath()));
+            StreamResult result = new StreamResult(new File(config.getGlobal().getAs7ConfigFilePath()));
 
             DOMSource source = new DOMSource(doc);
             transformer.transform(source, result);
@@ -262,6 +262,18 @@ public class Utils {
         }
 
         return list;
+    }
+
+    
+    /**
+     *  Builds up a File object with path consisting of given components.
+     */
+    public static File createPath( String parent, String child, String ... more) {
+        File file = new File(parent, child);
+        for( String component : more ) {
+            file = new File(file, component);
+        }
+        return file;
     }
     
 }// class
