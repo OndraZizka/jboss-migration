@@ -3,8 +3,8 @@ package cz.muni.fi.jboss.migration;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Helping class for remembering files which will be copied from AS5 to AS7 so they can be deleted if app fails. Also
- * helping create modules for drivers.
+ * Helper class to store files which will be copied from AS5 to AS7 so they can be deleted if app fails.
+ * Also helps to create modules for drivers.
  *
  * @author Roman Jakubco
  */
@@ -47,7 +47,7 @@ public class RollbackData {
      *
      * @param name driver-class from -ds.xml file from AS5
      */
-    public void setDriverName(String name) {
+    public void deriveDriverName(String name) {
         if (name.contains("postgres")) {
             this.name = "postgresql";
             return;
@@ -82,31 +82,35 @@ public class RollbackData {
         this.name = StringUtils.substringBefore(temp, ".");
     }
 
+    
+    // TBC: Do we need this?
+    //<editor-fold defaultstate="collapsed" desc="hash/eq">
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RollbackData)) return false;
-
+        
         RollbackData that = (RollbackData) o;
-
+        
         if(type.equals(Type.LOGMODULE)){
             if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
             if (module != null ? !module.equals(that.module) : that.module != null) return false;
             if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
             if (type != null ? !type.equals(that.type) : that.type != null) return false;
-
+            
             return true;
         }
-
+        
         if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
         if (module != null ? !module.equals(that.module) : that.module != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
-
+        
         return true;
     }
-
+    
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
@@ -116,4 +120,5 @@ public class RollbackData {
         result = 31 * result + (module != null ? module.hashCode() : 0);
         return result;
     }
+    //</editor-fold>
 }
