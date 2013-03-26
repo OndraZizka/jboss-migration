@@ -58,31 +58,36 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
-                    super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy");
+            // Deployments AS 5 dir.
+            File dsFiles = Utils.createPath(
+                    super.getGlobalConfig().getAS5Dir(), "server",
+                    super.getGlobalConfig().getAS5ProfileName(), "deploy");
 
-            if (dsFiles.canRead()) {
-                SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-                List<File> list = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-                if (list.isEmpty()) {
-                    throw new LoadMigrationException("No \"-ds.xml\" to parse!");
+            if( ! dsFiles.canRead() ) {
+                throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
+            }
+            
+            // -ds.xml files.
+            SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+            List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            
+            // TODO: Is this really wrong?
+            if (dsXmls.isEmpty()) {
+                throw new LoadMigrationException("No \"-ds.xml\" to parse!");
+            }
+
+            // For each -ds.xml
+            for (File dsXml : dsXmls) {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(dsXml);
+
+                Element element = doc.getDocumentElement();
+
+                if (element.getTagName().equalsIgnoreCase("connection-factories")) {
+                    ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(dsXml);
+                    connFactories.add(conn);
                 }
-
-                for (File aList : list) {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder db = dbf.newDocumentBuilder();
-                    Document doc = db.parse(aList);
-
-                    Element element = doc.getDocumentElement();
-
-                    if (element.getTagName().equalsIgnoreCase("connection-factories")) {
-                        ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(aList);
-                        connFactories.add(conn);
-                    }
-                }
-            } else {
-                throw new LoadMigrationException("Don't have permission for reading files in directory \"AS5_Home"
-                        + File.separator + "deploy\"");
             }
 
             MigrationData mData = new MigrationData();
