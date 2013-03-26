@@ -22,6 +22,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -440,18 +441,24 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
-    public CustomHandlerBean createCustomHandler(AppenderBean appender, MigrationContext ctx, Boolean custom)
-            throws NodeGenerationException{
+    public CustomHandlerBean createCustomHandler(AppenderBean appender, MigrationContext ctx, Boolean custom) throws NodeGenerationException {
+        
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
         handler.setClassValue(appender.getAppenderClass());
 
-        if(custom){
+        if( ! custom ){
+            // Only possibility is class in log4j=> log4j module in AS7
+            handler.setModule("org.apache.log4j");
+        }
+        else {
             // Jar file containing class from appender must be found and set to RollbackData.
             RollbackData rollbackData = new RollbackData();
             try {
-                String name = Utils.findJarFileWithClass(appender.getAppenderClass(),
-                        super.getGlobalConfig().getAS5Dir(), super.getGlobalConfig().getAS5ProfileName());
+                String name = Utils.findJarFileWithClass(
+                        appender.getAppenderClass(),
+                        getGlobalConfig().getAS5Dir(),
+                        getGlobalConfig().getAS5ProfileName());
 
                 rollbackData.setName(name);
                 rollbackData.setType(RollbackData.Type.LOGMODULE);
@@ -462,15 +469,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 rollbackData.setModule(module);
 
                 ctx.getRollbackData().add(rollbackData);
-
-            } catch (FileNotFoundException e) {
-                throw new NodeGenerationException(e + "=> Cannot create module!" );
             }
-
-        } else{
-            // Only possibility is class in log4j=> log4j module in AS7
-            handler.setModule("org.apache.log4j");
+            catch( IOException ex ) {
+                throw new NodeGenerationException("Cannot create module ", ex);
+            }
         }
+
 
         Set<PropertyBean> properties = new HashSet();
 
