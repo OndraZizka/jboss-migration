@@ -71,6 +71,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
             //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
             
+            if( dsXmls.isEmpty() ) {
+                return;
+            }
+            
             // For each -ds.xml
             for (File dsXml : dsXmls) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

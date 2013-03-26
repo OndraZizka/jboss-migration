@@ -280,6 +280,8 @@ public class MigratorApp {
             log.info("");
             log.info("Migration was successful.");
         } catch (ApplyMigrationException ex) {
+            // TODO: Rollback handling needs to be wrapped behind an abstract API.
+            //       Calls such like this have to be encapsulated in some RollbackManager.
             Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackData());
             FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
