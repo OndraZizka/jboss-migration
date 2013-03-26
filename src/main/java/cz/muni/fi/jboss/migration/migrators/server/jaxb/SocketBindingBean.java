@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing socket-binding (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 9:14 PM
  */
 
 @XmlRootElement(name = "socket-binding")

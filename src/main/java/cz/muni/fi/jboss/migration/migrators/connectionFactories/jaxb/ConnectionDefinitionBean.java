@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for marshalling/unmarshalling and representing connection-definition ( AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:53 PM
  */
 
 @XmlRootElement(name = "connection-definition")

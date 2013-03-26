@@ -8,8 +8,6 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing size-rotating-file-handler (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:23 PM
  */
 
 @XmlRootElement(name = "size-rotating-handler")

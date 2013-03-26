@@ -9,8 +9,6 @@ import java.util.Set;
  * Class for unmarshalling and representing server (AS5)
  *
  * @author Roman Jakubco
- * Date: 8/30/12
- * Time: 4:54 PM
  */
 
 @XmlRootElement(name = "Server")

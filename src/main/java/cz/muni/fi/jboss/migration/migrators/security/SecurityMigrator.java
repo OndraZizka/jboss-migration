@@ -30,8 +30,6 @@ import java.util.Set;
  * Migrator of security subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:42 AM
  */
 public class SecurityMigrator extends AbstractMigrator {
     

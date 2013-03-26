@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for unmarshalling and representing tx-connection-factory (AS5)
  *
  * @author Roman Jakubco
- *         Date: 8/28/12
- *         Time: 3:26 PM
  */
 
 @XmlRootElement(name = "tx-connection-factory")

@@ -9,8 +9,6 @@ import java.util.Set;
  * Class for marshalling and representing login-module (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 9:05 PM
  */
 
 @XmlRootElement(name = "login-module")

@@ -38,8 +38,6 @@ import java.util.Set;
  * Migrator of Datasource subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:41 AM
  */
 
 public class DatasourceMigrator extends AbstractMigrator {

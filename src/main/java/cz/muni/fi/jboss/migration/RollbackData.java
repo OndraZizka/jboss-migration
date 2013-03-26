@@ -7,8 +7,6 @@ import org.apache.commons.lang.StringUtils;
  * helping create modules for drivers.
  *
  * @author Roman Jakubco
- *         Date: 11/12/12
- *         Time: 3:13 PM
  */
 public class RollbackData {
     public static enum Type{

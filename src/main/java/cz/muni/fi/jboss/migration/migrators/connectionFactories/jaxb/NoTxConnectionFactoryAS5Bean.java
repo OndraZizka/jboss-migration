@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for unmarshalling and representing no-tx-connection-factory (AS5)
  *
  * @author Roman Jakubco
- *         Date: 3/22/13
- *         Time: 3:56 PM
  */
 @XmlRootElement(name = "no-tx-connection-factory")
 @XmlAccessorType(XmlAccessType.NONE)

@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for unmarshalling and representing xa-datasource in AS5 (AS5)
  *
  * @author Roman Jakubco
- *         Date: 8/26/12
- *         Time: 2:17 PM
  */
 
 @XmlRootElement(name = "xa-datasource")

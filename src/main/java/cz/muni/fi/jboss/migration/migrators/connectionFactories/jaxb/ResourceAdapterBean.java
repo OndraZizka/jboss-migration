@@ -9,8 +9,6 @@ import java.util.Set;
  * Class for marshalling and representing resource-adapter (AS7)
  *
  * @author Roman Jakubco
- *         Date: 8/28/12
- *         Time: 3:27 PM
  */
 
 @XmlRootElement(name = "resource-adapter")

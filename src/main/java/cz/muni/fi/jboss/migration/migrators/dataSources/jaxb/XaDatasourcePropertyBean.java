@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.*;
  * Class for unmarshalling/marshalling and representing xa-datasource-property (AS5, AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:59 PM
  */
 
 @XmlRootElement(name = "xa-datasource-property")

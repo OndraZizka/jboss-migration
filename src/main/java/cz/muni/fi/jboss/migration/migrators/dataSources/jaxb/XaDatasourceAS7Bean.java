@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for marshalling and representing xa-datasource in AS7 (AS7)
  *
  * @author Roman Jakubco
- *         Date: 8/27/12
- *         Time: 6:25 PM
  */
 
 @XmlRootElement(name = "xa-datasource")

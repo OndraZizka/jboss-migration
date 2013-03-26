@@ -9,8 +9,6 @@ import java.util.List;
  * Class for storing data from AS5 which should be migrated.
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:37 AM
  */
 
 public class MigrationData {

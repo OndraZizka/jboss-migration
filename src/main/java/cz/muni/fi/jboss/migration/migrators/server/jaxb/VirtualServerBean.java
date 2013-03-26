@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for marshalling and representing virtual-server (AS)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 9:14 PM
  */
 
 @XmlRootElement(name = "virtual-server")

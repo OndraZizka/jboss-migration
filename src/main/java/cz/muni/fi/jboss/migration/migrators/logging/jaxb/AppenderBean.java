@@ -12,8 +12,6 @@ import java.util.Set;
  * Class for unmarshalling and representing appender (AS5)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 7:53 PM
  */
 
 @XmlRootElement(name = "appender")

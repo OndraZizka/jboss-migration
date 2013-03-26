@@ -15,8 +15,6 @@ import java.util.Set;
  * Context of migration. Stores all necessary objects and information for all Migrators.
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:37 AM
  */
 
 public class MigrationContext {

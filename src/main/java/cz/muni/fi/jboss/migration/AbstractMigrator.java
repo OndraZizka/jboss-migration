@@ -7,8 +7,6 @@ import org.apache.commons.collections.map.MultiValueMap;
  * Abstract class for Migrators containing configurations of Migrators.
  *
  * @author Roman Jakubco
- *         Date: 2/2/13
- *         Time: 11:07 AM
  */
 public abstract class AbstractMigrator implements IMigrator {
 

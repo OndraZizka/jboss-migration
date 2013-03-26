@@ -37,8 +37,6 @@ import java.util.Set;
  * Migrator of Resource-Adapter(Connection-Factories in AS5) subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:41 AM
  */
 
 public class ResAdapterMigrator extends AbstractMigrator {

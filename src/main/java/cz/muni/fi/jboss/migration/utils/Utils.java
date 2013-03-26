@@ -30,8 +30,6 @@ import java.util.jar.JarFile;
  * Utils class containing helping classes
  *
  * @author Roman Jakubco
- *         Date: 2/2/13
- *         Time: 1:05 PM
  */
 public class Utils {
 

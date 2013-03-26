@@ -12,8 +12,6 @@ import java.util.Set;
  * Class for marshalling and representing datasource in AS7 (AS7)
  *
  * @author Roman Jakubco
- *         Date: 8/27/12
- *         Time: 1:29 PM
  */
 @XmlRootElement(name = "datasource")
 @XmlAccessorType(XmlAccessType.NONE)

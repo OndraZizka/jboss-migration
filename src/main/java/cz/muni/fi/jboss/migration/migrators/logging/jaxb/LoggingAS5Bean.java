@@ -12,8 +12,6 @@ import java.util.Set;
  * Class for unmarshalling and representing logging configuration (AS5)
  *
  * @author Roman Jakubco
- *         Date: 9/21/12
- *         Time: 7:52 PM
  */
 
 @XmlRootElement(name = "configuration", namespace = "http://jakarta.apache.org/log4j/")

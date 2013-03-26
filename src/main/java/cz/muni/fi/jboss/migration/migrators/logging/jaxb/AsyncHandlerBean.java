@@ -11,8 +11,6 @@ import java.util.Set;
  * Class for marshalling and representing async-handler  (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:14 PM
  */
 
 @XmlRootElement(name = "async-handler")
