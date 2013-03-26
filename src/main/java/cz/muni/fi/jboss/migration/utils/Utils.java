@@ -171,47 +171,47 @@ public class Utils {
      * @param profileAS5  name of AS5 profile
      * @return  name of jar file which contains given class
      * @throws FileNotFoundException if the jar file is not found
+     * 
+     * TODO: This would cause false positives - e.g. class = org.Foo triggered by org/Foo/Blah.class .
      */
-    public static String findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException{
+    public static String findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException, IOException {
         
-        className = className.replace(".", "/");
+        String classFilePath = className.replace(".", "/");
         
-        // TODO: Rewrite to two calls of a method.
-        try {
-            // jar file can be in two different places in AS5 structure.
-            for(int i = 0; i < 2; i++){
-                File dir;
-                if( i == 0){
-                    // First look for jar file in lib directory in given AS5 profile
-                    dir = Utils.createPath(dirAS5, "server", profileAS5, "lib");
-                } else{
-                    // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
-                    dir = Utils.createPath(dirAS5, "common", profileAS5, "lib");
-                }
-                
-                //SuffixFileFilter sf = new SuffixFileFilter(".jar");
-                //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
-                Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
+        // First look for jar file in lib directory in given AS5 profile
+        File dir = Utils.createPath(dirAS5, "server", profileAS5, "lib");
+        File jar = lookForJarWithAClass( dir, classFilePath );
+        if( jar != null )
+            return jar.getName();
+        
+        // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
+        dir = Utils.createPath(dirAS5, "common", profileAS5, "lib");
+        jar = lookForJarWithAClass( dir, classFilePath );
+        if( jar != null )
+            return jar.getName();
+                            
+        throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
+    }
+    
+    private static File lookForJarWithAClass( File dir, String classFilePath ) throws IOException {
+        //SuffixFileFilter sf = new SuffixFileFilter(".jar");
+        //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
+        Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
 
-                for( File file : list ) {
-                    JarFile jarFile = new JarFile(file);
-                    final Enumeration<JarEntry> entries = jarFile.entries();
-                    while (entries.hasMoreElements()) {
-                        final JarEntry entry = entries.nextElement();
+        for( File file : list ) {
+            JarFile jarFile = new JarFile(file);
+            final Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                final JarEntry entry = entries.nextElement();
+                if( ( ! entry.isDirectory() ) && entry.getName().contains(classFilePath)) {
 
-                        if ((entry.getName().contains(className)) && !(entry.isDirectory())) {
-
-                            // Assuming that jar file contains some package with class (common Java practice)
-                            return  StringUtils.substringAfterLast(file.getPath(), "/");
-                        }
-                    }
+                    // Assuming that jar file contains some package with class (common Java practice)
+                    //return  StringUtils.substringAfterLast(file.getPath(), "/");
+                    return file;
                 }
             }
-        } catch (IOException e) {
-            throw new FileNotFoundException(e.toString());
         }
-
-        throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
+        return null;
     }
 
     
