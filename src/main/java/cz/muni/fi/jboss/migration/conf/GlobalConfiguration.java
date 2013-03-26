@@ -16,7 +16,7 @@ public class GlobalConfiguration {
     private AS7Config as7Config = new AS7Config();
 
     // AS 5 stuff
-    private As5Config as5config = new As5Config();
+    private AS5Config as5config = new AS5Config();
 
    
     // Non-server stuff
@@ -30,7 +30,7 @@ public class GlobalConfiguration {
     public AS7Config getAS7Config() { return as7Config; }
     //public void setAS7Config(AS7Config as7Config) { this.as7Config = as7Config; }
 
-    public As5Config getAS5Config() { return as5config; }
+    public AS5Config getAS5Config() { return as5config; }
     //public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
     public String getAppPath() { return appPath; }

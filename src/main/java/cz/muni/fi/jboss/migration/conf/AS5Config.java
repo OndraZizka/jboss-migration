@@ -8,7 +8,7 @@ import java.io.File;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class As5Config {
+public class AS5Config {
 
     private String as5dir;
     private String as5profileName = "default";
