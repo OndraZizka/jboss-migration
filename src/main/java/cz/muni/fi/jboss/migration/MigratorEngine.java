@@ -216,8 +216,8 @@ public class MigratorEngine {
     public void copyItems() throws CopyException {
         
         String targetPath = this.config.getGlobal().getAS7Dir();
-        File as5ProfileDir = this.config.getGlobal().getAS5ProfileDir();
-        File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Dir(), "common", "lib");
+        File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
+        File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 
         for (RollbackData rollData : this.ctx.getRollbackData()) {
             

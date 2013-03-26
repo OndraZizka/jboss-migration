@@ -68,7 +68,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             List<DatasourcesBean> dsColl = new ArrayList();
 
-            File dsFiles = getGlobalConfig().getAS5DeployDir();
+            File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
             if( ! dsFiles.canRead() )
                 throw new LoadMigrationException("Can't read: " + dsFiles);
             

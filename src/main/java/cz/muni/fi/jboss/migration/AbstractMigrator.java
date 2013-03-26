@@ -5,6 +5,7 @@ import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.apache.commons.collections.map.MultiValueMap;
 
+
 /**
  * Abstract class for Migrators containing configurations of Migrators.
  *
@@ -22,24 +23,16 @@ public abstract class AbstractMigrator implements IMigrator {
         this.config = config;
     }
 
-    @Override
-    public GlobalConfiguration getGlobalConfig() {
-        return globalConfig;
-    }
-
-    @Override
-    public void setGlobalConfig(GlobalConfiguration globalConfig) {
-        this.globalConfig = globalConfig;
-    }
-
-    public MultiValueMap getConfig() {
-        return config;
-    }
-
-    public void setConfig(MultiValueMap config) {
-        this.config = config;
-    }
-
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    @Override public GlobalConfiguration getGlobalConfig() { return globalConfig; }
+    @Override public void setGlobalConfig(GlobalConfiguration globalConfig) { this.globalConfig = globalConfig; }
+    
+    public MultiValueMap getConfig() { return config; }
+    public void setConfig(MultiValueMap config) { this.config = config; }
+    //</editor-fold>
+    
+    
     
     /**
      *  Default implementation of examineConfigProperty();
@@ -53,6 +46,7 @@ public abstract class AbstractMigrator implements IMigrator {
         this.config.put(prop.getPropName(), prop.getValue());
         return 1;
     }
+    
     
     /**
      *  "ID" of this IMigrator implementation, e.g "logging";

@@ -89,7 +89,7 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConfig.setAS5Dir(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS5Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -99,7 +99,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--as5.profile=") ) {
-                globalConfig.setAS5ProfileName(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS5Config().setProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -180,17 +180,17 @@ public class MigratorApp {
         LinkedList<String> problems = new LinkedList<>();
         
         // AS 5
-        String path = config.getGlobal().getAS5Dir();
+        String path = config.getGlobal().getAS5Config().getDir();
         if( null == path )
             problems.add("as5.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as5.dir is not a directory: " + path);
         else {
-            String profileName = config.getGlobal().getAS5ProfileName();
+            String profileName = config.getGlobal().getAS5Config().getProfileName();
             if( null == profileName )
                 ;
             else {
-                File profileDir = config.getGlobal().getAS5ProfileDir();
+                File profileDir = config.getGlobal().getAS5Config().getProfileDir();
                 if( ! profileDir.exists() )
                     problems.add("as5.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
             }

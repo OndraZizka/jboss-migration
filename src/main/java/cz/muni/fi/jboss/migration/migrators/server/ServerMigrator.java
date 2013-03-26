@@ -54,8 +54,8 @@ public class ServerMigrator extends AbstractMigrator {
         
         // TBC: Maybe use FileUtils and list all files with that name?
         File file = Utils.createPath(
-                super.getGlobalConfig().getAS5Dir(), "server",
-                super.getGlobalConfig().getAS5ProfileName(), "deploy",
+                super.getGlobalConfig().getAS5Config().getDir(), "server",
+                super.getGlobalConfig().getAS5Config().getProfileName(), "deploy",
                 "jbossweb.sar", "server.xml");
         
         if( ! file.canRead() )

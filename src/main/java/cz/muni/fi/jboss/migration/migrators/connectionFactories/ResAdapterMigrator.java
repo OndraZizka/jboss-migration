@@ -60,7 +60,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
             // Deployments AS 5 dir.
-            File dsFiles = getGlobalConfig().getAS5DeployDir();
+            File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
 
             if( ! dsFiles.canRead() ) {
                 throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );

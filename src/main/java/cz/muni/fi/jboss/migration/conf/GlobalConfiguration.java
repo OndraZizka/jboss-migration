@@ -18,24 +18,9 @@ public class GlobalConfiguration {
     private String as7configPath = "standalone/configuration/standalone.xml";
 
     // AS 5 stuff
-    private String as5dir;
-    private String as5profileName = "default";
-    public static final String AS5_PROFILES_DIR = "server"; 
-    public static final String AS5_DEPLOY_DIR = "deploy";
-    public static final String AS5_CONF_DIR = "conf";
+    private As5Config as5config;
 
-    public File getAS5ProfileDir(){
-        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName );
-    }
-    
-    public File getAS5DeployDir() {
-        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_DEPLOY_DIR );
-    }
-
-    public File getAS5ConfDir() {
-        return Utils.createPath( as5dir, AS5_PROFILES_DIR, as5profileName, AS5_CONF_DIR );
-    }
-
+   
     // Non-server stuff
     private String appPath;
 
@@ -52,10 +37,8 @@ public class GlobalConfiguration {
         return new File(getAS7Dir(), getAS7ConfigPath()).getPath();  // TODO: Return File and use that.
     }
 
-    public String getAS5Dir() { return as5dir; }
-    public void setAS5Dir(String as5dir) { this.as5dir = as5dir; }
-    public String getAS5ProfileName() { return as5profileName; }
-    public void setAS5ProfileName(String profileName) { this.as5profileName = profileName; }
+    public As5Config getAS5Config() { return as5config; }
+    public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
     public String getAppPath() { return appPath; }
     public void setAppPath(String appPath) { this.appPath = appPath; }
