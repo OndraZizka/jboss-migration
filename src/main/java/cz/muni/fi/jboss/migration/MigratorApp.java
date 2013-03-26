@@ -269,8 +269,9 @@ public class MigratorApp {
         catch (CopyException ex) {
             // TODO: Move this procedure into some rollback() method.
             Utils.removeData(ctx.getRollbackData());
-            // TODO: Can't just blindly delete, we need to keep info if we really created it.
-            FileUtils.deleteQuietly(new File(conf.getGlobal().getAS7Dir() + File.separator + "modules" + File.separator + "jdbc"));
+            // TODO: Can't just blindly delete, we need to keep info if we really created it!
+            // TODO: Create some dedicated module dir manager.
+            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
             throw new MigrationException(ex);
         }
 
@@ -281,7 +282,7 @@ public class MigratorApp {
         } catch (ApplyMigrationException ex) {
             Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackData());
-            FileUtils.deleteQuietly(new File(conf.getGlobal().getAS7Dir() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
             throw ex;
         }
         
