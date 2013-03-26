@@ -33,9 +33,9 @@ import org.w3c.dom.Document;
 
 
 /**
- * Migrator is class, which represents all functions of the application.
+ *  Controls the core migration processes.
  *
- * @author Roman Jakubco
+ *  @author Roman Jakubco
  */
 public class MigratorEngine {
     
@@ -121,7 +121,7 @@ public class MigratorEngine {
     }// createMigrators()
     
     /**
-     *  Find implementation of IMigrator.
+     *  Finds tje implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
      */
     private static List<Class<? extends IMigrator>> findMigratorClasses() {
