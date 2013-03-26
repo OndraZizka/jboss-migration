@@ -3,9 +3,6 @@ package cz.muni.fi.jboss.migration;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.w3c.dom.Document;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
