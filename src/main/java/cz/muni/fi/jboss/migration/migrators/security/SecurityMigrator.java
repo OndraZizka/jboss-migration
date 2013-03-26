@@ -47,7 +47,7 @@ public class SecurityMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
 
-            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+            File file = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
                     super.getGlobalConfig().getAS5ProfileName() + File.separator + "conf" + File.separator + "login-config.xml");
 
             if (file.canRead()) {

@@ -84,12 +84,12 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConfig.setDirAS5(StringUtils.substringAfter(arg, "="));
+                globalConfig.setAS5Dir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
-                globalConfig.setDirAS7(StringUtils.substringAfter(arg, "="));
+                globalConfig.setAS7Dir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -99,7 +99,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--as7.confPath=") ) {
-                globalConfig.setConfPathAS7(StringUtils.substringAfter(arg, "="));
+                globalConfig.setAS7ConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -175,7 +175,7 @@ public class MigratorApp {
         LinkedList<String> problems = new LinkedList<>();
         
         // AS 5
-        String path = config.getGlobal().getDirAS5();
+        String path = config.getGlobal().getAS5Dir();
         if( null == path )
             problems.add("as5.dir was not set.");
         else if( ! new File(path).isDirectory() )
@@ -192,7 +192,7 @@ public class MigratorApp {
         }
         
         // AS 7
-        path = config.getGlobal().getDirAS7();
+        path = config.getGlobal().getAS7Dir();
         if( null == path )
             problems.add("as7.dir was not set.");
         else if( ! new File(path).isDirectory() )
@@ -271,7 +271,7 @@ public class MigratorApp {
             // TODO: Move this procedure into some rollback() method.
             Utils.removeData(ctx.getRollbackData());
             // TODO: Can't just blindly delete, we need to keep info if we really created it.
-            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getAS7Dir() + File.separator + "modules" + File.separator + "jdbc"));
             throw new MigrationException(ex);
         }
 
@@ -282,7 +282,7 @@ public class MigratorApp {
         } catch (ApplyMigrationException ex) {
             Utils.cleanStandalone(nonAlteredStandalone, conf);
             Utils.removeData(ctx.getRollbackData());
-            FileUtils.deleteQuietly(new File(conf.getGlobal().getDirAS7() + File.separator + "modules" + File.separator + "jdbc"));
+            FileUtils.deleteQuietly(new File(conf.getGlobal().getAS7Dir() + File.separator + "modules" + File.separator + "jdbc"));
             throw ex;
         }
         

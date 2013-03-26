@@ -17,12 +17,12 @@ public class GlobalConfiguration {
     private String confPathAS7 = "standalone/configuration/standalone.xml";
 
     // AS 5 stuff
-    private String dirAS5;
+    private String as5dir;
     private String as5profileName = "default";
     public static final String AS5_PROFILES_DIR = "server" + File.separator; // TODO: Move to AS5-specific class method.
 
     public File getProfileDir(){
-        return new File( dirAS5, GlobalConfiguration.AS5_PROFILES_DIR + as5profileName );
+        return new File( as5dir, GlobalConfiguration.AS5_PROFILES_DIR + as5profileName );
     }
 
     // Non-server stuff
@@ -33,17 +33,17 @@ public class GlobalConfiguration {
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public String getDirAS7() { return dirAS7; }
-    public void setDirAS7(String dirAS7) { this.dirAS7 = dirAS7; }
-    public String getConfPathAS7() { return confPathAS7; }
-    public void setConfPathAS7(String confPathAS7) { this.confPathAS7 = confPathAS7; }
+    public String getAS7Dir() { return dirAS7; }
+    public void setAS7Dir(String dirAS7) { this.dirAS7 = dirAS7; }
+    public String getAS7ConfigPath() { return confPathAS7; }
+    public void setAS7ConfigPath(String confPathAS7) { this.confPathAS7 = confPathAS7; }
     public String getStandaloneFilePath() {
-        return new File(getDirAS7(), getConfPathAS7()).getPath();  // TODO: Return File and use that.
+        return new File(getAS7Dir(), getAS7ConfigPath()).getPath();  // TODO: Return File and use that.
     }
     //public void setStandaloneFilePath() { standaloneFilePath = getDirAS7() + File.separator + getConfPathAS7(); }
 
-    public String getDirAS5() { return dirAS5; }
-    public void setDirAS5(String dirAS5) { this.dirAS5 = dirAS5; }
+    public String getAS5Dir() { return as5dir; }
+    public void setAS5Dir(String as5dir) { this.as5dir = as5dir; }
     public String getAS5ProfileName() { return as5profileName; }
     public void setAS5ProfileName(String profileName) { this.as5profileName = profileName; }
 

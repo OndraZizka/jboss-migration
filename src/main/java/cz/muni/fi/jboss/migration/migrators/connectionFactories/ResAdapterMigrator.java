@@ -58,7 +58,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
-            File dsFiles = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+            File dsFiles = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
                     super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy");
 
             if (dsFiles.canRead()) {

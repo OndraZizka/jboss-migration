@@ -209,10 +209,10 @@ public class Migrator {
      * @throws CopyException if copying of files fails.
      */
     public void copyItems() throws CopyException {
-        String targetPath = this.config.getGlobal().getDirAS7();
-        File dir = new File(this.config.getGlobal().getDirAS5() + File.separator + "server" + File.separator
+        String targetPath = this.config.getGlobal().getAS7Dir();
+        File dir = new File(this.config.getGlobal().getAS5Dir() + File.separator + "server" + File.separator
                 + this.config.getGlobal().getAS5ProfileName());
-        File altDir = new File(this.config.getGlobal().getDirAS5() + File.separator + "common" + File.separator + "lib");
+        File altDir = new File(this.config.getGlobal().getAS5Dir() + File.separator + "common" + File.separator + "lib");
 
         for (RollbackData rollData : this.ctx.getRollbackData()) {
             if (rollData.getName() == null || rollData.getName().isEmpty()) {

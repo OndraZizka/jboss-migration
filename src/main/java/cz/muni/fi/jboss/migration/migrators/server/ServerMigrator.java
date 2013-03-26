@@ -56,7 +56,7 @@ public class ServerMigrator extends AbstractMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(ServerAS5Bean.class).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            File file = new File(super.getGlobalConfig().getDirAS5() + "server" + File.separator +
+            File file = new File(super.getGlobalConfig().getAS5Dir() + "server" + File.separator +
                     super.getGlobalConfig().getAS5ProfileName() + File.separator + "deploy" + File.separator +
                     "jbossweb.sar" + File.separator + "server.xml");
 
