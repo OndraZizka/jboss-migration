@@ -61,6 +61,8 @@ public class Utils {
      * @throws cz.muni.fi.jboss.migration.ex.CopyException
      *          if no file was found and rolldata is not representing driver and if it is then if module of
      *          driver is null
+     * 
+     * TODO: This needs to be moved to some RollbackManager.
      */
     public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath)
             throws CopyException {
@@ -82,19 +84,18 @@ public class Utils {
                 break;
             case DRIVER: case LOGMODULE:{
                 rollData.setName(list.get(0).getName());
-                String module;
-
                 if( rollData.getModule() == null)
-                    throw new CopyException("Module is null!");
+                    throw new CopyException("Module in a rollback record is null!");
 
-                String[] parts = rollData.getModule().split("\\.");
-                module = "";
+                /*String[] parts = rollData.getModule().split("\\."); // Split by dots.
+                String module = "";
                 for (String s : parts) {
                     module = module + s + File.separator;
-                }
-                // TODO: Configurable modules dir.
-                rollData.setTargetPath(targetPath + File.separator + "modules" + File.separator +
-                        module + "main");
+                }*/
+                String moduleSubPath = rollData.getModule().replace('.', '/');
+                
+                // TODO: Configurable modules dir. E.g. EAP 6.1 has modules in /system/base/modules.
+                rollData.setTargetPath( Utils.createPath(targetPath, "modules", moduleSubPath, "main").getPath() );
             } break;
 
         }// switch( rollData.type )
