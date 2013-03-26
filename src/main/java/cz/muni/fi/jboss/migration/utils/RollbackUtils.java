@@ -35,7 +35,7 @@ public class RollbackUtils {
         try {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            StreamResult result = new StreamResult(new File(config.getGlobal().getAs7ConfigFilePath()));
+            StreamResult result = new StreamResult(new File(config.getGlobal().getAS7Config().getConfigFilePath()));
             DOMSource source = new DOMSource(doc);
             transformer.transform(source, result);
         } catch (TransformerException e) {

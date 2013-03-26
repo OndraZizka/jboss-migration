@@ -168,7 +168,7 @@ public class MigratorEngine {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAs7ConfigFilePath()));
+            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAS7Config().getConfigFilePath()));
             DOMSource source = new DOMSource(this.ctx.getAS7ConfigXmlDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {
@@ -215,7 +215,7 @@ public class MigratorEngine {
      */
     public void copyItems() throws CopyException {
         
-        String targetPath = this.config.getGlobal().getAS7Dir();
+        String targetPath = this.config.getGlobal().getAS7Config().getDir();
         File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
         File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 

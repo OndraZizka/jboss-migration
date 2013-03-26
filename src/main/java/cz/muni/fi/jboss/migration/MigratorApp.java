@@ -94,7 +94,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
-                globalConfig.setAS7Dir(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -104,7 +104,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--as7.confPath=") ) {
-                globalConfig.setAS7ConfigPath(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -197,13 +197,13 @@ public class MigratorApp {
         }
         
         // AS 7
-        path = config.getGlobal().getAS7Dir();
+        path = config.getGlobal().getAS7Config().getDir();
         if( null == path )
             problems.add("as7.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as7.dir is not a directory: " + path);
         else {
-            String configPath = config.getGlobal().getAs7ConfigFilePath();
+            String configPath = config.getGlobal().getAS7Config().getConfigFilePath();
             if( null == configPath )
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
             else{
@@ -234,7 +234,7 @@ public class MigratorApp {
 
         log.info("Commencing migration.");
         
-        File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
+        File as7configFile = new File(conf.getGlobal().getAS7Config().getConfigFilePath());
         // Parse AS 7 config.
         try {
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
@@ -283,7 +283,7 @@ public class MigratorApp {
             RollbackUtils.removeData(ctx.getRollbackData());
             // TODO: Can't just blindly delete, we need to keep info if we really created it!
             // TODO: Create some dedicated module dir manager.
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
+            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
             throw new MigrationException(ex);
         }
 
@@ -297,7 +297,7 @@ public class MigratorApp {
             //       Calls such like this have to be encapsulated in some RollbackManager.
             RollbackUtils.cleanStandalone(ctx.getAs7ConfigXmlDocOriginal(), conf);
             RollbackUtils.removeData(ctx.getRollbackData());
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
+            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
             throw ex;
         }
         
