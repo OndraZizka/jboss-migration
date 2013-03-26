@@ -28,6 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,14 +67,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
             }
             
             // -ds.xml files.
-            SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-            List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+            //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
             
-            // TODO: Is this really wrong?
-            if (dsXmls.isEmpty()) {
-                throw new LoadMigrationException("No \"-ds.xml\" to parse!");
-            }
-
             // For each -ds.xml
             for (File dsXml : dsXmls) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -88,19 +85,19 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 }
             }
 
-            MigrationData mData = new MigrationData();
+            MigrationData migrData = new MigrationData();
 
             for (ConnectionFactoriesBean cf : connFactories) {
                 if(cf.getConnectionFactories() != null){
-                    mData.getConfigFragment().addAll(cf.getConnectionFactories());
+                    migrData.getConfigFragment().addAll(cf.getConnectionFactories());
                 }
                 if(cf.getNoTxConnectionFactories() != null){
-                    mData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
+                    migrData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
                 }
 
             }
 
-            ctx.getMigrationData().put(ResAdapterMigrator.class, mData);
+            ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
 
         } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
