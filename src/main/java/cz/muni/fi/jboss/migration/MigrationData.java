@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class for storing data from AS5 which should be migrated.
+ *  Source server config data to be migrated.
  *
- * @author Roman Jakubco
+ *  @author Roman Jakubco
  */
 public class MigrationData {
 
