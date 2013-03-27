@@ -225,7 +225,7 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
-            List<String> list = new LinkedList();
+            List<String> scripts = new LinkedList();
 
             Unmarshaller logUnmarshaller = JAXBContext.newInstance(LoggerBean.class).createUnmarshaller();
             Unmarshaller rootUnmarshaller = JAXBContext.newInstance(RootLoggerAS7Bean.class).createUnmarshaller();
@@ -239,35 +239,35 @@ public class LoggingMigrator extends AbstractMigrator {
             for( Node node : generateDomElements( ctx ) ) {
                 if( node.getNodeName().equals( "logger" ) ) {
                     LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
-                    list.add( createLoggerScript( log ) );
+                    scripts.add( createLoggerScript( log ) );
                 } 
                 else if( node.getNodeName().equals( "root-logger" ) ) {
                     RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
-                    list.add( createRootLoggerScript( root ) );
+                    scripts.add( createRootLoggerScript( root ) );
                 }
                 else if( node.getNodeName().equals( "size-rotating-handler" ) ) {
                     SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
-                    list.add( createSizeHandlerScript( sizeHandler ) );
+                    scripts.add( createSizeHandlerScript( sizeHandler ) );
                 }
                 else if( node.getNodeName().equals( "periodic-rotating-file-handler" ) ) {
                     PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
-                    list.add( createPerHandlerScript( perHandler ) );
+                    scripts.add( createPerHandlerScript( perHandler ) );
                 }
                 else if( node.getNodeName().equals( "custom-handler" ) ) {
                     CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
-                    list.add( createCustomHandlerScript( cusHandler ) );
+                    scripts.add( createCustomHandlerScript( cusHandler ) );
                 }
                 else if( node.getNodeName().equals( "async-handler" ) ) {
                     AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
-                    list.add( createAsyncHandlerScript( asyncHandler ) );
+                    scripts.add( createAsyncHandlerScript( asyncHandler ) );
                 }
                 else if( node.getNodeName().equals( "console-handler" ) ) {
                     ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
-                    list.add( createConsoleHandlerScript( conHandler ) );
+                    scripts.add( createConsoleHandlerScript( conHandler ) );
                 }
             }
 
-            return list;
+            return scripts;
         }
         catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
