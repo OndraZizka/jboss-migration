@@ -42,6 +42,13 @@ public class FileTransferInfo {
     // Different name for jdbc driver. For Sybase and Mssql
     private String altName;
 
+
+    @Override
+    public String toString() {
+        return "FileTransferInfo{" + "name=" + name + ", type=" + type + ", targetPath=" + targetPath + ", homePath=" + homePath + ", moduleName=" + moduleName + ", altName=" + altName + '}';
+    }
+
+    
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
