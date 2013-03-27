@@ -240,7 +240,7 @@ public class MigratorEngine {
         File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
         File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 
-        for (RollbackData copyItem : this.ctx.getRollbackData()) {
+        for (FileTransferInfo copyItem : this.ctx.getRollbackData()) {
             log.debug("    Processing copy item: " + copyItem);
 
             if (copyItem.getName() == null || copyItem.getName().isEmpty()) {
@@ -281,11 +281,11 @@ public class MigratorEngine {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for( RollbackData cp : this.ctx.getRollbackData() ) {
+            for( FileTransferInfo cp : this.ctx.getRollbackData() ) {
                 log.debug("    Processing copy item: " + cp);
                 
-                RollbackData.Type type = cp.getType();
-                if( type.equals(RollbackData.Type.DRIVER) || type.equals(RollbackData.Type.LOGMODULE) ) {
+                FileTransferInfo.Type type = cp.getType();
+                if( type.equals(FileTransferInfo.Type.DRIVER) || type.equals(FileTransferInfo.Type.LOGMODULE) ) {
                     File directories = new File(cp.getTargetPath());
                     FileUtils.forceMkdir(directories);
                     File moduleXml = new File(directories.getAbsolutePath(), "module.xml");
@@ -293,7 +293,7 @@ public class MigratorEngine {
                     if( ! moduleXml.createNewFile() )
                         throw new CopyException("File already exists: " + moduleXml.getPath());
                     
-                    Document doc = RollbackData.Type.DRIVER.equals(type)
+                    Document doc = FileTransferInfo.Type.DRIVER.equals(type)
                             ? AS7ModuleUtils.createModuleXML(cp)
                             : AS7ModuleUtils.createLogModuleXML(cp);
                     

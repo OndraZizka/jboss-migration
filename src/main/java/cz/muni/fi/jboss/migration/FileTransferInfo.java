@@ -20,7 +20,7 @@ package cz.muni.fi.jboss.migration;
  *
  * @author Roman Jakubco
  */
-public class RollbackData {
+public class FileTransferInfo {
     
     public static enum Type{
         DRIVER, LOG, RESOURCE, SECURITY, LOGMODULE
@@ -67,9 +67,9 @@ public class RollbackData {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RollbackData)) return false;
+        if (!(o instanceof FileTransferInfo)) return false;
         
-        RollbackData that = (RollbackData) o;
+        FileTransferInfo that = (FileTransferInfo) o;
         
         if(Type.LOGMODULE.equals(type)){
             if (homePath != null   ? !homePath.equals(that.homePath)     : that.homePath != null) return false;

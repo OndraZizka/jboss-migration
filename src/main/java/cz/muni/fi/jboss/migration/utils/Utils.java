@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.FileTransferInfo;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -132,7 +132,7 @@ public class Utils {
      * @param dir directory for searching
      * @return list of found files
      */
-    public static Collection<File> searchForFile(RollbackData rollData, File dir) {
+    public static Collection<File> searchForFile(FileTransferInfo rollData, File dir) {
         /*NameFileFilter nff;
         if (rollData.getType().equals(RollbackData.Type.DRIVER)) {
             final String name = rollData.getName();
@@ -146,14 +146,14 @@ public class Utils {
         } else {
             nff = new NameFileFilter(rollData.getName());
         }*/
-        IOFileFilter nff = rollData.getType().equals(RollbackData.Type.DRIVER)
+        IOFileFilter nff = rollData.getType().equals(FileTransferInfo.Type.DRIVER)
                 ? new WildcardFileFilter("*" + rollData.getName() + "*.jar")
                 : new NameFileFilter(rollData.getName());
 
         Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
 
         // One more search for driver jar. Other types of rollbackData just return list.
-        if(rollData.getType().equals(RollbackData.Type.DRIVER)) {
+        if(rollData.getType().equals(FileTransferInfo.Type.DRIVER)) {
 
             // For now only expecting one jar for driver. Pick the first one.
             if (list.isEmpty()) {

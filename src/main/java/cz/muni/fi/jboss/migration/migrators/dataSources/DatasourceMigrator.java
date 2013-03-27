@@ -182,8 +182,8 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
 
             for (DriverBean driver : this.drivers) {
-                RollbackData rollbackData = new RollbackData();
-                rollbackData.setType(RollbackData.Type.DRIVER);
+                FileTransferInfo rollbackData = new FileTransferInfo();
+                rollbackData.setType(FileTransferInfo.Type.DRIVER);
 
                 if(driver.getDriverClass() != null){
                     //rollbackData.deriveDriverName(driver.getDriverClass());

@@ -302,9 +302,9 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                RollbackData rollbackData = new RollbackData();
+                FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType(RollbackData.Type.LOG);
+                rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -347,9 +347,9 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                RollbackData rollbackData = new RollbackData();
+                FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType(RollbackData.Type.LOG);
+                rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -452,7 +452,7 @@ public class LoggingMigrator extends AbstractMigrator {
         }
         else {
             // Jar file containing class from appender must be found and set to RollbackData.
-            RollbackData rollbackData = new RollbackData();
+            FileTransferInfo rollbackData = new FileTransferInfo();
             try {
                 String name = Utils.findJarFileWithClass(
                         appender.getAppenderClass(),
@@ -460,7 +460,7 @@ public class LoggingMigrator extends AbstractMigrator {
                         getGlobalConfig().getAS5Config().getProfileName());
 
                 rollbackData.setName(name);
-                rollbackData.setType(RollbackData.Type.LOGMODULE);
+                rollbackData.setType(FileTransferInfo.Type.LOGMODULE);
 
                 // Setting of module for logging. Each jar module path migration.logging.<jar-name>
                 String module = "migration.logging." + StringUtils.substringBefore(name, ".");

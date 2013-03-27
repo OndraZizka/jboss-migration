@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.FileTransferInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -24,7 +24,7 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createModuleXML(RollbackData data) throws ParserConfigurationException {
+    public static Document createModuleXML(FileTransferInfo data) throws ParserConfigurationException {
 
         /**
          * module.xml for JDBC driver module
@@ -84,7 +84,7 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createLogModuleXML(RollbackData data) throws ParserConfigurationException{
+    public static Document createLogModuleXML(FileTransferInfo data) throws ParserConfigurationException{
         
         Document doc = createDoc();
 

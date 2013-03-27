@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.utils;
 
 import cz.muni.fi.jboss.migration.conf.Configuration;
-import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.FileTransferInfo;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.RollbackMigrationException;
 import java.io.File;
@@ -57,10 +57,10 @@ public class RollbackUtils {
      *
      * @param rollbackData  The files which where copied to the AS7 folder.
      */
-    public static void removeData(Collection<RollbackData> rollbackData) {
+    public static void removeData(Collection<FileTransferInfo> rollbackData) {
         log.debug("removeData() " + rollbackData);
-        for (RollbackData rolldata : rollbackData) {
-            if (!(rolldata.getType().equals(RollbackData.Type.DRIVER))) {
+        for (FileTransferInfo rolldata : rollbackData) {
+            if (!(rolldata.getType().equals(FileTransferInfo.Type.DRIVER))) {
                 FileUtils.deleteQuietly(new File(rolldata.getTargetPath(), rolldata.getName()));
             }
         }
@@ -80,7 +80,7 @@ public class RollbackUtils {
      *
      * TODO: This needs to be moved to some RollbackManager.
      */
-    public static void setRollbackData( RollbackData rollData, Collection<File> files, String targetPath ) throws CopyException {
+    public static void setRollbackData( FileTransferInfo rollData, Collection<File> files, String targetPath ) throws CopyException {
         log.debug("setRollbackData() " + rollData);
         
         // TODO: Most likely should be in the caller method.

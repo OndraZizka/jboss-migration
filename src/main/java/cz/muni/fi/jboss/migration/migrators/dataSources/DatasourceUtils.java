@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
-import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.FileTransferInfo;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -28,7 +28,7 @@ public class DatasourceUtils {
      *
      * @param className  Driver class from -ds.xml file from AS5 config.
      */
-    public static void deriveAndSetDriverName(RollbackData rb, String className) {
+    public static void deriveAndSetDriverName(FileTransferInfo rb, String className) {
         
         rb.setName( null );
         rb.setAltName( null );

@@ -232,9 +232,9 @@ public class SecurityMigrator extends AbstractMigrator {
                         }
                         moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-                        RollbackData rd = new RollbackData();
+                        FileTransferInfo rd = new FileTransferInfo();
                         rd.setName(value);
-                        rd.setType(RollbackData.Type.SECURITY);
+                        rd.setType(FileTransferInfo.Type.SECURITY);
                         ctx.getRollbackData().add(rd);
                     } else {
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());

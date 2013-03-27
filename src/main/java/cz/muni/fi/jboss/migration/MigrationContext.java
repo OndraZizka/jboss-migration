@@ -21,7 +21,7 @@ public class MigrationContext {
     
     private Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
 
-    private Set<RollbackData> rollbackData = new HashSet();
+    private Set<FileTransferInfo> rollbackData = new HashSet();
 
     private Document as7ConfigXmlDoc;
     private Document as7ConfigXmlDocOriginal;
@@ -34,8 +34,8 @@ public class MigrationContext {
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) { this.migrationData = migrationData; }
     
-    public Set<RollbackData> getRollbackData() { return rollbackData; }
-    public void setRollbackData(Set<RollbackData> rollbackData) { this.rollbackData = rollbackData; }
+    public Set<FileTransferInfo> getRollbackData() { return rollbackData; }
+    public void setRollbackData(Set<FileTransferInfo> rollbackData) { this.rollbackData = rollbackData; }
     
     public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
     public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7ConfigXmlDoc = standaloneDoc; }
