@@ -3,9 +3,9 @@ package cz.muni.fi.jboss.migration.utils;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.RollbackData;
 import cz.muni.fi.jboss.migration.ex.CopyException;
+import cz.muni.fi.jboss.migration.ex.RollbackMigrationException;
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -30,16 +30,18 @@ public class RollbackUtils {
      *
      * @param doc    object of Document representing original standalone file. This file is saved in Main before migration.
      * @param config configuration of app
+     * 
+     * TODO: MIGR-23: Rollback needs to be done on the file level, not by writing back unchanged DOM.
      */
-    public static void cleanStandalone(Document doc, Configuration config) {
+    public static void rollbackAS7ConfigFile(Document doc, Configuration config) throws Exception {
         try {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             StreamResult result = new StreamResult(new File(config.getGlobal().getAS7Config().getConfigFilePath()));
             DOMSource source = new DOMSource(doc);
             transformer.transform(source, result);
-        } catch (TransformerException e) {
-            e.printStackTrace();
+        } catch (TransformerException ex) {
+            throw new RollbackMigrationException("Failed rolling the target server config back: " + ex.toString(), ex);
         }
     }
 
@@ -64,8 +66,8 @@ public class RollbackUtils {
      * Helping method for copying files from AS5 to AS7. It checks if list is empty and if not then set HomePath and
      * targetPath of object of RollbackData. Plus for driver it creates special path from module of the driver.
      *
-     * @param rollData   object representing files which should be copied
-     * @param list       List of files found for this object of RollbackData
+     * @param rollData   Object representing files which should be copied
+     * @param files      List of files found for this object of RollbackData
      * @param targetPath path to AS7 home dir
      * @throws cz.muni.fi.jboss.migration.ex.CopyException
      *          if no file was found and roll data is not representing driver and if it is then if module of
@@ -73,14 +75,17 @@ public class RollbackUtils {
      *
      * TODO: This needs to be moved to some RollbackManager.
      */
-    public static void setRollbackData(RollbackData rollData, List<File> list, String targetPath) throws CopyException {
+    public static void setRollbackData( RollbackData rollData, Collection<File> files, String targetPath ) throws CopyException {
         
         // TODO: Most likely should be in the caller method.
-        if (list.isEmpty()) {
+        if (files.isEmpty()) {
             throw new CopyException("Cannot locate file: " + rollData.getName());
         }
         
-        rollData.setHomePath(list.get(0).getAbsolutePath());
+        File firstFile = files.iterator().next();
+        
+        rollData.setHomePath(firstFile.getAbsolutePath()); // Why absolute?
+        
         switch (rollData.getType()) {
             case LOG:
                 rollData.setTargetPath(Utils.createPath(targetPath, "standalone", "log").getPath());
@@ -94,7 +99,7 @@ public class RollbackUtils {
             case DRIVER:
             case LOGMODULE:
                 {
-                    rollData.setName(list.get(0).getName());
+                    rollData.setName(firstFile.getName());
                     if (rollData.getModuleName() == null)
                         throw new CopyException("Module in a rollback record is null!");
                     String moduleSubPath = rollData.getModuleName().replace('.', '/');
