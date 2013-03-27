@@ -144,31 +144,31 @@ public class ResAdapterMigrator extends AbstractMigrator {
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
-            JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapterBean.class);
+            JAXBContext resAdapCtx = JAXBContext.newInstance( ResourceAdapterBean.class );
             List<Node> nodeList = new ArrayList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
+            for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                if (fragment instanceof ConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
+                if( fragment instanceof ConnectionFactoryAS5Bean ) {
+                    resAdapMarshaller.marshal( txConnFactoryMigration( (ConnectionFactoryAS5Bean) fragment ), doc );
+                    nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                if(fragment instanceof NoTxConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(noTxConnFactoryMigration((NoTxConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
+                if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
+                    resAdapMarshaller.marshal( noTxConnFactoryMigration( (NoTxConnectionFactoryAS5Bean) fragment ), doc );
+                    nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                throw new NodeGenerationException("Object is not part of resource-adapter" +
-                        "(connection-factories) migration!");
+                throw new NodeGenerationException( "Object is not part of resource-adapter"
+                        + "(connection-factories) migration!" );
             }
 
-            for(String rar : this.rars){
+            for( String rar : this.rars ) {
                 RollbackData rollbackData = new RollbackData();
-                rollbackData.setName(rar);
-                rollbackData.setType(RollbackData.Type.RESOURCE);
-                ctx.getRollbackData().add(rollbackData);
+                rollbackData.setName( rar );
+                rollbackData.setType( RollbackData.Type.RESOURCE );
+                ctx.getRollbackData().add( rollbackData );
             }
 
             return nodeList;
