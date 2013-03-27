@@ -72,11 +72,10 @@ public class DatasourceMigrator extends AbstractMigrator {
                 throw new LoadMigrationException("Can't read: " + dsFiles);
             
             SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.trueFileFilter());
             log.debug("  Found -ds.xml files #: " + dsXmls.size());
-            if( dsXmls.isEmpty() ) {
+            if( dsXmls.isEmpty() )
                 return;
-            }
 
             List<DatasourcesBean> dsColl = new ArrayList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
@@ -102,7 +101,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     mData.getConfigFragments().addAll(ds.getXaDatasourceAS5s());
                 }
 
-                if(ds.getNoTxDatasourceAS5s() !=null){
+                if(ds.getNoTxDatasourceAS5s() != null){
                     mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
                 }
 
