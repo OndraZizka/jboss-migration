@@ -249,6 +249,9 @@ public class MigratorEngine {
 
             Collection<File> files = Utils.searchForFile(copyItem, as5ProfileDir);
 
+            // TODO:     This pulls IMigrator implementations details into generic class.
+            // MIGR-23   Must be either generalized or moved to those implementations.
+            
             switch( copyItem.getType() ) {
                 case DRIVER:
                 case LOGMODULE: {
