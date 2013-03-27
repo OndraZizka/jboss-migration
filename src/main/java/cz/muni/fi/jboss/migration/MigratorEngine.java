@@ -287,5 +287,6 @@ public class MigratorEngine {
         } catch (IOException | ParserConfigurationException | TransformerException e) {
             throw new CopyException(e);
         }
-    }
-}
+    }// copyItems()
+    
+}// class
