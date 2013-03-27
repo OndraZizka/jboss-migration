@@ -22,8 +22,8 @@ public class RollbackData {
 
     private String homePath;
 
-    // Only if it is driver
-    private String module;
+    /** Module name. Only for drivers. */
+    private String moduleName;
 
     // TODO: Too specific fod DS module. Generalize.
     // Different name for jdbc driver. For Sybase and Mssql
@@ -38,8 +38,8 @@ public class RollbackData {
     public void setTargetPath(String targetPath) { this.targetPath = targetPath; }
     public Type getType() { return type; }
     public void setType(Type type) { this.type = type; }
-    public String getModule() { return module; }
-    public void setModule(String module) { this.module = module; }
+    public String getModuleName() { return moduleName; }
+    public void setModuleName(String moduleName) { this.moduleName = moduleName; }
     public String getHomePath() { return homePath; }
     public void setHomePath(String homePath) { this.homePath = homePath; }
 
@@ -60,7 +60,7 @@ public class RollbackData {
         
         if(Type.LOGMODULE.equals(type)){
             if (homePath != null   ? !homePath.equals(that.homePath)     : that.homePath != null) return false;
-            if (module != null     ? !module.equals(that.module)         : that.module != null) return false;
+            if (moduleName != null     ? !moduleName.equals(that.moduleName)         : that.moduleName != null) return false;
             if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
             if (type != null       ? !type.equals(that.type)             : that.type != null) return false;
             
@@ -68,7 +68,7 @@ public class RollbackData {
         }
         
         if (homePath != null   ? !homePath.equals(that.homePath)     : that.homePath != null) return false;
-        if (module   != null   ? !module.equals(that.module)         : that.module != null) return false;
+        if (moduleName   != null   ? !moduleName.equals(that.moduleName)         : that.moduleName != null) return false;
         if (name     != null   ? !name.equals(that.name)             : that.name != null) return false;
         if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
         if (type     != null   ? !type.equals(that.type)             : that.type != null) return false;
@@ -83,7 +83,7 @@ public class RollbackData {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (targetPath != null ? targetPath.hashCode() : 0);
         result = 31 * result + (homePath != null ? homePath.hashCode() : 0);
-        result = 31 * result + (module != null ? module.hashCode() : 0);
+        result = 31 * result + (moduleName != null ? moduleName.hashCode() : 0);
         return result;
     }
     //</editor-fold>

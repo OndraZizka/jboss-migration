@@ -95,9 +95,9 @@ public class RollbackUtils {
             case LOGMODULE:
                 {
                     rollData.setName(list.get(0).getName());
-                    if (rollData.getModule() == null)
+                    if (rollData.getModuleName() == null)
                         throw new CopyException("Module in a rollback record is null!");
-                    String moduleSubPath = rollData.getModule().replace('.', '/');
+                    String moduleSubPath = rollData.getModuleName().replace('.', '/');
                     rollData.setTargetPath(Utils.createPath(targetPath, "modules", moduleSubPath, "main").getPath());
                 }
                 break;

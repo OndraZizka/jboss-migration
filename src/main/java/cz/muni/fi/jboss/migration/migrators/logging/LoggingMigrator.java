@@ -465,7 +465,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 // Setting of module for logging. Each jar module path migration.logging.<jar-name>
                 String module = "migration.logging." + StringUtils.substringBefore(name, ".");
                 handler.setModule(module);
-                rollbackData.setModule(module);
+                rollbackData.setModuleName(module);
 
                 ctx.getRollbackData().add(rollbackData);
             }
