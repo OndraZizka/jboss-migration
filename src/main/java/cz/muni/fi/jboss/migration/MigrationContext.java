@@ -35,7 +35,7 @@ public class MigrationContext {
     public void setMigrationData(Map<Class<? extends IMigrator>, MigrationData> migrationData) { this.migrationData = migrationData; }
     
     public Set<RollbackData> getRollbackData() { return rollbackData; }
-    public void setRollbackData(Set<RollbackData> rollbackDatas) { this.rollbackData = rollbackDatas; }
+    public void setRollbackData(Set<RollbackData> rollbackData) { this.rollbackData = rollbackData; }
     
     public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
     public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7ConfigXmlDoc = standaloneDoc; }
