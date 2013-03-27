@@ -2,7 +2,8 @@ package cz.muni.fi.jboss.migration;
 
 
 /**
- * Helper class to store files which will be copied from AS5 to AS7 so they can be deleted if app fails.
+ * Stores files to be copied from AS5 to AS7. 
+ * Used for cleanup when be deleted if the app fails.
  *
  * @author Roman Jakubco
  */
