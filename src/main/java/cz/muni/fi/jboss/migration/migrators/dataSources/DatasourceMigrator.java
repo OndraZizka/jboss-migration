@@ -189,13 +189,13 @@ public class DatasourceMigrator extends AbstractMigrator {
 
                 if(driver.getDriverClass() != null){
                     //rollbackData.deriveDriverName(driver.getDriverClass());
-                    Util.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
-                    rollbackData.setModule(Util.deriveDriverModuleName(driver.getDriverClass()));
-                    driver.setDriverModule(Util.deriveDriverModuleName(driver.getDriverClass()));
+                    DatasourceUtils.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
+                    rollbackData.setModule(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
+                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
                 } else {
                     rollbackData.setName(driver.getXaDatasourceClass());
-                    rollbackData.setModule(Util.deriveDriverModuleName(driver.getXaDatasourceClass()));
-                    driver.setDriverModule(Util.deriveDriverModuleName(driver.getXaDatasourceClass()));
+                    rollbackData.setModule(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
+                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
                 }
 
                 ctx.getRollbackData().add(rollbackData);

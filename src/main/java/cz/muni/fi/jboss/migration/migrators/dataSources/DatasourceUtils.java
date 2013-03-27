@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class Util {
+public class DatasourceUtils {
     
     /**
      * Sets the name of the Copy Memory for drivers.
