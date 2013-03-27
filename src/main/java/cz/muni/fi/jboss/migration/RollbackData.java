@@ -4,6 +4,19 @@ package cz.muni.fi.jboss.migration;
 /**
  * Stores files to be copied from AS5 to AS7. 
  * Used for cleanup when be deleted if the app fails.
+ * 
+ * Je to info o vsetkych potrebnych filoch z AS5, ktore musia byt prenesene do AS7,
+ * aby bola migracia kompletna/uspesna. 
+ * 
+ * Zaznamenavaju sa o nich informacie:
+ * - kde su v AS5
+ * - kde budu v AS7
+ * - meno
+ * - typ dat pre rozdelovanie a spravne umiestnenie
+ * - v pripade veci, ktore musia byt v moduloch drzia aj meno svojho buduceho modulu
+ * 
+ * Toto vsetko sa pouzije na ich kopirovanie do AS7. 
+ * Ak zlyha migracia z dakeho dovodu tak sa pouzije ich ulozena cielova path v AS7 aby sa mohli zmazat a zostal AS7 server neporuseny. 
  *
  * @author Roman Jakubco
  */
