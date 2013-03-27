@@ -8,6 +8,7 @@ import org.apache.commons.io.filefilter.NameFileFilter;
 import org.w3c.dom.Document;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -18,6 +19,8 @@ import java.util.jar.JarFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.xml.sax.SAXException;
 
 /**
@@ -129,23 +132,25 @@ public class Utils {
      * @param dir directory for searching
      * @return list of found files
      */
-    public static List<File> searchForFile(RollbackData rollData, File dir) {
-        NameFileFilter nff;
-
+    public static Collection<File> searchForFile(RollbackData rollData, File dir) {
+        /*NameFileFilter nff;
         if (rollData.getType().equals(RollbackData.Type.DRIVER)) {
             final String name = rollData.getName();
-
             nff = new NameFileFilter(name) {
                 @Override
                 public boolean accept(File file) {
                     return file.getName().contains(name) && file.getName().contains("jar");
                 }
             };
+            nff = new WildcardFileFilter("*"+name+"*.jar");
         } else {
             nff = new NameFileFilter(rollData.getName());
-        }
+        }*/
+        IOFileFilter nff = rollData.getType().equals(RollbackData.Type.DRIVER)
+                ? new WildcardFileFilter("*" + rollData.getName() + "*.jar")
+                : new NameFileFilter(rollData.getName());
 
-        List<File> list = (List<File>) FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
+        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
 
         // One more search for driver jar. Other types of rollbackData just return list.
         if(rollData.getType().equals(RollbackData.Type.DRIVER)) {
