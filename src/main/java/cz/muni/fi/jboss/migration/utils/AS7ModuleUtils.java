@@ -19,6 +19,7 @@ public class AS7ModuleUtils {
      * Setting module for different databases.
      *
      * @return string containing generate module name
+     * @deprecated TODO: Refactor & reuse cz.muni.fi.jboss.migration.migrators.dataSources.Util.deriveAndSetDriverName().
      */
     public static String createDriverModule(String driverName) {
         String module = "migration.jdbc.drivers.";
