@@ -156,6 +156,7 @@ public class MigratorEngine {
         log.debug("loadAS5Data()");
         try {
             for (IMigrator mig : this.migrators) {
+                log.debug("    Scanning with " + mig.getClass().getSimpleName());
                 mig.loadAS5Data(this.ctx);
             }
         } catch (JAXBException e) {
@@ -171,6 +172,7 @@ public class MigratorEngine {
     public void apply() throws ApplyMigrationException {
         log.debug("apply()");
         for (IMigrator mig : this.migrators) {
+            log.debug("    Applying with " + mig.getClass().getSimpleName());
             mig.apply(this.ctx);
         }
         try {
@@ -198,6 +200,7 @@ public class MigratorEngine {
         log.debug("getDOMElements()");
         List<Node> elements = new LinkedList();
         for (IMigrator mig : this.migrators) {
+            log.debug("    From " + mig.getClass().getSimpleName());
             elements.addAll(mig.generateDomElements(this.ctx));
         }
         return elements;
@@ -214,6 +217,7 @@ public class MigratorEngine {
         log.debug("getCLIScripts()");
         List<String> scripts = new LinkedList();
         for (IMigrator mig : this.migrators) {
+            log.debug("    From " + mig.getClass().getSimpleName());
             scripts.addAll(mig.generateCliScripts(this.ctx));
         }
 
@@ -229,41 +233,44 @@ public class MigratorEngine {
     public void copyItems() throws CopyException {
         log.debug("copyItems()");
         
-        String targetPath = this.config.getGlobal().getAS7Config().getDir();
+        String targetServerDir = this.config.getGlobal().getAS7Config().getDir();
         File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
         File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 
-        for (RollbackData rollData : this.ctx.getRollbackData()) {
-            
-            if (rollData.getName() == null || rollData.getName().isEmpty()) {
-                throw new IllegalStateException("Rollback data name is not set.");
+        for (RollbackData copyItem : this.ctx.getRollbackData()) {
+            log.debug("    Processing copy item: " + copyItem);
+
+            if (copyItem.getName() == null || copyItem.getName().isEmpty()) {
+                throw new IllegalStateException("Rollback data name is not set for " + copyItem);
             }
 
-            Collection<File> files = Utils.searchForFile(rollData, as5ProfileDir);
+            Collection<File> files = Utils.searchForFile(copyItem, as5ProfileDir);
 
-            switch (rollData.getType()) {
-                case DRIVER: case LOGMODULE:{
+            switch( copyItem.getType() ) {
+                case DRIVER:
+                case LOGMODULE: {
                     // For now only expecting one jar for driver. Pick the first one.
-                    if (files.isEmpty()) {
-                        Collection<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
-                        RollbackUtils.setRollbackData(rollData, new ArrayList(altList), targetPath);
+                    if( files.isEmpty() ) {
+                        Collection<File> altList = Utils.searchForFile( copyItem, as5commonLibDir );
+                        RollbackUtils.setRollbackData( copyItem, new ArrayList( altList ), targetServerDir );
                     } else {
-                        RollbackUtils.setRollbackData(rollData, new ArrayList(files), targetPath);
+                        RollbackUtils.setRollbackData( copyItem, new ArrayList( files ), targetServerDir );
                     }
                 }
                 break;
                 case LOG:
-                    RollbackUtils.setRollbackData(rollData, files, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
                 case SECURITY:
-                    RollbackUtils.setRollbackData(rollData, files, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
                 case RESOURCE:
-                    RollbackUtils.setRollbackData(rollData, files, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
             }
         }// for each rollData
 
+        log.debug("  2nd phase.");
         try {
             final TransformerFactory tf = TransformerFactory.newInstance();
             final Transformer transformer = tf.newTransformer();
@@ -272,6 +279,7 @@ public class MigratorEngine {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
             for( RollbackData cp : this.ctx.getRollbackData() ) {
+                log.debug("    Processing copy item: " + cp);
                 
                 RollbackData.Type type = cp.getType();
                 if( type.equals(RollbackData.Type.DRIVER) || type.equals(RollbackData.Type.LOGMODULE) ) {
