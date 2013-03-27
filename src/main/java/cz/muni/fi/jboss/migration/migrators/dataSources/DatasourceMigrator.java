@@ -190,12 +190,12 @@ public class DatasourceMigrator extends AbstractMigrator {
                 if(driver.getDriverClass() != null){
                     //rollbackData.deriveDriverName(driver.getDriverClass());
                     Util.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
-                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
-                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
+                    rollbackData.setModule(Util.deriveDriverModuleName(driver.getDriverClass()));
+                    driver.setDriverModule(Util.deriveDriverModuleName(driver.getDriverClass()));
                 } else {
                     rollbackData.setName(driver.getXaDatasourceClass());
-                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
-                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
+                    rollbackData.setModule(Util.deriveDriverModuleName(driver.getXaDatasourceClass()));
+                    driver.setDriverModule(Util.deriveDriverModuleName(driver.getXaDatasourceClass()));
                 }
 
                 ctx.getRollbackData().add(rollbackData);
@@ -205,13 +205,17 @@ public class DatasourceMigrator extends AbstractMigrator {
                 nodeList.add(doc.getDocumentElement());
             }
 
-
-
             return nodeList;
         } catch (JAXBException e) {
             throw new NodeGenerationException(e);
         }
     }
+    
+    
+    
+    
+    
+    
 
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {

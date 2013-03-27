@@ -49,5 +49,46 @@ public class Util {
             rb.setName(StringUtils.substringBefore(temp, "."));
         }
     }
+    
+    
+    /**
+     * Setting module for different databases.
+     *
+     * @return string containing generate module name
+     * @deprecated TODO: Refactor & reuse cz.muni.fi.jboss.migration.migrators.dataSources.Util.deriveAndSetDriverName().
+     *                   (Or rather the other way around.)
+     */
+    public static String deriveDriverModuleName(String driverName) {
+        String module = "migration.jdbc.drivers.";
+        if (driverName.contains("mysql")) {
+            module = module + "mysql";
+        }
+        // Mssql
+        if (driverName.contains("microsoft")) {
+            module = module + "mssql";
+        }
+        if (driverName.contains("sybase")) {
+            module = module + "sybase";
+        }
+        if (driverName.contains("postgresql")) {
+            module = module + "postgresql";
+        }
+        if (driverName.contains("oracle")) {
+            module = module + "oracle";
+        }
+        if (driverName.contains("hsqldb")) {
+            module = module + "hsqldb";
+        }
+        if (driverName.contains("db2")) {
+            module = module + "db2";
+        }
+        if (driverName.contains("jtds")) {
+            module = module + "jtds";
+        }
+
+        return module;
+    }
+
+    
 
 }// class

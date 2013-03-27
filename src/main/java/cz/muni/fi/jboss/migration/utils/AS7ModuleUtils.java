@@ -15,43 +15,7 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class AS7ModuleUtils {
 
-    /**
-     * Setting module for different databases.
-     *
-     * @return string containing generate module name
-     * @deprecated TODO: Refactor & reuse cz.muni.fi.jboss.migration.migrators.dataSources.Util.deriveAndSetDriverName().
-     */
-    public static String createDriverModule(String driverName) {
-        String module = "migration.jdbc.drivers.";
-        if (driverName.contains("mysql")) {
-            module = module + "mysql";
-        }
-        // Mssql
-        if (driverName.contains("microsoft")) {
-            module = module + "mssql";
-        }
-        if (driverName.contains("sybase")) {
-            module = module + "sybase";
-        }
-        if (driverName.contains("postgresql")) {
-            module = module + "postgresql";
-        }
-        if (driverName.contains("oracle")) {
-            module = module + "oracle";
-        }
-        if (driverName.contains("hsqldb")) {
-            module = module + "hsqldb";
-        }
-        if (driverName.contains("db2")) {
-            module = module + "db2";
-        }
-        if (driverName.contains("jtds")) {
-            module = module + "jtds";
-        }
-
-        return module;
-    }
-
+    
     /**
      * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
      *
@@ -110,7 +74,7 @@ public class AS7ModuleUtils {
 
         return doc;
     }
-    
+
     
     /**
      * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
