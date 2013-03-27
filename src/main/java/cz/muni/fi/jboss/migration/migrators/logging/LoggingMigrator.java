@@ -268,8 +268,8 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             return list;
-
-        } catch (NodeGenerationException | JAXBException e) {
+        }
+        catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
