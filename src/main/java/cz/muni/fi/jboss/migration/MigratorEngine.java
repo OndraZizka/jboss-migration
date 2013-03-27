@@ -172,10 +172,12 @@ public class MigratorEngine {
             mig.apply(this.ctx);
         }
         try {
+            // TBC: Isn't Transformer for XSLT?
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAS7Config().getConfigFilePath()));
+            File targetConfigFile = new File(this.config.getGlobal().getAS7Config().getConfigFilePath());
+            StreamResult result = new StreamResult(targetConfigFile);
             DOMSource source = new DOMSource(this.ctx.getAS7ConfigXmlDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {
