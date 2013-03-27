@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
@@ -52,7 +53,7 @@ public class MigratorEngine {
     
     
 
-    public MigratorEngine( Configuration config, MigrationContext context ) {
+    public MigratorEngine( Configuration config, MigrationContext context ) throws InitMigratorsExceptions {
         this.config = config;
         this.ctx = context;
         this.init();
@@ -61,7 +62,7 @@ public class MigratorEngine {
     /**
      *  Initializes this Migrator, especially instantiates the IMigrators.
      */
-    private void init() {
+    private void init() throws InitMigratorsExceptions {
         
         // Find IMigrator implementations.
         List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
@@ -95,7 +96,7 @@ public class MigratorEngine {
             List<Class<? extends IMigrator>> migratorClasses,
             GlobalConfiguration globalConfig,
             MultiValueMap config
-        ) {
+        ) throws InitMigratorsExceptions {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
         List<Exception> exs  = new LinkedList<>();
@@ -119,6 +120,11 @@ public class MigratorEngine {
                 exs.add(ex);
             }
         }
+        
+        if( ! exs.isEmpty() ){
+            throw new InitMigratorsExceptions(exs);
+        }
+        
         return migs;
     }// createMigrators()
     
