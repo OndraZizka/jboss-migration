@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -30,8 +31,6 @@ import java.util.Set;
  * Migrator of security subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:42 AM
  */
 public class SecurityMigrator extends AbstractMigrator {
     
@@ -45,7 +44,7 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            File file = new File( getGlobalConfig().getAS5ConfDir(), "login-config.xml");
+            File file = new File( getGlobalConfig().getAS5Config().getConfDir(), "login-config.xml");
             if( ! file.canRead() ) {
                 throw new LoadMigrationException("Can't read: " + file.getAbsolutePath());
             }
@@ -54,7 +53,7 @@ public class SecurityMigrator extends AbstractMigrator {
             SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
 
             MigrationData mData = new MigrationData();
-            mData.getConfigFragment().addAll(securityAS5.getApplicationPolicies());
+            mData.getConfigFragments().addAll(securityAS5.getApplicationPolicies());
 
             ctx.getMigrationData().put(SecurityMigrator.class, mData);
         } catch (JAXBException e) {
@@ -65,7 +64,7 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -96,12 +95,12 @@ public class SecurityMigrator extends AbstractMigrator {
             List<Node> nodeList = new ArrayList();
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragment()) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
                 if (!(fragment instanceof ApplicationPolicyBean)) {
                     throw new NodeGenerationException("Object is not part of Security migration!");
                 }
 
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 secDomMarshaller.marshal(appPolicyMigration((ApplicationPolicyBean) fragment, ctx), doc);
                 nodeList.add(doc.getDocumentElement());
             }
@@ -233,9 +232,9 @@ public class SecurityMigrator extends AbstractMigrator {
                         }
                         moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-                        RollbackData rd = new RollbackData();
+                        FileTransferInfo rd = new FileTransferInfo();
                         rd.setName(value);
-                        rd.setType(RollbackData.Type.SECURITY);
+                        rd.setType(FileTransferInfo.Type.SECURITY);
                         ctx.getRollbackData().add(rd);
                     } else {
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());

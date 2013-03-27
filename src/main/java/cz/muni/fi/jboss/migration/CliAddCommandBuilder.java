@@ -7,8 +7,6 @@ import java.util.List;
  * Class for building Cli scripts using StringBuilder.
  *
  * @author Roman Jakubco
- *         Date: 2/2/13
- *         Time: 2:38 PM
  */
 public class CliAddCommandBuilder {
 

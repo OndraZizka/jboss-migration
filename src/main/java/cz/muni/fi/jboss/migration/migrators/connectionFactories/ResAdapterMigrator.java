@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -10,8 +11,6 @@ import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,14 +21,11 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -37,8 +33,6 @@ import java.util.Set;
  * Migrator of Resource-Adapter(Connection-Factories in AS5) subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:41 AM
  */
 
 public class ResAdapterMigrator extends AbstractMigrator {
@@ -53,37 +47,36 @@ public class ResAdapterMigrator extends AbstractMigrator {
         super(globalConfig, config);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
-            List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
             // Deployments AS 5 dir.
-            File dsFiles = getGlobalConfig().getAS5DeployDir();
-
-            if( ! dsFiles.canRead() ) {
+            File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
+            if( ! dsFiles.canRead() )
                 throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
-            }
+
             
             // -ds.xml files.
             //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
-            
             if( dsXmls.isEmpty() ) {
                 return;
             }
+
+            List<ConnectionFactoriesBean> connFactories = new LinkedList();
+            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             
             // For each -ds.xml
             for (File dsXml : dsXmls) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                Document doc = db.parse(dsXml);
+                Document doc = Utils.parseXmlToDoc( dsXml );
 
                 Element element = doc.getDocumentElement();
-
-                if (element.getTagName().equalsIgnoreCase("connection-factories")) {
+                if("connection-factories".equals( element.getTagName() )) {
                     ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(dsXml);
                     connFactories.add(conn);
                 }
@@ -93,25 +86,29 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             for (ConnectionFactoriesBean cf : connFactories) {
                 if(cf.getConnectionFactories() != null){
-                    migrData.getConfigFragment().addAll(cf.getConnectionFactories());
+                    migrData.getConfigFragments().addAll(cf.getConnectionFactories());
                 }
                 if(cf.getNoTxConnectionFactories() != null){
-                    migrData.getConfigFragment().addAll(cf.getNoTxConnectionFactories());
+                    migrData.getConfigFragments().addAll(cf.getNoTxConnectionFactories());
                 }
 
             }
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
 
-        } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
+        } catch (JAXBException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if( ! (subsystems.item(i) instanceof Element)) {
@@ -133,34 +130,38 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
-            JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapterBean.class);
-            List<Node> nodeList = new ArrayList();
+            JAXBContext resAdapCtx = JAXBContext.newInstance( ResourceAdapterBean.class );
+            List<Node> nodeList = new LinkedList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragment()) {
-                Document doc = ctx.getDocBuilder().newDocument();
-                if (fragment instanceof ConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
+            for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
+                if( fragment instanceof ConnectionFactoryAS5Bean ) {
+                    resAdapMarshaller.marshal( txConnFactoryMigration( (ConnectionFactoryAS5Bean) fragment ), doc );
+                    nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                if(fragment instanceof NoTxConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(noTxConnFactoryMigration((NoTxConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
+                if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
+                    resAdapMarshaller.marshal( noTxConnFactoryMigration( (NoTxConnectionFactoryAS5Bean) fragment ), doc );
+                    nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                throw new NodeGenerationException("Object is not part of resource-adapter" +
-                        "(connection-factories) migration!");
+                throw new NodeGenerationException( "Object is not part of resource-adapter"
+                        + "(connection-factories) migration!" );
             }
 
-            for(String rar : this.rars){
-                RollbackData rollbackData = new RollbackData();
-                rollbackData.setName(rar);
-                rollbackData.setType(RollbackData.Type.RESOURCE);
-                ctx.getRollbackData().add(rollbackData);
+            for( String rar : this.rars ) {
+                FileTransferInfo rollbackData = new FileTransferInfo();
+                rollbackData.setName( rar );
+                rollbackData.setType( FileTransferInfo.Type.RESOURCE );
+                ctx.getRollbackData().add( rollbackData );
             }
 
             return nodeList;
@@ -170,10 +171,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
-            List<String> list = new ArrayList();
+            List<String> list = new LinkedList();
             Unmarshaller resUnmarshaller = JAXBContext.newInstance(ResourceAdapterBean.class).createUnmarshaller();
 
             for (Node node : generateDomElements(ctx)) {
@@ -187,8 +192,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
     /**
-     * Method for migrating tx-connection-factory from AS5 to AS7
+     * Migrates a tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5 object representing tx-connection-factory
      * @return created resource-adapter
@@ -251,7 +257,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Method for migrating no-tx-connection-factory from AS5 to AS7
+     *  Migrates a no-tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5  object representing no-tx-connection-factory
      * @return created resource-adapter
@@ -310,7 +316,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
 
     /**
-     * Creating CLI script for adding Resource-Adapter
+     * Creates CLI script for adding Resource-Adapter
      *
      * @param resourceAdapter object of Resource-Adapter
      * @return string containing created CLI script
@@ -397,4 +403,5 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         return resultBuilder.toString();
     }
-}
+
+}// ResAdapterMigrator

@@ -8,8 +8,6 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing periodic-rotating-file-handler (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:21 PM
  */
 
 @XmlRootElement(name = "periodic-rotating-file-handler")

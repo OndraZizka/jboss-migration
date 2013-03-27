@@ -1,5 +1,8 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.DatasourceMigrator;
@@ -8,6 +11,7 @@ import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
+import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -30,14 +34,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import org.w3c.dom.Document;
 
+
 /**
- * Migrator is class, which represents all functions of the application.
+ *  Controls the core migration processes.
  *
- * @author Roman Jakubco
+ *  @author Roman Jakubco
  */
-public class Migrator {
+public class MigratorEngine {
     
-    private static final Logger log = LoggerFactory.getLogger(Migrator.class);
+    private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
     
 
     private Configuration config;
@@ -48,7 +53,7 @@ public class Migrator {
     
     
 
-    public Migrator( Configuration config, MigrationContext context ) {
+    public MigratorEngine( Configuration config, MigrationContext context ) throws InitMigratorsExceptions {
         this.config = config;
         this.ctx = context;
         this.init();
@@ -57,7 +62,7 @@ public class Migrator {
     /**
      *  Initializes this Migrator, especially instantiates the IMigrators.
      */
-    private void init() {
+    private void init() throws InitMigratorsExceptions {
         
         // Find IMigrator implementations.
         List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
@@ -91,7 +96,7 @@ public class Migrator {
             List<Class<? extends IMigrator>> migratorClasses,
             GlobalConfiguration globalConfig,
             MultiValueMap config
-        ) {
+        ) throws InitMigratorsExceptions {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
         List<Exception> exs  = new LinkedList<>();
@@ -115,11 +120,17 @@ public class Migrator {
                 exs.add(ex);
             }
         }
+        
+        if( ! exs.isEmpty() ){
+            throw new InitMigratorsExceptions(exs);
+        }
+        
         return migs;
     }// createMigrators()
     
+    
     /**
-     *  Find implementation of IMigrator.
+     *  Finds the implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
      */
     private static List<Class<? extends IMigrator>> findMigratorClasses() {
@@ -137,13 +148,15 @@ public class Migrator {
 
 
     /**
-     * Method which calls method for loading configuration data from AS5 on all migrators.
+     * Calls all migrators' callback for loading configuration data from the source server.
      *
      * @throws LoadMigrationException
      */
     public void loadAS5Data() throws LoadMigrationException {
+        log.debug("loadAS5Data()");
         try {
             for (IMigrator mig : this.migrators) {
+                log.debug("    Scanning with " + mig.getClass().getSimpleName());
                 mig.loadAS5Data(this.ctx);
             }
         } catch (JAXBException e) {
@@ -152,101 +165,115 @@ public class Migrator {
     }
 
     /**
-     * Method which calls method for applying migrated configuration on all migrators.
-     *
+     * Calls all migrators' callback for applying migrated configuration.
+     * 
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
     public void apply() throws ApplyMigrationException {
+        log.debug("apply()");
+        // Call the callbacks.
         for (IMigrator mig : this.migrators) {
+            log.debug("    Applying with " + mig.getClass().getSimpleName());
             mig.apply(this.ctx);
         }
+        // Put the resulting DOM to AS 7 config file.
+        // TODO: This could alternatively send CLI commands over Management API. MIGR-28.
         try {
+            // TODO: Isn't Transformer for XSLT? Use some normal XML output.
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            StreamResult result = new StreamResult(new File(this.config.getGlobal().getAs7ConfigFilePath()));
-            DOMSource source = new DOMSource(this.ctx.getStandaloneDoc());
+            File targetConfigFile = new File(this.config.getGlobal().getAS7Config().getConfigFilePath());
+            StreamResult result = new StreamResult(targetConfigFile);
+            DOMSource source = new DOMSource(this.ctx.getAS7ConfigXmlDoc());
             transformer.transform(source, result);
         } catch (TransformerException ex) {
             throw new ApplyMigrationException(ex);
         }
-
-
     }
 
+    
     /**
-     * Method which calls method for generating Dom Nodes on all migrators.
+     * Calls all migrators' callback for generating Dom Nodes.
      *
      * @return List containing all generated Nodes
      * @throws MigrationException if migrating of file or generating of nodes fails.
      */
     public List<Node> getDOMElements() throws MigrationException {
-        List<Node> elements = new ArrayList<>();
+        log.debug("getDOMElements()");
+        List<Node> elements = new LinkedList();
         for (IMigrator mig : this.migrators) {
+            log.debug("    From " + mig.getClass().getSimpleName());
             elements.addAll(mig.generateDomElements(this.ctx));
         }
-
         return elements;
     }
 
+    
     /**
-     * Method which calls method for generating Cli scripts on all migrators.
+     * Calls all migrators' callback for generating CLI scripts.
      *
      * @return List containing generated scripts from all migrated subsystems
      * @throws CliScriptException if creation of scripts fail
      */
     public List<String> getCLIScripts() throws CliScriptException {
-        List<String> scripts = new ArrayList<>();
+        log.debug("getCLIScripts()");
+        List<String> scripts = new LinkedList();
         for (IMigrator mig : this.migrators) {
+            log.debug("    From " + mig.getClass().getSimpleName());
             scripts.addAll(mig.generateCliScripts(this.ctx));
         }
 
         return scripts;
     }
 
+    
     /**
-     * Method for copying all necessary files for migration from AS5 to their place in AS7 home folder.
+     * Copies all necessary files for migration from AS5 to their place in the AS7 home folder.
      *
      * @throws CopyException if copying of files fails.
      */
     public void copyItems() throws CopyException {
+        log.debug("copyItems()");
         
-        String targetPath = this.config.getGlobal().getAS7Dir();
-        File as5ProfileDir = this.config.getGlobal().getAS5ProfileDir();
-        File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Dir(), "common", "lib");
+        String targetServerDir = this.config.getGlobal().getAS7Config().getDir();
+        File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
+        File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 
-        for (RollbackData rollData : this.ctx.getRollbackData()) {
-            
-            if (rollData.getName() == null || rollData.getName().isEmpty()) {
-                throw new IllegalStateException("Rollback data name is not set.");
+        for (FileTransferInfo copyItem : this.ctx.getRollbackData()) {
+            log.debug("    Processing copy item: " + copyItem);
+
+            if (copyItem.getName() == null || copyItem.getName().isEmpty()) {
+                throw new IllegalStateException("Rollback data name is not set for " + copyItem);
             }
 
-            List<File> list = Utils.searchForFile(rollData, as5ProfileDir);
+            Collection<File> files = Utils.searchForFile(copyItem, as5ProfileDir);
 
-            switch (rollData.getType()) {
-                case DRIVER: case LOGMODULE:{
+            switch( copyItem.getType() ) {
+                case DRIVER:
+                case LOGMODULE: {
                     // For now only expecting one jar for driver. Pick the first one.
-                    if (list.isEmpty()) {
-                        List<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
-                        Utils.setRollbackData(rollData, altList, targetPath);
+                    if( files.isEmpty() ) {
+                        Collection<File> altList = Utils.searchForFile( copyItem, as5commonLibDir );
+                        RollbackUtils.setRollbackData( copyItem, new ArrayList( altList ), targetServerDir );
                     } else {
-                        Utils.setRollbackData(rollData, list, targetPath);
+                        RollbackUtils.setRollbackData( copyItem, new ArrayList( files ), targetServerDir );
                     }
                 }
                 break;
                 case LOG:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
                 case SECURITY:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
                 case RESOURCE:
-                    Utils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
-
             }
-        }
+        }// for each rollData
 
+        log.debug("  2nd phase.");
         try {
             final TransformerFactory tf = TransformerFactory.newInstance();
             final Transformer transformer = tf.newTransformer();
@@ -254,10 +281,11 @@ public class Migrator {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for( RollbackData cp : this.ctx.getRollbackData() ) {
+            for( FileTransferInfo cp : this.ctx.getRollbackData() ) {
+                log.debug("    Processing copy item: " + cp);
                 
-                RollbackData.Type type = cp.getType();
-                if( type.equals(RollbackData.Type.DRIVER) || type.equals(RollbackData.Type.LOGMODULE) ) {
+                FileTransferInfo.Type type = cp.getType();
+                if( type.equals(FileTransferInfo.Type.DRIVER) || type.equals(FileTransferInfo.Type.LOGMODULE) ) {
                     File directories = new File(cp.getTargetPath());
                     FileUtils.forceMkdir(directories);
                     File moduleXml = new File(directories.getAbsolutePath(), "module.xml");
@@ -265,8 +293,8 @@ public class Migrator {
                     if( ! moduleXml.createNewFile() )
                         throw new CopyException("File already exists: " + moduleXml.getPath());
                     
-                    Document doc = RollbackData.Type.DRIVER.equals(type)
-                            ? AS7ModuleUtils.createDriverModuleXML(cp)
+                    Document doc = FileTransferInfo.Type.DRIVER.equals(type)
+                            ? AS7ModuleUtils.createModuleXML(cp)
                             : AS7ModuleUtils.createLogModuleXML(cp);
                     
                     transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
@@ -277,5 +305,7 @@ public class Migrator {
         } catch (IOException | ParserConfigurationException | TransformerException e) {
             throw new CopyException(e);
         }
-    }
-}
+    }// copyItems()
+
+
+}// class

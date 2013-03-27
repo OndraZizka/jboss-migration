@@ -12,8 +12,6 @@ import java.util.List;
  * Class for unmarshalling and representing local-tx-datasource (AS5)
  *
  * @author Roman Jakubco
- *         Date: 8/26/12
- *         Time: 2:17 PM
  */
 
 @XmlRootElement(name = "local-tx-datasource")

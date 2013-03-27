@@ -11,8 +11,6 @@ import java.util.Set;
 
 /**
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 3:38 PM
  */
 
 @XmlRootElement(name = "root")

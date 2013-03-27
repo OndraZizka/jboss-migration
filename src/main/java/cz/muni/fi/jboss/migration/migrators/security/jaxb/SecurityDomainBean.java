@@ -9,8 +9,6 @@ import java.util.Set;
  * Class for marshalling and representing security-domain (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 9:04 PM
  */
 
 @XmlRootElement(name = "security-domain")

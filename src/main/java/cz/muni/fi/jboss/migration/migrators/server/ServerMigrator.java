@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -29,8 +30,6 @@ import java.util.Set;
  * Migrator of server subsystem implementing IMigrator.
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:42 AM
  */
 
 public class ServerMigrator extends AbstractMigrator {
@@ -55,8 +54,8 @@ public class ServerMigrator extends AbstractMigrator {
         
         // TBC: Maybe use FileUtils and list all files with that name?
         File file = Utils.createPath(
-                super.getGlobalConfig().getAS5Dir(), "server",
-                super.getGlobalConfig().getAS5ProfileName(), "deploy",
+                super.getGlobalConfig().getAS5Config().getDir(), "server",
+                super.getGlobalConfig().getAS5Config().getProfileName(), "deploy",
                 "jbossweb.sar", "server.xml");
         
         if( ! file.canRead() )
@@ -69,8 +68,8 @@ public class ServerMigrator extends AbstractMigrator {
 
             MigrationData mData = new MigrationData();
             for (ServiceBean s : serverAS5.getServices()) {
-                mData.getConfigFragment().add(s.getEngine());
-                mData.getConfigFragment().addAll(s.getConnectorAS5s());
+                mData.getConfigFragments().add(s.getEngine());
+                mData.getConfigFragments().addAll(s.getConnectorAS5s());
             }
 
             ctx.getMigrationData().put(ServerMigrator.class, mData);
@@ -83,7 +82,7 @@ public class ServerMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -148,8 +147,8 @@ public class ServerMigrator extends AbstractMigrator {
             Marshaller virSerMarshaller = virSerCtx.createMarshaller();
             Marshaller socketMarshaller = socketCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragment()) {
-                Document doc = ctx.getDocBuilder().newDocument();
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 if (fragment instanceof ConnectorAS5Bean) {
                     connMarshaller.marshal(connectorMigration((ConnectorAS5Bean) fragment, ctx), doc);
                     nodeList.add(doc.getDocumentElement());
@@ -165,7 +164,7 @@ public class ServerMigrator extends AbstractMigrator {
             }
 
             for (SocketBindingBean sb : this.socketBindings) {
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 socketMarshaller.marshal(sb, doc);
                 nodeList.add(doc.getDocumentElement());
             }
@@ -310,7 +309,7 @@ public class ServerMigrator extends AbstractMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
             // Or maybe use FileUtils and list all files with that name?
-            NodeList bindings = ctx.getStandaloneDoc().getElementsByTagName("socket-binding");
+            NodeList bindings = ctx.getAS7ConfigXmlDoc().getElementsByTagName("socket-binding");
             for (int i = 0; i < bindings.getLength(); i++) {
                 if (!(bindings.item(i) instanceof Element)) {
                     continue;

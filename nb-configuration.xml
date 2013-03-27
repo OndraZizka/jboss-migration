@@ -8,5 +8,8 @@ Without this configuration present, some functionality in the IDE may be limited
 -->
     <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
         <word>config</word>
+        <word>Migrators</word>
+        <word>plugin</word>
+        <word>plugins</word>
     </spellchecker-wordlist>
 </project-shared-configuration>

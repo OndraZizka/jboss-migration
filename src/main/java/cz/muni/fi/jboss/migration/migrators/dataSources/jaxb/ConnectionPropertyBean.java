@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing connection-property (AS5, AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 8:59 PM
  */
 
 @XmlRootElement(name = "connection-property")

@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
@@ -32,8 +33,6 @@ import java.util.Set;
  * Migrator of logging subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:42 AM
  */
 public class LoggingMigrator extends AbstractMigrator {
     
@@ -49,8 +48,8 @@ public class LoggingMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
             File log4jConfFile = Utils.createPath( 
-                    super.getGlobalConfig().getAS5Dir(),  "server",  
-                    super.getGlobalConfig().getAS5ProfileName(),
+                    super.getGlobalConfig().getAS5Config().getDir(),  "server",  
+                    super.getGlobalConfig().getAS5Config().getProfileName(),
                     "conf", "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -69,15 +68,15 @@ public class LoggingMigrator extends AbstractMigrator {
             MigrationData mData = new MigrationData();
 
             if(loggingAS5.getCategories() != null){
-                mData.getConfigFragment().addAll(loggingAS5.getCategories());
+                mData.getConfigFragments().addAll(loggingAS5.getCategories());
             }
 
             if(loggingAS5.getLoggers() != null){
-                mData.getConfigFragment().addAll(loggingAS5.getLoggers());
+                mData.getConfigFragments().addAll(loggingAS5.getLoggers());
             }
 
-            mData.getConfigFragment().addAll(loggingAS5.getAppenders());
-            mData.getConfigFragment().add(loggingAS5.getRootLoggerAS5());
+            mData.getConfigFragments().addAll(loggingAS5.getAppenders());
+            mData.getConfigFragments().add(loggingAS5.getRootLoggerAS5());
 
             ctx.getMigrationData().put(LoggingMigrator.class, mData);
 
@@ -89,7 +88,7 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -153,8 +152,8 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller sizeHandMarshaller = sizeHandlerCtx.createMarshaller();
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragment()) {
-                Document doc = ctx.getDocBuilder().newDocument();
+            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments()) {
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof AppenderBean) {
                     AppenderBean appender = (AppenderBean) fragment;
@@ -303,9 +302,9 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                RollbackData rollbackData = new RollbackData();
+                FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType(RollbackData.Type.LOG);
+                rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -348,9 +347,9 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
-                RollbackData rollbackData = new RollbackData();
+                FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType(RollbackData.Type.LOG);
+                rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
             }
 
@@ -453,20 +452,20 @@ public class LoggingMigrator extends AbstractMigrator {
         }
         else {
             // Jar file containing class from appender must be found and set to RollbackData.
-            RollbackData rollbackData = new RollbackData();
+            FileTransferInfo rollbackData = new FileTransferInfo();
             try {
                 String name = Utils.findJarFileWithClass(
                         appender.getAppenderClass(),
-                        getGlobalConfig().getAS5Dir(),
-                        getGlobalConfig().getAS5ProfileName());
+                        getGlobalConfig().getAS5Config().getDir(),
+                        getGlobalConfig().getAS5Config().getProfileName());
 
                 rollbackData.setName(name);
-                rollbackData.setType(RollbackData.Type.LOGMODULE);
+                rollbackData.setType(FileTransferInfo.Type.LOGMODULE);
 
                 // Setting of module for logging. Each jar module path migration.logging.<jar-name>
                 String module = "migration.logging." + StringUtils.substringBefore(name, ".");
                 handler.setModule(module);
-                rollbackData.setModule(module);
+                rollbackData.setModuleName(module);
 
                 ctx.getRollbackData().add(rollbackData);
             }

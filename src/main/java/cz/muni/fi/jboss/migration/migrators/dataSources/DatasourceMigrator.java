@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -7,7 +8,6 @@ import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -23,9 +23,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +35,6 @@ import java.util.Set;
  * Migrator of Datasource subsystem implementing IMigrator
  *
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 10:41 AM
  */
 
 public class DatasourceMigrator extends AbstractMigrator {
@@ -66,29 +61,27 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
-            List<DatasourcesBean> dsColl = new ArrayList();
 
-            File dsFiles = getGlobalConfig().getAS5DeployDir();
+            // Get a list of -ds.xml files.
+            File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
             if( ! dsFiles.canRead() )
                 throw new LoadMigrationException("Can't read: " + dsFiles);
             
             SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-
             if( dsXmls.isEmpty() ) {
                 return;
             }
 
-            for( File file : dsXmls ) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                Document doc = db.parse(file);
+            List<DatasourcesBean> dsColl = new ArrayList();
+            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
+            
+            for( File dsXml : dsXmls ) {
+                Document doc = Utils.parseXmlToDoc( dsXml );
 
                 Element element = doc.getDocumentElement();
-
-                if (element.getTagName().equals(ROOT_ELEMENT_NAME)) {
-                    DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(file);
+                if( ROOT_ELEMENT_NAME.equals( element.getTagName() )){
+                    DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(dsXml);
                     dsColl.add(dataSources);
                 }
             }
@@ -97,23 +90,23 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             for (DatasourcesBean ds : dsColl) {
                 if (ds.getLocalDatasourceAS5s() != null) {
-                    mData.getConfigFragment().addAll(ds.getLocalDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getLocalDatasourceAS5s());
                 }
 
                 if (ds.getXaDatasourceAS5s() != null) {
-                    mData.getConfigFragment().addAll(ds.getXaDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getXaDatasourceAS5s());
                 }
 
                 if(ds.getNoTxDatasourceAS5s() !=null){
-                    mData.getConfigFragment().addAll(ds.getNoTxDatasourceAS5s());
+                    mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
                 }
 
             }
 
             ctx.getMigrationData().put(DatasourceMigrator.class, mData);
 
-        } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
-            throw new LoadMigrationException(e);
+        } catch (JAXBException | SAXException | IOException ex) {
+            throw new LoadMigrationException(ex);
         }
 
     }
@@ -121,7 +114,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
-            Document doc = ctx.getStandaloneDoc();
+            Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
                 if (!(subsystems.item(i) instanceof Element)) {
@@ -166,8 +159,8 @@ public class DatasourceMigrator extends AbstractMigrator {
             Marshaller xaDataMarshaller = JAXBContext.newInstance(XaDatasourceAS7Bean.class).createMarshaller();
             Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragment()) {
-                Document doc = ctx.getDocBuilder().newDocument();
+            for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof DatasourceAS5Bean) {
                     dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean) fragment), doc);
@@ -189,33 +182,38 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
 
             for (DriverBean driver : this.drivers) {
-                RollbackData rollbackData = new RollbackData();
-                rollbackData.setType(RollbackData.Type.DRIVER);
+                FileTransferInfo rollbackData = new FileTransferInfo();
+                rollbackData.setType(FileTransferInfo.Type.DRIVER);
 
                 if(driver.getDriverClass() != null){
-                    rollbackData.setDriverName(driver.getDriverClass());
-                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
-                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getDriverClass()));
+                    //rollbackData.deriveDriverName(driver.getDriverClass());
+                    DatasourceUtils.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
+                    rollbackData.setModuleName(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
+                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
                 } else {
                     rollbackData.setName(driver.getXaDatasourceClass());
-                    rollbackData.setModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
-                    driver.setDriverModule(AS7ModuleUtils.createDriverModule(driver.getXaDatasourceClass()));
+                    rollbackData.setModuleName(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
+                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
                 }
 
                 ctx.getRollbackData().add(rollbackData);
 
-                Document doc = ctx.getDocBuilder().newDocument();
+                Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
                 nodeList.add(doc.getDocumentElement());
             }
-
-
 
             return nodeList;
         } catch (JAXBException e) {
             throw new NodeGenerationException(e);
         }
-    }
+    }// generateDomElements()
+    
+    
+    
+    
+    
+    
 
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
@@ -247,7 +245,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
-    }
+    }// generateCliScripts()
+    
 
     /**
      * Method for migrating no-tx-datasource from AS5 to AS7
@@ -334,7 +333,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-    }
+    }// noTxDatasourceMigration()
+    
 
     /**
      * Method for migrating local-tx-datasource from AS5 to AS7
@@ -418,7 +418,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-    }
+        
+    }// datasourceMigration()
+    
 
     /**
      * Method for migrating XaDatasource from AS5 to AS7
@@ -500,8 +502,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return xaDataAS7;
-    }
+        
+    }// xaDatasourceMigration()
 
+    
     /**
      * Creating CLI script for adding Datasource. Old format of script.
      *
@@ -562,6 +566,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
+    
     /**
      * Creating CLI script for adding XaDatsource. Old format of script.
      *
@@ -796,4 +801,5 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return resultScript.toString();
     }
-}
+    
+}// class

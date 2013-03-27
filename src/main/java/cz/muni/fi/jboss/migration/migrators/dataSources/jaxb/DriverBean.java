@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing driver (AS7)
  *
  * @author Roman Jakubco
- *         Date: 10/2/12
- *         Time: 10:28 PM
  */
 
 @XmlRootElement(name = "driver")

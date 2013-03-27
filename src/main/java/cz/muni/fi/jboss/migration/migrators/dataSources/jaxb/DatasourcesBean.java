@@ -10,8 +10,6 @@ import java.util.Set;
  * Class for unmarshalling and representing datasources (AS5)
  *
  * @author Roman Jakubco
- *         Date: 8/26/12
- *         Time: 1:12 PM
  */
 
 @XmlRootElement(name = "datasources")

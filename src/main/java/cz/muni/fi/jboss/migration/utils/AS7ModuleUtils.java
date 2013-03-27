@@ -1,6 +1,6 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.RollbackData;
+import cz.muni.fi.jboss.migration.FileTransferInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -12,47 +12,10 @@ import javax.xml.parsers.ParserConfigurationException;
  * Util class for generation of module for driver and module.xml which is required in migration.
  *
  * @author Roman Jakubco
- *         Date: 2/2/13
- *         Time: 1:08 PM
  */
 public class AS7ModuleUtils {
 
-    /**
-     * Setting module for different databases.
-     *
-     * @return string containing generate module name
-     */
-    public static String createDriverModule(String driverName) {
-        String module = "migration.jdbc.drivers.";
-        if (driverName.contains("mysql")) {
-            module = module + "mysql";
-        }
-        // Mssql
-        if (driverName.contains("microsoft")) {
-            module = module + "mssql";
-        }
-        if (driverName.contains("sybase")) {
-            module = module + "sybase";
-        }
-        if (driverName.contains("postgresql")) {
-            module = module + "postgresql";
-        }
-        if (driverName.contains("oracle")) {
-            module = module + "oracle";
-        }
-        if (driverName.contains("hsqldb")) {
-            module = module + "hsqldb";
-        }
-        if (driverName.contains("db2")) {
-            module = module + "db2";
-        }
-        if (driverName.contains("jtds")) {
-            module = module + "jtds";
-        }
-
-        return module;
-    }
-
+    
     /**
      * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
      *
@@ -61,10 +24,10 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createDriverModuleXML(RollbackData data) throws ParserConfigurationException {
+    public static Document createModuleXML(FileTransferInfo data) throws ParserConfigurationException {
 
         /**
-         * module.xml for jdb driver module
+         * module.xml for JDBC driver module
          *
          * Example of module xml,
          *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
@@ -79,17 +42,13 @@ public class AS7ModuleUtils {
          *       </dependencies>
          *  </module>
          */
-        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-        domFactory.setIgnoringComments(true);
-        DocumentBuilder builder = domFactory.newDocumentBuilder();
-
-        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        Document doc = createDoc();
 
         Element root = doc.createElement("module");
         doc.appendChild(root);
 
         root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("module", data.getModule());
+        root.setAttribute("module", data.getModuleName());
 
         Element resources = doc.createElement("resources");
         root.appendChild(resources);
@@ -116,6 +75,7 @@ public class AS7ModuleUtils {
         return doc;
     }
 
+    
     /**
      * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
      *
@@ -124,18 +84,15 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createLogModuleXML(RollbackData data) throws ParserConfigurationException{
-        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-        domFactory.setIgnoringComments(true);
-        DocumentBuilder builder = domFactory.newDocumentBuilder();
-
-        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+    public static Document createLogModuleXML(FileTransferInfo data) throws ParserConfigurationException{
+        
+        Document doc = createDoc();
 
         Element root = doc.createElement("module");
         doc.appendChild(root);
 
         root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("module", data.getModule());
+        root.setAttribute("module", data.getModuleName());
 
         Element resources = doc.createElement("resources");
         root.appendChild(resources);
@@ -164,5 +121,14 @@ public class AS7ModuleUtils {
         return doc;
     }
 
+    
+    private static Document createDoc() throws ParserConfigurationException {
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        return doc;
+    }
     
 }

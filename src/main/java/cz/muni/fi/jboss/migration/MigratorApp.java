@@ -1,7 +1,10 @@
 package cz.muni.fi.jboss.migration;
 
-import cz.muni.fi.jboss.migration.Configuration.ModuleSpecificProperty;
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.conf.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -10,14 +13,16 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+
 
 /**
- * Main class of the application
+ * Main class of the application.
+ * Contains app-specific code, like arguments parsing, instantiating the Migrator etc.
  *
  * @author Roman Jakubco
  */
@@ -84,22 +89,22 @@ public class MigratorApp {
                 return null;
             }
             if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
-                globalConfig.setAS5Dir(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS5Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
-                globalConfig.setAS7Dir(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as5.profile=") ) {
-                globalConfig.setAS5ProfileName(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS5Config().setProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
             if( arg.startsWith("--as7.confPath=") ) {
-                globalConfig.setAS7ConfigPath(StringUtils.substringAfter(arg, "="));
+                globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -127,16 +132,6 @@ public class MigratorApp {
                     value = propName.substring(pos+1);
                     propName = propName.substring(0, pos);
                 }
-                
-                /*// Let all migrator instances process the property.
-                int pickedUp = 0;
-                for( IMigrator mig : migrators.values() ){
-                    pickedUp += mig.examineConfigProperty(module, property, value);
-                }
-                if( pickedUp == 0 )
-                    System.err.println("Warning: No module recognized the argument: " + arg + " !");
-                */
-                // TODO: Move this to Migrator{}.
                 
                 moduleConfigs.add( new ModuleSpecificProperty(module, propName, value));
             }
@@ -175,34 +170,37 @@ public class MigratorApp {
         LinkedList<String> problems = new LinkedList<>();
         
         // AS 5
-        String path = config.getGlobal().getAS5Dir();
+        String path = config.getGlobal().getAS5Config().getDir();
         if( null == path )
             problems.add("as5.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as5.dir is not a directory: " + path);
         else {
-            String profileName = config.getGlobal().getAS5ProfileName();
+            String profileName = config.getGlobal().getAS5Config().getProfileName();
             if( null == profileName )
                 ;
             else {
-                File profileDir = new File(path, GlobalConfiguration.AS5_PROFILES_DIR + profileName);
+                File profileDir = config.getGlobal().getAS5Config().getProfileDir();
                 if( ! profileDir.exists() )
-                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + path);
+                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
             }
         }
         
         // AS 7
-        path = config.getGlobal().getAS7Dir();
+        path = config.getGlobal().getAS7Config().getDir();
         if( null == path )
             problems.add("as7.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as7.dir is not a directory: " + path);
         else {
-            String configPath = config.getGlobal().getAs7ConfigFilePath();
+            String configPath = config.getGlobal().getAS7Config().getConfigFilePath();
             if( null == configPath )
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
-            else if( ! new File(path, configPath).exists() )
-                problems.add("as7.confPath is not a subpath under AS 5 dir: " + path);
+            else{
+                File configFile = new File(path, configPath);
+                if( ! configFile.exists() )
+                problems.add("as7.confPath is not a subpath under AS 5 dir: " + configFile.getPath());
+            }
         }
         
         // App (deployment)
@@ -222,33 +220,37 @@ public class MigratorApp {
      */
     private static void migrate( Configuration conf ) throws MigrationException {
         
-        Migrator migrator;
         MigrationContext ctx = new MigrationContext();
-        Document nonAlteredStandalone;
 
         log.info("Commencing migration.");
         
-        File as7configFile = new File(conf.getGlobal().getAs7ConfigFilePath());
+        File as7configFile = new File(conf.getGlobal().getAS7Config().getConfigFilePath());
+        // Parse AS 7 config.
         try {
-            ctx.createBuilder();
-
-            Document doc = ctx.getDocBuilder().parse(as7configFile);
-            nonAlteredStandalone = ctx.getDocBuilder().parse(as7configFile);
-            ctx.setStandaloneDoc(doc);
-
-            // Create Migrator // TODO: Move above try{}.
-            migrator = new Migrator(conf, ctx);
-
+            DocumentBuilder db = Utils.createXmlDocumentBuilder();
+            Document doc = db.parse(as7configFile);
+            ctx.setAS7ConfigXmlDoc(doc);
+            // TODO: Do backup at file level, instead of parsing and writing back.
+            doc = db.parse(as7configFile);
+            ctx.setAs7ConfigXmlDocOriginal(doc);
+        } 
+        catch ( SAXException | IOException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
+        }
+        // Create Migrator & load AS 5 data.
+        MigratorEngine migrator = new MigratorEngine(conf, ctx);
+        try {
             migrator.loadAS5Data();
         } 
-        catch (ParserConfigurationException | LoadMigrationException | SAXException | IOException e) {
-            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, e);
+        catch ( LoadMigrationException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
         }
 
+        
         try {
-            migrator.getDOMElements();
+            migrator.getDOMElements(); // ??? Ignores the results?
         }
-        catch (MigrationException e) {
+        catch( MigrationException e ) {
             throw new MigrationException(e);
         }
 
@@ -259,7 +261,7 @@ public class MigratorApp {
             }
             log.info( sb.toString() );
         } 
-        catch (CliScriptException ex) {
+        catch( CliScriptException ex ) {
             throw ex;
         }
 
@@ -268,10 +270,10 @@ public class MigratorApp {
         }
         catch (CopyException ex) {
             // TODO: Move this procedure into some rollback() method.
-            Utils.removeData(ctx.getRollbackData());
+            RollbackUtils.removeData(ctx.getRollbackData());
             // TODO: Can't just blindly delete, we need to keep info if we really created it!
             // TODO: Create some dedicated module dir manager.
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
+            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
             throw new MigrationException(ex);
         }
 
@@ -279,13 +281,20 @@ public class MigratorApp {
             migrator.apply();
             log.info("");
             log.info("Migration was successful.");
-        } catch (ApplyMigrationException ex) {
-            // TODO: Rollback handling needs to be wrapped behind an abstract API.
-            //       Calls such like this have to be encapsulated in some RollbackManager.
-            Utils.cleanStandalone(nonAlteredStandalone, conf);
-            Utils.removeData(ctx.getRollbackData());
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Dir(), "modules", "jdbc"));
-            throw ex;
+        }
+        catch( Throwable ex ) {
+            log.error("Applying the results to the target server failed: " + ex.toString(), ex);
+            log.error("Rolling back the changes.");
+            
+            try {
+                // TODO: MIGR-24: Rollback handling needs to be wrapped behind an abstract API.
+                //                Calls such like this have to be encapsulated in some RollbackManager.
+                RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), conf);
+                RollbackUtils.removeData(ctx.getRollbackData());
+                FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+            } catch( Throwable ex2 ){
+                log.error("Rollback failed: " + ex.toString(), ex2);
+            }
         }
         
     }// migrate()

@@ -10,8 +10,6 @@ import java.util.Set;
 
 /**
  * @author Roman Jakubco
- *         Date: 1/24/13
- *         Time: 6:21 PM
  */
 
 @XmlRootElement(name = "Engine")

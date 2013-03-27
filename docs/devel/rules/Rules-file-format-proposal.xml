@@ -1,0 +1,30 @@
+<?xml version="1.0">
+<migration>
+    <!-- Expected properties, possibly with default values. Like in Ant or XSLT. -->
+    <properties>
+        <property name="as5.profile.conf.dir">
+        ...
+    </properties>
+    <rules>
+        <!-- Groups for performing only some set of rules. -->
+        <rule name="fooRule" groups="foo bar">
+            <!-- Extracts data from a xml file. -->
+            <xmlFile path="${as5.profile.conf.dir}/foo.xml" into="foo.bar.name">
+                <!-- Defines the data to extract, through XPath -->
+                <piece srcXpath="/root/foo/bar/@name"/>
+                </piece>
+            </xmlFileRule>
+            <propertiesFile>
+                ...
+            </propertiesFile>
+            <!-- What cli command to perform, based on results of previous. -->
+            <cliCommand>
+                /subsystem=security/security-domain=jmx-console:add(cache-type=${foo.bar.name})
+            </cliCommand>
+            <!-- Additional actions to perform, e.g. create a module. -->
+            <createModule name="com.oracle.jdbc">
+                <jar source="http://www.oracle.com/jdbc/driver.jar">
+            </createModule>
+        </rule>
+    </rules>
+</migration>
