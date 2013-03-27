@@ -1,0 +1,17 @@
+<?xml version="1.0">
+<migration>
+    <rules>
+        <rule name="fooRule" groups="foo bar">
+            <xmlFile path="${as5.dir}/server/${as5.profile}/conf/foo.xml">
+                 <piece srcXpath="/root/foo/bar/@name">
+                 </piece>
+            </xmlFileRule>
+            <cliCommand>
+                /subsystem=security/security-domain=jmx-console:add(cache-type=default)
+            </cliCommand>
+            <createModule name="com.oracle.jdbc">
+                <jar source="http://www.oracle.com/jdbc/driver.jar">
+            </createModule>
+        </rule>
+    </rules>
+</migration>
