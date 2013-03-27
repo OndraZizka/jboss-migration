@@ -1,10 +1,9 @@
 package cz.muni.fi.jboss.migration.spi;
 
 /**
- * Helping interface for storing all objects loaded from AS5
+ *  Marker interface for classes of information loaded from source server config.
  *
- * @author Roman Jakubco
+ *  @author Roman Jakubco
  */
-
 public interface IConfigFragment {
 }
