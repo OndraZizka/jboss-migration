@@ -234,27 +234,27 @@ public class MigratorEngine {
                 throw new IllegalStateException("Rollback data name is not set.");
             }
 
-            List<File> list = Utils.searchForFile(rollData, as5ProfileDir);
+            Collection<File> files = Utils.searchForFile(rollData, as5ProfileDir);
 
             switch (rollData.getType()) {
                 case DRIVER: case LOGMODULE:{
                     // For now only expecting one jar for driver. Pick the first one.
-                    if (list.isEmpty()) {
-                        List<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
-                        RollbackUtils.setRollbackData(rollData, altList, targetPath);
+                    if (files.isEmpty()) {
+                        Collection<File> altList = Utils.searchForFile(rollData, as5commonLibDir);
+                        RollbackUtils.setRollbackData(rollData, new ArrayList(altList), targetPath);
                     } else {
-                        RollbackUtils.setRollbackData(rollData, list, targetPath);
+                        RollbackUtils.setRollbackData(rollData, new ArrayList(files), targetPath);
                     }
                 }
                 break;
                 case LOG:
-                    RollbackUtils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, files, targetPath);
                     break;
                 case SECURITY:
-                    RollbackUtils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, files, targetPath);
                     break;
                 case RESOURCE:
-                    RollbackUtils.setRollbackData(rollData, list, targetPath);
+                    RollbackUtils.setRollbackData(rollData, files, targetPath);
                     break;
             }
         }// for each rollData
