@@ -96,8 +96,8 @@ public class SecurityMigrator extends AbstractMigrator {
             Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
 
             for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
-                if (!(fragment instanceof ApplicationPolicyBean)) {
-                    throw new NodeGenerationException("Object is not part of Security migration!");
+                if( ! (fragment instanceof ApplicationPolicyBean) ) {
+                    throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
                 }
 
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();

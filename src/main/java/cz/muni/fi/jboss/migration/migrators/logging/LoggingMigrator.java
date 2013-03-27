@@ -211,7 +211,7 @@ public class LoggingMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                throw new NodeGenerationException("Object is not part of Logging migration!");
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
             return nodeList;

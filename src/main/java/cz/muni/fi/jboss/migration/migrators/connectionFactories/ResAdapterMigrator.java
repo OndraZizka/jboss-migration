@@ -95,7 +95,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 if(cf.getNoTxConnectionFactories() != null){
                     migrData.getConfigFragments().addAll(cf.getNoTxConnectionFactories());
                 }
-
             }
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
@@ -157,8 +156,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                throw new NodeGenerationException( "Object is not part of resource-adapter"
-                        + "(connection-factories) migration!" );
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
             for( String rar : this.rars ) {

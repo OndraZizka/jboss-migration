@@ -182,10 +182,11 @@ public class DatasourceMigrator extends AbstractMigrator {
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-
-                throw new NodeGenerationException("Object is not part of Datasource migration!");
+                
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
+            
             for (DriverBean driver : this.drivers) {
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setType(FileTransferInfo.Type.DRIVER);
