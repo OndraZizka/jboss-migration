@@ -10,17 +10,14 @@ import java.util.List;
  *
  * @author Roman Jakubco
  */
-
 public class MigrationData {
 
     List<IConfigFragment> configFragment = new ArrayList();
 
-    public List<IConfigFragment> getConfigFragments() {
-        return configFragment;
-    }
-
-    public void setConfigFragment(List<IConfigFragment> configFragment) {
-        this.configFragment = configFragment;
-    }
-
-}
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public List<IConfigFragment> getConfigFragments() { return configFragment; }
+    public void setConfigFragment(List<IConfigFragment> configFragment) { this.configFragment = configFragment; }
+    //</editor-fold>
+    
+}// class
