@@ -300,10 +300,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
+                /* We really don't want to migrate logs.
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
+                */
             }
 
             if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -345,10 +347,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
+                /* We really don't want to migrate logs.
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
+                */
             }
 
             if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
