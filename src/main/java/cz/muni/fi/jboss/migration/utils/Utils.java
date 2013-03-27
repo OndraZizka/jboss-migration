@@ -21,7 +21,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 /**
- * Utils class containing helping classes
+ * Global utils class.
  *
  * @author Roman Jakubco
  */
@@ -105,9 +105,7 @@ public class Utils {
         Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
 
         for( File file : list ) {
-            JarFile jarFile = null;
-            try {
-                jarFile = new JarFile(file);
+            try (JarFile jarFile = new JarFile(file)) {
                 final Enumeration<JarEntry> entries = jarFile.entries();
                 while (entries.hasMoreElements()) {
                     final JarEntry entry = entries.nextElement();
@@ -118,7 +116,7 @@ public class Utils {
                         return file;
                     }
                 }
-            } finally { if(jarFile != null) jarFile.close(); }
+            }
         }
         return null;
     }
