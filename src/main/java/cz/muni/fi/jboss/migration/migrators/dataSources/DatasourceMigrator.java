@@ -209,7 +209,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         } catch (JAXBException e) {
             throw new NodeGenerationException(e);
         }
-    }
+    }// generateDomElements()
     
     
     
@@ -247,7 +247,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
-    }
+    }// generateCliScripts()
+    
 
     /**
      * Method for migrating no-tx-datasource from AS5 to AS7
@@ -334,7 +335,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-    }
+    }// noTxDatasourceMigration()
+    
 
     /**
      * Method for migrating local-tx-datasource from AS5 to AS7
@@ -418,7 +420,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-    }
+        
+    }// datasourceMigration()
+    
 
     /**
      * Method for migrating XaDatasource from AS5 to AS7
@@ -500,8 +504,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return xaDataAS7;
-    }
+        
+    }// xaDatasourceMigration()
 
+    
     /**
      * Creating CLI script for adding Datasource. Old format of script.
      *
@@ -562,6 +568,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
+    
     /**
      * Creating CLI script for adding XaDatsource. Old format of script.
      *
@@ -796,4 +803,5 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return resultScript.toString();
     }
-}
+    
+}// class
