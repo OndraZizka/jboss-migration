@@ -28,25 +28,31 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Migrator of Resource-Adapter(Connection-Factories in AS5) subsystem implementing IMigrator
+ * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
  *
  * @author Roman Jakubco
  */
 
 public class ResAdapterMigrator extends AbstractMigrator {
+    private static final Logger log = LoggerFactory.getLogger(ResAdapterMigrator.class);
+    
+    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
 
+    
     private Set<String> rars = new HashSet<>();
 
-    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
-    
-    
 
     public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
 
+    
     /**
      * {@inheritDoc}
      */
@@ -61,12 +67,11 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             
             // -ds.xml files.
-            //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-            //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
-            if( dsXmls.isEmpty() ) {
+            SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.trueFileFilter());
+            log.debug("  Found -ds.xml files #: " + dsXmls.size());
+            if( dsXmls.isEmpty() )
                 return;
-            }
 
             List<ConnectionFactoriesBean> connFactories = new LinkedList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
@@ -91,7 +96,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 if(cf.getNoTxConnectionFactories() != null){
                     migrData.getConfigFragments().addAll(cf.getNoTxConnectionFactories());
                 }
-
             }
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
@@ -141,6 +145,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             List<Node> nodeList = new LinkedList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
+            // FIXME: NPE if there's no record in migration data.
             for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 if( fragment instanceof ConnectionFactoryAS5Bean ) {
@@ -153,8 +158,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
-                throw new NodeGenerationException( "Object is not part of resource-adapter"
-                        + "(connection-factories) migration!" );
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
             for( String rar : this.rars ) {

@@ -160,7 +160,7 @@ public class ServerMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                throw new NodeGenerationException("Object is not part of Server migration!");
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
             for (SocketBindingBean sb : this.socketBindings) {

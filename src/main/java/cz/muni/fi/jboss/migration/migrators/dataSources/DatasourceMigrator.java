@@ -6,6 +6,7 @@ import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -30,6 +31,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
@@ -38,6 +41,7 @@ import java.util.Set;
  */
 
 public class DatasourceMigrator extends AbstractMigrator {
+    private static final Logger log = LoggerFactory.getLogger(DatasourceMigrator.class);
     
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
 
@@ -68,10 +72,10 @@ public class DatasourceMigrator extends AbstractMigrator {
                 throw new LoadMigrationException("Can't read: " + dsFiles);
             
             SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
-            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-            if( dsXmls.isEmpty() ) {
+            Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.trueFileFilter());
+            log.debug("  Found -ds.xml files #: " + dsXmls.size());
+            if( dsXmls.isEmpty() )
                 return;
-            }
 
             List<DatasourcesBean> dsColl = new ArrayList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
@@ -97,7 +101,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     mData.getConfigFragments().addAll(ds.getXaDatasourceAS5s());
                 }
 
-                if(ds.getNoTxDatasourceAS5s() !=null){
+                if(ds.getNoTxDatasourceAS5s() != null){
                     mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
                 }
 
@@ -177,10 +181,11 @@ public class DatasourceMigrator extends AbstractMigrator {
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-
-                throw new NodeGenerationException("Object is not part of Datasource migration!");
+                
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
+            
             for (DriverBean driver : this.drivers) {
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setType(FileTransferInfo.Type.DRIVER);

@@ -24,8 +24,8 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -142,7 +142,7 @@ public class LoggingMigrator extends AbstractMigrator {
             JAXBContext consoleHandlerCtx = JAXBContext.newInstance(ConsoleHandlerBean.class);
             JAXBContext customHandlerCtx = JAXBContext.newInstance(CustomHandlerBean.class);
 
-            List<Node> nodeList = new ArrayList();
+            List<Node> nodeList = new LinkedList();
 
             Marshaller logMarshaller = loggerCtx.createMarshaller();
             Marshaller rootLogMarshaller = rootLogCtx.createMarshaller();
@@ -152,7 +152,8 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller sizeHandMarshaller = sizeHandlerCtx.createMarshaller();
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
-            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments()) {
+            // For each IConfigFragment...
+            for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof AppenderBean) {
@@ -211,7 +212,7 @@ public class LoggingMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                throw new NodeGenerationException("Object is not part of Logging migration!");
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
 
             return nodeList;
@@ -224,7 +225,7 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
-            List<String> list = new ArrayList();
+            List<String> scripts = new LinkedList();
 
             Unmarshaller logUnmarshaller = JAXBContext.newInstance(LoggerBean.class).createUnmarshaller();
             Unmarshaller rootUnmarshaller = JAXBContext.newInstance(RootLoggerAS7Bean.class).createUnmarshaller();
@@ -234,46 +235,43 @@ public class LoggingMigrator extends AbstractMigrator {
             Unmarshaller cusHandUnmarshaller = JAXBContext.newInstance(CustomHandlerBean.class).createUnmarshaller();
             Unmarshaller conHandUnmarshaller = JAXBContext.newInstance(ConsoleHandlerBean.class).createUnmarshaller();
 
-            for (Node node : generateDomElements(ctx)) {
-                if (node.getNodeName().equals("logger")) {
-                    LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal(node);
-                    list.add(createLoggerScript(log));
-                    continue;
-                }
-                if(node.getNodeName().equals("root-logger")){
-                    RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal(node);
-                    list.add(createRootLoggerScript(root));
-                    continue;
-                }
-                if (node.getNodeName().equals("size-rotating-handler")) {
-                    SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal(node);
-                    list.add(createSizeHandlerScript(sizeHandler));
-                    continue;
-                }
-                if (node.getNodeName().equals("periodic-rotating-file-handler")) {
-                    PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal(node);
-                    list.add(createPerHandlerScript(perHandler));
-                    continue;
-                }
-                if (node.getNodeName().equals("custom-handler")) {
-                    CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal(node);
-                    list.add(createCustomHandlerScript(cusHandler));
-                    continue;
-                }
-                if (node.getNodeName().equals("async-handler")) {
-                    AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal(node);
-                    list.add(createAsyncHandlerScript(asyncHandler));
-                    continue;
-                }
-                if (node.getNodeName().equals("console-handler")) {
-                    ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal(node);
-                    list.add(createConsoleHandlerScript(conHandler));
+            // TBC: Is it wise to go through the XML? Can't we generate directly from model objects?
+            for( Node node : generateDomElements( ctx ) ) {
+                switch( node.getNodeName() ) {
+                    case "logger":
+                        LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
+                        scripts.add( createLoggerScript( log ) );
+                        break;
+                    case "root-logger":
+                        RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
+                        scripts.add( createRootLoggerScript( root ) );
+                        break;
+                    case "size-rotating-handler":
+                        SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
+                        scripts.add( createSizeHandlerScript( sizeHandler ) );
+                        break;
+                    case "periodic-rotating-file-handler":
+                        PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
+                        scripts.add( createPerHandlerScript( perHandler ) );
+                        break;
+                    case "custom-handler":
+                        CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
+                        scripts.add( createCustomHandlerScript( cusHandler ) );
+                        break;
+                    case "async-handler":
+                        AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
+                        scripts.add( createAsyncHandlerScript( asyncHandler ) );
+                        break;
+                    case "console-handler":
+                        ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
+                        scripts.add( createConsoleHandlerScript( conHandler ) );
+                        break;
                 }
             }
 
-            return list;
-
-        } catch (NodeGenerationException | JAXBException e) {
+            return scripts;
+        }
+        catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -302,10 +300,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
+                /* We really don't want to migrate logs.
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
+                */
             }
 
             if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -347,10 +347,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
+                /* We really don't want to migrate logs.
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
                 rollbackData.setType(FileTransferInfo.Type.LOG);
                 ctx.getRollbackData().add(rollbackData);
+                */
             }
 
             if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {

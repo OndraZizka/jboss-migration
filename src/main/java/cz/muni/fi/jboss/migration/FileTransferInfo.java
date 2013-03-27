@@ -23,7 +23,7 @@ package cz.muni.fi.jboss.migration;
 public class FileTransferInfo {
     
     public static enum Type{
-        DRIVER, LOG, RESOURCE, SECURITY, LOGMODULE
+        DRIVER, /*LOG,*/ RESOURCE, SECURITY, LOGMODULE
     }
     
     private String name;
@@ -42,6 +42,13 @@ public class FileTransferInfo {
     // Different name for jdbc driver. For Sybase and Mssql
     private String altName;
 
+
+    @Override
+    public String toString() {
+        return "FileTransferInfo{" + "name=" + name + ", type=" + type + ", targetPath=" + targetPath + ", homePath=" + homePath + ", moduleName=" + moduleName + ", altName=" + altName + '}';
+    }
+
+    
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
