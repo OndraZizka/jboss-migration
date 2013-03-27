@@ -133,16 +133,6 @@ public class MigratorApp {
                     propName = propName.substring(0, pos);
                 }
                 
-                /*// Let all migrator instances process the property.
-                int pickedUp = 0;
-                for( IMigrator mig : migrators.values() ){
-                    pickedUp += mig.examineConfigProperty(module, property, value);
-                }
-                if( pickedUp == 0 )
-                    System.err.println("Warning: No module recognized the argument: " + arg + " !");
-                */
-                // TODO: Move this to Migrator{}.
-                
                 moduleConfigs.add( new ModuleSpecificProperty(module, propName, value));
             }
 
