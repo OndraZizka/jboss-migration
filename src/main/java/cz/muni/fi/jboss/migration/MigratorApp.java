@@ -292,13 +292,19 @@ public class MigratorApp {
             log.info("");
             log.info("Migration was successful.");
         }
-        catch (ApplyMigrationException ex) {
-            // TODO: Rollback handling needs to be wrapped behind an abstract API.
-            //       Calls such like this have to be encapsulated in some RollbackManager.
-            RollbackUtils.cleanStandalone(ctx.getAs7ConfigXmlDocOriginal(), conf);
-            RollbackUtils.removeData(ctx.getRollbackData());
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-            throw ex;
+        catch( Throwable ex ) {
+            log.error("Applying the results to the target server failed: " + ex.toString(), ex);
+            log.error("Rolling back the changes.");
+            
+            try {
+                // TODO: MIGR-24: Rollback handling needs to be wrapped behind an abstract API.
+                //                Calls such like this have to be encapsulated in some RollbackManager.
+                RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), conf);
+                RollbackUtils.removeData(ctx.getRollbackData());
+                FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+            } catch( Throwable ex2 ){
+                log.error("Rollback failed: " + ex.toString(), ex2);
+            }
         }
         
     }// migrate()
