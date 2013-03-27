@@ -28,25 +28,29 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Migrator of Resource-Adapter(Connection-Factories in AS5) subsystem implementing IMigrator
+ * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
  *
  * @author Roman Jakubco
  */
 
 public class ResAdapterMigrator extends AbstractMigrator {
+    private static final Logger log = LoggerFactory.getLogger(ResAdapterMigrator.class);
+    
+    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
 
+    
     private Set<String> rars = new HashSet<>();
 
-    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
-    
-    
 
     public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
     }
 
+    
     /**
      * {@inheritDoc}
      */
@@ -64,9 +68,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
             //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
-            if( dsXmls.isEmpty() ) {
+            log.debug("  Found -ds.xml files #: " + dsXmls.size());
+            if( dsXmls.isEmpty() )
                 return;
-            }
 
             List<ConnectionFactoriesBean> connFactories = new LinkedList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();

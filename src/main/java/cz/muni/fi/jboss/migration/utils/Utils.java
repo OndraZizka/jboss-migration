@@ -8,7 +8,6 @@ import org.apache.commons.io.filefilter.NameFileFilter;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -21,6 +20,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 /**
@@ -29,6 +30,7 @@ import org.xml.sax.SAXException;
  * @author Roman Jakubco
  */
 public class Utils {
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
     
     /**
@@ -103,11 +105,16 @@ public class Utils {
     }
     
     private static File lookForJarWithAClass( File dir, String classFilePath ) throws IOException {
+        log.debug("    Looking for a .jar with: " + classFilePath);
+        
+        
         //SuffixFileFilter sf = new SuffixFileFilter(".jar");
         //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
-        Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
+        Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{".jar"}, true);
+        log.debug("    Found .jar files: " + jarFiles.size());
 
-        for( File file : list ) {
+        for( File file : jarFiles ) {
+            // Search the contained files for those containing $classFilePath.
             try (JarFile jarFile = new JarFile(file)) {
                 final Enumeration<JarEntry> entries = jarFile.entries();
                 while (entries.hasMoreElements()) {
