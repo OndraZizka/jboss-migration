@@ -24,8 +24,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
@@ -65,29 +63,27 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
-            List<DatasourcesBean> dsColl = new ArrayList();
 
+            // Get a list of -ds.xml files.
             File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
             if( ! dsFiles.canRead() )
                 throw new LoadMigrationException("Can't read: " + dsFiles);
             
             SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
-
             if( dsXmls.isEmpty() ) {
                 return;
             }
 
-            for( File file : dsXmls ) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                Document doc = db.parse(file);
+            List<DatasourcesBean> dsColl = new ArrayList();
+            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
+            
+            for( File dsXml : dsXmls ) {
+                Document doc = Utils.parseXmlToDoc( dsXml );
 
                 Element element = doc.getDocumentElement();
-
-                if (element.getTagName().equals(ROOT_ELEMENT_NAME)) {
-                    DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(file);
+                if( ROOT_ELEMENT_NAME.equals( element.getTagName() )){
+                    DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(dsXml);
                     dsColl.add(dataSources);
                 }
             }
@@ -111,8 +107,8 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             ctx.getMigrationData().put(DatasourceMigrator.class, mData);
 
-        } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
-            throw new LoadMigrationException(e);
+        } catch (JAXBException | SAXException | IOException ex) {
+            throw new LoadMigrationException(ex);
         }
 
     }

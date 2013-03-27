@@ -258,7 +258,7 @@ public class MigratorApp {
 
         
         try {
-            migrator.getDOMElements();
+            migrator.getDOMElements(); // ??? Ignores the results?
         }
         catch( MigrationException e ) {
             throw new MigrationException(e);

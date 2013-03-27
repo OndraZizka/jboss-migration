@@ -62,7 +62,7 @@ public class AS7ModuleUtils {
     public static Document createDriverModuleXML(RollbackData data) throws ParserConfigurationException {
 
         /**
-         * module.xml for jdb driver module
+         * module.xml for JDBC driver module
          *
          * Example of module xml,
          *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
@@ -77,11 +77,7 @@ public class AS7ModuleUtils {
          *       </dependencies>
          *  </module>
          */
-        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-        domFactory.setIgnoringComments(true);
-        DocumentBuilder builder = domFactory.newDocumentBuilder();
-
-        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        Document doc = createDoc();
 
         Element root = doc.createElement("module");
         doc.appendChild(root);
@@ -113,7 +109,8 @@ public class AS7ModuleUtils {
 
         return doc;
     }
-
+    
+    
     /**
      * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
      *
@@ -123,11 +120,8 @@ public class AS7ModuleUtils {
      *          if parser cannot be initialized
      */
     public static Document createLogModuleXML(RollbackData data) throws ParserConfigurationException{
-        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-        domFactory.setIgnoringComments(true);
-        DocumentBuilder builder = domFactory.newDocumentBuilder();
-
-        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        
+        Document doc = createDoc();
 
         Element root = doc.createElement("module");
         doc.appendChild(root);
@@ -162,5 +156,14 @@ public class AS7ModuleUtils {
         return doc;
     }
 
+    
+    private static Document createDoc() throws ParserConfigurationException {
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        return doc;
+    }
     
 }

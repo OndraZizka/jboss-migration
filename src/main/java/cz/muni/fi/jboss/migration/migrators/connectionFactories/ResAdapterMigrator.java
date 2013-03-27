@@ -26,9 +26,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -56,34 +56,30 @@ public class ResAdapterMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
-            List<ConnectionFactoriesBean> connFactories = new ArrayList();
 
             // Deployments AS 5 dir.
             File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
-
-            if( ! dsFiles.canRead() ) {
+            if( ! dsFiles.canRead() )
                 throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
-            }
+
             
             // -ds.xml files.
             //SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             //List<File> dsXmls = (List<File>) FileUtils.listFiles(dsFiles, sf, FileFilterUtils.makeCVSAware(null));
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, new String[]{"-ds.xml"}, true);
-            
             if( dsXmls.isEmpty() ) {
                 return;
             }
+
+            List<ConnectionFactoriesBean> connFactories = new LinkedList();
+            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
             
             // For each -ds.xml
             for (File dsXml : dsXmls) {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = dbf.newDocumentBuilder();
-                Document doc = db.parse(dsXml);
+                Document doc = Utils.parseXmlToDoc( dsXml );
 
                 Element element = doc.getDocumentElement();
-
-                if (element.getTagName().equalsIgnoreCase("connection-factories")) {
+                if("connection-factories".equals( element.getTagName() )) {
                     ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(dsXml);
                     connFactories.add(conn);
                 }
@@ -103,7 +99,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             ctx.getMigrationData().put(ResAdapterMigrator.class, migrData);
 
-        } catch (JAXBException | ParserConfigurationException | SAXException | IOException e) {
+        } catch (JAXBException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
         }
     }
@@ -145,7 +141,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
             JAXBContext resAdapCtx = JAXBContext.newInstance( ResourceAdapterBean.class );
-            List<Node> nodeList = new ArrayList();
+            List<Node> nodeList = new LinkedList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
             for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
@@ -185,7 +181,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
-            List<String> list = new ArrayList();
+            List<String> list = new LinkedList();
             Unmarshaller resUnmarshaller = JAXBContext.newInstance(ResourceAdapterBean.class).createUnmarshaller();
 
             for (Node node : generateDomElements(ctx)) {

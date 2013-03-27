@@ -1,22 +1,12 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.RollbackData;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.CopyException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,6 +18,7 @@ import java.util.jar.JarFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 /**
  * Utils class containing helping classes
@@ -211,7 +202,12 @@ public class Utils {
             throw new RuntimeException(ex); // Tunnel
         }
     }
-
+    
+    public static Document parseXmlToDoc( File file ) throws SAXException, IOException {
+        DocumentBuilder db = Utils.createXmlDocumentBuilder();
+        Document doc = db.parse(file);
+        return doc;
+    }
     
     
 }// class
