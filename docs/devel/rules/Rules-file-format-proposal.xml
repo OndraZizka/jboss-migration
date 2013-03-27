@@ -1,8 +1,12 @@
 <?xml version="1.0">
 <migration>
+    <properties>
+        <property name="as5.profile.conf.dir">
+        ...
+    </properties>
     <rules>
         <rule name="fooRule" groups="foo bar">
-            <xmlFile path="${as5.dir}/server/${as5.profile}/conf/foo.xml">
+            <xmlFile path="${as5.profile.conf.dir}/foo.xml">
                  <piece srcXpath="/root/foo/bar/@name">
                  </piece>
             </xmlFileRule>
