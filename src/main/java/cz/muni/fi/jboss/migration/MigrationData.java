@@ -12,12 +12,18 @@ import java.util.List;
  */
 public class MigrationData {
 
-    List<IConfigFragment> configFragment = new ArrayList();
+    private List<IConfigFragment> configFragments = new ArrayList();
 
+
+    @Override
+    public String toString() {
+        return "MigrationData{" + "configFragment=" + configFragments + '}';
+    }
+    
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public List<IConfigFragment> getConfigFragments() { return configFragment; }
-    public void setConfigFragment(List<IConfigFragment> configFragment) { this.configFragment = configFragment; }
+    public List<IConfigFragment> getConfigFragments() { return configFragments; }
+    //public void setConfigFragments(List<IConfigFragment> configFragment) { this.configFragments = configFragment; }
     //</editor-fold>
     
 }// class
