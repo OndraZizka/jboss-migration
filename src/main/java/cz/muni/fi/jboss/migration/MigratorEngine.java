@@ -128,6 +128,7 @@ public class MigratorEngine {
         return migs;
     }// createMigrators()
     
+    
     /**
      *  Finds the implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
@@ -180,10 +181,9 @@ public class MigratorEngine {
         } catch (TransformerException ex) {
             throw new ApplyMigrationException(ex);
         }
-
-
     }
 
+    
     /**
      * Calls all migrators' callback for generating Dom Nodes.
      *
@@ -199,6 +199,7 @@ public class MigratorEngine {
         return elements;
     }
 
+    
     /**
      * Calls all migrators' callback for generating CLI scripts.
      *
@@ -214,6 +215,7 @@ public class MigratorEngine {
         return scripts;
     }
 
+    
     /**
      * Copies all necessary files for migration from AS5 to their place in the AS7 home folder.
      *
@@ -253,9 +255,8 @@ public class MigratorEngine {
                 case RESOURCE:
                     RollbackUtils.setRollbackData(rollData, list, targetPath);
                     break;
-
             }
-        }
+        }// for each rollData
 
         try {
             final TransformerFactory tf = TransformerFactory.newInstance();
@@ -288,5 +289,6 @@ public class MigratorEngine {
             throw new CopyException(e);
         }
     }// copyItems()
-    
+
+
 }// class
