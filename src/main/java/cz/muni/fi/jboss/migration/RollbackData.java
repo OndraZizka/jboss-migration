@@ -48,7 +48,7 @@ public class RollbackData {
     
 
     
-    // TBC: Do we need this?
+    // TBC: Do we need this? -- We do, context has a Set<RollbackData>.
     //<editor-fold defaultstate="collapsed" desc="hash/eq">
     @Override
     public boolean equals(Object o) {
@@ -57,20 +57,21 @@ public class RollbackData {
         
         RollbackData that = (RollbackData) o;
         
-        if(type.equals(Type.LOGMODULE)){
-            if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
-            if (module != null ? !module.equals(that.module) : that.module != null) return false;
+        if(Type.LOGMODULE.equals(type)){
+            if (homePath != null   ? !homePath.equals(that.homePath)     : that.homePath != null) return false;
+            if (module != null     ? !module.equals(that.module)         : that.module != null) return false;
             if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
-            if (type != null ? !type.equals(that.type) : that.type != null) return false;
+            if (type != null       ? !type.equals(that.type)             : that.type != null) return false;
             
             return true;
         }
         
-        if (homePath != null ? !homePath.equals(that.homePath) : that.homePath != null) return false;
-        if (module != null ? !module.equals(that.module) : that.module != null) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (homePath != null   ? !homePath.equals(that.homePath)     : that.homePath != null) return false;
+        if (module   != null   ? !module.equals(that.module)         : that.module != null) return false;
+        if (name     != null   ? !name.equals(that.name)             : that.name != null) return false;
         if (targetPath != null ? !targetPath.equals(that.targetPath) : that.targetPath != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (type     != null   ? !type.equals(that.type)             : that.type != null) return false;
+        // TODO: Improve the boolean logic, handle with a static method.
         
         return true;
     }
