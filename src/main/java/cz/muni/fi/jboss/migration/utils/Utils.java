@@ -114,7 +114,7 @@ public class Utils {
         Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
 
         for( File file : list ) {
-            JarFile jarFile;
+            JarFile jarFile = null;
             try {
                 jarFile = new JarFile(file);
                 final Enumeration<JarEntry> entries = jarFile.entries();
@@ -127,7 +127,7 @@ public class Utils {
                         return file;
                     }
                 }
-            } finally { jarFile.close(); }
+            } finally { if(jarFile != null) jarFile.close(); }
         }
         return null;
     }
