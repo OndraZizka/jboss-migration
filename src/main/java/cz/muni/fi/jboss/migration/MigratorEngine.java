@@ -148,7 +148,7 @@ public class MigratorEngine {
 
 
     /**
-     * Method which calls method for loading configuration data from AS5 on all migrators.
+     * Calls all migrators' callback for loading configuration data from the source server.
      *
      * @throws LoadMigrationException
      */
@@ -165,7 +165,7 @@ public class MigratorEngine {
     }
 
     /**
-     * TODO: Method which calls method for applying migrated configuration on all migrators.
+     * Calls all migrators' callback for applying migrated configuration.
      *
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
