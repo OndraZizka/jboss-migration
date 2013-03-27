@@ -166,17 +166,20 @@ public class MigratorEngine {
 
     /**
      * Calls all migrators' callback for applying migrated configuration.
-     *
+     * 
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
     public void apply() throws ApplyMigrationException {
         log.debug("apply()");
+        // Call the callbacks.
         for (IMigrator mig : this.migrators) {
             log.debug("    Applying with " + mig.getClass().getSimpleName());
             mig.apply(this.ctx);
         }
+        // Put the resulting DOM to AS 7 config file.
+        // TODO: This could alternatively send CLI commands over Management API. MIGR-28.
         try {
-            // TBC: Isn't Transformer for XSLT?
+            // TODO: Isn't Transformer for XSLT? Use some normal XML output.
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
