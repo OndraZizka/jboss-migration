@@ -13,6 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.w3c.dom.Document;
 
@@ -23,7 +25,8 @@ import org.w3c.dom.Document;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class RollbackUtils {
-
+    private static final Logger log = LoggerFactory.getLogger(RollbackUtils.class);
+    
     
     /**
      * Reverts the standalone file to its original state before migration if the app fails.
@@ -34,6 +37,7 @@ public class RollbackUtils {
      * TODO: MIGR-23: Rollback needs to be done on the file level, not by writing back unchanged DOM.
      */
     public static void rollbackAS7ConfigFile(Document doc, Configuration config) throws Exception {
+        log.debug("rollbackAS7ConfigFile() " + config);
         try {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -53,8 +57,9 @@ public class RollbackUtils {
      *
      * @param rollbackData  The files which where copied to the AS7 folder.
      */
-    public static void removeData(Collection<RollbackData> rollbackDatas) {
-        for (RollbackData rolldata : rollbackDatas) {
+    public static void removeData(Collection<RollbackData> rollbackData) {
+        log.debug("removeData() " + rollbackData);
+        for (RollbackData rolldata : rollbackData) {
             if (!(rolldata.getType().equals(RollbackData.Type.DRIVER))) {
                 FileUtils.deleteQuietly(new File(rolldata.getTargetPath(), rolldata.getName()));
             }
@@ -76,6 +81,7 @@ public class RollbackUtils {
      * TODO: This needs to be moved to some RollbackManager.
      */
     public static void setRollbackData( RollbackData rollData, Collection<File> files, String targetPath ) throws CopyException {
+        log.debug("setRollbackData() " + rollData);
         
         // TODO: Most likely should be in the caller method.
         if (files.isEmpty()) {

@@ -153,6 +153,7 @@ public class MigratorEngine {
      * @throws LoadMigrationException
      */
     public void loadAS5Data() throws LoadMigrationException {
+        log.debug("loadAS5Data()");
         try {
             for (IMigrator mig : this.migrators) {
                 mig.loadAS5Data(this.ctx);
@@ -168,6 +169,7 @@ public class MigratorEngine {
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
     public void apply() throws ApplyMigrationException {
+        log.debug("apply()");
         for (IMigrator mig : this.migrators) {
             mig.apply(this.ctx);
         }
@@ -193,6 +195,7 @@ public class MigratorEngine {
      * @throws MigrationException if migrating of file or generating of nodes fails.
      */
     public List<Node> getDOMElements() throws MigrationException {
+        log.debug("getDOMElements()");
         List<Node> elements = new LinkedList();
         for (IMigrator mig : this.migrators) {
             elements.addAll(mig.generateDomElements(this.ctx));
@@ -208,6 +211,7 @@ public class MigratorEngine {
      * @throws CliScriptException if creation of scripts fail
      */
     public List<String> getCLIScripts() throws CliScriptException {
+        log.debug("getCLIScripts()");
         List<String> scripts = new LinkedList();
         for (IMigrator mig : this.migrators) {
             scripts.addAll(mig.generateCliScripts(this.ctx));
@@ -223,6 +227,7 @@ public class MigratorEngine {
      * @throws CopyException if copying of files fails.
      */
     public void copyItems() throws CopyException {
+        log.debug("copyItems()");
         
         String targetPath = this.config.getGlobal().getAS7Config().getDir();
         File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
