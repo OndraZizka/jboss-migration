@@ -191,11 +191,10 @@ public class MigratorEngine {
      * @throws MigrationException if migrating of file or generating of nodes fails.
      */
     public List<Node> getDOMElements() throws MigrationException {
-        List<Node> elements = new ArrayList<>();
+        List<Node> elements = new LinkedList();
         for (IMigrator mig : this.migrators) {
             elements.addAll(mig.generateDomElements(this.ctx));
         }
-
         return elements;
     }
 
@@ -207,7 +206,7 @@ public class MigratorEngine {
      * @throws CliScriptException if creation of scripts fail
      */
     public List<String> getCLIScripts() throws CliScriptException {
-        List<String> scripts = new ArrayList<>();
+        List<String> scripts = new LinkedList();
         for (IMigrator mig : this.migrators) {
             scripts.addAll(mig.generateCliScripts(this.ctx));
         }
