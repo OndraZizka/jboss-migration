@@ -114,17 +114,19 @@ public class Utils {
         Collection<File> list = FileUtils.listFiles(dir, new String[]{".jar"}, true);
 
         for( File file : list ) {
-            JarFile jarFile = new JarFile(file);
-            final Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
-                final JarEntry entry = entries.nextElement();
-                if( ( ! entry.isDirectory() ) && entry.getName().contains(classFilePath)) {
+            try {
+                JarFile jarFile = new JarFile(file);
+                final Enumeration<JarEntry> entries = jarFile.entries();
+                while (entries.hasMoreElements()) {
+                    final JarEntry entry = entries.nextElement();
+                    if( ( ! entry.isDirectory() ) && entry.getName().contains(classFilePath)) {
 
-                    // Assuming that jar file contains some package with class (common Java practice)
-                    //return  StringUtils.substringAfterLast(file.getPath(), "/");
-                    return file;
+                        // Assuming that jar file contains some package with class (common Java practice)
+                        //return  StringUtils.substringAfterLast(file.getPath(), "/");
+                        return file;
+                    }
                 }
-            }
+            } finally { jarFile.close(); }
         }
         return null;
     }
