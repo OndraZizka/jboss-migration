@@ -237,33 +237,35 @@ public class LoggingMigrator extends AbstractMigrator {
 
             // TBC: Is it wise to go through the XML? Can't we generate directly from model objects?
             for( Node node : generateDomElements( ctx ) ) {
-                if( node.getNodeName().equals( "logger" ) ) {
-                    LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
-                    scripts.add( createLoggerScript( log ) );
-                } 
-                else if( node.getNodeName().equals( "root-logger" ) ) {
-                    RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
-                    scripts.add( createRootLoggerScript( root ) );
-                }
-                else if( node.getNodeName().equals( "size-rotating-handler" ) ) {
-                    SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
-                    scripts.add( createSizeHandlerScript( sizeHandler ) );
-                }
-                else if( node.getNodeName().equals( "periodic-rotating-file-handler" ) ) {
-                    PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
-                    scripts.add( createPerHandlerScript( perHandler ) );
-                }
-                else if( node.getNodeName().equals( "custom-handler" ) ) {
-                    CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
-                    scripts.add( createCustomHandlerScript( cusHandler ) );
-                }
-                else if( node.getNodeName().equals( "async-handler" ) ) {
-                    AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
-                    scripts.add( createAsyncHandlerScript( asyncHandler ) );
-                }
-                else if( node.getNodeName().equals( "console-handler" ) ) {
-                    ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
-                    scripts.add( createConsoleHandlerScript( conHandler ) );
+                switch( node.getNodeName() ) {
+                    case "logger":
+                        LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
+                        scripts.add( createLoggerScript( log ) );
+                        break;
+                    case "root-logger":
+                        RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
+                        scripts.add( createRootLoggerScript( root ) );
+                        break;
+                    case "size-rotating-handler":
+                        SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
+                        scripts.add( createSizeHandlerScript( sizeHandler ) );
+                        break;
+                    case "periodic-rotating-file-handler":
+                        PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
+                        scripts.add( createPerHandlerScript( perHandler ) );
+                        break;
+                    case "custom-handler":
+                        CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
+                        scripts.add( createCustomHandlerScript( cusHandler ) );
+                        break;
+                    case "async-handler":
+                        AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
+                        scripts.add( createAsyncHandlerScript( asyncHandler ) );
+                        break;
+                    case "console-handler":
+                        ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
+                        scripts.add( createConsoleHandlerScript( conHandler ) );
+                        break;
                 }
             }
 
