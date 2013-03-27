@@ -276,7 +276,7 @@ public class MigratorEngine {
                         throw new CopyException("File already exists: " + moduleXml.getPath());
                     
                     Document doc = RollbackData.Type.DRIVER.equals(type)
-                            ? AS7ModuleUtils.createDriverModuleXML(cp)
+                            ? AS7ModuleUtils.createModuleXML(cp)
                             : AS7ModuleUtils.createLogModuleXML(cp);
                     
                     transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));

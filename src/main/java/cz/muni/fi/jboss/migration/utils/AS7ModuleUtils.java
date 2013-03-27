@@ -24,7 +24,7 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createDriverModuleXML(RollbackData data) throws ParserConfigurationException {
+    public static Document createModuleXML(RollbackData data) throws ParserConfigurationException {
 
         /**
          * module.xml for JDBC driver module
