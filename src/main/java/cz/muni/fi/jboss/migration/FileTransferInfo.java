@@ -23,7 +23,7 @@ package cz.muni.fi.jboss.migration;
 public class FileTransferInfo {
     
     public static enum Type{
-        DRIVER, LOG, RESOURCE, SECURITY, LOGMODULE
+        DRIVER, /*LOG,*/ RESOURCE, SECURITY, LOGMODULE
     }
     
     private String name;

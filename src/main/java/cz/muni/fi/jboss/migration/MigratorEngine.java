@@ -254,7 +254,7 @@ public class MigratorEngine {
             
             switch( copyItem.getType() ) {
                 case DRIVER:
-                case LOGMODULE: {
+                case LOGMODULE:
                     // For now only expecting one jar for driver. Pick the first one.
                     if( files.isEmpty() ) {
                         Collection<File> altList = Utils.searchForFile( copyItem, as5commonLibDir );
@@ -262,14 +262,10 @@ public class MigratorEngine {
                     } else {
                         RollbackUtils.setRollbackData( copyItem, new ArrayList( files ), targetServerDir );
                     }
-                }
-                break;
-                case LOG:
-                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;
+                    
+                //case LOG: // We really don't want to migrate logs.
                 case SECURITY:
-                    RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
-                    break;
                 case RESOURCE:
                     RollbackUtils.setRollbackData( copyItem, files, targetServerDir );
                     break;

@@ -92,10 +92,13 @@ public class RollbackUtils {
         
         rollData.setHomePath(firstFile.getAbsolutePath()); // Why absolute?
         
+        // TODO:     This pulls IMigrator implementations details into generic class.
+        // MIGR-23   Must be either generalized or moved to those implementations.
         switch (rollData.getType()) {
+            /* We really don't want to migrate logs.
             case LOG:
                 rollData.setTargetPath(Utils.createPath(targetPath, "standalone", "log").getPath());
-                break;
+                break; */
             case RESOURCE:
                 rollData.setTargetPath(Utils.createPath(targetPath, "standalone", "deployments").getPath());
                 break;
