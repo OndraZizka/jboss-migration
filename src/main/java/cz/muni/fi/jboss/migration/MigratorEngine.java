@@ -161,6 +161,20 @@ public class MigratorEngine {
     
     /**
      *  Performs the migration.
+     * 
+     * TODO:  MIGR-31
+     *      1) Parse AS 7 config into context.
+            2) Let the migrators gather the data into the context.
+            3) Let them prepare the actions.
+                  An action should include what caused it to be created. IMigrationAction.getOriginMessage()
+            ==== From now on, don't use the scanned data, only actions. ===
+            So instead of getDOMElements(), getCLICommand and apply()
+            will be List<IMigrationAction> prepareActions().
+            4) preValidate
+            5) backup
+            6) perform
+            7) postValidate
+            8] rollback
      */
     public void doMigration() throws MigrationException {
         
