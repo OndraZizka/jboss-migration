@@ -165,7 +165,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 FileTransferInfo rollbackData = new FileTransferInfo();
                 rollbackData.setName( rar );
                 rollbackData.setType( FileTransferInfo.Type.RESOURCE );
-                ctx.getRollbackData().add( rollbackData );
+                ctx.getFileTransfers().add( rollbackData );
             }
 
             return nodeList;

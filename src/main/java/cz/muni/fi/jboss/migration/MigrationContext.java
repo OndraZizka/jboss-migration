@@ -40,7 +40,7 @@ public class MigrationContext {
     
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     
-    public Set<FileTransferInfo> getRollbackData() { return rollbackData; }
+    public Set<FileTransferInfo> getFileTransfers() { return rollbackData; }
 
     public List<IMigrationAction> getActions() { return actions; }
     

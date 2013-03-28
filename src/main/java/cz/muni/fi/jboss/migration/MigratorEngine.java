@@ -234,7 +234,7 @@ public class MigratorEngine {
         }
         catch (CopyException ex) {
             // TODO: Move this procedure into some rollback() method.
-            RollbackUtils.removeData(ctx.getRollbackData());
+            RollbackUtils.removeData(ctx.getFileTransfers());
             // TODO: Can't just blindly delete, we need to keep info if we really created it!
             // TODO: Create some dedicated module dir manager.
             FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
@@ -252,7 +252,7 @@ public class MigratorEngine {
             // MIGR-31 TODO: Replace with rollbackActions()
             try {
                 RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
-                RollbackUtils.removeData(ctx.getRollbackData());
+                RollbackUtils.removeData(ctx.getFileTransfers());
                 FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
                 throw ex;
             } catch( Throwable ex2 ){
@@ -360,7 +360,7 @@ public class MigratorEngine {
         File as5ProfileDir = this.config.getGlobal().getAS5Config().getProfileDir();
         File as5commonLibDir = Utils.createPath(this.config.getGlobal().getAS5Config().getDir(), "common", "lib");
 
-        for (FileTransferInfo copyItem : this.ctx.getRollbackData()) {
+        for (FileTransferInfo copyItem : this.ctx.getFileTransfers()) {
             log.debug("    Processing copy item: " + copyItem);
 
             if (copyItem.getName() == null || copyItem.getName().isEmpty()) {
@@ -400,7 +400,7 @@ public class MigratorEngine {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            for( FileTransferInfo cp : this.ctx.getRollbackData() ) {
+            for( FileTransferInfo cp : this.ctx.getFileTransfers() ) {
                 log.debug("    Processing copy item: " + cp);
                 
                 FileTransferInfo.Type type = cp.getType();

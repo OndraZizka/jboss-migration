@@ -235,7 +235,7 @@ public class SecurityMigrator extends AbstractMigrator {
                         FileTransferInfo rd = new FileTransferInfo();
                         rd.setName(value);
                         rd.setType(FileTransferInfo.Type.SECURITY);
-                        ctx.getRollbackData().add(rd);
+                        ctx.getFileTransfers().add(rd);
                     } else {
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());
                     }

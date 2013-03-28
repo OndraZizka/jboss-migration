@@ -201,7 +201,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
                 }
 
-                ctx.getRollbackData().add(rollbackData);
+                ctx.getFileTransfers().add(rollbackData);
 
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 driverMarshaller.marshal(driver, doc);
