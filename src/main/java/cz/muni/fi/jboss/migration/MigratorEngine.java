@@ -182,7 +182,7 @@ public class MigratorEngine {
         
         this.resetContext();
         
-        // Parse AS 7 config.
+        // Parse AS 7 config. MIGR-31 OK
         File as7configFile = new File(config.getGlobal().getAS7Config().getConfigFilePath());
         try {
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
@@ -199,7 +199,7 @@ public class MigratorEngine {
         }
         
         
-        // Load the source server config.
+        // Load the source server config. MIGR-31 OK
         try {
             this.loadAS5Data();
         } 
@@ -207,7 +207,7 @@ public class MigratorEngine {
             throw new MigrationException("Failed loading AS 5 config from " + as7configFile, ex );
         }
 
-        // Currently ignored?
+        // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
         try {
             this.getDOMElements(); // ??? Ignores the results?
         }
@@ -215,7 +215,7 @@ public class MigratorEngine {
             throw new MigrationException(e);
         }
 
-        // CLI scripts. TODO: Store in the context, instead of printing.
+        // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
         try {
             StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
             for (String script : this.getCLIScripts()) {
@@ -227,11 +227,8 @@ public class MigratorEngine {
             throw ex;
         }
 
-        
-        // TODO: My idea is to have certain types of actions to perform,
-        //       and each migrator would ask for these actions during some prepareActions().
-        //       Then, the actual performing of these actions would be driven by this MigratorEngine.
-        //       Actions:  CLI command, file transfer, module creation. Anything else?
+
+        // MIGR-31 TODO: Replace with prepareActions().
         try {
             this.copyItems();
         }
@@ -244,6 +241,7 @@ public class MigratorEngine {
             throw new MigrationException(ex);
         }
 
+        // MIGR-31 TODO: Replace with applyActions() to perform the actions.
         try {
             this.apply();
         }
@@ -251,9 +249,8 @@ public class MigratorEngine {
             log.error("Applying the results to the target server failed: " + ex.toString(), ex);
             log.error("Rolling back the changes.");
             
+            // MIGR-31 TODO: Replace with rollbackActions()
             try {
-                // TODO: MIGR-24: Rollback handling needs to be wrapped behind an abstract API.
-                //                Calls such like this have to be encapsulated in some RollbackManager.
                 RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
                 RollbackUtils.removeData(ctx.getRollbackData());
                 FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
@@ -265,8 +262,6 @@ public class MigratorEngine {
         }
         
     }// migrate()
-    
-    
     
     
     
