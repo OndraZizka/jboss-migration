@@ -216,85 +216,32 @@ public class MigratorApp {
     
     /**
      *  Performs the migration.
-     *  TODO: Should probably be in Migrator{}.
      */
     private static void migrate( Configuration conf ) throws MigrationException {
         
-        MigrationContext ctx = new MigrationContext();
-
         log.info("Commencing migration.");
         
-        File as7configFile = new File(conf.getGlobal().getAS7Config().getConfigFilePath());
-        // Parse AS 7 config.
-        try {
-            DocumentBuilder db = Utils.createXmlDocumentBuilder();
-            Document doc = db.parse(as7configFile);
-            ctx.setAS7ConfigXmlDoc(doc);
-            // TODO: Do backup at file level, instead of parsing and writing back.
-            doc = db.parse(as7configFile);
-            ctx.setAs7ConfigXmlDocOriginal(doc);
-        } 
-        catch ( SAXException | IOException ex ) {
-            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
-        }
-        // Create Migrator & load AS 5 data.
-        MigratorEngine migrator = new MigratorEngine(conf, ctx);
-        try {
-            migrator.loadAS5Data();
-        } 
-        catch ( LoadMigrationException ex ) {
-            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
-        }
-
-        
-        try {
-            migrator.getDOMElements(); // ??? Ignores the results?
-        }
-        catch( MigrationException e ) {
-            throw new MigrationException(e);
-        }
+        MigratorEngine migrator = new MigratorEngine(conf);
 
         try {
-            StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
-            for (String script : migrator.getCLIScripts()) {
-                sb.append("        ").append(script).append("\n");
-            }
-            log.info( sb.toString() );
-        } 
-        catch( CliScriptException ex ) {
-            throw ex;
-        }
-
-        try {
-            migrator.copyItems();
-        }
-        catch (CopyException ex) {
-            // TODO: Move this procedure into some rollback() method.
-            RollbackUtils.removeData(ctx.getRollbackData());
-            // TODO: Can't just blindly delete, we need to keep info if we really created it!
-            // TODO: Create some dedicated module dir manager.
-            FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-            throw new MigrationException(ex);
-        }
-
-        try {
-            migrator.apply();
+            migrator.doMigration();
             log.info("");
             log.info("Migration was successful.");
         }
         catch( Throwable ex ) {
-            log.error("Applying the results to the target server failed: " + ex.toString(), ex);
-            log.error("Rolling back the changes.");
+            log.error("Migration failed. See previous messages for progress. ");
             
-            try {
-                // TODO: MIGR-24: Rollback handling needs to be wrapped behind an abstract API.
-                //                Calls such like this have to be encapsulated in some RollbackManager.
-                RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), conf);
-                RollbackUtils.removeData(ctx.getRollbackData());
-                FileUtils.deleteQuietly( Utils.createPath(conf.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-            } catch( Throwable ex2 ){
-                log.error("Rollback failed: " + ex.toString(), ex2);
+            if( ex instanceof RollbackMigrationException ){
+                log.error("Yet, the rollback attempt failed as well. "
+                        + "The server configuration may have ended up in an inconsistent state!");
+                log.error("");
+                RollbackMigrationException rollEx = (RollbackMigrationException) ex;
+                log.error("Rollback failure cause: " + rollEx.getRollbackCause(), rollEx.getRollbackCause());
+                ex = rollEx.getCause();
             }
+            
+            log.error("");
+            log.error("Migration failure cause: " + ex, ex);
         }
         
     }// migrate()

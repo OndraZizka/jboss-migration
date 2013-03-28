@@ -32,7 +32,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 
 /**
@@ -53,10 +55,14 @@ public class MigratorEngine {
     
     
 
-    public MigratorEngine( Configuration config, MigrationContext context ) throws InitMigratorsExceptions {
+    public MigratorEngine( Configuration config ) throws InitMigratorsExceptions {
         this.config = config;
-        this.ctx = context;
         this.init();
+        this.resetContext();
+    }
+    
+    private void resetContext() {
+        this.ctx = new MigrationContext();
     }
 
     /**
@@ -69,7 +75,7 @@ public class MigratorEngine {
 
         // Initialize migrator instances. 
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
-                createMigrators( migratorClasses, config.getGlobal(), null); // TODO! MultiValueMap of plugin-specific config values.
+                createMigrators( migratorClasses, config.getGlobal(), null);
         
         this.migrators = new ArrayList(migratorsMap.values());
         
@@ -96,7 +102,7 @@ public class MigratorEngine {
             List<Class<? extends IMigrator>> migratorClasses,
             GlobalConfiguration globalConfig,
             MultiValueMap config
-        ) throws InitMigratorsExceptions {
+    ) throws InitMigratorsExceptions {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
         List<Exception> exs  = new LinkedList<>();
@@ -146,6 +152,104 @@ public class MigratorEngine {
     }
     
 
+    
+    
+    
+    
+    /**
+     *  Performs the migration.
+     */
+    public void doMigration() throws MigrationException {
+        
+        log.info("Commencing migration.");
+        
+        this.resetContext();
+        
+        // Parse AS 7 config.
+        File as7configFile = new File(config.getGlobal().getAS7Config().getConfigFilePath());
+        try {
+            DocumentBuilder db = Utils.createXmlDocumentBuilder();
+            Document doc = db.parse(as7configFile);
+            ctx.setAS7ConfigXmlDoc(doc);
+            
+            // TODO: Do backup at file level, instead of parsing and writing back.
+            //       And rework it in general. MIGR-23.
+            doc = db.parse(as7configFile);
+            ctx.setAs7ConfigXmlDocOriginal(doc);
+        } 
+        catch ( SAXException | IOException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
+        }
+        
+        
+        // Load the source server config.
+        try {
+            this.loadAS5Data();
+        } 
+        catch ( LoadMigrationException ex ) {
+            throw new MigrationException("Failed loading AS 5 config from " + as7configFile, ex );
+        }
+
+        // Currently ignored?
+        try {
+            this.getDOMElements(); // ??? Ignores the results?
+        }
+        catch( MigrationException e ) {
+            throw new MigrationException(e);
+        }
+
+        // CLI scripts. TODO: Store in the context, instead of printing.
+        try {
+            StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
+            for (String script : this.getCLIScripts()) {
+                sb.append("        ").append(script).append("\n");
+            }
+            log.info( sb.toString() );
+        } 
+        catch( CliScriptException ex ) {
+            throw ex;
+        }
+
+        
+        try {
+            this.copyItems();
+        }
+        catch (CopyException ex) {
+            // TODO: Move this procedure into some rollback() method.
+            RollbackUtils.removeData(ctx.getRollbackData());
+            // TODO: Can't just blindly delete, we need to keep info if we really created it!
+            // TODO: Create some dedicated module dir manager.
+            FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+            throw new MigrationException(ex);
+        }
+
+        try {
+            this.apply();
+        }
+        catch( Throwable ex ) {
+            log.error("Applying the results to the target server failed: " + ex.toString(), ex);
+            log.error("Rolling back the changes.");
+            
+            try {
+                // TODO: MIGR-24: Rollback handling needs to be wrapped behind an abstract API.
+                //                Calls such like this have to be encapsulated in some RollbackManager.
+                RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
+                RollbackUtils.removeData(ctx.getRollbackData());
+                FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+                throw ex;
+            } catch( Throwable ex2 ){
+                log.error("Rollback failed: " + ex.toString(), ex2);
+                throw new RollbackMigrationException(ex, ex2);
+            }
+        }
+        
+    }// migrate()
+    
+    
+    
+    
+    
+    
 
     /**
      * Calls all migrators' callback for loading configuration data from the source server.
