@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import java.util.List;
 
 /**
  * Ammunition for MIGR-31 and MIGR-23.
@@ -14,7 +15,18 @@ public interface IMigrationAction {
 
     State getState();
     
+    
+    // Data
+    String getOriginMessage();
+    List<String> getWarnings();
+    
+    
+    // Implementation stuff
     void setMigrationContext( MigrationContext ctx );
+    
+    
+    
+    // "Lifecycle"
     
     void preValidate() throws MigrationException;
     
