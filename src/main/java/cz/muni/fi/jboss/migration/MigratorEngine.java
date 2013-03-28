@@ -211,6 +211,10 @@ public class MigratorEngine {
         }
 
         
+        // TODO: My idea is to have certain types of actions to perform,
+        //       and each migrator would ask for these actions during the apply().
+        //       Then, the actual performing of these actions would be driven by this MigratorEngine.
+        //       Actions:  CLI command, file transfer, module creation. Anything else?
         try {
             this.copyItems();
         }
