@@ -39,6 +39,9 @@ import org.xml.sax.SAXException;
 
 /**
  *  Controls the core migration processes.
+ * 
+ *  TODO: Perhaps leave init() and doMigration() in here 
+ *        and separate the other methods to a MigrationService{} ?
  *
  *  @author Roman Jakubco
  */
@@ -212,7 +215,7 @@ public class MigratorEngine {
 
         
         // TODO: My idea is to have certain types of actions to perform,
-        //       and each migrator would ask for these actions during the apply().
+        //       and each migrator would ask for these actions during some prepareActions().
         //       Then, the actual performing of these actions would be driven by this MigratorEngine.
         //       Actions:  CLI command, file transfer, module creation. Anything else?
         try {
