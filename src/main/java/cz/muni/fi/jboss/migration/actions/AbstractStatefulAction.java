@@ -46,4 +46,13 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     public List<String> getWarnings() { return warnings; }
     
     
+    
+    protected boolean isAfterBackup() {
+        return this.state.ordinal() >= State.BACKED_UP.ordinal();
+    }
+
+    protected boolean isAfterPerform() {
+        return this.state.ordinal() >= State.DONE.ordinal();
+    }
+    
 }

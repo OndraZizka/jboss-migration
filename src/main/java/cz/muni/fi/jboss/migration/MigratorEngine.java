@@ -200,75 +200,92 @@ public class MigratorEngine {
         }
         
         
-        // Load the source server config. MIGR-31 OK
+        
+
+        
+        // MIGR-31 - The new way.
+        String message = null;
         try {
+            // Load the source server config.
+            message = "Failed loading AS 5 config from " + as7configFile;
             this.loadAS5Data();
-        } 
-        catch ( LoadMigrationException ex ) {
-            throw new MigrationException("Failed loading AS 5 config from " + as7configFile, ex );
-        }
-
-        
-        // Ask all the migrators to create the actions to be performed.
-        try {
-            this.prepareActions();
-        }
-        catch( MigrationException e ) {
-            throw new MigrationException(e);
-        }
-
-        // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
-        /**try {
-            this.getDOMElements(); // ??? Ignores the results?
-        }
-        catch( MigrationException e ) {
-            throw new MigrationException(e);
-        }*/
-
-        
-        // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
-        try {
-            StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
-            for (String script : this.getCLIScripts()) {
-                sb.append("        ").append(script).append("\n");
-            }
-            log.info( sb.toString() );
-        } 
-        catch( CliScriptException ex ) {
-            throw ex;
-        }
-
-
-        // MIGR-31 TODO: Replace with prepareActions().
-        try {
-            this.copyItems();
-        }
-        catch (CopyException ex) {
-            // TODO: Move this procedure into some rollback() method.
-            RollbackUtils.removeData(ctx.getFileTransfers());
-            // TODO: Can't just blindly delete, we need to keep info if we really created it!
-            // TODO: Create some dedicated module dir manager.
-            FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-            throw new MigrationException(ex);
-        }
-
-        // MIGR-31 TODO: Replace with applyActions() to perform the actions.
-        try {
-            this.apply();
-        }
-        catch( Throwable ex ) {
-            log.error("Applying the results to the target server failed: " + ex.toString(), ex);
-            log.error("Rolling back the changes.");
             
-            // MIGR-31 TODO: Replace with rollbackActions()
-            try {
-                this.rollback_old( config );
-                throw ex;
-            } catch( Throwable ex2 ){
-                log.error("Rollback failed: " + ex.toString(), ex2);
-                throw new RollbackMigrationException(ex, ex2);
-            }
+            // Ask all the migrators to create the actions to be performed.
+            message = "Failed preparing the migration actions.";
+            this.prepareActions();
+            message = "Actions validation failed.";
+            this.preValidateActions();
+            message = "Failed creating backups for the migration actions.";
+            this.backupActions();
+            message = "Failed performing the migration actions.";
+            this.performActions();
+            message = "Verification of migration actions results failed.";
+            this.postValidateActions();
         }
+        catch( MigrationException ex ) {
+            this.rollbackActionsWhichWerePerformed();
+            throw new MigrationException( message, ex );
+        }
+        finally {
+            this.cleanBackupsIfAny();
+        }
+
+        //<editor-fold defaultstate="collapsed" desc="Old stuff">
+        if( false ) {
+            // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
+            try {
+                this.getDOMElements(); // ??? Ignores the results?
+            }
+            catch( MigrationException e ) {
+                throw new MigrationException(e);
+            }
+            
+            
+            // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
+            try {
+                StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
+                for (String script : this.getCLIScripts()) {
+                    sb.append("        ").append(script).append("\n");
+                }
+                log.info( sb.toString() );
+            }
+            catch( CliScriptException ex ) {
+                throw ex;
+            }
+            
+            
+            // MIGR-31 TODO: Replace with prepareActions().
+            try {
+                this.copyItems();
+            }
+            catch (CopyException ex) {
+                // TODO: Move this procedure into some rollback() method.
+                RollbackUtils.removeData(ctx.getFileTransfers());
+                // TODO: Can't just blindly delete, we need to keep info if we really created it!
+                // TODO: Create some dedicated module dir manager.
+                FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+                throw new MigrationException(ex);
+            }
+            
+            // MIGR-31 TODO: Replace with applyActions() to perform the actions.
+            try {
+                this.apply();
+            }
+            catch( Throwable ex ) {
+                log.error("Applying the results to the target server failed: " + ex.toString(), ex);
+                log.error("Rolling back the changes.");
+                
+                // MIGR-31 TODO: Replace with rollbackActions()
+                try {
+                    this.rollback_old( config );
+                    throw ex;
+                } catch( Throwable ex2 ){
+                    log.error("Rollback failed: " + ex.toString(), ex2);
+                    throw new RollbackMigrationException(ex, ex2);
+                }
+            }
+        }// false
+        //</editor-fold>
         
     }// migrate()
    
@@ -318,15 +335,17 @@ public class MigratorEngine {
             action.postValidate();
         }
     }
-    private void cleanBackupActions() throws MigrationException {
+    private void cleanBackupsIfAny() throws MigrationException {
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            //if( action.isAfterBackup())  // Checked in cleanBackup() itself.
             action.cleanBackup();
         }
     }
-    private void rollbackActions() throws MigrationException {
+    private void rollbackActionsWhichWerePerformed() throws MigrationException {
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            //if( action.isAfterPerform()) // Checked in rollback() itself.
             action.rollback();
         }
     }

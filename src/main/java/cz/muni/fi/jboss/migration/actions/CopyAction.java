@@ -45,9 +45,10 @@ public class CopyAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        //try {
-            setState( State.ROLLED_BACK );
-        //}
+        if( this.isAfterPerform() )
+            // Replace copied file with backup.
+            ;
+        setState( State.ROLLED_BACK );
     }
 
 
@@ -68,7 +69,8 @@ public class CopyAction extends AbstractStatefulAction {
     @Override
     public void cleanBackup() {
         // Remove temp file.
-        
+        if( ! this.isAfterBackup() )
+            return;
         setState( State.FINISHED );
     }
 
