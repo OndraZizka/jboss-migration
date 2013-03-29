@@ -469,7 +469,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setModule(module);
                 rollbackData.setModuleName(module);
 
-                ctx.getRollbackData().add(rollbackData);
+                ctx.getFileTransfers().add(rollbackData);
             }
             catch( IOException ex ) {
                 throw new NodeGenerationException("Cannot create module ", ex);
