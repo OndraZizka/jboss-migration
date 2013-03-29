@@ -8,6 +8,8 @@ import java.util.List;
 /**
  *
  * @author Ondrej Zizka, ozizka at redhat.com
+ * 
+ * TODO: Introduce do***(), eg. doBackup(), to manage the states here, not in the impl.
  */
 public abstract class AbstractStatefulAction implements IMigrationAction {
 
