@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
@@ -207,14 +208,24 @@ public class MigratorEngine {
             throw new MigrationException("Failed loading AS 5 config from " + as7configFile, ex );
         }
 
-        // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
+        
+        // Ask all the migrators to create the actions to be performed.
         try {
-            this.getDOMElements(); // ??? Ignores the results?
+            this.prepareActions();
         }
         catch( MigrationException e ) {
             throw new MigrationException(e);
         }
 
+        // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
+        /**try {
+            this.getDOMElements(); // ??? Ignores the results?
+        }
+        catch( MigrationException e ) {
+            throw new MigrationException(e);
+        }*/
+
+        
         // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
         try {
             StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
@@ -251,9 +262,7 @@ public class MigratorEngine {
             
             // MIGR-31 TODO: Replace with rollbackActions()
             try {
-                RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
-                RollbackUtils.removeData(ctx.getFileTransfers());
-                FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+                this.rollback_old( config );
                 throw ex;
             } catch( Throwable ex2 ){
                 log.error("Rollback failed: " + ex.toString(), ex2);
@@ -262,7 +271,76 @@ public class MigratorEngine {
         }
         
     }// migrate()
+   
     
+    
+    /**
+     *  Ask all the migrators to create the actions to be performed; stores them in the context.
+     */
+    private void prepareActions() throws MigrationException {
+        log.debug("prepareActions()");
+        try {
+            for (IMigrator mig : this.migrators) {
+                log.debug("    Preparing actions with " + mig.getClass().getSimpleName());
+                mig.createActions(this.ctx);
+            }
+        } catch (JAXBException e) {
+            throw new LoadMigrationException(e);
+        }
+        // TODO: Additional logic to filter out duplicated file copying etc.
+    }
+    
+    
+    /**
+     *  Actions with the actions.
+     */
+    private void preValidateActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.preValidate();
+        }
+    }
+    private void backupActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.backup();
+        }
+    }
+    private void performActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.perform();
+        }
+    }
+    private void postValidateActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.postValidate();
+        }
+    }
+    private void cleanBackupActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.cleanBackup();
+        }
+    }
+    private void rollbackActions() throws MigrationException {
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            action.rollback();
+        }
+    }
+    
+    
+    
+    
+    
+    
+    private void rollback_old( Configuration config ) throws Exception {
+        RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
+        RollbackUtils.removeData(ctx.getFileTransfers());
+        FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
+    }
     
     
     
@@ -283,7 +361,7 @@ public class MigratorEngine {
             throw new LoadMigrationException(e);
         }
     }
-
+    
     /**
      * Calls all migrators' callback for applying migrated configuration.
      * 

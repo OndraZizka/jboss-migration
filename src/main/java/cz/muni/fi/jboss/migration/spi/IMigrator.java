@@ -39,11 +39,15 @@ public interface IMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException;
 
     
+    
+    
     /**
      * Method for inserting migrated data to fresh standalone file.
      *
      * @param ctx context of migration with necessary object and information
      * @throws ApplyMigrationException if inserting of generated nodes fails
+     * 
+     * TODO: To be replaced with createActions() and the new logic. MIGR-31
      */
     public void apply(MigrationContext ctx) throws ApplyMigrationException;
 
@@ -55,6 +59,8 @@ public interface IMigrator {
      * @param ctx context of migration with necessary object and information
      * @return List of all nodes, which represent migrated configuration of AS5
      * @throws NodeGenerationException if something when wrong with the migration of data and generation of Dom Nodes
+     * 
+     * TODO: To be replaced with createActions() and the new logic. MIGR-31
      */
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException;
 
@@ -65,9 +71,18 @@ public interface IMigrator {
      * @param ctx context of migration with necessary object and information
      * @return List of CLI scripts, which represent migrated configuration of AS5
      * @throws CliScriptException if required attributes for creation of scripts are missing
+     * 
+     * TODO: To be replaced with createActions() and the new logic. MIGR-31
      */
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException;
 
+    
+    /**
+     *  Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).
+     */
+    public void createActions( MigrationContext ctx );
+    
+    
     
     /**
      *  Examines a configuration property, typically acquired as console app params.
@@ -76,6 +91,6 @@ public interface IMigrator {
      *  @returns  0 if the property wasn't recognized, non-zero otherwise.
      */
     public int examineConfigProperty(Configuration.ModuleSpecificProperty moduleOption);
-    
+
     
 }// class
