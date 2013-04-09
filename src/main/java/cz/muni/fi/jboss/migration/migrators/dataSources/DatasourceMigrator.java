@@ -1,12 +1,14 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
-import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
+import cz.muni.fi.jboss.migration.actions.IMigrationAction;
+import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
-import cz.muni.fi.jboss.migration.migrators.connectionFactories.ResAdapterMigrator;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -14,6 +16,9 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -26,13 +31,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
@@ -112,7 +111,56 @@ public class DatasourceMigrator extends AbstractMigrator {
         } catch (JAXBException | SAXException | IOException ex) {
             throw new LoadMigrationException(ex);
         }
+    }
 
+    @Override
+    public void createActions(MigrationContext ctx) {
+
+        for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
+            if (fragment instanceof DatasourceAS5Bean) {
+                DatasourceAS7Bean dataSource = datasourceMigration((DatasourceAS5Bean)fragment);
+                IMigrationAction cliAction = new CliCommandAction(createDatasourceScriptNew(dataSource), createDatasourceCliCommand(dataSource) );
+                ctx.getActions().add(cliAction);
+                continue;
+            }
+
+            if (fragment instanceof XaDatasourceAS5Bean) {
+                XaDatasourceAS7Bean xaDataSource = xaDatasourceMigration((XaDatasourceAS5Bean) fragment);
+                IMigrationAction cliAction = new CliCommandAction(createXaDatasourceScriptNew(xaDataSource), createXaDatasourceCliCommand(xaDataSource));
+                ctx.getActions().add(cliAction);
+                continue;
+            }
+
+            if(fragment instanceof NoTxDatasourceAS5Bean){
+                DatasourceAS7Bean dataSource = noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment);
+                IMigrationAction cliAction = new CliCommandAction(createDatasourceScriptNew(dataSource), createDatasourceCliCommand(dataSource));
+                ctx.getActions().add(cliAction);
+            }
+        }
+
+        String targetServerDir = getGlobalConfig().getAS7Config().getDir();
+        File as5ProfileDir = getGlobalConfig().getAS5Config().getProfileDir();
+        File as5commonLibDir = Utils.createPath(getGlobalConfig().getAS5Config().getDir(), "common", "lib");
+
+        for (DriverBean driver : this.drivers) {
+            // New approach o drivers. Similar to finding logging classes. Search for driver class in jars and create module
+            try {
+                String name = Utils.findJarFileWithClass(driver.getDriverClass(),
+                        getGlobalConfig().getAS5Config().getDir(),
+                        getGlobalConfig().getAS5Config().getProfileName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(),);
+            IMigrationAction moduleAction = new ModuleCreationAction();
+
+
+
+
+
+
+        }
     }
 
     @Override
@@ -213,12 +261,6 @@ public class DatasourceMigrator extends AbstractMigrator {
             throw new NodeGenerationException(e);
         }
     }// generateDomElements()
-    
-    
-    
-    
-    
-    
 
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
@@ -251,7 +293,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             throw new CliScriptException(e);
         }
     }// generateCliScripts()
-    
+
 
     /**
      * Method for migrating no-tx-datasource from AS5 to AS7
@@ -510,6 +552,13 @@ public class DatasourceMigrator extends AbstractMigrator {
         
     }// xaDatasourceMigration()
 
+    public static ModelNode createDatasourceCliCommand(DatasourceAS7Bean dataSource){
+        return null;
+    }
+
+    public static ModelNode createXaDatasourceCliCommand(XaDatasourceAS7Bean dataSource){
+        return null;
+    }
     
     /**
      * Creating CLI script for adding Datasource. Old format of script.
@@ -526,7 +575,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
         Utils.throwIfBlank(datasourceAS7.getDriver(), errMsg, "Driver name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=datasources/data-source=");
 
         resultScript.append(datasourceAS7.getPoolName()).append(":add(");
@@ -586,7 +635,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(xaDatasourceAS7.getDriver(), errMsg, "Driver name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=datasources/xa-data-source=");
 
         resultScript.append(xaDatasourceAS7.getPoolName()).append(":add(");
@@ -658,7 +707,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=datasources/jdbc-driver=");
 
         resultScript.append(driver.getDriverName()).append(":add(");
@@ -688,7 +737,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
         Utils.throwIfBlank(datasourceAS7.getDriver(), errMsg, "Driver name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("data-source add ");
 
         builder.addProperty("name", datasourceAS7.getPoolName());
@@ -747,7 +796,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(xaDatasourceAS7.getDriver(), errMsg, "Driver name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("xa-data-source add");
 
         builder.addProperty("name", xaDatasourceAS7.getPoolName());

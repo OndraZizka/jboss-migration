@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
-import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
@@ -21,7 +21,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -59,6 +58,11 @@ public class SecurityMigrator extends AbstractMigrator {
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
         }
+    }
+
+    @Override
+    public void createActions(MigrationContext ctx) {
+
     }
 
     @Override
@@ -265,7 +269,7 @@ public class SecurityMigrator extends AbstractMigrator {
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(securityDomain.getSecurityDomainName(), errMsg, "Security name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=");
 
         resultScript.append(securityDomain.getSecurityDomainName()).append(":add(");

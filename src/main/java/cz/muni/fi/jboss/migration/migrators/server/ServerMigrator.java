@@ -1,7 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
+import cz.muni.fi.jboss.migration.AbstractMigrator;
+import cz.muni.fi.jboss.migration.CliAddScriptBuilder;
+import cz.muni.fi.jboss.migration.MigrationContext;
+import cz.muni.fi.jboss.migration.MigrationData;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
@@ -77,6 +80,11 @@ public class ServerMigrator extends AbstractMigrator {
         catch (JAXBException e) {
             throw new LoadMigrationException("Failed parsing logging config file: " + file.getPath(), e);
         }
+    }
+
+    @Override
+    public void createActions(MigrationContext ctx) {
+
     }
 
     @Override
@@ -392,7 +400,7 @@ public class ServerMigrator extends AbstractMigrator {
         Utils.throwIfBlank(connAS7.getConnectorName(), errMsg, "Connector name");
         Utils.throwIfBlank(connAS7.getProtocol(), errMsg, "Protocol");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=web/connector=");
 
         resultScript.append(connAS7.getConnectorName()).append(":add(");
@@ -444,7 +452,7 @@ public class ServerMigrator extends AbstractMigrator {
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(virtualServer.getVirtualServerName(), errMsg, "Server name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=web/virtual-server=");
         resultScript.append(virtualServer.getVirtualServerName()).append(":add(");
 
@@ -484,7 +492,7 @@ public class ServerMigrator extends AbstractMigrator {
         Utils.throwIfBlank(socketBinding.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socketBinding.getSocketName(), errMsg, "Name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/socket-binding-group=standard-sockets/socket-binding=");
 
         resultScript.append(socketBinding.getSocketName()).append(":add(");

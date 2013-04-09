@@ -35,7 +35,7 @@ public class FileTransferInfo {
 
     private String homePath;
 
-    /** Module name. Only for drivers. */
+    /** Module name.*/
     private String moduleName;
 
     // TODO: Too specific fod DS module. Generalize.

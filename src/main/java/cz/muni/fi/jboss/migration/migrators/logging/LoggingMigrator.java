@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.migrators.logging;
 
-import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
@@ -83,6 +83,11 @@ public class LoggingMigrator extends AbstractMigrator {
         } catch (JAXBException | XMLStreamException e) {
             throw new LoadMigrationException(e);
         }
+    }
+
+    @Override
+    public void createActions(MigrationContext ctx) {
+
     }
 
     @Override
@@ -519,7 +524,7 @@ public class LoggingMigrator extends AbstractMigrator {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(");
 
         builder.addProperty("level", logger.getLoggerLevelName());
@@ -564,7 +569,7 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(periodic.getPath(), errMsg, "Path");
         Utils.throwIfBlank(periodic.getSuffix(), errMsg, "Suffix");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/periodic-rotating-file-handler=");
 
         resultScript.append(periodic.getName()).append(":add(");
@@ -596,7 +601,7 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(sizeHandler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(sizeHandler.getPath(), errMsg, "Path");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/size-rotating-file-handler=");
 
         resultScript.append(sizeHandler.getName()).append(":add(");
@@ -628,7 +633,7 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(asyncHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/async-handler=");
 
         resultScript.append(asyncHandler.getName()).append(":add(");
@@ -672,7 +677,7 @@ public class LoggingMigrator extends AbstractMigrator {
         String errMsg = " in console-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(consoleHandler.getName(), errMsg, "Name");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/console-handler=");
 
         resultScript.append(consoleHandler.getName()).append(":add(");
@@ -702,7 +707,7 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(customHandler.getModule(), errMsg, "Module");
         Utils.throwIfBlank(customHandler.getClassValue(), errMsg, "Class-value");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/custom-handler=");
 
         resultScript.append(customHandler.getName()).append(":add(");
@@ -748,7 +753,7 @@ public class LoggingMigrator extends AbstractMigrator {
         String errMsg = " in root-logger must be set.";
         Utils.throwIfBlank(rootLogger.getRootLoggerLevel(), errMsg, "Level");
 
-        CliAddCommandBuilder builder = new CliAddCommandBuilder();
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder();
         if(rootLogger.getRootLogFilValue() != null){
             resultScript.append("/subsystem=logging/root-logger=ROOT:write-attribute(");

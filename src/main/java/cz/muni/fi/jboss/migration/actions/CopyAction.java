@@ -1,9 +1,10 @@
 package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
-import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -13,6 +14,7 @@ public class CopyAction extends AbstractStatefulAction {
     
     File src;
     File dest;
+    File temp;
     boolean overwrite;
 
 
@@ -54,14 +56,21 @@ public class CopyAction extends AbstractStatefulAction {
 
     @Override
     public void postValidate() throws MigrationException {
-        // 
+        // Probably empty..
     }
 
 
     @Override
     public void backup() throws MigrationException {
         // Copy dest, if exists and overwrite allowed, to a temp file.
-        
+        if( this.dest.exists() && this.overwrite ){
+            try {
+                this.temp = File.createTempFile(this.dest.getName(), null);
+                FileUtils.copyFile(this.dest, this.temp);
+            } catch (IOException ex) {
+                throw new MigrationException("Creating of backup file failed:" + ex.getMessage(), ex);
+            }
+        }
         setState( State.BACKED_UP );
     }
 
@@ -71,6 +80,9 @@ public class CopyAction extends AbstractStatefulAction {
         // Remove temp file.
         if( ! this.isAfterBackup() )
             return;
+        if( this.temp.exists() ){
+            FileUtils.deleteQuietly( this.temp );
+        }
         setState( State.FINISHED );
     }
 

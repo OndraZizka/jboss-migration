@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public interface IMigrationAction {
     
     // Implementation stuff
     void setMigrationContext( MigrationContext ctx );
-    
+    MigrationContext getMigrationContext();
     
     
     // "Lifecycle"

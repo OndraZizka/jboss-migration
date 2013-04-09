@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+
 import java.io.File;
 
 /**
@@ -11,12 +12,14 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     
     File src;
     File dest;
+    File moduleXml;
     boolean overwrite;
 
 
-    public ModuleCreationAction( File src, File dest, boolean overwrite ) {
+    public ModuleCreationAction( File src, File dest, File moduleXml, boolean overwrite ) {
         this.src = src;
         this.dest = dest;
+        this.moduleXml = moduleXml;
         this.overwrite = overwrite;
     }
     
@@ -28,11 +31,11 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void perform() throws MigrationException {
-        //try {
-            // Create a module.
+        // Create a module.
+
         
-            setState(State.DONE);
-        //}
+         setState(State.DONE);
+
     }
 
 

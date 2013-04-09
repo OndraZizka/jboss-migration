@@ -1,23 +1,18 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.conf.Configuration;
-import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.conf.Configuration.ModuleSpecificProperty;
-import cz.muni.fi.jboss.migration.ex.*;
-import cz.muni.fi.jboss.migration.utils.RollbackUtils;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.ex.RollbackMigrationException;
 import cz.muni.fi.jboss.migration.utils.Utils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
 
 
 /**
@@ -198,8 +193,8 @@ public class MigratorApp {
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
             else{
                 File configFile = new File(path, configPath);
-                if( ! configFile.exists() )
-                problems.add("as7.confPath is not a subpath under AS 5 dir: " + configFile.getPath());
+//                if( ! configFile.exists() )
+//                problems.add("as7.confPath is not a subpath under AS 5 dir: " + configFile.getPath());
             }
         }
         

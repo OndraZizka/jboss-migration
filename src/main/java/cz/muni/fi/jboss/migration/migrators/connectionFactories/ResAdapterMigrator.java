@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
-import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
@@ -11,6 +11,10 @@ import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -23,15 +27,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -103,6 +99,11 @@ public class ResAdapterMigrator extends AbstractMigrator {
         } catch (JAXBException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
         }
+    }
+
+    @Override
+    public void createActions(MigrationContext ctx) {
+
     }
 
     
@@ -333,7 +334,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
 
         StringBuilder resultBuilder = new StringBuilder();
-        CliAddCommandBuilder cliBuilder = new CliAddCommandBuilder();
+        CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
         String adapterScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive() + ":add(";
         cliBuilder.addProperty("archive", resourceAdapter.getArchive());

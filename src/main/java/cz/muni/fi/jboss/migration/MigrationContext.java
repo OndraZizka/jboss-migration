@@ -2,14 +2,11 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import org.jboss.as.cli.batch.Batch;
+import org.jboss.as.cli.batch.impl.DefaultBatch;
 import org.w3c.dom.Document;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.
@@ -33,6 +30,9 @@ public class MigrationContext {
 
     private Document as7ConfigXmlDoc;
     private Document as7ConfigXmlDocOriginal;
+
+    // New batch holding all scripts from CliCommandAction
+    private Batch batch = new DefaultBatch();
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -51,6 +51,8 @@ public class MigrationContext {
     
     public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
     public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
+
+    public Batch getBatch() { return batch; }
     //</editor-fold>
 
     

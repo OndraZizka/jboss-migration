@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @author Roman Jakubco
  */
-public class CliAddCommandBuilder {
+public class CliAddScriptBuilder {
 
     private List<String> properties = new ArrayList();
 
@@ -19,8 +19,8 @@ public class CliAddCommandBuilder {
      * @param value    value of property
      */
     public void addProperty(String property, String value) {
-        if (value != null) {
-            if (!value.isEmpty()) {
+        if ( value != null ) {
+            if ( !value.isEmpty() ) {
                 this.properties.add(property + "=" + value);
             }
         }
@@ -35,7 +35,7 @@ public class CliAddCommandBuilder {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < this.properties.size(); i++) {
-            if (i == this.properties.size() - 1) {
+            if ( i == this.properties.size() - 1 ) {
                 builder.append(this.properties.get(i));
                 continue;
             }
@@ -57,7 +57,7 @@ public class CliAddCommandBuilder {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < this.properties.size(); i++) {
-            if (i == this.properties.size() - 1) {
+            if ( i == this.properties.size() - 1 ) {
                 builder.append(this.properties.get(i));
                 continue;
             }

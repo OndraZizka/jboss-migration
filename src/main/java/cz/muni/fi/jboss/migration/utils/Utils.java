@@ -4,9 +4,17 @@ import cz.muni.fi.jboss.migration.FileTransferInfo;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,14 +23,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 /**
  * Global utils class.
@@ -110,7 +110,7 @@ public class Utils {
         
         //SuffixFileFilter sf = new SuffixFileFilter(".jar");
         //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
-        Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{".jar"}, true);
+        Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
         log.debug("    Found .jar files: " + jarFiles.size());
 
         for( File file : jarFiles ) {
