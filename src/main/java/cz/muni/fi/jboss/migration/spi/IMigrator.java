@@ -1,12 +1,9 @@
 package cz.muni.fi.jboss.migration.spi;
 
+import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.MigrationContext;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import org.w3c.dom.Node;
 
 import java.util.List;
@@ -80,7 +77,7 @@ public interface IMigrator {
     /**
      *  Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).
      */
-    public void createActions( MigrationContext ctx );
+    public void createActions( MigrationContext ctx ) throws MigrationException;
     
     
     

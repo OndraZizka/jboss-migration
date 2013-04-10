@@ -85,7 +85,7 @@ public class Utils {
      * 
      * TODO: This would cause false positives - e.g. class = org.Foo triggered by org/Foo/Blah.class .
      */
-    public static String findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException, IOException {
+    public static File findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException, IOException {
         
         String classFilePath = className.replace(".", "/");
         
@@ -93,13 +93,15 @@ public class Utils {
         File dir = Utils.createPath(dirAS5, "server", profileAS5, "lib");
         File jar = lookForJarWithAClass( dir, classFilePath );
         if( jar != null )
-            return jar.getName();
-        
+            //return jar.getName();
+                return jar;
+
         // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
-        dir = Utils.createPath(dirAS5, "common", profileAS5, "lib");
+        dir = Utils.createPath(dirAS5, "common", "lib");
         jar = lookForJarWithAClass( dir, classFilePath );
         if( jar != null )
-            return jar.getName();
+            //return jar.getName();
+            return jar;
                             
         throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
     }

@@ -5,17 +5,16 @@ import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
+import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +50,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     // TODO: Perhaps move this property to migration context.
     private int it = 0;
 
-    //private Set<String> drivers = new HashSet();
     private Set<DriverBean> drivers = new HashSet();
-
-    //private Set<String> xaDatasourceClasses = new HashSet();
 
     public DatasourceMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -114,52 +110,51 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) {
+    public void createActions(MigrationContext ctx) throws MigrationException{
+        // TODO: Make specific exception for Actions?
 
         for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
             if (fragment instanceof DatasourceAS5Bean) {
-                DatasourceAS7Bean dataSource = datasourceMigration((DatasourceAS5Bean)fragment);
-                IMigrationAction cliAction = new CliCommandAction(createDatasourceScriptNew(dataSource), createDatasourceCliCommand(dataSource) );
-                ctx.getActions().add(cliAction);
+                ctx.getActions().add(createDatasourceCliAction(datasourceMigration((DatasourceAS5Bean) fragment)));
                 continue;
             }
 
             if (fragment instanceof XaDatasourceAS5Bean) {
-                XaDatasourceAS7Bean xaDataSource = xaDatasourceMigration((XaDatasourceAS5Bean) fragment);
-                IMigrationAction cliAction = new CliCommandAction(createXaDatasourceScriptNew(xaDataSource), createXaDatasourceCliCommand(xaDataSource));
-                ctx.getActions().add(cliAction);
+                ctx.getActions().addAll(createXaDatasourceCliAction(xaDatasourceMigration((XaDatasourceAS5Bean) fragment)));
                 continue;
             }
 
             if(fragment instanceof NoTxDatasourceAS5Bean){
-                DatasourceAS7Bean dataSource = noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment);
-                IMigrationAction cliAction = new CliCommandAction(createDatasourceScriptNew(dataSource), createDatasourceCliCommand(dataSource));
-                ctx.getActions().add(cliAction);
+                ctx.getActions().add(createDatasourceCliAction(noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment)));
             }
         }
 
-        String targetServerDir = getGlobalConfig().getAS7Config().getDir();
-        File as5ProfileDir = getGlobalConfig().getAS5Config().getProfileDir();
-        File as5commonLibDir = Utils.createPath(getGlobalConfig().getAS5Config().getDir(), "common", "lib");
-
         for (DriverBean driver : this.drivers) {
-            // New approach o drivers. Similar to finding logging classes. Search for driver class in jars and create module
+            ctx.getActions().add(createDriverCliAction(driver));
+            
+            // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
+            File src = null;
             try {
-                String name = Utils.findJarFileWithClass(driver.getDriverClass(),
-                        getGlobalConfig().getAS5Config().getDir(),
+                src = driver.getDriverClass() == null
+                      ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
+                        getGlobalConfig().getAS5Config().getProfileName())
+                      : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
                         getGlobalConfig().getAS5Config().getProfileName());
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new MigrationException("Finding jar containing class failded: " + e.getMessage(), e);
             }
 
-            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(),);
-            IMigrationAction moduleAction = new ModuleCreationAction();
+            driver.setDriverModule("migration.drivers." + driver.getDriverName());
 
+            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
+                    "drivers", driver.getDriverName(), "main");
+            File moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
+                    targetDir, AS7ModuleUtils.ModuleType.DRIVER);
 
+            // Default for now => false
+            IMigrationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
 
-
-
-
+            ctx.getActions().add(moduleAction);
         }
     }
 
@@ -552,12 +547,171 @@ public class DatasourceMigrator extends AbstractMigrator {
         
     }// xaDatasourceMigration()
 
-    public static ModelNode createDatasourceCliCommand(DatasourceAS7Bean dataSource){
-        return null;
+    /**
+     *
+     * @param dataSource
+     * @return
+     * @throws CliScriptException
+     */
+    public static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
+            throws CliScriptException {
+        // TODO: Use the same exception?
+        String errMsg = " in datasource must be set.";
+        Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
+        Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
+        Utils.throwIfBlank(dataSource.getConnectionUrl(), errMsg, "Connection url");
+        Utils.throwIfBlank(dataSource.getDriver(), errMsg, "Driver name");
+
+        ModelNode request = new ModelNode();
+        request.get(ClientConstants.OP).set(ClientConstants.ADD);
+        request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        request.get(ClientConstants.OP_ADDR).add("data-source", dataSource.getPoolName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
+        builder.addProperty("jndi-name", dataSource.getJndiName());
+
+        // TODO: Try if property enabled works
+        builder.addProperty("enabled", "true");
+
+        builder.addProperty("jta", dataSource.getJta());
+        builder.addProperty("use-java-context", dataSource.getUseJavaContext());
+        builder.addProperty("driver-name", dataSource.getDriver());
+        builder.addProperty("connection-url", dataSource.getConnectionUrl());
+        builder.addProperty("url-delimeter", dataSource.getUrlDelimeter());
+        builder.addProperty("url-selector-strategy-class-name", dataSource.getUrlSelector());
+        builder.addProperty("transaction-isolation", dataSource.getTransIsolation());
+        builder.addProperty("new-connection-sql", dataSource.getNewConnectionSql());
+        builder.addProperty("prefill", dataSource.getPrefill());
+        builder.addProperty("min-pool-size", dataSource.getMinPoolSize());
+        builder.addProperty("max-pool-size", dataSource.getMaxPoolSize());
+        builder.addProperty("password", dataSource.getPassword());
+        builder.addProperty("user-name", dataSource.getUserName());
+        builder.addProperty("security-domain", dataSource.getSecurityDomain());
+        builder.addProperty("check-valid-connection-sql", dataSource.getCheckValidConSql());
+        builder.addProperty("validate-on-match", dataSource.getValidateOnMatch());
+        builder.addProperty("background-validation", dataSource.getBackgroundValid());
+        builder.addProperty("background-validation-minutes", dataSource.getBackgroundValidMin());
+        builder.addProperty("use-fast-fail", dataSource.getUseFastFail());
+        builder.addProperty("exception-sorter-class-name", dataSource.getExceptionSorter());
+        builder.addProperty("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
+        builder.addProperty("stale-connection-checker-class-name", dataSource.getStaleConChecker());
+        builder.addProperty("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
+        builder.addProperty("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
+        builder.addProperty("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
+        builder.addProperty("query-timeout", dataSource.getQueryTimeout());
+        builder.addProperty("allocation-retry", dataSource.getAllocationRetry());
+        builder.addProperty("allocation-retry-wait-millis", dataSource.getAllocRetryWaitMillis());
+        builder.addProperty("use-try-lock", dataSource.getUseTryLock());
+        builder.addProperty("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
+        builder.addProperty("track-statements", dataSource.getTrackStatements());
+        builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
+
+        //return builder.getCommand();
+        return new CliCommandAction(createDatasourceScriptNew(dataSource), builder.getCommand());
     }
 
-    public static ModelNode createXaDatasourceCliCommand(XaDatasourceAS7Bean dataSource){
-        return null;
+    /**
+     *
+     * @param dataSource
+     * @return
+     * @throws CliScriptException
+     */
+    public static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
+            throws CliScriptException {
+        String errMsg = " in xaDatasource must be set.";
+        Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
+        Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
+        Utils.throwIfBlank(dataSource.getDriver(), errMsg, "Driver name");
+
+        List<CliCommandAction> nodes = new ArrayList();
+
+        ModelNode request = new ModelNode();
+        request.get(ClientConstants.OP).set(ClientConstants.ADD);
+        request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        request.get(ClientConstants.OP_ADDR).add("xa-data-source", dataSource.getPoolName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
+
+        builder.addProperty("jndi-name", dataSource.getJndiName());
+        builder.addProperty("use-java-context", dataSource.getUseJavaContext());
+        builder.addProperty("driver-name", dataSource.getDriver());
+        builder.addProperty("url-delimeter", dataSource.getUrlDelimeter());
+        builder.addProperty("url-selector-strategy-class-name", dataSource.getUrlSelector());
+        builder.addProperty("transaction-isolation", dataSource.getTransIsolation());
+        builder.addProperty("new-connection-sql", dataSource.getNewConnectionSql());
+        builder.addProperty("prefill", dataSource.getPrefill());
+        builder.addProperty("min-pool-size", dataSource.getMinPoolSize());
+        builder.addProperty("max-pool-size", dataSource.getMaxPoolSize());
+        builder.addProperty("is-same-rm-override", dataSource.getSameRmOverride());
+        builder.addProperty("interleaving", dataSource.getInterleaving());
+        builder.addProperty("no-tx-separate-pools", dataSource.getNoTxSeparatePools());
+        builder.addProperty("password", dataSource.getPassword());
+        builder.addProperty("user-name", dataSource.getUserName());
+        builder.addProperty("security-domain", dataSource.getSecurityDomain());
+        builder.addProperty("check-valid-connection-sql", dataSource.getCheckValidConSql());
+        builder.addProperty("validate-on-match", dataSource.getValidateOnMatch());
+        builder.addProperty("background-validation", dataSource.getBackgroundValid());
+        builder.addProperty("background-validation-minutes", dataSource.getBackgroundValidMin());
+        builder.addProperty("use-fast-fail", dataSource.getUseFastFail());
+        builder.addProperty("exception-sorter-class-name", dataSource.getExceptionSorter());
+        builder.addProperty("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
+        builder.addProperty("stale-connection-checker-class-name", dataSource.getStaleConChecker());
+        builder.addProperty("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
+        builder.addProperty("idle-timeout-minutes", dataSource.getIdleTimeoutMinutes());
+        builder.addProperty("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
+        builder.addProperty("query-timeout", dataSource.getQueryTimeout());
+        builder.addProperty("allocation-retry", dataSource.getAllocationRetry());
+        builder.addProperty("allocation-retry-wait-millis", dataSource.getAllocRetryWaitMillis());
+        builder.addProperty("use-try-lock", dataSource.getUseTryLock());
+        builder.addProperty("xa-resource-timeout", dataSource.getXaResourceTimeout());
+        builder.addProperty("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
+        builder.addProperty("track-statements", dataSource.getTrackStatements());
+        builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
+
+        nodes.add(new CliCommandAction(createXaDatasourceScriptNew(dataSource), builder.getCommand()));
+
+        if(dataSource.getXaDatasourceProps() != null){
+            for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
+                errMsg = "in xa-datasource property must be set";
+                Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");
+
+                ModelNode connectionProperties = new ModelNode();
+                connectionProperties.get(ClientConstants.OP).set(ClientConstants.ADD);
+                connectionProperties.get(ClientConstants.OP_ADDR).add("subsystem","datasources");
+                connectionProperties.get(ClientConstants.OP_ADDR).add("xa-data-source", dataSource.getPoolName());
+
+                connectionProperties.get(ClientConstants.OP_ADDR).add
+                        ("xa-datasource-properties", property.getXaDatasourcePropName());
+                connectionProperties.get("value").set(property.getXaDatasourceProp());
+
+                nodes.add(new CliCommandAction( createXaPropertyScript(dataSource.getPoolName(), property),
+                        connectionProperties));
+            }
+        }
+
+        return nodes;
+    }
+
+
+    public static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException{
+        String errMsg = " in driver must be set.";
+        Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
+        Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
+
+        ModelNode request = new ModelNode();
+        request.get(ClientConstants.OP).set(ClientConstants.ADD);
+        request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        request.get(ClientConstants.OP_ADDR).add("jdbc-driver", driver.getDriverName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
+
+        builder.addProperty("driver-module-name", driver.getDriverModule());
+        builder.addProperty("driver-class-name", driver.getDriverClass());
+        builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+        builder.addProperty("driver-major-version", driver.getMajorVersion());
+        builder.addProperty("driver-minor-version", driver.getMinorVersion());
+
+        return  new CliCommandAction(createDriverScript(driver), builder.getCommand());
     }
     
     /**
@@ -775,9 +929,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("track-statements", datasourceAS7.getTrackStatements());
         builder.addProperty("share-prepared-statements", datasourceAS7.getSharePreStatements());
 
-        resultScript.append(builder.asStringDriverNew());
-        resultScript.append("\n");
-        resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
+        resultScript.append(builder.asStringNew());
+        // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
+        //resultScript.append("\n");
+        //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
 
         return resultScript.toString();
     }
@@ -836,22 +991,24 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("track-statements", xaDatasourceAS7.getTrackStatements());
         builder.addProperty("share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
 
-        resultScript.append(builder.asStringDriverNew());
-        resultScript.append("\n");
+        resultScript.append(builder.asStringNew());
+        //resultScript.append("\n");
 
-        if (xaDatasourceAS7.getXaDatasourceProps() != null) {
-            for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
-                errMsg = "in xa-datasource property must be set";
-                Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
+        // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
+        //resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
 
-                resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
-                resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
-                resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");
+        return resultScript.toString();
+    }
 
-            }
-        }
+    public static String createXaPropertyScript(String xaDatasourceName, XaDatasourcePropertyBean xaDatasourceProperty)
+            throws CliScriptException{
+        String errMsg = "in xa-datasource property must be set";
+        Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
 
-        resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
+        StringBuilder resultScript = new StringBuilder();
+        resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceName);
+        resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
+        resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
 
         return resultScript.toString();
     }

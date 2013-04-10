@@ -1,11 +1,9 @@
 package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -13,6 +11,7 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -102,7 +101,27 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) {
+    public void createActions(MigrationContext ctx) throws MigrationException{
+        for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
+            if( fragment instanceof ConnectionFactoryAS5Bean ) {
+                ResourceAdapterBean adapter = txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment);
+                CliCommandAction action = new CliCommandAction(createResAdapterScript(adapter), createResourceAdapterCliCommand(adapter));
+                continue;
+            }
+            if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
+                ResourceAdapterBean adapter = noTxConnFactoryMigration( (NoTxConnectionFactoryAS5Bean) fragment );
+                CliCommandAction action = new CliCommandAction(createResAdapterScript(adapter), createResourceAdapterCliCommand(adapter));
+                continue;
+            }
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+        }
+
+        for( String rar : this.rars ) {
+            FileTransferInfo rollbackData = new FileTransferInfo();
+            rollbackData.setName( rar );
+            rollbackData.setType( FileTransferInfo.Type.RESOURCE );
+            ctx.getFileTransfers().add( rollbackData );
+        }
 
     }
 
@@ -319,6 +338,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return resAdapter;
     }
 
+
+    public static ModelNode createResourceAdapterCliCommand(ResourceAdapterBean adapter){
+         return null;
+    }
 
     /**
      * Creates CLI script for adding Resource-Adapter

@@ -23,7 +23,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,7 +85,61 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) {
+    public void createActions(MigrationContext ctx) throws MigrationException{
+        for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
+
+            if (fragment instanceof AppenderBean) {
+                AppenderBean appender = (AppenderBean) fragment;
+                String type = appender.getAppenderClass();
+
+                // Selection of classes which are stored in log4j or jboss logging jars.
+                if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+                    switch (StringUtils.substringAfterLast(type, ".")) {
+                        case "DailyRollingFileAppender":
+                             break;
+                        case "RollingFileAppender":
+                             break;
+                        case "ConsoleAppender":  break;
+                        case "AsyncAppender":  break;
+
+                        //  If the class don't correspond to any type of AS7 handler => CustomHandler
+                        default:
+                    }
+
+                } else{
+                    // Selection of classes which are created by the user
+                    // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
+                    //cusHandMarshaller.marshal(createCustomHandler(appender, ctx, true), doc);
+                }
+
+                continue;
+            }
+
+            if (fragment instanceof CategoryBean) {
+                CategoryBean category = (CategoryBean) fragment;
+                LoggerBean logger = new LoggerBean();
+                logger.setLoggerCategory(category.getCategoryName());
+                logger.setLoggerLevelName(category.getCategoryValue());
+                logger.setHandlers(category.getAppenderRef());
+
+                continue;
+            }
+
+            if (fragment instanceof RootLoggerAS5Bean) {
+                RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
+                RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
+                /*
+                TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
+                for now only default INFO
+                */
+                rootLoggerAS7.setRootLoggerLevel("INFO");
+                rootLoggerAS7.setRootLoggerHandlers(root.getRootAppenderRefs());
+
+                continue;
+            }
+
+            throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+        }
 
     }
 
@@ -351,13 +404,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 //TODO: Problem with bad parse? same thing in DailyRotating
                 handler.setRelativeTo("jboss.server.log.dir");
                 handler.setPath(StringUtils.substringAfterLast(value, "/"));
-
-                /* We really don't want to migrate logs.
-                FileTransferInfo rollbackData = new FileTransferInfo();
-                rollbackData.setName(StringUtils.substringAfterLast(value, "/"));
-                rollbackData.setType(FileTransferInfo.Type.LOG);
-                ctx.getRollbackData().add(rollbackData);
-                */
+                continue;
             }
 
             if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
@@ -460,25 +507,25 @@ public class LoggingMigrator extends AbstractMigrator {
         else {
             // Jar file containing class from appender must be found and set to RollbackData.
             FileTransferInfo rollbackData = new FileTransferInfo();
-            try {
-                String name = Utils.findJarFileWithClass(
-                        appender.getAppenderClass(),
-                        getGlobalConfig().getAS5Config().getDir(),
-                        getGlobalConfig().getAS5Config().getProfileName());
-
-                rollbackData.setName(name);
-                rollbackData.setType(FileTransferInfo.Type.LOGMODULE);
-
-                // Setting of module for logging. Each jar module path migration.logging.<jar-name>
-                String module = "migration.logging." + StringUtils.substringBefore(name, ".");
-                handler.setModule(module);
-                rollbackData.setModuleName(module);
-
-                ctx.getFileTransfers().add(rollbackData);
-            }
-            catch( IOException ex ) {
-                throw new NodeGenerationException("Cannot create module ", ex);
-            }
+//            try {
+//                String name = Utils.findJarFileWithClass(
+//                        appender.getAppenderClass(),
+//                        getGlobalConfig().getAS5Config().getDir(),
+//                        getGlobalConfig().getAS5Config().getProfileName());
+//
+//                rollbackData.setName(name);
+//                rollbackData.setType(FileTransferInfo.Type.LOGMODULE);
+//
+//                // Setting of module for logging. Each jar module path migration.logging.<jar-name>
+//                String module = "migration.logging." + StringUtils.substringBefore(name, ".");
+//                handler.setModule(module);
+//                rollbackData.setModuleName(module);
+//
+//                ctx.getFileTransfers().add(rollbackData);
+//            }
+//            catch( IOException ex ) {
+//                throw new NodeGenerationException("Cannot create module ", ex);
+//            }
         }
 
 

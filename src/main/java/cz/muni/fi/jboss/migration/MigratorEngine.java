@@ -1,7 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
-import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
@@ -11,7 +10,6 @@ import cz.muni.fi.jboss.migration.migrators.logging.LoggingMigrator;
 import cz.muni.fi.jboss.migration.migrators.security.SecurityMigrator;
 import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
-import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.RollbackUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
@@ -19,9 +17,11 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.exceptions.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -33,9 +33,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 
 /**
@@ -448,7 +445,7 @@ public class MigratorEngine {
     /**
      * Copies all necessary files for migration from AS5 to their place in the AS7 home folder.
      *
-     * @throws CopyException if copying of files fails.
+     * @throws CopyException if copying of files fails.     *
      */
     public void copyItems() throws CopyException {
         log.debug("copyItems()");
@@ -509,16 +506,16 @@ public class MigratorEngine {
                     if( ! moduleXml.createNewFile() )
                         throw new CopyException("File already exists: " + moduleXml.getPath());
                     
-                    Document doc = FileTransferInfo.Type.DRIVER.equals(type)
-                            ? AS7ModuleUtils.createModuleXML(cp)
-                            : AS7ModuleUtils.createLogModuleXML(cp);
-                    
-                    transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
+//                   Document doc = FileTransferInfo.Type.DRIVER.equals(type)
+//                            ? AS7ModuleUtils.createModuleXML(cp)
+//                            : AS7ModuleUtils.createLogModuleXML(cp);
+//
+//                    transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
                 }
 
                 FileUtils.copyFileToDirectory(new File(cp.getHomePath()), new File(cp.getTargetPath()));
             }
-        } catch (IOException | ParserConfigurationException | TransformerException e) {
+        } catch (IOException /*| ParserConfigurationException*/ | TransformerException e) {
             throw new CopyException(e);
         }
     }// copyItems()

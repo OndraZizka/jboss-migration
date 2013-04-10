@@ -18,7 +18,7 @@ public class CliCommandAction extends AbstractStatefulAction {
     private BatchedCommand command;
 
     // script parameter is created text script and cliCommand is script representation in CLI API
-    public CliCommandAction(ModelNode cliCommand, String script){
+    public CliCommandAction(String script, ModelNode cliCommand){
         //this.cliCommand = scriptAPI;
         //this.script = script;
         this.command = new DefaultBatchedCommand(script, cliCommand);

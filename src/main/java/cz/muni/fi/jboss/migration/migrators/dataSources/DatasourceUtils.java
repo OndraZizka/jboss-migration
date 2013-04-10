@@ -27,6 +27,7 @@ public class DatasourceUtils {
      * In special cases altName is set for alternative JDBC driver (JTDS).
      *
      * @param className  Driver class from -ds.xml file from AS5 config.
+     * @deprecated No longer needed. New approach to modules in datasources
      */
     public static void deriveAndSetDriverName(FileTransferInfo rb, String className) {
         

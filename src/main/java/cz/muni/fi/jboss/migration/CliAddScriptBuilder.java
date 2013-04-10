@@ -53,7 +53,7 @@ public class CliAddScriptBuilder {
      *
      * @return string containing all data
      */
-    public String asStringDriverNew() {
+    public String asStringNew() {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < this.properties.size(); i++) {
