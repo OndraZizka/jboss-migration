@@ -1,16 +1,17 @@
 package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
+import cz.muni.fi.jboss.migration.actions.CopyAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,7 +33,10 @@ import java.util.Set;
  * @author Roman Jakubco
  */
 public class SecurityMigrator extends AbstractMigrator {
-    
+
+    // Files which must be copied into AS7
+    private Set<String> fileNames = new HashSet<>();
+
     @Override protected String getConfigPropertyModuleName() { return "security"; }
     
 
@@ -61,7 +65,33 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) {
+    public void createActions(MigrationContext ctx) throws ActionException{
+        for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
+            if(fragment instanceof ApplicationPolicyBean) {
+                try {
+                    ctx.getActions().addAll( createSecurityDomainCliAction(
+                            migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx) ) );
+                    continue;
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of application-policy failed: " + e.getMessage(), e);
+                }
+            }
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+        }
+
+        for( String fileName : this.fileNames ) {
+            File src;
+            try {
+                src = Utils.searchForFile(fileName, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
+            } catch (CopyException e) {
+                throw new ActionException("Copying of file for security failed: " + e.getMessage(), e);
+            }
+
+            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "configuration");
+
+            // Default value for overwrite => false
+            ctx.getActions().add(new CopyAction(src, target, false));
+        }
 
     }
 
@@ -105,7 +135,7 @@ public class SecurityMigrator extends AbstractMigrator {
                 }
 
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                secDomMarshaller.marshal(appPolicyMigration((ApplicationPolicyBean) fragment, ctx), doc);
+                secDomMarshaller.marshal(migrateAppPolicy((ApplicationPolicyBean) fragment, ctx), doc);
                 nodeList.add(doc.getDocumentElement());
             }
 
@@ -139,7 +169,7 @@ public class SecurityMigrator extends AbstractMigrator {
      * @param ctx  migration context
      * @return  created security-domain
      */
-    public static SecurityDomainBean appPolicyMigration(ApplicationPolicyBean appPolicy, MigrationContext ctx){
+    public SecurityDomainBean migrateAppPolicy(ApplicationPolicyBean appPolicy, MigrationContext ctx){
         Set<LoginModuleAS7Bean> loginModules = new HashSet();
         SecurityDomainBean securityDomain = new SecurityDomainBean();
 
@@ -236,10 +266,7 @@ public class SecurityMigrator extends AbstractMigrator {
                         }
                         moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-                        FileTransferInfo rd = new FileTransferInfo();
-                        rd.setName(value);
-                        rd.setType(FileTransferInfo.Type.SECURITY);
-                        ctx.getFileTransfers().add(rd);
+                        this.fileNames.add(value);
                     } else {
                         moAS7.setModuleOptionValue(moAS5.getModuleValue());
                     }
@@ -255,6 +282,63 @@ public class SecurityMigrator extends AbstractMigrator {
         securityDomain.setLoginModules(loginModules);
 
         return securityDomain;
+    }
+
+
+    public static List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
+            throws CliScriptException{
+        String errMsg = " in security-domain must be set.";
+        Utils.throwIfBlank(domain.getSecurityDomainName(), errMsg, "Security name");
+
+        List<CliCommandAction> actions = new ArrayList();
+
+        ModelNode domainCmd = new ModelNode();
+        domainCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        domainCmd.get(ClientConstants.OP_ADDR).add("subsystem", "security");
+        domainCmd.get(ClientConstants.OP_ADDR).add("security-domain", domain.getSecurityDomainName());
+
+        actions.add(new CliCommandAction(createSecurityDomainScript(domain), domainCmd));
+
+        if (domain.getLoginModules() != null) {
+            for (LoginModuleAS7Bean module : domain.getLoginModules()) {
+                actions.add(createLoginModuleCliAction(domain, module));
+            }
+        }
+
+        return actions;
+    }
+
+    public static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module)
+            throws CliScriptException {
+        ModelNode request = new ModelNode();
+        request.get(ClientConstants.OP).set(ClientConstants.ADD);
+        request.get(ClientConstants.OP_ADDR).add("subsystem", "security");
+        request.get(ClientConstants.OP_ADDR).add("security-domain", domain.getSecurityDomainName());
+        request.get(ClientConstants.OP_ADDR).add("authentication", "classic");
+
+        ModelNode moduleNode = new ModelNode();
+        ModelNode list = new ModelNode();
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
+        builder.addProperty("flag", module.getLoginModuleFlag());
+        builder.addProperty("code", module.getLoginModuleCode());
+
+        ModelNode optionNode = new ModelNode();
+        if ((module.getModuleOptions() != null) || (module.getModuleOptions().isEmpty())) {
+            for(ModuleOptionAS7Bean option : module.getModuleOptions()){
+                optionNode.get(option.getModuleOptionName()).set(option.getModuleOptionValue());
+            }
+        }
+
+        moduleNode = builder.getCommand();
+        moduleNode.get("module-options").set(optionNode);
+
+        // Needed for CLI because parameter login-modules requires LIST
+        list.add(moduleNode);
+
+        request.get("login-modules").set(list);
+
+        return new CliCommandAction(createLoginModuleScript(domain, module ), request);
     }
 
     /**
@@ -275,44 +359,41 @@ public class SecurityMigrator extends AbstractMigrator {
         resultScript.append(securityDomain.getSecurityDomainName()).append(":add(");
         builder.addProperty("cache-type", securityDomain.getCacheType());
 
-        resultScript.append(builder.asString()).append(")\n");
+        resultScript.append(builder.asString()).append(")");
 
-        if (securityDomain.getLoginModules() != null) {
-            for (LoginModuleAS7Bean loginModAS7 : securityDomain.getLoginModules()) {
-                resultScript.append("/subsystem=security/security-domain=").append(securityDomain.getSecurityDomainName());
-                resultScript.append("/authentication=classic:add(login-modules=[{");
+        return resultScript.toString();
+    }
 
-                if ((loginModAS7.getLoginModuleCode() != null) || !(loginModAS7.getLoginModuleCode().isEmpty())) {
-                    resultScript.append("\"code\"=>\"").append(loginModAS7.getLoginModuleCode()).append("\"");
-                }
-                if ((loginModAS7.getLoginModuleFlag() != null) || !(loginModAS7.getLoginModuleFlag().isEmpty())) {
-                    resultScript.append(", \"flag\"=>\"").append(loginModAS7.getLoginModuleFlag()).append("\"");
-                }
+    public static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
 
-                resultScript.append(builder.asString());
+        StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=" +
+                domain.getSecurityDomainName());
+        resultScript.append("/authentication=classic:add(login-modules=[{");
 
-                if (loginModAS7.getModuleOptions() != null) {
-                    if (!loginModAS7.getModuleOptions().isEmpty()) {
-                        StringBuilder modulesBuilder = new StringBuilder();
-                        for (ModuleOptionAS7Bean moduleOptionAS7 : loginModAS7.getModuleOptions()) {
-                            modulesBuilder.append(", (\"").append(moduleOptionAS7.getModuleOptionName()).append("\"=>");
-                            modulesBuilder.append("\"").append(moduleOptionAS7.getModuleOptionValue()).append("\")");
-                        }
-
-                        String modules = modulesBuilder.toString().replaceFirst(",", "");
-                        modules = modules.replaceFirst(" ", "");
-
-                        if (!modules.isEmpty()) {
-                            resultScript.append(", \"module-option\"=>[").append(modules).append("]");
-                        }
-                    }
-
-                }
-            }
+        if ((module.getLoginModuleCode() != null) || !(module.getLoginModuleCode().isEmpty())) {
+            resultScript.append("\"code\"=>\"").append(module.getLoginModuleCode()).append("\"");
+        }
+        if ((module.getLoginModuleFlag() != null) || !(module.getLoginModuleFlag().isEmpty())) {
+            resultScript.append(", \"flag\"=>\"").append(module.getLoginModuleFlag()).append("\"");
         }
 
-        resultScript.append("}])");
+        if (module.getModuleOptions() != null) {
+            if (!module.getModuleOptions().isEmpty()) {
+                StringBuilder modulesBuilder = new StringBuilder();
+                for (ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions()) {
+                    modulesBuilder.append(", (\"").append(moduleOptionAS7.getModuleOptionName()).append("\"=>");
+                    modulesBuilder.append("\"").append(moduleOptionAS7.getModuleOptionValue()).append("\")");
+                }
 
+                String modules = modulesBuilder.toString().replaceFirst(",", "");
+                modules = modules.replaceFirst(" ", "");
+
+                if (!modules.isEmpty()) {
+                    resultScript.append(", \"module-option\"=>[").append(modules).append("]");
+                }
+            }
+
+        }
         return resultScript.toString();
     }
 }
