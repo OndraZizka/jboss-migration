@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
+import cz.muni.fi.jboss.migration.actions.CopyAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
@@ -11,6 +12,7 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,28 +103,42 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws MigrationException{
+    public void createActions(MigrationContext ctx) throws ActionException{
         for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
             if( fragment instanceof ConnectionFactoryAS5Bean ) {
-                ResourceAdapterBean adapter = txConnFactoryMigration((ConnectionFactoryAS5Bean) fragment);
-                CliCommandAction action = new CliCommandAction(createResAdapterScript(adapter), createResourceAdapterCliCommand(adapter));
+                try {
+                    ctx.getActions().addAll(createResourceAdapterCliCommand(
+                            migrateTxConnfactory((ConnectionFactoryAS5Bean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                }
                 continue;
             }
             if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
-                ResourceAdapterBean adapter = noTxConnFactoryMigration( (NoTxConnectionFactoryAS5Bean) fragment );
-                CliCommandAction action = new CliCommandAction(createResAdapterScript(adapter), createResourceAdapterCliCommand(adapter));
+                try {
+                    ctx.getActions().addAll(createResourceAdapterCliCommand(
+                            migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                }
                 continue;
             }
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
         for( String rar : this.rars ) {
-            FileTransferInfo rollbackData = new FileTransferInfo();
-            rollbackData.setName( rar );
-            rollbackData.setType( FileTransferInfo.Type.RESOURCE );
-            ctx.getFileTransfers().add( rollbackData );
-        }
+            File src = null;
+            try {
+                src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
+            } catch (CopyException e) {
+                throw new ActionException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
+            }
 
+            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "deployments");
+
+            // Default value for overwrite => false
+            ctx.getActions().add(new CopyAction(src, target, false));
+        }
     }
 
     
@@ -169,12 +185,12 @@ public class ResAdapterMigrator extends AbstractMigrator {
             for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 if( fragment instanceof ConnectionFactoryAS5Bean ) {
-                    resAdapMarshaller.marshal( txConnFactoryMigration( (ConnectionFactoryAS5Bean) fragment ), doc );
+                    resAdapMarshaller.marshal( migrateTxConnfactory((ConnectionFactoryAS5Bean) fragment), doc );
                     nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
                 if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
-                    resAdapMarshaller.marshal( noTxConnFactoryMigration( (NoTxConnectionFactoryAS5Bean) fragment ), doc );
+                    resAdapMarshaller.marshal( migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment), doc );
                     nodeList.add( doc.getDocumentElement() );
                     continue;
                 }
@@ -223,7 +239,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param connFactoryAS5 object representing tx-connection-factory
      * @return created resource-adapter
      */
-    public ResourceAdapterBean txConnFactoryMigration(ConnectionFactoryAS5Bean connFactoryAS5){
+    public ResourceAdapterBean migrateTxConnfactory(ConnectionFactoryAS5Bean connFactoryAS5){
 
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
         resAdapter.setJndiName(connFactoryAS5.getJndiName());
@@ -286,7 +302,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param connFactoryAS5  object representing no-tx-connection-factory
      * @return created resource-adapter
      */
-    public ResourceAdapterBean noTxConnFactoryMigration(NoTxConnectionFactoryAS5Bean connFactoryAS5){
+    public ResourceAdapterBean migrateNoTxConnFactory(NoTxConnectionFactoryAS5Bean connFactoryAS5){
 
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
         resAdapter.setJndiName(connFactoryAS5.getJndiName());
@@ -339,8 +355,100 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
 
-    public static ModelNode createResourceAdapterCliCommand(ResourceAdapterBean adapter){
-         return null;
+    public static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
+            throws CliScriptException{
+        String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
+        Utils.throwIfBlank(adapter.getArchive(), errMsg, "Archive name");
+
+        List<CliCommandAction> actions = new ArrayList();
+
+        ModelNode adapterCmd = new ModelNode();
+        adapterCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        adapterCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
+
+        builder.addProperty("archive", adapter.getArchive());
+        builder.addProperty("transaction-support", adapter.getTransactionSupport());
+
+        actions.add(new CliCommandAction(createResAdapterScript(adapter), builder.getCommand()));
+
+        if (adapter.getConnectionDefinitions() != null) {
+            for (ConnectionDefinitionBean connDef : adapter.getConnectionDefinitions()) {
+                actions.add(createConDefinitionCliAction(adapter, connDef));
+
+                if (connDef.getConfigProperties() != null) {
+                    for (ConfigPropertyBean configProperty : connDef.getConfigProperties()) {
+                        actions.add(createPropertyCliAction(adapter, connDef, configProperty));
+
+                    }
+                }
+            }
+        }
+
+        return actions;
+    }
+
+    public static CliCommandAction createConDefinitionCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def)
+            throws CliScriptException{
+        String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
+        Utils.throwIfBlank(def.getClassName(), errMsg, "Class-name");
+        Utils.throwIfBlank(def.getPoolName(), errMsg, "Pool-name");
+
+        ModelNode connDefCmd = new ModelNode();
+        connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        connDefCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
+
+        builder.addProperty("jndi-name", def.getJndiName());
+        builder.addProperty("enabled", def.getEnabled());
+        builder.addProperty("use-java-context", def.getUseJavaCont());
+        builder.addProperty("class-name", def.getClassName());
+        builder.addProperty("use-ccm", def.getUseCcm());
+        builder.addProperty("prefill", def.getPrefill());
+        builder.addProperty("use-strict-min", def.getUseStrictMin());
+        builder.addProperty("flush-strategy", def.getFlushStrategy());
+        builder.addProperty("min-pool-size", def.getMinPoolSize());
+        builder.addProperty("max-pool-size", def.getMaxPoolSize());
+
+        if (def.getSecurityDomain() != null) {
+            builder.addProperty("security-domain", def.getSecurityDomain());
+        } else if (def.getSecDomainAndApp() != null) {
+            builder.addProperty("security-domain-and-application", def.getSecDomainAndApp());
+        } else if (def.getAppManagedSec() != null) {
+            builder.addProperty("application-managed-security", def.getAppManagedSec());
+        }
+
+        builder.addProperty("background-validation", def.getBackgroundValidation());
+        builder.addProperty("background-validation-millis", def.getBackgroundValiMillis());
+        builder.addProperty("blocking-timeout-millis", def.getBlockingTimeoutMillis());
+        builder.addProperty("idle-timeout-minutes", def.getIdleTimeoutMinutes());
+        builder.addProperty("allocation-retry", def.getAllocationRetry());
+        builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
+        builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
+
+        return new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand());
+    }
+
+    public static CliCommandAction createPropertyCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def,
+                                                           ConfigPropertyBean property) throws CliScriptException{
+        String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
+        Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");
+
+        ModelNode propertyCmd = new ModelNode();
+        propertyCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        propertyCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        propertyCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
+        propertyCmd.get(ClientConstants.OP_ADDR).add("config-properties", property.getConfigPropertyName());
+
+        propertyCmd.get("value").set(property.getConfigProperty());
+
+        return new CliCommandAction(createPropertyScript(adapter, def, property), propertyCmd);
     }
 
     /**
@@ -363,73 +471,75 @@ public class ResAdapterMigrator extends AbstractMigrator {
         cliBuilder.addProperty("archive", resourceAdapter.getArchive());
         cliBuilder.addProperty("transaction-support", resourceAdapter.getTransactionSupport());
 
-        adapterScript = adapterScript.concat(cliBuilder.asString() + ")\n");
+        adapterScript = adapterScript.concat(cliBuilder.asString() + ")");
         resultBuilder.append(adapterScript);
 
+        return resultBuilder.toString();
+    }
 
-        if (resourceAdapter.getConnectionDefinitions() != null) {
-            for (ConnectionDefinitionBean connDef : resourceAdapter.getConnectionDefinitions()) {
-                errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
-                Utils.throwIfBlank(connDef.getClassName(), errMsg, "Class-name");
-                Utils.throwIfBlank(connDef.getPoolName(), errMsg, "Pool-name");
+    public static String createConnDefinitionScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef)
+            throws CliScriptException {
+        String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
+        Utils.throwIfBlank(connDef.getClassName(), errMsg, "Class-name");
+        Utils.throwIfBlank(connDef.getPoolName(), errMsg, "Pool-name");
 
-                String connDefScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive();
-                connDefScript = connDefScript.concat("/connection-definitions=" + connDef.getPoolName() + ":add(");
-                cliBuilder.addProperty("jndi-name", connDef.getJndiName());
-                cliBuilder.addProperty("enabled", connDef.getEnabled());
-                cliBuilder.addProperty("use-java-context", connDef.getUseJavaCont());
-                cliBuilder.addProperty("class-name", connDef.getClassName());
-                cliBuilder.addProperty("use-ccm", connDef.getUseCcm());
-                cliBuilder.addProperty("prefill", connDef.getPrefill());
-                cliBuilder.addProperty("use-strict-min", connDef.getUseStrictMin());
-                cliBuilder.addProperty("flush-strategy", connDef.getFlushStrategy());
-                cliBuilder.addProperty("min-pool-size", connDef.getMinPoolSize());
-                cliBuilder.addProperty("max-pool-size", connDef.getMaxPoolSize());
+        CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
-                if (connDef.getSecurityDomain() != null) {
-                    cliBuilder.addProperty("security-domain", connDef.getSecurityDomain());
-                }
+        StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=" +
+                adapter.getArchive());
 
-                if (connDef.getSecDomainAndApp() != null) {
-                    cliBuilder.addProperty("security-domain-and-application", connDef.getSecDomainAndApp());
-                }
+        script.append("/connection-definitions=").append(connDef.getPoolName()).append(":add(");
 
-                if (connDef.getAppManagedSec() != null) {
-                    cliBuilder.addProperty("application-managed-security", connDef.getAppManagedSec());
-                }
+        cliBuilder.addProperty("jndi-name", connDef.getJndiName());
+        cliBuilder.addProperty("enabled", connDef.getEnabled());
+        cliBuilder.addProperty("use-java-context", connDef.getUseJavaCont());
+        cliBuilder.addProperty("class-name", connDef.getClassName());
+        cliBuilder.addProperty("use-ccm", connDef.getUseCcm());
+        cliBuilder.addProperty("prefill", connDef.getPrefill());
+        cliBuilder.addProperty("use-strict-min", connDef.getUseStrictMin());
+        cliBuilder.addProperty("flush-strategy", connDef.getFlushStrategy());
+        cliBuilder.addProperty("min-pool-size", connDef.getMinPoolSize());
+        cliBuilder.addProperty("max-pool-size", connDef.getMaxPoolSize());
 
-                cliBuilder.addProperty("background-validation", connDef.getBackgroundValidation());
-                cliBuilder.addProperty("background-validation-millis", connDef.getBackgroundValiMillis());
-                cliBuilder.addProperty("blocking-timeout-millis", connDef.getBlockingTimeoutMillis());
-                cliBuilder.addProperty("idle-timeout-minutes", connDef.getIdleTimeoutMinutes());
-                cliBuilder.addProperty("allocation-retry", connDef.getAllocationRetry());
-                cliBuilder.addProperty("allocation-retry-wait-millis", connDef.getAllocRetryWaitMillis());
-                cliBuilder.addProperty("xa-resource-timeout", connDef.getXaResourceTimeout());
-
-                connDefScript = connDefScript.concat(cliBuilder.asString() + ")\n");
-                resultBuilder.append(connDefScript);
-
-                if (connDef.getConfigProperties() != null) {
-                    for (ConfigPropertyBean configProperty : connDef.getConfigProperties()) {
-                        errMsg = "of config-property in connection-definition in resource-adapter must be set.";
-                        Utils.throwIfBlank(configProperty.getConfigPropertyName(), errMsg, "Name");
-
-                        resultBuilder.append("/subsystem=resource-adapters/resource-adapter=");
-                        resultBuilder.append(resourceAdapter.getArchive());
-
-                        resultBuilder.append("/connection-definitions=").append(connDef.getPoolName());
-
-                        resultBuilder.append("/config-properties=");
-                        resultBuilder.append(configProperty.getConfigPropertyName());
-
-                        resultBuilder.append(":add(");
-                        resultBuilder.append("value=").append(configProperty.getConfigProperty()).append(")\n");
-                    }
-                }
-            }
+        if (connDef.getSecurityDomain() != null) {
+            cliBuilder.addProperty("security-domain", connDef.getSecurityDomain());
+        } else if (connDef.getSecDomainAndApp() != null) {
+            cliBuilder.addProperty("security-domain-and-application", connDef.getSecDomainAndApp());
+        } else if (connDef.getAppManagedSec() != null) {
+            cliBuilder.addProperty("application-managed-security", connDef.getAppManagedSec());
         }
 
-        return resultBuilder.toString();
+        cliBuilder.addProperty("background-validation", connDef.getBackgroundValidation());
+        cliBuilder.addProperty("background-validation-millis", connDef.getBackgroundValiMillis());
+        cliBuilder.addProperty("blocking-timeout-millis", connDef.getBlockingTimeoutMillis());
+        cliBuilder.addProperty("idle-timeout-minutes", connDef.getIdleTimeoutMinutes());
+        cliBuilder.addProperty("allocation-retry", connDef.getAllocationRetry());
+        cliBuilder.addProperty("allocation-retry-wait-millis", connDef.getAllocRetryWaitMillis());
+        cliBuilder.addProperty("xa-resource-timeout", connDef.getXaResourceTimeout());
+
+        script.append(cliBuilder.asString()).append(")");
+
+        return script.toString();
+    }
+
+    public static String createPropertyScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef,
+                                                    ConfigPropertyBean property) throws CliScriptException{
+        String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
+        Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");
+
+        StringBuilder script = new StringBuilder( "/subsystem=resource-adapters/resource-adapter=");
+
+        script.append(adapter.getArchive());
+
+        script.append("/connection-definitions=").append(connDef.getPoolName());
+
+        script.append("/config-properties=");
+        script.append(property.getConfigPropertyName());
+
+        script.append(":add(");
+        script.append("value=").append(property.getConfigProperty()).append(")");
+
+        return script.toString();
     }
 
 }// ResAdapterMigrator
