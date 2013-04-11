@@ -1,18 +1,15 @@
 package cz.muni.fi.jboss.migration.migrators.server;
 
-import cz.muni.fi.jboss.migration.AbstractMigrator;
-import cz.muni.fi.jboss.migration.CliAddScriptBuilder;
-import cz.muni.fi.jboss.migration.MigrationContext;
-import cz.muni.fi.jboss.migration.MigrationData;
+import cz.muni.fi.jboss.migration.*;
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.server.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -83,8 +80,35 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) {
+    public void createActions(MigrationContext ctx) throws ActionException{
+        for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
+            if (fragment instanceof ConnectorAS5Bean) {
+                try {
+                    ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, ctx)));
+                } catch (CliScriptException | NodeGenerationException e) {
+                    throw new ActionException("Migration of the connector failed: " + e.getMessage(), e);
+                }
+                continue;
+            }
+            if (fragment instanceof EngineBean) {
+                try {
+                    ctx.getActions().add(createVirtualServerCliAction(migrateEngine((EngineBean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of the Engine (virtual-server) failed: " + e.getMessage(), e);
+                }
+                continue;
+            }
 
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+        }
+
+        for (SocketBindingBean sb : this.socketBindings) {
+            try {
+                ctx.getActions().add(createSocketBindingCliAction(sb));
+            } catch (CliScriptException e) {
+                throw new ActionException("Creation of the new socket-binding failed: " + e.getMessage(), e);
+            }
+        }
     }
 
     @Override
@@ -158,12 +182,12 @@ public class ServerMigrator extends AbstractMigrator {
             for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
                 if (fragment instanceof ConnectorAS5Bean) {
-                    connMarshaller.marshal(connectorMigration((ConnectorAS5Bean) fragment, ctx), doc);
+                    connMarshaller.marshal(migrateConnector((ConnectorAS5Bean) fragment, ctx), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if (fragment instanceof EngineBean) {
-                    virSerMarshaller.marshal(engineMigration((EngineBean) fragment), doc);
+                    virSerMarshaller.marshal(migrateEngine((EngineBean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
@@ -225,7 +249,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws NodeGenerationException
      *         if socket-binding cannot be created or set
      */
-    public ConnectorAS7Bean connectorMigration(ConnectorAS5Bean connector, MigrationContext ctx)
+    public ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, MigrationContext ctx)
             throws NodeGenerationException{
         ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
 
@@ -293,7 +317,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param engine object representing Engine
      * @return  created virtual-server
      */
-    public static VirtualServerBean engineMigration(EngineBean engine){
+    public static VirtualServerBean migrateEngine(EngineBean engine){
         VirtualServerBean virtualServer = new VirtualServerBean();
         virtualServer.setVirtualServerName(engine.getEngineName());
         virtualServer.setEnableWelcomeRoot("true");
@@ -386,6 +410,112 @@ public class ServerMigrator extends AbstractMigrator {
         return name;
     }
 
+
+    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
+        String errMsg = " in connector must be set.";
+        Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
+        Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
+        Utils.throwIfBlank(connAS7.getConnectorName(), errMsg, "Connector name");
+        Utils.throwIfBlank(connAS7.getProtocol(), errMsg, "Protocol");
+
+        List<CliCommandAction> actions = new ArrayList();
+
+        ModelNode connCmd = new ModelNode();
+        connCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        connCmd.get(ClientConstants.OP_ADDR).add("subsystem", "web");
+        connCmd.get(ClientConstants.OP_ADDR).add("connector", connAS7.getConnectorName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(connCmd);
+
+        builder.addProperty("socket-binding", connAS7.getSocketBinding());
+        builder.addProperty("enable-lookups", connAS7.getEnableLookups());
+        builder.addProperty("max-post-size", connAS7.getMaxPostSize());
+        builder.addProperty("max-save-post-size", connAS7.getMaxSavePostSize());
+        builder.addProperty("max-connections", connAS7.getMaxConnections());
+        builder.addProperty("protocol", connAS7.getProtocol());
+        builder.addProperty("proxy-name", connAS7.getProxyName());
+        builder.addProperty("proxy-port", connAS7.getProxyPort());
+        builder.addProperty("redirect-port", connAS7.getRedirectPort());
+        builder.addProperty("scheme", connAS7.getScheme());
+        builder.addProperty("secure", connAS7.getSecure());
+        builder.addProperty("enabled", connAS7.getEnabled());
+
+        actions.add(new CliCommandAction(createConnectorScript(connAS7), builder.getCommand()));
+
+        if (connAS7.getScheme().equals("https")){
+            ModelNode sslConf = new ModelNode();
+            sslConf.get(ClientConstants.OP).set(ClientConstants.ADD);
+            sslConf.get(ClientConstants.OP_ADDR).add("subsystem", "web");
+            sslConf.get(ClientConstants.OP_ADDR).add("connector", connAS7.getConnectorName());
+            sslConf.get(ClientConstants.OP_ADDR).add("ssl", "configuration");
+
+            CliApiCommandBuilder sslBuilder = new CliApiCommandBuilder(sslConf);
+
+            sslBuilder.addProperty("name", connAS7.getSslName());
+            sslBuilder.addProperty("verify-client", connAS7.getVerifyClient());
+            sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
+            sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
+            sslBuilder.addProperty("password", connAS7.getPassword());
+            sslBuilder.addProperty("protocol", connAS7.getProtocol());
+            sslBuilder.addProperty("ciphers", connAS7.getCiphers());
+            sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
+            sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
+            sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
+            sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
+
+            actions.add(new CliCommandAction(createSSLConfScript(connAS7), sslBuilder.getCommand()));
+        }
+
+        return actions;
+    }
+
+    public static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
+        String errMsg = "in virtual-server (engine in AS5) must be set";
+        Utils.throwIfBlank(server.getVirtualServerName(), errMsg, "Server name");
+
+        ModelNode serverCmd = new ModelNode();
+        serverCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        serverCmd.get(ClientConstants.OP_ADDR).add("subsystem", "web");
+        serverCmd.get(ClientConstants.OP_ADDR).add("virtual-server", server.getVirtualServerName());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
+
+        builder.addProperty("enable-welcome-root", server.getEnableWelcomeRoot());
+        builder.addProperty("default-web-module", server.getDefaultWebModule());
+
+        ModelNode aliasesNode = new ModelNode();
+        if (server.getAliasName() != null) {
+            for (String alias : server.getAliasName()) {
+                ModelNode aliasNode = new ModelNode();
+                aliasNode.set(alias);
+
+                aliasesNode.add(aliasNode);
+            }
+        }
+        serverCmd = builder.getCommand();
+        serverCmd.get("alias").set(aliasesNode);
+
+        return new CliCommandAction(createVirtualServerScript(server), serverCmd);
+    }
+
+    public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
+        String errMsg = " in socket-binding must be set.";
+        Utils.throwIfBlank(socket.getSocketPort(), errMsg, "Port");
+        Utils.throwIfBlank(socket.getSocketName(), errMsg, "Name");
+
+        ModelNode serverCmd = new ModelNode();
+        serverCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        serverCmd.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        serverCmd.get(ClientConstants.OP_ADDR).add("socket-binding", socket.getSocketName());
+
+        serverCmd.get("port").set(socket.getSocketPort());
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
+        builder.addProperty("interface", socket.getSocketInterface());
+
+        return new CliCommandAction(createSocketBindingScript(socket), builder.getCommand());
+    }
+
     /**
      * Creating CLI script for adding connector to AS7 from migrated connector.
      *
@@ -420,24 +550,33 @@ public class ServerMigrator extends AbstractMigrator {
 
         resultScript.append(builder.asString()).append(")");
 
-        if (connAS7.getScheme().equals("https")) {
-            resultScript.append("\n/subsystem=web/connector=").append(connAS7.getConnectorName());
-            resultScript.append("/ssl=configuration:add(");
+        return resultScript.toString();
+    }
 
-            builder.addProperty("name", connAS7.getSslName());
-            builder.addProperty("verify-client", connAS7.getVerifyClient());
-            builder.addProperty("verify-depth", connAS7.getVerifyDepth());
-            builder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
-            builder.addProperty("password", connAS7.getPassword());
-            builder.addProperty("protocol", connAS7.getProtocol());
-            builder.addProperty("ciphers", connAS7.getCiphers());
-            builder.addProperty("key-alias", connAS7.getKeyAlias());
-            builder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
-            builder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
-            builder.addProperty("session-timeout", connAS7.getSessionTimeout());
+    /**
+     *
+     * @param connAS7
+     * @return
+     */
+    public static String createSSLConfScript(ConnectorAS7Bean connAS7){
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
+        StringBuilder resultScript = new StringBuilder("/subsystem=web/connector=" + connAS7.getConnectorName());
 
-            resultScript.append(builder.asString()).append(")");
-        }
+        resultScript.append("/ssl=configuration:add(");
+
+        builder.addProperty("name", connAS7.getSslName());
+        builder.addProperty("verify-client", connAS7.getVerifyClient());
+        builder.addProperty("verify-depth", connAS7.getVerifyDepth());
+        builder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
+        builder.addProperty("password", connAS7.getPassword());
+        builder.addProperty("protocol", connAS7.getProtocol());
+        builder.addProperty("ciphers", connAS7.getCiphers());
+        builder.addProperty("key-alias", connAS7.getKeyAlias());
+        builder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
+        builder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
+        builder.addProperty("session-timeout", connAS7.getSessionTimeout());
+
+        resultScript.append(builder.asString()).append(")");
 
         return resultScript.toString();
     }
