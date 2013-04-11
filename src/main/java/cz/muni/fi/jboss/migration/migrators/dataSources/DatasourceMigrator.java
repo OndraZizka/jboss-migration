@@ -115,17 +115,17 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
             if (fragment instanceof DatasourceAS5Bean) {
-                ctx.getActions().add(createDatasourceCliAction(datasourceMigration((DatasourceAS5Bean) fragment)));
+                ctx.getActions().add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
                 continue;
             }
 
             if (fragment instanceof XaDatasourceAS5Bean) {
-                ctx.getActions().addAll(createXaDatasourceCliAction(xaDatasourceMigration((XaDatasourceAS5Bean) fragment)));
+                ctx.getActions().addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
                 continue;
             }
 
             if(fragment instanceof NoTxDatasourceAS5Bean){
-                ctx.getActions().add(createDatasourceCliAction(noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment)));
+                ctx.getActions().add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
             }
         }
 
@@ -210,17 +210,17 @@ public class DatasourceMigrator extends AbstractMigrator {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof DatasourceAS5Bean) {
-                    dataMarshaller.marshal(datasourceMigration((DatasourceAS5Bean) fragment), doc);
+                    dataMarshaller.marshal(migrateLocalTxDatasource((DatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if (fragment instanceof XaDatasourceAS5Bean) {
-                    xaDataMarshaller.marshal(xaDatasourceMigration((XaDatasourceAS5Bean) fragment), doc);
+                    xaDataMarshaller.marshal(migrateXaDatasource((XaDatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
                 if(fragment instanceof NoTxDatasourceAS5Bean){
-                    dataMarshaller.marshal(noTxDatasourceMigration((NoTxDatasourceAS5Bean) fragment), doc);
+                    dataMarshaller.marshal(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment), doc);
                     nodeList.add(doc.getDocumentElement());
                     continue;
                 }
@@ -296,7 +296,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param noTxDatasourceAS5 object representing no-tx-datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
-    public DatasourceAS7Bean noTxDatasourceMigration(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
+    public DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
         // Setting name for driver
@@ -375,7 +375,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-    }// noTxDatasourceMigration()
+    }// migrateNoTxDatasource()
     
 
     /**
@@ -384,7 +384,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param datasourceAS5 object representing local-tx-datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
-    public DatasourceAS7Bean datasourceMigration(DatasourceAS5Bean datasourceAS5) {
+    public DatasourceAS7Bean migrateLocalTxDatasource(DatasourceAS5Bean datasourceAS5) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
         DriverBean driver = new DriverBean();
@@ -461,7 +461,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return datasourceAS7;
         
-    }// datasourceMigration()
+    }// migrateLocalTxDatasource()
     
 
     /**
@@ -470,7 +470,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param xaDataAS5 object representing xa-datasource in AS5
      * @return object representing migrated XaDatasource in AS7
      */
-    public XaDatasourceAS7Bean xaDatasourceMigration(XaDatasourceAS5Bean xaDataAS5) {
+    public XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5) {
         XaDatasourceAS7Bean xaDataAS7 = new XaDatasourceAS7Bean();
 
         xaDataAS7.setJndiName("java:jboss/datasources/" + xaDataAS5.getJndiName());
@@ -545,7 +545,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return xaDataAS7;
         
-    }// xaDatasourceMigration()
+    }// migrateXaDatasource()
 
     /**
      *
@@ -623,7 +623,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(dataSource.getDriver(), errMsg, "Driver name");
 
-        List<CliCommandAction> nodes = new ArrayList();
+        List<CliCommandAction> actions = new ArrayList();
 
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -668,28 +668,33 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("track-statements", dataSource.getTrackStatements());
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
 
-        nodes.add(new CliCommandAction(createXaDatasourceScriptNew(dataSource), builder.getCommand()));
+        actions.add(new CliCommandAction(createXaDatasourceScriptNew(dataSource), builder.getCommand()));
 
         if(dataSource.getXaDatasourceProps() != null){
             for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
-                errMsg = "in xa-datasource property must be set";
-                Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");
-
-                ModelNode connectionProperties = new ModelNode();
-                connectionProperties.get(ClientConstants.OP).set(ClientConstants.ADD);
-                connectionProperties.get(ClientConstants.OP_ADDR).add("subsystem","datasources");
-                connectionProperties.get(ClientConstants.OP_ADDR).add("xa-data-source", dataSource.getPoolName());
-
-                connectionProperties.get(ClientConstants.OP_ADDR).add
-                        ("xa-datasource-properties", property.getXaDatasourcePropName());
-                connectionProperties.get("value").set(property.getXaDatasourceProp());
-
-                nodes.add(new CliCommandAction( createXaPropertyScript(dataSource.getPoolName(), property),
-                        connectionProperties));
+                actions.add(createXaPropertyCliAction(dataSource, property));
             }
         }
 
-        return nodes;
+        return actions;
+    }
+
+
+    public static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
+            throws CliScriptException{
+        String errMsg = "in xa-datasource property must be set";
+        Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");
+
+        ModelNode connProperty = new ModelNode();
+        connProperty.get(ClientConstants.OP).set(ClientConstants.ADD);
+        connProperty.get(ClientConstants.OP_ADDR).add("subsystem","datasources");
+        connProperty.get(ClientConstants.OP_ADDR).add("xa-data-source", datasource.getPoolName());
+
+        connProperty.get(ClientConstants.OP_ADDR).add
+                ("xa-datasource-properties", property.getXaDatasourcePropName());
+        connProperty.get("value").set(property.getXaDatasourceProp());
+
+        return new CliCommandAction(createXaPropertyScript(datasource, property), connProperty);
     }
 
 
@@ -711,7 +716,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-major-version", driver.getMajorVersion());
         builder.addProperty("driver-minor-version", driver.getMinorVersion());
 
-        return  new CliCommandAction(createDriverScript(driver), builder.getCommand());
+        return new CliCommandAction(createDriverScript(driver), builder.getCommand());
     }
     
     /**
@@ -1000,13 +1005,13 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-    public static String createXaPropertyScript(String xaDatasourceName, XaDatasourcePropertyBean xaDatasourceProperty)
+    public static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
             throws CliScriptException{
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
 
         StringBuilder resultScript = new StringBuilder();
-        resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceName);
+        resultScript.append("/subsystem=datasources/xa-data-source=").append(datasource.getPoolName());
         resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
         resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
 
