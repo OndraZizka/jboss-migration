@@ -139,6 +139,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     throw new ActionException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
                 }
             }
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
         for (DriverBean driver : this.drivers) {
