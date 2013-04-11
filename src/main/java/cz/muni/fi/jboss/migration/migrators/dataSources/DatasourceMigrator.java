@@ -110,28 +110,44 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws MigrationException{
+    public void createActions(MigrationContext ctx) throws ActionException{
         // TODO: Make specific exception for Actions?
 
         for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
             if (fragment instanceof DatasourceAS5Bean) {
-                ctx.getActions().add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
+                try {
+                    ctx.getActions().add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of local-tx-datasource failed: " + e.getMessage(), e);
+                }
                 continue;
             }
 
             if (fragment instanceof XaDatasourceAS5Bean) {
-                ctx.getActions().addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
+                try {
+                    ctx.getActions().addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of xa-datasource failed: " + e.getMessage(), e);
+                }
                 continue;
             }
 
             if(fragment instanceof NoTxDatasourceAS5Bean){
-                ctx.getActions().add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
+                try {
+                    ctx.getActions().add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
+                }
             }
         }
 
         for (DriverBean driver : this.drivers) {
-            ctx.getActions().add(createDriverCliAction(driver));
-            
+            try {
+                ctx.getActions().add(createDriverCliAction(driver));
+            } catch (CliScriptException e) {
+                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+            }
+
             // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
             File src = null;
             try {
@@ -141,15 +157,21 @@ public class DatasourceMigrator extends AbstractMigrator {
                       : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
                         getGlobalConfig().getAS5Config().getProfileName());
             } catch (IOException e) {
-                throw new MigrationException("Finding jar containing class failded: " + e.getMessage(), e);
+                throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
             }
 
             driver.setDriverModule("migration.drivers." + driver.getDriverName());
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
                     "drivers", driver.getDriverName(), "main");
-            File moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
-                    targetDir, AS7ModuleUtils.ModuleType.DRIVER);
+
+            File moduleXml = null;
+            try {
+                moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
+                        targetDir, AS7ModuleUtils.ModuleType.DRIVER);
+            } catch (ModuleException e) {
+                throw new ActionException("Creation of module.xml for driver module failed: " + e.getMessage(), e);
+            }
 
             // Default for now => false
             IMigrationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
