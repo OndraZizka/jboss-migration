@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.utils;
 
 import cz.muni.fi.jboss.migration.FileTransferInfo;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.CopyException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -188,7 +189,20 @@ public class Utils {
         return list;
     }
 
-    
+
+    public static Collection<File> searchForFile(String fileName, File dir) throws CopyException{
+
+        IOFileFilter nff =  new NameFileFilter(fileName);
+
+        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
+
+        if(list.isEmpty()){
+            throw new CopyException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
+        }
+
+        return list;
+    }
+
     /**
      *  Builds up a File object with path consisting of given components.
      */

@@ -77,7 +77,7 @@ public interface IMigrator {
     /**
      *  Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).
      */
-    public void createActions( MigrationContext ctx ) throws MigrationException;
+    public void createActions( MigrationContext ctx ) throws ActionException;
     
     
     

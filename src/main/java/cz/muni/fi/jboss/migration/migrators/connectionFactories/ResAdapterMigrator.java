@@ -127,7 +127,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
 
         for( String rar : this.rars ) {
-            File src = null;
+            File src;
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
             } catch (CopyException e) {

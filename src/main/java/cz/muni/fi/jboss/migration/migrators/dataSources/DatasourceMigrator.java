@@ -149,7 +149,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
 
             // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
-            File src = null;
+            File src;
             try {
                 src = driver.getDriverClass() == null
                       ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
@@ -165,7 +165,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
                     "drivers", driver.getDriverName(), "main");
 
-            File moduleXml = null;
+            File moduleXml;
             try {
                 moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
                         targetDir, AS7ModuleUtils.ModuleType.DRIVER);
