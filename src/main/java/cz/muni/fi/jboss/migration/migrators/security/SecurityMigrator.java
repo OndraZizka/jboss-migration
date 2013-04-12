@@ -319,22 +319,20 @@ public class SecurityMigrator extends AbstractMigrator {
         ModelNode moduleNode = new ModelNode();
         ModelNode list = new ModelNode();
 
+        if (module.getModuleOptions() != null) {
+            ModelNode optionNode = new ModelNode();
+            for(ModuleOptionAS7Bean option : module.getModuleOptions()){
+                optionNode.get(option.getModuleOptionName()).set(option.getModuleOptionValue());
+            }
+            moduleNode.get("module-options").set(optionNode);
+        }
+
         CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
         builder.addProperty("flag", module.getLoginModuleFlag());
         builder.addProperty("code", module.getLoginModuleCode());
 
-        ModelNode optionNode = new ModelNode();
-        if ((module.getModuleOptions() != null) || (module.getModuleOptions().isEmpty())) {
-            for(ModuleOptionAS7Bean option : module.getModuleOptions()){
-                optionNode.get(option.getModuleOptionName()).set(option.getModuleOptionValue());
-            }
-        }
-
-        moduleNode = builder.getCommand();
-        moduleNode.get("module-options").set(optionNode);
-
         // Needed for CLI because parameter login-modules requires LIST
-        list.add(moduleNode);
+        list.add(builder.getCommand());
 
         request.get("login-modules").set(list);
 

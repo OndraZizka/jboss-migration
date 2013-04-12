@@ -23,7 +23,6 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         this.overwrite = overwrite;
     }
     
-    
     @Override
     public void preValidate() throws MigrationException {
     }

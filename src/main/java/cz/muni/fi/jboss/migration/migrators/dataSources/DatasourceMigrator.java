@@ -2,7 +2,6 @@ package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
-import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
@@ -142,26 +141,44 @@ public class DatasourceMigrator extends AbstractMigrator {
             throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
+        HashMap<File, String> tempModules = new HashMap();
+
         for (DriverBean driver : this.drivers) {
+            // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
+            File src;
+            try {
+                src = driver.getDriverClass() != null
+                      ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
+                        getGlobalConfig().getAS5Config().getProfileName())
+                      : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
+                        getGlobalConfig().getAS5Config().getProfileName());
+
+            } catch (IOException e) {
+                throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
+            }
+
+            if(tempModules.containsKey(src)){
+                // It means that moduleAction is already set. No need for another one => create CLI for driver and
+                // next iteration
+                driver.setDriverModule("migration.drivers." + tempModules.get(src));
+                try {
+                    ctx.getActions().add(createDriverCliAction(driver));
+                } catch (CliScriptException e) {
+                    throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+                }
+                continue;
+
+            }
+
+            // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
+            driver.setDriverModule("migration.drivers." + driver.getDriverName());
+            tempModules.put(src, driver.getDriverModule());
+
             try {
                 ctx.getActions().add(createDriverCliAction(driver));
             } catch (CliScriptException e) {
                 throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
             }
-
-            // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
-            File src;
-            try {
-                src = driver.getDriverClass() == null
-                      ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
-                        getGlobalConfig().getAS5Config().getProfileName())
-                      : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
-                        getGlobalConfig().getAS5Config().getProfileName());
-            } catch (IOException e) {
-                throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
-            }
-
-            driver.setDriverModule("migration.drivers." + driver.getDriverName());
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
                     "drivers", driver.getDriverName(), "main");
@@ -175,7 +192,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
 
             // Default for now => false
-            IMigrationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
+            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
 
             ctx.getActions().add(moduleAction);
         }

@@ -24,7 +24,6 @@ public class CopyAction extends AbstractStatefulAction {
         this.overwrite = overwrite;
     }
     
-    
     @Override
     public void preValidate() throws MigrationException {
         if( ! src.exists() )

@@ -478,24 +478,23 @@ public class ServerMigrator extends AbstractMigrator {
         serverCmd.get(ClientConstants.OP_ADDR).add("subsystem", "web");
         serverCmd.get(ClientConstants.OP_ADDR).add("virtual-server", server.getVirtualServerName());
 
+        if (server.getAliasName() != null) {
+            ModelNode aliasesNode = new ModelNode();
+            for (String alias : server.getAliasName()) {
+                ModelNode aliasNode = new ModelNode();
+
+                aliasNode.set(alias);
+                aliasesNode.add(aliasNode);
+            }
+            serverCmd.get("alias").set(aliasesNode);
+        }
+
         CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
 
         builder.addProperty("enable-welcome-root", server.getEnableWelcomeRoot());
         builder.addProperty("default-web-module", server.getDefaultWebModule());
 
-        ModelNode aliasesNode = new ModelNode();
-        if (server.getAliasName() != null) {
-            for (String alias : server.getAliasName()) {
-                ModelNode aliasNode = new ModelNode();
-                aliasNode.set(alias);
-
-                aliasesNode.add(aliasNode);
-            }
-        }
-        serverCmd = builder.getCommand();
-        serverCmd.get("alias").set(aliasesNode);
-
-        return new CliCommandAction(createVirtualServerScript(server), serverCmd);
+        return new CliCommandAction(createVirtualServerScript(server), builder.getCommand());
     }
 
     public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
