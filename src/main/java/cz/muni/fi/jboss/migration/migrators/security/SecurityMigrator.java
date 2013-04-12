@@ -87,7 +87,8 @@ public class SecurityMigrator extends AbstractMigrator {
                 throw new ActionException("Copying of file for security failed: " + e.getMessage(), e);
             }
 
-            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "configuration");
+            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "configuration",
+                    src.getName());
 
             // Default value for overwrite => false
             ctx.getActions().add(new CopyAction(src, target, false));

@@ -29,7 +29,7 @@ public class CopyAction extends AbstractStatefulAction {
         if( ! src.exists() )
             throw new MigrationException("File to copy doesn't exist: " + src.getPath());
         if( dest.exists() && ! overwrite )
-            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getPath());
+            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getName());
     }
 
 
@@ -77,7 +77,7 @@ public class CopyAction extends AbstractStatefulAction {
     @Override
     public void cleanBackup() {
         // Remove temp file.
-        if( ! this.isAfterBackup() )
+        if( (! this.isAfterBackup()) || (! this.overwrite))
             return;
         if( this.temp.exists() ){
             FileUtils.deleteQuietly( this.temp );

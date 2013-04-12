@@ -134,7 +134,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 throw new ActionException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
             }
 
-            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "deployments");
+            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "deployments",
+                    src.getName());
 
             // Default value for overwrite => false
             ctx.getActions().add(new CopyAction(src, target, false));

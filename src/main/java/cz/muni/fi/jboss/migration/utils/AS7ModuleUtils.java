@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.ex.ModuleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -21,10 +20,9 @@ import java.io.File;
  * @author Roman Jakubco
  */
 public class AS7ModuleUtils {
-    public static enum ModuleType{
-        DRIVER, LOG
-    }
-    
+//    public static enum ModuleType{
+//        DRIVER, LOG
+//    }
     /**
      * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
      *
@@ -34,7 +32,7 @@ public class AS7ModuleUtils {
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    public static Document createModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
+    public static Document createDriverModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
 
         /**
          * module.xml for JDBC driver module
@@ -132,38 +130,16 @@ public class AS7ModuleUtils {
         return doc;
     }
 
-    /**
-     *
-     * @param moduleName
-     * @param fileName
-     * @param targetDir
-     * @param type
-     * @return
-     * @throws ModuleException
-     */
-    public static File createModuleXMLFile(String moduleName, String fileName, File targetDir, ModuleType type)
-            throws ModuleException {
-        File moduleXml = null;
-        try {
-            final TransformerFactory tf = TransformerFactory.newInstance();
-            final Transformer transformer = tf.newTransformer();
 
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+    public static File transformDocToFile(Document doc, File file) throws TransformerException {
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
 
-            moduleXml = new File(targetDir, "module.xml");
-            Document doc = ModuleType.DRIVER.equals(type)
-                    ? AS7ModuleUtils.createModuleXML(moduleName, fileName)
-                    : AS7ModuleUtils.createLogModuleXML(moduleName, fileName);
+        transformer.transform( new DOMSource(doc), new StreamResult(file));
 
-            transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));
-
-
-        } catch (ParserConfigurationException | TransformerException e) {
-             throw new ModuleException("Creation of module.xml failed: " + e.getMessage(), e);
-        }
-
-        return moduleXml;
+        return file;
     }
 
     

@@ -33,7 +33,7 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public void perform() throws MigrationException {
-       super.getMigrationContext().getBatch().add(this.command);
+       getMigrationContext().getBatch().add(this.command);
        setState(State.DONE);
     }
 

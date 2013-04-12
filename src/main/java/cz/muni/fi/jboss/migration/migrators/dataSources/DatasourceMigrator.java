@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -137,6 +138,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 } catch (CliScriptException e) {
                     throw new ActionException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
                 }
+                continue;
             }
             throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
@@ -183,16 +185,23 @@ public class DatasourceMigrator extends AbstractMigrator {
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
                     "drivers", driver.getDriverName(), "main");
 
-            File moduleXml;
+//            File moduleXml;
+//            try {
+//                moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
+//                        targetDir, AS7ModuleUtils.ModuleType.DRIVER);
+//            } catch (ModuleException e) {
+//                throw new ActionException("Creation of module.xml for driver module failed: " + e.getMessage(), e);
+//            }
+            Document doc = null;
             try {
-                moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
-                        targetDir, AS7ModuleUtils.ModuleType.DRIVER);
-            } catch (ModuleException e) {
-                throw new ActionException("Creation of module.xml for driver module failed: " + e.getMessage(), e);
+               doc  =  AS7ModuleUtils.createDriverModuleXML(driver.getDriverModule(), src.getName());
+            } catch (ParserConfigurationException e) {
+                throw new ActionException("Creation of Document representing module.xml for driver failed: "
+                        + e.getMessage(), e);
             }
 
             // Default for now => false
-            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
+            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
 
             ctx.getActions().add(moduleAction);
         }

@@ -22,6 +22,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -219,18 +220,25 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                    "logging", handler.getModule(), "main");
+                    "logging", handler.getName(), "main");
 
-            File moduleXml;
+//            File moduleXml;
+//            try {
+//                moduleXml = AS7ModuleUtils.createModuleXMLFile(handler.getModule(), src.getName(),
+//                        targetDir, AS7ModuleUtils.ModuleType.LOG);
+//            } catch (ModuleException e) {
+//                throw new ActionException("Creation of module.xml for logging module failed: " + e.getMessage(), e);
+//            }
+            Document doc = null;
             try {
-                moduleXml = AS7ModuleUtils.createModuleXMLFile(handler.getModule(), src.getName(),
-                        targetDir, AS7ModuleUtils.ModuleType.LOG);
-            } catch (ModuleException e) {
-                throw new ActionException("Creation of module.xml for logging module failed: " + e.getMessage(), e);
+                doc  =  AS7ModuleUtils.createLogModuleXML(handler.getModule(), src.getName());
+            } catch (ParserConfigurationException e) {
+                throw new ActionException("Creation of Document representing module.xml for Custom-Handler failed: "
+                        + e.getMessage(), e);
             }
 
             // Default for now => false
-            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, moduleXml, false);
+            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
 
             ctx.getActions().add(moduleAction);
         }
@@ -752,7 +760,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         handlerCmd.get(ClientConstants.OP_ADDR).add("size-rotating-file-handler", handler.getName());
 
         ModelNode temp = new ModelNode();
@@ -789,7 +797,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         handlerCmd.get(ClientConstants.OP_ADDR).add("async-handler", handler.getName());
 
         if (handler.getSubhandlers() != null) {
@@ -828,7 +836,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         handlerCmd.get(ClientConstants.OP_ADDR).add("console-handler", handler.getName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
