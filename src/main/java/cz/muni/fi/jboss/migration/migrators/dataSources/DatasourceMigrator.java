@@ -159,7 +159,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             if(tempModules.containsKey(src)){
                 // It means that moduleAction is already set. No need for another one => create CLI for driver and
-                // next iteration
+                // continue on the next iteration
                 driver.setDriverModule("migration.drivers." + tempModules.get(src));
                 try {
                     ctx.getActions().add(createDriverCliAction(driver));
@@ -331,9 +331,9 @@ public class DatasourceMigrator extends AbstractMigrator {
 
 
     /**
-     * Method for migrating no-tx-datasource from AS5 to AS7
+     * Migrates a No-Tx-Datasource from AS5 to AS7
      *
-     * @param noTxDatasourceAS5 object representing no-tx-datasource in AS5
+     * @param noTxDatasourceAS5 object representing No-Tx-Datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
     public DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
@@ -419,9 +419,9 @@ public class DatasourceMigrator extends AbstractMigrator {
     
 
     /**
-     * Method for migrating local-tx-datasource from AS5 to AS7
+     * Migrates a Local-Tx-Datasource from AS5 to AS7
      *
-     * @param datasourceAS5 object representing local-tx-datasource in AS5
+     * @param datasourceAS5 object representing Local-Tx-Datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
     public DatasourceAS7Bean migrateLocalTxDatasource(DatasourceAS5Bean datasourceAS5) {
@@ -505,10 +505,10 @@ public class DatasourceMigrator extends AbstractMigrator {
     
 
     /**
-     * Method for migrating XaDatasource from AS5 to AS7
+     * Migrates a Xa-Datasource from AS5 to AS7
      *
-     * @param xaDataAS5 object representing xa-datasource in AS5
-     * @return object representing migrated XaDatasource in AS7
+     * @param xaDataAS5 object representing Xa-Datasource in AS5
+     * @return object representing migrated Xa-Datasource in AS7
      */
     public XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5) {
         XaDatasourceAS7Bean xaDataAS7 = new XaDatasourceAS7Bean();
@@ -588,14 +588,15 @@ public class DatasourceMigrator extends AbstractMigrator {
     }// migrateXaDatasource()
 
     /**
+     * Creates CliCommandAction for adding a Datasource
      *
-     * @param dataSource
-     * @return
-     * @throws CliScriptException
+     * @param dataSource Datasource for adding
+     * @return  created CliCommandAction for adding the Datasource
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
+     *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
     public static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
             throws CliScriptException {
-        // TODO: Use the same exception?
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
@@ -651,10 +652,12 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     /**
+     * Creates a list of CliCommandActions for adding a Xa-Datasource
      *
-     * @param dataSource
-     * @return
-     * @throws CliScriptException
+     * @param dataSource Xa-Datasource for adding
+     * @return  list containing CliCommandActions for adding the Xa-Datasource
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource
+     *                            are missing or are empty (pool-name, jndi-name, driver-name)
      */
     public static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
             throws CliScriptException {
@@ -720,6 +723,15 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
 
+    /**
+     * Creates CliCommandAction for adding a Xa-Datasource-Property of the specific Xa-Datasource
+     *
+     * @param datasource Xa-Datasource containing Xa-Datasource-Property
+     * @param property Xa-Datasource-property
+     * @return  created CliCommandAction for adding the Xa-Datasource-Property
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource-Property
+     *                            are missing or are empty (property-name)
+     */
     public static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
             throws CliScriptException{
         String errMsg = "in xa-datasource property must be set";
@@ -737,8 +749,15 @@ public class DatasourceMigrator extends AbstractMigrator {
         return new CliCommandAction(createXaPropertyScript(datasource, property), connProperty);
     }
 
-
-    public static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException{
+    /**
+     * Creates CliCommandAction for adding a Driver
+     *
+     * @param driver object representing Driver
+     * @return created CliCommandAction for adding the Driver
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Driver are missing or
+     *                            are empty (module, driver-name)
+     */
+    private static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException{
         String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
@@ -760,13 +779,14 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
     
     /**
-     * Creating CLI script for adding Datasource. Old format of script.
+     * Creates CLI script for adding Datasource. Old format of script.
      *
      * @param datasourceAS7 object of Datasource
      * @return string containing created CLI script
-     * @throws CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (property-name)
      */
-    public static String createDatasourceScriptOld(DatasourceAS7Bean datasourceAS7)
+    private static String createDatasourceScriptOld(DatasourceAS7Bean datasourceAS7)
             throws CliScriptException {
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
@@ -821,13 +841,14 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     
     /**
-     * Creating CLI script for adding XaDatsource. Old format of script.
+     * Creates CLI script for adding XaDatsource. Old format of script.
      *
      * @param xaDatasourceAS7 object of XaDatasource
      * @return string containing created CLI script
-     * @throws CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (pool-name, jndi-name, driver-name)
      */
-    public static String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
+    private static String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
             throws CliScriptException {
         String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
@@ -895,13 +916,14 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding DriverBean
+     * Creates a CLI script for adding a Driver
      *
      * @param driver object of DriverBean
      * @return string containing created CLI script
-     * @throws CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (module, driver-name)
      */
-    public static String createDriverScript(DriverBean driver) throws CliScriptException {
+    private static String createDriverScript(DriverBean driver) throws CliScriptException {
         String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
@@ -923,13 +945,14 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding Datasource. New format of script.
+     * Creates a CLI script for adding a Datasource. New format of script.
      *
      * @param datasourceAS7 object of Datasource
      * @return string containing created CLI script
-     * @throws CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (pool-name, jndi-name, connection-url, driver-name)
      */
-    public static String createDatasourceScriptNew(DatasourceAS7Bean datasourceAS7) throws CliScriptException {
+    private static String createDatasourceScriptNew(DatasourceAS7Bean datasourceAS7) throws CliScriptException {
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(datasourceAS7.getJndiName(), errMsg, "Jndi-name");
@@ -984,13 +1007,14 @@ public class DatasourceMigrator extends AbstractMigrator {
 
 
     /**
-     * Creating CLI script for adding XaDatsource. New format of script.
+     * Creates a CLI script for adding a Xa-Datasource. New format of script.
      *
      * @param xaDatasourceAS7 object of XaDatasource
      * @return string containing created CLI script
-     * @throws CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (pool-name, jndi-name, driver-name)
      */
-    public static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws CliScriptException {
+    private static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws CliScriptException {
         String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
@@ -1045,7 +1069,16 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-    public static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
+    /**
+     * Creates a CLI script for adding one Xa-Datasource-Property of the specific Xa-Datasource
+     *
+     * @param datasource Xa-Datasource containing Xa-Datasource-Property
+     * @param xaDatasourceProperty Xa-Datasource-Property
+     * @return created string containing CLI script for adding Xa-Datasource-Property
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (property-name)
+     */
+    private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
             throws CliScriptException{
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");

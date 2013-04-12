@@ -297,7 +297,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Migrates a no-tx-connection-factory from AS5 to AS7
+     * Migrates a no-tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5  object representing no-tx-connection-factory
      * @return created resource-adapter
@@ -354,7 +354,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return resAdapter;
     }
 
-
+    /**
+     * Creates a list of CliCommandActions for adding a Resource-Adapter
+     *
+     * @param adapter Resource-Adapter
+     * @return  list of created CliCommandActions for adding the Resource-Adapter
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Resource-Adapter are
+     *                            missing or are empty (archive-name)
+     */
     public static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
             throws CliScriptException{
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
@@ -390,6 +397,15 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return actions;
     }
 
+    /**
+     * Creates CliCommandAction for adding a Connection-Definition of the specific Resource-Adapter
+     *
+     * @param adapter Resource-Adapter containing connection-definition
+     * @param def Connection-Definition
+     * @return  created CliCommandAction for adding the Connection-Definition
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Connection-Definition
+     *                            are missing or are empty (class-name, pool-name)
+     */
     public static CliCommandAction createConDefinitionCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def)
             throws CliScriptException{
         String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
@@ -434,6 +450,17 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand());
     }
 
+    /**
+     * Creates CliCommandAction for adding a Config-Property of the specific Connection-Definition of the specific
+     * Resource-Adapter
+     *
+     * @param adapter Resource-Adapter containing Connection-Definition
+     * @param def Connection-Definition containg Config-Property
+     * @param property Config-Property
+     * @return  created CliCommandAction for adding the Config-Property
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the config-property
+     *                            are missing or are empty (name)
+     */
     public static CliCommandAction createPropertyCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def,
                                                            ConfigPropertyBean property) throws CliScriptException{
         String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
@@ -452,13 +479,13 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creates CLI script for adding Resource-Adapter
+     * Creates CLI script for adding of the Resource-Adapter
      *
      * @param resourceAdapter object of Resource-Adapter
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createResAdapterScript(ResourceAdapterBean resourceAdapter)
+    private static String createResAdapterScript(ResourceAdapterBean resourceAdapter)
             throws CliScriptException {
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(resourceAdapter.getArchive(), errMsg, "Archive name");
@@ -477,7 +504,16 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return resultBuilder.toString();
     }
 
-    public static String createConnDefinitionScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef)
+    /**
+     * Creates String containing CLI script for adding a Connection-Definition of the specific Resource-Adapter
+     *
+     * @param adapter Resource-Adapter containing Connection-Definition
+     * @param connDef Connection-Definition
+     * @return String containing CLI script for adding of the Connection-Definition
+     * @throws CliScriptException  if required attributes for a creation of the CLI command of the Connection-Definition
+     *                            are missing or are empty (class-name, pool-name)
+     */
+    private static String createConnDefinitionScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef)
             throws CliScriptException {
         String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
         Utils.throwIfBlank(connDef.getClassName(), errMsg, "Class-name");
@@ -522,7 +558,18 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return script.toString();
     }
 
-    public static String createPropertyScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef,
+    /**
+     * Creates CLI script for adding a Config-Property of the specific Connection-Definition of the specific
+     * Resource-Adapter
+     *
+     * @param adapter Resource-Adapter containing Connection-Definition
+     * @param connDef Connection-Definition containing Config-Property
+     * @param property Config-Property
+     * @return  string containing CLI script for adding the Config-Property
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the config-property
+     *                            are missing or are empty (name)
+     */
+    private static String createPropertyScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef,
                                                     ConfigPropertyBean property) throws CliScriptException{
         String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
         Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");

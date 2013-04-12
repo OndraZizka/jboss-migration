@@ -241,7 +241,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for migration of connector from AS5 to AS7
+     * Migrates a connector from AS5 to AS7
      *
      * @param connector object representing connector in AS5
      * @param ctx  migration context
@@ -312,7 +312,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for migration of Engine rom AS5 to AS7
+     * Migrates a Engine from AS5 to AS7
      *
      * @param engine object representing Engine
      * @return  created virtual-server
@@ -331,7 +331,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for creating socket-bindings, which are already in fresh standalone files.
+     * Loads socket-bindings, which are already defined in fresh standalone files.
      *
      * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
@@ -359,7 +359,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for creating socket-binding if it doesn't already exists.
+     * Creates a socket-binding if it doesn't already exists.
      *
      * @param port port of the connector, which will be converted to socket-binding
      * @param name name of the protocol which is used by connector (ajp/http/https)
@@ -410,8 +410,15 @@ public class ServerMigrator extends AbstractMigrator {
         return name;
     }
 
-
-    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
+    /**
+     * Creates a list of CliCommandActions for adding a Connector
+     *
+     * @param connAS7 Connector
+     * @return created list containing CliCommandActions for adding the Connector
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Connector
+     *                            are missing or are empty (socket-binding, connector-name, protocol)
+     */
+    private static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
@@ -469,7 +476,15 @@ public class ServerMigrator extends AbstractMigrator {
         return actions;
     }
 
-    public static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
+    /**
+     * Creates CliCommandAction for adding a Virtual-Server
+     *
+     * @param server Virtual-Server
+     * @return created CliCommandAction for adding the Virtual-Server
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Virtual-Server
+     *                            are missing or are empty (server-name)
+     */
+    private static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(server.getVirtualServerName(), errMsg, "Server name");
 
@@ -497,7 +512,15 @@ public class ServerMigrator extends AbstractMigrator {
         return new CliCommandAction(createVirtualServerScript(server), builder.getCommand());
     }
 
-    public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
+    /**
+     * Creates CliCommandAction for adding a Socket-Binding
+     *
+     * @param socket Socket-Binding
+     * @return created CliCommandAction for adding the Socket-Binding
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
+     *                            are missing or are empty (security-domain-name)
+     */
+    private static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socket.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socket.getSocketName(), errMsg, "Name");
@@ -516,13 +539,13 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding connector to AS7 from migrated connector.
+     * Creates a CLI script for adding a Connector
      *
      * @param connAS7 object of migrated connector
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException {
+    private static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException {
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
@@ -553,11 +576,12 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
+     * Creates a CLI script for adding a SSL configuration of the Connector
      *
-     * @param connAS7
-     * @return
+     * @param connAS7 Connector containing SSL configuration
+     * @return created string containing the CLI script for adding the SSL configuration
      */
-    public static String createSSLConfScript(ConnectorAS7Bean connAS7){
+    private static String createSSLConfScript(ConnectorAS7Bean connAS7){
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=web/connector=" + connAS7.getConnectorName());
 
@@ -581,12 +605,12 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding virtual-server to AS7
+     * Creates a CLI script for adding virtual-server to AS7
      *
      * @param virtualServer object representing migrated virtual-server
      * @return string containing created CLI script
      */
-    public static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException{
+    private static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException{
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(virtualServer.getVirtualServerName(), errMsg, "Server name");
 
@@ -618,13 +642,13 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding socket-binding to AS7
+     * Creates a CLI script for adding socket-binding to AS7
      *
      * @param socketBinding object representing socket-binding
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSocketBindingScript(SocketBindingBean socketBinding)
+    private static String createSocketBindingScript(SocketBindingBean socketBinding)
             throws CliScriptException {
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socketBinding.getSocketPort(), errMsg, "Port");

@@ -163,7 +163,7 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     /**
-     * Method for migrating application-policy from AS5 to AS7
+     * Migrates application-policy from AS5 to AS7
      *
      * @param appPolicy object representing application-policy
      * @param ctx  migration context
@@ -284,8 +284,15 @@ public class SecurityMigrator extends AbstractMigrator {
         return securityDomain;
     }
 
-
-    public static List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
+    /**
+     * Creates a list of CliCommandActions for adding a Security-Domain
+     *
+     * @param domain Security-Domain
+     * @return created list containing CliCommandActions for adding the Security-Domain
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
+     *                            are missing or are empty (security-domain-name)
+     */
+    private static List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
             throws CliScriptException{
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(domain.getSecurityDomainName(), errMsg, "Security name");
@@ -308,8 +315,14 @@ public class SecurityMigrator extends AbstractMigrator {
         return actions;
     }
 
-    public static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module)
-            throws CliScriptException {
+    /**
+     * Creates CliCommandAction for adding a Login-Module of the specific Security-Domain
+     *
+     * @param domain Security-Domain containing Login-Module
+     * @param module Login-Module
+     * @return created CliCommandAction for adding the Login-Module
+     */
+    private static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module) {
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "security");
@@ -340,13 +353,13 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     /**
-     * Creating CLI script for adding security-domain to AS7
+     * Creates a CLI script for adding Security-Domain to AS7
      *
      * @param securityDomain object representing migrated security-domain
-     * @return string containing created CLI script
+     * @return created string containing the CLI script for adding the Security-Domain
      * @throws CliScriptException if required attributes are missing
      */
-    public static String createSecurityDomainScript(SecurityDomainBean securityDomain)
+    private static String createSecurityDomainScript(SecurityDomainBean securityDomain)
             throws CliScriptException {
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(securityDomain.getSecurityDomainName(), errMsg, "Security name");
@@ -362,8 +375,14 @@ public class SecurityMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-    public static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
-
+    /**
+     * Creates a CLI script for adding a Login-Module of the specific Security-Domain
+     *
+     * @param domain Security-Domain containing Login-Module
+     * @param module Login-Module
+     * @return created string containing the CLI script for adding the Login-Module
+     */
+    private static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
         StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=" +
                 domain.getSecurityDomainName());
         resultScript.append("/authentication=classic:add(login-modules=[{");
