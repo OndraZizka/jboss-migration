@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
+import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
@@ -48,7 +49,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     // iterating number for names of drivers
     // TODO: Perhaps move this property to migration context.
-    private int it = 0;
+    private int it = 1;
 
     private Set<DriverBean> drivers = new HashSet();
 
@@ -111,12 +112,13 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     @Override
     public void createActions(MigrationContext ctx) throws ActionException{
-        // TODO: Make specific exception for Actions?
-
+        // Helping list of CliCommnadAction. For successful migration driver CliCommandAction must be added=performed
+        // before datasource.
+        List<IMigrationAction> tempActions = new ArrayList<>();
         for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
             if (fragment instanceof DatasourceAS5Bean) {
                 try {
-                    ctx.getActions().add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
+                    tempActions.add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
                     throw new ActionException("Migration of local-tx-datasource failed: " + e.getMessage(), e);
                 }
@@ -125,7 +127,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             if (fragment instanceof XaDatasourceAS5Bean) {
                 try {
-                    ctx.getActions().addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
+                    tempActions.addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
                     throw new ActionException("Migration of xa-datasource failed: " + e.getMessage(), e);
                 }
@@ -134,7 +136,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             if(fragment instanceof NoTxDatasourceAS5Bean){
                 try {
-                    ctx.getActions().add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
+                    tempActions.add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
                     throw new ActionException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
                 }
@@ -162,7 +164,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             if(tempModules.containsKey(src)){
                 // It means that moduleAction is already set. No need for another one => create CLI for driver and
                 // continue on the next iteration
-                driver.setDriverModule("migration.drivers." + tempModules.get(src));
+                driver.setDriverModule(tempModules.get(src));
                 try {
                     ctx.getActions().add(createDriverCliAction(driver));
                 } catch (CliScriptException e) {
@@ -183,16 +185,9 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                    "drivers", driver.getDriverName(), "main");
+                    "drivers", driver.getDriverName(), "main", src.getName());
 
-//            File moduleXml;
-//            try {
-//                moduleXml = AS7ModuleUtils.createModuleXMLFile(driver.getDriverModule(), src.getName(),
-//                        targetDir, AS7ModuleUtils.ModuleType.DRIVER);
-//            } catch (ModuleException e) {
-//                throw new ActionException("Creation of module.xml for driver module failed: " + e.getMessage(), e);
-//            }
-            Document doc = null;
+            Document doc;
             try {
                doc  =  AS7ModuleUtils.createDriverModuleXML(driver.getDriverModule(), src.getName());
             } catch (ParserConfigurationException e) {
@@ -205,6 +200,9 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             ctx.getActions().add(moduleAction);
         }
+
+        // Add datasource CliCommandActions after drivers.
+        ctx.getActions().addAll(tempActions);
     }
 
     @Override
@@ -352,8 +350,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setDriverClass(noTxDatasourceAS5.getDriverClass());
         if(this.drivers.add(driver)){
-            datasourceAS7.setDriver("createdDriver" + ++this.it);
+            datasourceAS7.setDriver("createdDriver" + this.it);
             driver.setDriverName("createdDriver" + this.it);
+            this.it++;
         } else{
             for (DriverBean temp : this.drivers) {
                 if (temp.equals(driver)) {
@@ -439,8 +438,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setDriverClass(datasourceAS5.getDriverClass());
         if(this.drivers.add(driver)){
-            datasourceAS7.setDriver("createdDriver" + ++this.it);
+            datasourceAS7.setDriver("createdDriver" + this.it);
             driver.setDriverName("createdDriver" + this.it);
+            this.it++;
         } else{
             for (DriverBean temp : this.drivers) {
                 if (temp.equals(driver)) {
@@ -530,8 +530,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
         if(this.drivers.add(driver)){
-            xaDataAS7.setDriver("createdDriver" + ++this.it);
+            xaDataAS7.setDriver("createdDriver" + this.it);
             driver.setDriverName("createdDriver" + this.it);
+            this.it++;
         } else{
             for (DriverBean temp : this.drivers) {
                 if (temp.equals(driver)) {
@@ -604,7 +605,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
      *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
-    public static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
+    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
             throws CliScriptException {
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
@@ -668,7 +669,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource
      *                            are missing or are empty (pool-name, jndi-name, driver-name)
      */
-    public static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
+    private static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
             throws CliScriptException {
         String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
@@ -741,7 +742,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource-Property
      *                            are missing or are empty (property-name)
      */
-    public static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
+    private static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
             throws CliScriptException{
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");

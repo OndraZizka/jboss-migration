@@ -56,7 +56,7 @@ public class AS7ModuleUtils {
         doc.appendChild(root);
 
         root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("module", moduleName);
+        root.setAttribute("name", moduleName);
 
         Element resources = doc.createElement("resources");
         root.appendChild(resources);
@@ -101,7 +101,7 @@ public class AS7ModuleUtils {
         doc.appendChild(root);
 
         root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("module", moduleName);
+        root.setAttribute("name", moduleName);
 
         Element resources = doc.createElement("resources");
         root.appendChild(resources);

@@ -270,7 +270,6 @@ public class ServerMigrator extends AbstractMigrator {
 
         // Socket-binding.. first try
         if (connector.getProtocol().equals("HTTP/1.1")) {
-
             if (connector.getSslEnabled() == null) {
                 connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
             } else {
@@ -379,10 +378,13 @@ public class ServerMigrator extends AbstractMigrator {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
+            if(sb.getSocketName().equals(name)){
+                name = "createdSocket";
+            }
         }
+
         SocketBindingBean socketBinding = new SocketBindingBean();
-        if (this.socketBindings == null) {
-            this.socketBindings = new HashSet();
+        if (this.socketBindings.isEmpty()) {
             socketBinding.setSocketName(name);
             socketBinding.setSocketPort(port);
             this.socketBindings.add(socketBinding);

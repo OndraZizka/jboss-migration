@@ -21,19 +21,23 @@ public class CliCommandAction extends AbstractStatefulAction {
     public CliCommandAction(String script, ModelNode cliCommand){
         //this.cliCommand = scriptAPI;
         //this.script = script;
-        this.command = new DefaultBatchedCommand(script, cliCommand);
+        this.command = new DefaultBatchedCommand( script, cliCommand );
     }
     
     
     @Override
     public void preValidate() throws MigrationException {
-          // Empty?
+        if( (this.command.getCommand() == null) || (this.command.getCommand().isEmpty()) )
+            throw new MigrationException("CLI script for CliCommandAction doesn't exist");
+        if( this.command.getRequest() == null ){
+            throw new MigrationException("ModelNode for CliCommandAction cannot be null");
+        }
     }
 
 
     @Override
     public void perform() throws MigrationException {
-       getMigrationContext().getBatch().add(this.command);
+       getMigrationContext().getBatch().add( this.command );
        setState(State.DONE);
     }
 

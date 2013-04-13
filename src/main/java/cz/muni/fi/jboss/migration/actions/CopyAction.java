@@ -29,7 +29,7 @@ public class CopyAction extends AbstractStatefulAction {
         if( ! src.exists() )
             throw new MigrationException("File to copy doesn't exist: " + src.getPath());
         if( dest.exists() && ! overwrite )
-            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getName());
+            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
 
@@ -46,9 +46,19 @@ public class CopyAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        if( this.isAfterPerform() )
+        if( this.isAfterPerform() ){
+            if(this.overwrite && this.temp != null){
+                try {
+                    FileUtils.copyFile( this.temp, this.dest );
+                } catch (IOException e) {
+                    throw new MigrationException("Rollback of to the previous file failed: " + e.getMessage(), e);
+                }
+            } else{
+                FileUtils.deleteQuietly( this.dest );
+            }
+        }
             // Replace copied file with backup.
-            ;
+
         setState( State.ROLLED_BACK );
     }
 
@@ -64,8 +74,8 @@ public class CopyAction extends AbstractStatefulAction {
         // Copy dest, if exists and overwrite allowed, to a temp file.
         if( this.dest.exists() && this.overwrite ){
             try {
-                this.temp = File.createTempFile(this.dest.getName(), null);
-                FileUtils.copyFile(this.dest, this.temp);
+                this.temp = File.createTempFile( this.dest.getName(), null );
+                FileUtils.copyFile( this.dest, this.temp );
             } catch (IOException ex) {
                 throw new MigrationException("Creating of backup file failed:" + ex.getMessage(), ex);
             }

@@ -15,6 +15,11 @@ import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.exceptions.JAXBException;
+import org.jboss.as.cli.batch.BatchedCommand;
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.controller.client.OperationBuilder;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -28,6 +33,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -216,6 +222,26 @@ public class MigratorEngine {
             this.backupActions();
             message = "Failed performing the migration actions.";
             this.performActions();
+
+            // Specific problem on my PC. Need to connect two times => first time
+            try{
+            executeRequest(ctx.getBatch().toRequest());
+            } catch (MigrationException e){
+
+            }
+            // Testing=> checking created CLI scripts
+            int i = 1;
+            for(BatchedCommand command : ctx.getBatch().getCommands()){
+                System.out.println(i++ + ": " + command.getCommand());
+            }
+
+
+            // Execution
+            log.info("CLI Batch:");
+            message = "Execution of batch failed.";
+            executeRequest(ctx.getBatch().toRequest());
+
+
             message = "Verification of migration actions results failed.";
             this.postValidateActions();
         }
@@ -236,8 +262,8 @@ public class MigratorEngine {
             catch( MigrationException e ) {
                 throw new MigrationException(e);
             }
-            
-            
+
+
             // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
             try {
                 StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
@@ -249,8 +275,8 @@ public class MigratorEngine {
             catch( CliScriptException ex ) {
                 throw ex;
             }
-            
-            
+
+
             // MIGR-31 TODO: Replace with prepareActions().
             try {
                 this.copyItems();
@@ -263,7 +289,7 @@ public class MigratorEngine {
                 FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
                 throw new MigrationException(ex);
             }
-            
+
             // MIGR-31 TODO: Replace with applyActions() to perform the actions.
             try {
                 this.apply();
@@ -271,7 +297,7 @@ public class MigratorEngine {
             catch( Throwable ex ) {
                 log.error("Applying the results to the target server failed: " + ex.toString(), ex);
                 log.error("Rolling back the changes.");
-                
+
                 // MIGR-31 TODO: Replace with rollbackActions()
                 try {
                     this.rollback_old( config );
@@ -283,10 +309,48 @@ public class MigratorEngine {
             }
         }// false
         //</editor-fold>
-        
+
     }// migrate()
-   
-    
+
+
+    // Temp method for testing
+    public static void executeRequest(ModelNode request) throws MigrationException {
+        ModelControllerClient client = null;
+        try {
+            client = ModelControllerClient.Factory.create("localhost", 9999);
+            final ModelNode response = client.execute(new OperationBuilder(request).build());
+            reportFailure(response);
+        } catch (IOException e) {
+            throw new MigrationException("Execution of the batch failed: " + e.getMessage(), e);
+        } finally {
+            safeClose(client);
+        }
+    }
+    // temp method for testing
+    public static void safeClose(final Closeable closeable) throws MigrationException {
+        if (closeable != null) try {
+            closeable.close();
+        } catch (IOException e) {
+            throw new MigrationException("SAFECLOSE FAILED:" + e.getMessage(), e);
+        }
+    }
+
+    // temp method for testing
+    private static void reportFailure(final ModelNode node) throws MigrationException {
+        if (!node.get(ClientConstants.OUTCOME).asString().equals(ClientConstants.SUCCESS)) {
+            final String msg;
+            if (node.hasDefined(ClientConstants.FAILURE_DESCRIPTION)) {
+                if (node.hasDefined(ClientConstants.OP)) {
+                    msg = String.format("Operation '%s' at address '%s' failed: %s", node.get(ClientConstants.OP), node.get(ClientConstants.OP_ADDR), node.get(ClientConstants.FAILURE_DESCRIPTION));
+                } else {
+                    msg = String.format("Operation failed: %s", node.get(ClientConstants.FAILURE_DESCRIPTION));
+                }
+            } else {
+                msg = String.format("Operation failed: %s", node);
+            }
+            throw new MigrationException(msg);
+        }
+    }
     
     /**
      *  Ask all the migrators to create the actions to be performed; stores them in the context.
@@ -323,6 +387,7 @@ public class MigratorEngine {
     private void performActions() throws MigrationException {
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            action.setMigrationContext(ctx);
             action.perform();
         }
     }
@@ -507,7 +572,7 @@ public class MigratorEngine {
                         throw new CopyException("File already exists: " + moduleXml.getPath());
                     
 //                   Document doc = FileTransferInfo.Type.DRIVER.equals(type)
-//                            ? AS7ModuleUtils.createModuleXML(cp)
+//                            ? AS7ModuleUtils.createDriverModuleXML(cp)
 //                            : AS7ModuleUtils.createLogModuleXML(cp);
 //
 //                    transformer.transform( new DOMSource(doc), new StreamResult(moduleXml));

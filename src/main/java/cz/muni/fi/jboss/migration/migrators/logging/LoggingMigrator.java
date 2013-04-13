@@ -198,7 +198,7 @@ public class LoggingMigrator extends AbstractMigrator {
             if(tempModules.containsKey(src)){
                 // It means that moduleAction is already set. No need for another one => create CLI for CustomHandler and
                 // continue on the next iteration
-                handler.setModule("migration.logging." + tempModules.get(src));
+                handler.setModule(tempModules.get(src));
                 try {
                     ctx.getActions().add(createCustomHandlerCliAction(handler));
                 } catch (CliScriptException e) {
@@ -209,7 +209,7 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
-            handler.setModule("migration.logging.customHandler" + number++);
+            handler.setModule("migration.logging.customHandler" + number);
             tempModules.put(src, handler.getModule());
 
             try {
@@ -220,16 +220,9 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                    "logging", handler.getName(), "main");
+                    "logging", "customHandler" + number, "main", src.getName());
 
-//            File moduleXml;
-//            try {
-//                moduleXml = AS7ModuleUtils.createModuleXMLFile(handler.getModule(), src.getName(),
-//                        targetDir, AS7ModuleUtils.ModuleType.LOG);
-//            } catch (ModuleException e) {
-//                throw new ActionException("Creation of module.xml for logging module failed: " + e.getMessage(), e);
-//            }
-            Document doc = null;
+            Document doc;
             try {
                 doc  =  AS7ModuleUtils.createLogModuleXML(handler.getModule(), src.getName());
             } catch (ParserConfigurationException e) {
@@ -241,6 +234,8 @@ public class LoggingMigrator extends AbstractMigrator {
             ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
 
             ctx.getActions().add(moduleAction);
+            // iterate number of custom handlers for creation of modules
+            number++;
         }
     }
 
@@ -484,32 +479,34 @@ public class LoggingMigrator extends AbstractMigrator {
     public static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
         PerRotFileHandlerBean handler = new PerRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
+        if(appender.getParameters() != null){
+            for (ParameterBean parameter : appender.getParameters()) {
+                if (parameter.getParamName().equalsIgnoreCase("Append")) {
+                    handler.setAppend(parameter.getParamValue());
+                    continue;
+                }
 
-        for (ParameterBean parameter : appender.getParameters()) {
-            if (parameter.getParamName().equalsIgnoreCase("Append")) {
-                handler.setAppend(parameter.getParamValue());
-                continue;
-            }
-
-            if (parameter.getParamName().equals("File")) {
-                String value = parameter.getParamValue();
+                if (parameter.getParamName().equals("File")) {
+                    String value = parameter.getParamValue();
 
 
-                handler.setRelativeTo("jboss.server.log.dir");
-                handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    handler.setRelativeTo("jboss.server.log.dir");
+                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
 
-            }
+                }
 
-            if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
-                // TODO: Basic for now. Don't know what to do with apostrophes
-                handler.setSuffix(parameter.getParamValue());
-                continue;
-            }
+                if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
+                    // TODO: Basic for now. Don't know what to do with apostrophes
+                    handler.setSuffix(parameter.getParamValue());
+                    continue;
+                }
 
-            if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
-                handler.setLevel(parameter.getParamValue());
+                if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
+                    handler.setLevel(parameter.getParamValue());
+                }
             }
         }
+
         handler.setFormatter(appender.getLayoutParamValue());
 
         return handler;
@@ -525,34 +522,35 @@ public class LoggingMigrator extends AbstractMigrator {
     public static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx) {
         SizeRotFileHandlerBean handler = new SizeRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
+        if(appender.getParameters() != null){
+            for (ParameterBean parameter : appender.getParameters()) {
+                if (parameter.getParamName().equalsIgnoreCase("Append")) {
+                    handler.setAppend(parameter.getParamValue());
+                    continue;
+                }
 
-        for (ParameterBean parameter : appender.getParameters()) {
-            if (parameter.getParamName().equalsIgnoreCase("Append")) {
-                handler.setAppend(parameter.getParamValue());
-                continue;
-            }
+                if (parameter.getParamName().equals("File")) {
+                    String value = parameter.getParamValue();
 
-            if (parameter.getParamName().equals("File")) {
-                String value = parameter.getParamValue();
+                    //TODO: Problem with bad parse? same thing in DailyRotating
+                    handler.setRelativeTo("jboss.server.log.dir");
+                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    continue;
+                }
 
-                //TODO: Problem with bad parse? same thing in DailyRotating
-                handler.setRelativeTo("jboss.server.log.dir");
-                handler.setPath(StringUtils.substringAfterLast(value, "/"));
-                continue;
-            }
+                if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
+                    handler.setRotateSize(parameter.getParamValue());
+                    continue;
+                }
 
-            if (parameter.getParamName().equalsIgnoreCase("MaxFileSize")) {
-                handler.setRotateSize(parameter.getParamValue());
-                continue;
-            }
+                if (parameter.getParamName().equalsIgnoreCase("MaxBackupIndex")) {
+                    handler.setMaxBackupIndex(parameter.getParamValue());
+                    continue;
+                }
 
-            if (parameter.getParamName().equalsIgnoreCase("MaxBackupIndex")) {
-                handler.setMaxBackupIndex(parameter.getParamValue());
-                continue;
-            }
-
-            if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
-                handler.setLevel(parameter.getParamValue());
+                if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
+                    handler.setLevel(parameter.getParamValue());
+                }
             }
         }
 
@@ -570,14 +568,17 @@ public class LoggingMigrator extends AbstractMigrator {
     public static AsyncHandlerBean createAsyncHandler(AppenderBean appender) {
         AsyncHandlerBean handler = new AsyncHandlerBean();
         handler.setName(appender.getAppenderName());
-        for (ParameterBean parameter : appender.getParameters()) {
-            if (parameter.getParamName().equalsIgnoreCase("BufferSize")) {
-                handler.setQueueLength(parameter.getParamValue());
-                continue;
-            }
+        if(appender.getParameters() != null){
+            // TODO: Problem with queue-length in Async
+            for (ParameterBean parameter : appender.getParameters()) {
+                if (parameter.getParamName().equalsIgnoreCase("BufferSize")) {
+                    handler.setQueueLength(parameter.getParamValue());
+                    continue;
+                }
 
-            if (parameter.getParamName().equalsIgnoreCase("Blocking")) {
-                handler.setOverflowAction(parameter.getParamValue());
+                if (parameter.getParamName().equalsIgnoreCase("Blocking")) {
+                    handler.setOverflowAction(parameter.getParamValue());
+                }
             }
         }
 
@@ -602,15 +603,16 @@ public class LoggingMigrator extends AbstractMigrator {
     public static ConsoleHandlerBean createConsoleHandler(AppenderBean appender) {
         ConsoleHandlerBean handler = new ConsoleHandlerBean();
         handler.setName(appender.getAppenderName());
+        if(appender.getParameters() != null){
+            for (ParameterBean parameter : appender.getParameters()) {
+                if (parameter.getParamName().equalsIgnoreCase("Target")) {
+                    handler.setTarget(parameter.getParamValue());
+                    continue;
+                }
 
-        for (ParameterBean parameter : appender.getParameters()) {
-            if (parameter.getParamName().equalsIgnoreCase("Target")) {
-                handler.setTarget(parameter.getParamValue());
-                continue;
-            }
-
-            if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
-                handler.setLevel(parameter.getParamValue());
+                if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
+                    handler.setLevel(parameter.getParamValue());
+                }
             }
         }
 
@@ -638,17 +640,18 @@ public class LoggingMigrator extends AbstractMigrator {
         }
 
         Set<PropertyBean> properties = new HashSet();
+        if(appender.getParameters() != null){
+            for (ParameterBean parameter : appender.getParameters()) {
+                if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
+                    handler.setLevel(parameter.getParamValue());
+                    continue;
+                }
 
-        for (ParameterBean parameter : appender.getParameters()) {
-            if (parameter.getParamName().equalsIgnoreCase("Threshold")) {
-                handler.setLevel(parameter.getParamValue());
-                continue;
+                PropertyBean property = new PropertyBean();
+                property.setName(parameter.getParamName());
+                property.setValue(parameter.getParamValue());
+                properties.add(property);
             }
-
-            PropertyBean property = new PropertyBean();
-            property.setName(parameter.getParamName());
-            property.setValue(parameter.getParamValue());
-            properties.add(property);
         }
 
         handler.setProperties(properties);
