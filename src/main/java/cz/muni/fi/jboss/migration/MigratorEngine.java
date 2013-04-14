@@ -225,7 +225,7 @@ public class MigratorEngine {
 
             // Specific problem on my PC. Need to connect two times => first time
             try{
-            executeRequest(ctx.getBatch().toRequest());
+                executeRequest(ctx.getBatch().toRequest());
             } catch (MigrationException e){
 
             }
@@ -253,67 +253,12 @@ public class MigratorEngine {
             this.cleanBackupsIfAny();
         }
 
-        //<editor-fold defaultstate="collapsed" desc="Old stuff">
-        if( false ) {
-            // Currently ignored?  MIGR-31 TODO: Replace with prepareActions()
-            try {
-                this.getDOMElements(); // ??? Ignores the results?
-            }
-            catch( MigrationException e ) {
-                throw new MigrationException(e);
-            }
-
-
-            // CLI scripts.  MIGR-31 TODO: Replace with prepareActions()
-            try {
-                StringBuilder sb = new StringBuilder("Generated Cli scripts:\n");
-                for (String script : this.getCLIScripts()) {
-                    sb.append("        ").append(script).append("\n");
-                }
-                log.info( sb.toString() );
-            }
-            catch( CliScriptException ex ) {
-                throw ex;
-            }
-
-
-            // MIGR-31 TODO: Replace with prepareActions().
-            try {
-                this.copyItems();
-            }
-            catch (CopyException ex) {
-                // TODO: Move this procedure into some rollback() method.
-                RollbackUtils.removeData(ctx.getFileTransfers());
-                // TODO: Can't just blindly delete, we need to keep info if we really created it!
-                // TODO: Create some dedicated module dir manager.
-                FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-                throw new MigrationException(ex);
-            }
-
-            // MIGR-31 TODO: Replace with applyActions() to perform the actions.
-            try {
-                this.apply();
-            }
-            catch( Throwable ex ) {
-                log.error("Applying the results to the target server failed: " + ex.toString(), ex);
-                log.error("Rolling back the changes.");
-
-                // MIGR-31 TODO: Replace with rollbackActions()
-                try {
-                    this.rollback_old( config );
-                    throw ex;
-                } catch( Throwable ex2 ){
-                    log.error("Rollback failed: " + ex.toString(), ex2);
-                    throw new RollbackMigrationException(ex, ex2);
-                }
-            }
-        }// false
-        //</editor-fold>
-
     }// migrate()
 
 
-    // Temp method for testing
+    /**
+     * Temp method for testing
+     */
     public static void executeRequest(ModelNode request) throws MigrationException {
         ModelControllerClient client = null;
         try {
@@ -326,7 +271,10 @@ public class MigratorEngine {
             safeClose(client);
         }
     }
-    // temp method for testing
+    
+    /**
+     * Temp method for testing
+     */
     public static void safeClose(final Closeable closeable) throws MigrationException {
         if (closeable != null) try {
             closeable.close();
@@ -335,7 +283,9 @@ public class MigratorEngine {
         }
     }
 
-    // temp method for testing
+    /**
+     * Temp method for testing
+     */
     private static void reportFailure(final ModelNode node) throws MigrationException {
         if (!node.get(ClientConstants.OUTCOME).asString().equals(ClientConstants.SUCCESS)) {
             final String msg;
