@@ -1,7 +1,10 @@
 package cz.muni.fi.jboss.migration.migrators.dataSources;
 
 import cz.muni.fi.jboss.migration.FileTransferInfo;
+import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 
 /**
  * Roman:
@@ -22,6 +25,15 @@ import org.apache.commons.lang.StringUtils;
  */
 public class DatasourceUtils {
     
+    public static Document createJDBCDriverModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
+
+        String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"};
+        // Servlet API necessary only for H2 AFAIK.
+        
+        return AS7ModuleUtils.createModuleXML( moduleName, fileName, deps );
+
+    }
+    
     /**
      * Sets the name of the Copy Memory for drivers.
      * In special cases altName is set for alternative JDBC driver (JTDS).
@@ -29,80 +41,80 @@ public class DatasourceUtils {
      * @param className  Driver class from -ds.xml file from AS5 config.
      * @deprecated No longer needed. New approach to modules in datasources
      */
-    public static void deriveAndSetDriverName(FileTransferInfo rb, String className) {
+    public static void deriveAndSetDriverName(FileTransferInfo fti, String className) {
         
-        rb.setName( null );
-        rb.setAltName( null );
+        fti.setName( null );
+        fti.setAltName( null );
         
         if( className.contains("postgres")) {
-            rb.setName("postgresql");
+            fti.setName("postgresql");
         }
         else if( className.contains("microsoft")) {
-            rb.setName("sqljdbc");
-            rb.setAltName("jtds");
+            fti.setName("sqljdbc");
+            fti.setAltName("jtds");
         }
         else if( className.contains("db2")) {
-            rb.setName("db2");
+            fti.setName("db2");
         }
         else if( className.contains("sybase")) {
-            rb.setName("sybase");
-            rb.setAltName("jtds");
+            fti.setName("sybase");
+            fti.setAltName("jtds");
         }
         else if( className.contains("mysql")) {
-            rb.setName("sqljdbc");
+            fti.setName("sqljdbc");
         }
         else if( className.contains("oracle")) {
-            rb.setName("ojdbc");
+            fti.setName("ojdbc");
         }
         else if( className.contains("hsqldb")) {
-            rb.setName("hsqldb");
+            fti.setName("hsqldb");
         }
         else {
             // Guesstimate the value from the classname: org.foo.Bar -> "foo".
             String temp = StringUtils.substringAfter(className, ".");
-            rb.setName(StringUtils.substringBefore(temp, "."));
+            fti.setName(StringUtils.substringBefore(temp, "."));
         }
     }
     
     
     /**
-     * Setting module for different databases.
-     *
-     * @return string containing generate module name
-     * @deprecated TODO: Refactor & reuse cz.muni.fi.jboss.migration.migrators.dataSources.Util.deriveAndSetDriverName().
-     *                   (Or rather the other way around.)
+     * @returns A module name, e.g. "migration.jdbc.drivers.mssql".
      */
     public static String deriveDriverModuleName(String driverName) {
-        String module = "migration.jdbc.drivers.";
+        String ident = deriveDatabaseIdentifier(driverName);
+        if( ident == null)
+            ident = "unknown";
+        return "migration.jdbc.drivers." + ident;
+    }
+    
+    public static String deriveDatabaseIdentifier(String driverName) {
         if (driverName.contains("mysql")) {
-            module = module + "mysql";
+            return "mysql";
         }
-        // Mssql
         if (driverName.contains("microsoft")) {
-            module = module + "mssql";
+            return "mssql";
         }
         if (driverName.contains("sybase")) {
-            module = module + "sybase";
+            return "sybase";
         }
         if (driverName.contains("postgresql")) {
-            module = module + "postgresql";
+            return "postgresql";
         }
         if (driverName.contains("oracle")) {
-            module = module + "oracle";
+            return "oracle";
         }
         if (driverName.contains("hsqldb")) {
-            module = module + "hsqldb";
+            return "hsqldb";
         }
         if (driverName.contains("db2")) {
-            module = module + "db2";
+            return "db2";
         }
         if (driverName.contains("jtds")) {
-            module = module + "jtds";
+            return "jtds";
         }
-
-        return module;
+        return null;
     }
 
-    
+
 
 }// class

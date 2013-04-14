@@ -15,33 +15,27 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 
 /**
- * Util class for generation of module for driver and module.xml which is required in migration.
+ * Util class for generation of module XML.
  *
  * @author Roman Jakubco
  */
 public class AS7ModuleUtils {
-//    public static enum ModuleType{
-//        DRIVER, LOG
-//    }
+
     /**
-     * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
+     * Method for creating module.xml.
      *
-     * @param moduleName name of the created module
-     * @param fileName name of the file deployed as module
-     * @return Document representing created module.xml for given driver
-     * @throws javax.xml.parsers.ParserConfigurationException
-     *          if parser cannot be initialized
+     * @param moduleName  The name of the created module.
+     * @param fileName    The name of the file deployed as module.
+     * @returns  A document representing created module.xml.
+     * @throws javax.xml.parsers.ParserConfigurationException  if parser cannot be initialized.
      */
-    public static Document createDriverModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
+    public static Document createModuleXML(String moduleName, String fileName, String[] deps) throws ParserConfigurationException {
 
         /**
-         * module.xml for JDBC driver module
-         *
          * Example of module xml,
          *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
          *       <resources>
          *          <resource-root path="h2-1.3.168.jar"/>
-         *       <!-- Insert resources here -->
          *       </resources>
          *       <dependencies>
          *          <module name="javax.api"/>
@@ -65,18 +59,22 @@ public class AS7ModuleUtils {
         resource.setAttribute("path", fileName);
         resources.appendChild(resource);
 
+        // Dependencies
         Element dependencies = doc.createElement("dependencies");
-        Element module1 = doc.createElement("module");
-        module1.setAttribute("name", "javax.api");
-        Element module2 = doc.createElement("module");
-        module2.setAttribute("name", "javax.transaction.api");
-        Element module3 = doc.createElement("module");
-        module3.setAttribute("name", "javax.servlet.api");
-        module3.setAttribute("optional", "true");
-
-        dependencies.appendChild(module1);
-        dependencies.appendChild(module2);
-        dependencies.appendChild(module3);
+        
+        boolean optional = false;
+        for( String modName : deps ) {
+            if( deps == null ){
+                optional = true;
+                continue;
+            }
+            Element module = doc.createElement("module");
+            module.setAttribute("name", modName);
+            if( optional )
+                module.setAttribute("optional", "true");
+            dependencies.appendChild(module);
+            optional = false;
+        }
 
         root.appendChild(dependencies);
 

@@ -189,7 +189,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             Document doc;
             try {
-               doc  =  AS7ModuleUtils.createDriverModuleXML(driver.getDriverModule(), src.getName());
+               doc  =  DatasourceUtils.createJDBCDriverModuleXML(driver.getDriverModule(), src.getName());
             } catch (ParserConfigurationException e) {
                 throw new ActionException("Creation of Document representing module.xml for driver failed: "
                         + e.getMessage(), e);
