@@ -50,7 +50,7 @@ public class MigratorEngineTest {
         conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01");
         conf.getGlobal().getAS5Config().setProfileName("default");
         conf.getGlobal().getAS7Config().setDir("target/as7copy");
-        conf.getGlobal().getAS7Config().setConfigPath("standalone");
+        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
                 
         return conf;
     }
@@ -67,7 +67,9 @@ public class MigratorEngineTest {
         Configuration conf = createTestConfig01();
         MigratorApp.validateConfiguration( conf );
         
-        MigratorApp.migrate( conf );
+        //MigratorApp.migrate( conf );
+        MigratorEngine migrator = new MigratorEngine(conf);
+        migrator.doMigration();
     }
 
 
