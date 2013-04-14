@@ -1,22 +1,22 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.FileTransferInfo;
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.RollbackMigrationException;
-import java.io.File;
-import java.util.Collection;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.w3c.dom.Document;
+import java.io.File;
+import java.util.Collection;
 
 
 /**
@@ -35,6 +35,7 @@ public class RollbackUtils {
      * @param config configuration of app
      * 
      * TODO: MIGR-23: Rollback needs to be done on the file level, not by writing back unchanged DOM.
+     *               @deprecated useless with actions?
      */
     public static void rollbackAS7ConfigFile(Document doc, Configuration config) throws Exception {
         log.debug("rollbackAS7ConfigFile() " + config);
@@ -56,6 +57,7 @@ public class RollbackUtils {
      *  So this method iterates over the given collection of these objects and try to delete them.
      *
      * @param rollbackData  The files which where copied to the AS7 folder.
+     * @deprecated  useless with actions
      */
     public static void removeData(Collection<FileTransferInfo> rollbackData) {
         log.debug("removeData() " + rollbackData);
@@ -77,8 +79,7 @@ public class RollbackUtils {
      * @throws cz.muni.fi.jboss.migration.ex.CopyException
      *          if no file was found and roll data is not representing driver and if it is then if module of
      *          driver is null
-     *
-     * TODO: This needs to be moved to some RollbackManager.
+     * @deprecated  Useless with actions
      */
     public static void setRollbackData( FileTransferInfo rollData, Collection<File> files, String targetPath ) throws CopyException {
         log.debug("setRollbackData() " + rollData);

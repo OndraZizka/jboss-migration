@@ -81,6 +81,12 @@ public class ServerMigrator extends AbstractMigrator {
 
     @Override
     public void createActions(MigrationContext ctx) throws ActionException{
+        try {
+            createDefaultSockets(ctx);
+        } catch (LoadMigrationException e) {
+            throw new ActionException("Migration of web server failed: " + e.getMessage(), e);
+        }
+
         for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
             if (fragment instanceof ConnectorAS5Bean) {
                 try {
@@ -270,41 +276,35 @@ public class ServerMigrator extends AbstractMigrator {
 
         // Socket-binding.. first try
         if (connector.getProtocol().equals("HTTP/1.1")) {
-            if (connector.getSslEnabled() == null) {
-                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
+            if ( ( connector.getSslEnabled() == null ) || ( connector.getSslEnabled().equalsIgnoreCase("false") ) ) {
+                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
             } else {
-                if (connector.getSslEnabled().equals("true")) {
-                    connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https", ctx));
-                } else {
-                    connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http", ctx));
-                }
+                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
             }
         } else {
-            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp", ctx));
+            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
         }
 
-        if (connector.getSslEnabled() != null) {
-            if (connector.getSslEnabled().equals("true")) {
-                connAS7.setScheme("https");
-                connAS7.setSecure(connector.getSecure());
+        if ( ( connector.getSslEnabled() != null ) && ( connector.getSslEnabled().equals("true") ) ) {
+            connAS7.setScheme("https");
+            connAS7.setSecure(connector.getSecure());
 
-                connAS7.setSslName("ssl");
-                connAS7.setVerifyClient(connector.getClientAuth());
-                // TODO: Problem with place of the file
-                connAS7.setCertifKeyFile(connector.getKeystoreFile());
+            connAS7.setSslName("ssl");
+            connAS7.setVerifyClient(connector.getClientAuth());
+            // TODO: Problem with place of the file
+            connAS7.setCertifKeyFile(connector.getKeystoreFile());
 
-                // TODO: No sure which protocols can be in AS5. Hard to find..
-                if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
-                    connAS7.setSslProtocol("TLSv1");
-                }
-                connAS7.setSslProtocol(connector.getSslProtocol());
-
-                connAS7.setCiphers(connector.getCiphers());
-                connAS7.setKeyAlias(connAS7.getKeyAlias());
-
-                // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
-                connAS7.setPassword(connector.getKeystorePass());
+            // TODO: No sure which protocols can be in AS5. Hard to find..
+            if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
+                connAS7.setSslProtocol("TLSv1");
             }
+            connAS7.setSslProtocol(connector.getSslProtocol());
+
+            connAS7.setCiphers(connector.getCiphers());
+            connAS7.setKeyAlias(connAS7.getKeyAlias());
+
+            // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+            connAS7.setPassword(connector.getKeystorePass());
         }
 
         return connAS7;
@@ -352,7 +352,8 @@ public class ServerMigrator extends AbstractMigrator {
 
             }
         } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
+            throw new LoadMigrationException("Parsing of socket-bindings in standalone file failed: " +
+                    e.getMessage(), e);
         }
 
     }
@@ -365,15 +366,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @return name of the socket-binding so it cant be referenced in connector
      * @throws NodeGenerationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name, MigrationContext ctx) throws NodeGenerationException {
-        if (this.socketTemp.isEmpty()) {
-            try {
-                createDefaultSockets(ctx);
-            } catch (LoadMigrationException e) {
-                throw new NodeGenerationException(e);
-            }
-        }
-
+    private String createSocketBinding(String port, String name) throws NodeGenerationException {
         for (SocketBindingBean sb : this.socketTemp) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
@@ -384,20 +377,12 @@ public class ServerMigrator extends AbstractMigrator {
         }
 
         SocketBindingBean socketBinding = new SocketBindingBean();
-        if (this.socketBindings.isEmpty()) {
-            socketBinding.setSocketName(name);
-            socketBinding.setSocketPort(port);
-            this.socketBindings.add(socketBinding);
-            return name;
-        }
 
         for (SocketBindingBean sb : this.socketBindings) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
         }
-
-        socketBinding.setSocketPort(port);
 
         for (SocketBindingBean sb : this.socketBindings) {
             if (sb.getSocketName().equals(name)) {
@@ -407,6 +392,8 @@ public class ServerMigrator extends AbstractMigrator {
         }
 
         socketBinding.setSocketName(name);
+        socketBinding.setSocketPort(port);
+
         this.socketBindings.add(socketBinding);
 
         return name;
@@ -420,7 +407,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Connector
      *                            are missing or are empty (socket-binding, connector-name, protocol)
      */
-    private static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
+    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
@@ -486,7 +473,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Virtual-Server
      *                            are missing or are empty (server-name)
      */
-    private static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
+    public static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(server.getVirtualServerName(), errMsg, "Server name");
 
@@ -522,7 +509,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
      *                            are missing or are empty (security-domain-name)
      */
-    private static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
+    public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socket.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socket.getSocketName(), errMsg, "Name");

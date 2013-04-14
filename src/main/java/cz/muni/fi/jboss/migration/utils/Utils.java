@@ -16,6 +16,12 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -143,19 +149,6 @@ public class Utils {
      * @return list of found files
      */
     public static Collection<File> searchForFile(FileTransferInfo rollData, File dir) {
-        /*NameFileFilter nff;
-        if (rollData.getType().equals(RollbackData.Type.DRIVER)) {
-            final String name = rollData.getName();
-            nff = new NameFileFilter(name) {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().contains(name) && file.getName().contains("jar");
-                }
-            };
-            nff = new WildcardFileFilter("*"+name+"*.jar");
-        } else {
-            nff = new NameFileFilter(rollData.getName());
-        }*/
         IOFileFilter nff = rollData.getType().equals(FileTransferInfo.Type.DRIVER)
                 ? new WildcardFileFilter("*" + rollData.getName() + "*.jar")
                 : new NameFileFilter(rollData.getName());
@@ -217,6 +210,7 @@ public class Utils {
     
     /**
      *  Creates a new default document builder.
+     *  @deprecated  TODO: No longer needed?
      */
     public static DocumentBuilder createXmlDocumentBuilder() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -228,11 +222,48 @@ public class Utils {
             throw new RuntimeException(ex); // Tunnel
         }
     }
-    
+
+    /**
+     * @deprecated   TODO: useless?
+     */
     public static Document parseXmlToDoc( File file ) throws SAXException, IOException {
         DocumentBuilder db = Utils.createXmlDocumentBuilder();
         Document doc = db.parse(file);
         return doc;
+    }
+
+    /**
+     * Creates clean Document used in other classes for working with XML
+     *
+     * @return  clean Document
+     * @throws ParserConfigurationException if creation of document fails
+     */
+    public static Document createDoc() throws ParserConfigurationException {
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+
+        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        return doc;
+    }
+
+    /**
+     * Transforms given Document into given File
+     *
+     * @param doc xml document to transform
+     * @param file targeted file
+     * @return  file containing XML document
+     * @throws TransformerException if transformer fails
+     */
+    public static File transformDocToFile(Document doc, File file) throws TransformerException {
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+
+        transformer.transform( new DOMSource(doc), new StreamResult(file));
+
+        return file;
     }
     
     

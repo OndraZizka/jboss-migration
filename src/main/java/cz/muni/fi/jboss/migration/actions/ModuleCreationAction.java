@@ -1,7 +1,7 @@
 package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.MigrationException;
-import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
+import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 
@@ -48,15 +48,15 @@ public class ModuleCreationAction extends AbstractStatefulAction {
                throw new MigrationException("Creation of module.xml failed => don't have permission for writing in " +
                        "directory: " + moduleXml.getParent());
 
-            try {
-                AS7ModuleUtils.transformDocToFile( this.moduleDoc, moduleXml );
-            } catch (TransformerException e) {
-                throw new MigrationException("Creation of the module.xml failed: " + e.getMessage(), e);
-            }
+
+            Utils.transformDocToFile(this.moduleDoc, moduleXml);
+
             this.moduleXml = moduleXml;
 
         } catch( IOException ex ) {
             throw new MigrationException("Copying failed: " + ex.getMessage(), ex);
+        }  catch (TransformerException e) {
+            throw new MigrationException("Creation of the module.xml failed: " + e.getMessage(), e);
         }
         
          setState(State.DONE);

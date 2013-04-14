@@ -367,7 +367,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Resource-Adapter are
      *                            missing or are empty (archive-name)
      */
-    private static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
+    public static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
             throws CliScriptException{
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(adapter.getArchive(), errMsg, "Archive name");
@@ -388,14 +388,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         if (adapter.getConnectionDefinitions() != null) {
             for (ConnectionDefinitionBean connDef : adapter.getConnectionDefinitions()) {
-                actions.add(createConDefinitionCliAction(adapter, connDef));
-
-                if (connDef.getConfigProperties() != null) {
-                    for (ConfigPropertyBean configProperty : connDef.getConfigProperties()) {
-                        actions.add(createPropertyCliAction(adapter, connDef, configProperty));
-
-                    }
-                }
+                actions.addAll(createConDefinitionCliAction(adapter, connDef));
             }
         }
 
@@ -408,14 +401,17 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param adapter Resource-Adapter containing connection-definition
      * @param def Connection-Definition
      * @return  created CliCommandAction for adding the Connection-Definition
-     * @throws CliScriptException if required attributes for a creation of the CLI command of the Connection-Definition
+     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException if required attributes for a creation of the CLI command of the Connection-Definition
      *                            are missing or are empty (class-name, pool-name)
      */
-    private static CliCommandAction createConDefinitionCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def)
+    private static List<CliCommandAction> createConDefinitionCliAction(ResourceAdapterBean adapter,
+                                                                       ConnectionDefinitionBean def)
             throws CliScriptException{
         String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
         Utils.throwIfBlank(def.getClassName(), errMsg, "Class-name");
         Utils.throwIfBlank(def.getPoolName(), errMsg, "Pool-name");
+
+        List<CliCommandAction> actions = new ArrayList();
 
         ModelNode connDefCmd = new ModelNode();
         connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -452,7 +448,16 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
         builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
 
-        return new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand());
+        actions.add(new CliCommandAction( createConnDefinitionScript(adapter, def), builder.getCommand() ));
+
+        if (def.getConfigProperties() != null) {
+            for (ConfigPropertyBean configProperty : def.getConfigProperties()) {
+                actions.add( createPropertyCliAction(adapter, def, configProperty) );
+
+            }
+        }
+
+        return actions;
     }
 
     /**

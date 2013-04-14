@@ -19,6 +19,7 @@ package cz.muni.fi.jboss.migration;
  * Ak zlyha migracia z dakeho dovodu tak sa pouzije ich ulozena cielova path v AS7 aby sa mohli zmazat a zostal AS7 server neporuseny. 
  *
  * @author Roman Jakubco
+ * @deprecated  Useless. Delete when actions will be implemented
  */
 public class FileTransferInfo {
     

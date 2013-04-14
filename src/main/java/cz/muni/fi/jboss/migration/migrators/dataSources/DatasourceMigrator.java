@@ -8,7 +8,6 @@ import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -149,60 +148,66 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         for (DriverBean driver : this.drivers) {
             // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
-            File src;
-            try {
-                src = driver.getDriverClass() != null
-                      ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
-                        getGlobalConfig().getAS5Config().getProfileName())
-                      : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
-                        getGlobalConfig().getAS5Config().getProfileName());
-
-            } catch (IOException e) {
-                throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
-            }
-
-            if(tempModules.containsKey(src)){
-                // It means that moduleAction is already set. No need for another one => create CLI for driver and
-                // continue on the next iteration
-                driver.setDriverModule(tempModules.get(src));
-                try {
-                    ctx.getActions().add(createDriverCliAction(driver));
-                } catch (CliScriptException e) {
-                    throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
-                }
-                continue;
-
-            }
-
-            // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
-            driver.setDriverModule("migration.drivers." + driver.getDriverName());
-            tempModules.put(src, driver.getDriverModule());
-
-            try {
-                ctx.getActions().add(createDriverCliAction(driver));
-            } catch (CliScriptException e) {
-                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
-            }
-
-            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                    "drivers", driver.getDriverName(), "main", src.getName());
-
-            Document doc;
-            try {
-               doc  =  AS7ModuleUtils.createDriverModuleXML(driver.getDriverModule(), src.getName());
-            } catch (ParserConfigurationException e) {
-                throw new ActionException("Creation of Document representing module.xml for driver failed: "
-                        + e.getMessage(), e);
-            }
-
-            // Default for now => false
-            ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
-
-            ctx.getActions().add(moduleAction);
+            ctx.getActions().addAll( createDriverActions( driver, tempModules) );
         }
 
         // Add datasource CliCommandActions after drivers.
         ctx.getActions().addAll(tempActions);
+    }
+
+    private List<IMigrationAction> createDriverActions(DriverBean driver, HashMap<File, String> tempModules)
+            throws ActionException {
+        File src;
+        try {
+            src = driver.getDriverClass() != null
+                    ? Utils.findJarFileWithClass(driver.getDriverClass(), getGlobalConfig().getAS5Config().getDir(),
+                    getGlobalConfig().getAS5Config().getProfileName())
+                    : Utils.findJarFileWithClass(driver.getXaDatasourceClass(), getGlobalConfig().getAS5Config().getDir(),
+                    getGlobalConfig().getAS5Config().getProfileName());
+
+        } catch (IOException e) {
+            throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
+        }
+
+        List<IMigrationAction> actions = new ArrayList();
+
+        if(tempModules.containsKey(src)){
+            // It means that moduleAction is already set. No need for another one => create CLI for driver and
+            // continue on the next iteration
+            try {
+                driver.setDriverModule(tempModules.get(src));
+                actions.add(createDriverCliAction(driver));
+
+            } catch (CliScriptException e) {
+                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+            }
+        } else{
+            try {
+                // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
+                driver.setDriverModule("migration.drivers." + driver.getDriverName());
+                tempModules.put(src, driver.getDriverModule());
+
+                actions.add(createDriverCliAction(driver));
+
+                File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
+                    "drivers", driver.getDriverName(), "main", src.getName());
+
+                Document doc  =  createDriverModuleXML(driver.getDriverModule(), src.getName());
+
+                // Default for now => false
+                ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
+
+                actions.add(moduleAction);
+
+            } catch (ParserConfigurationException e) {
+                throw new ActionException("Creation of Document representing module.xml for driver failed: "
+                        + e.getMessage(), e);
+            } catch (CliScriptException e) {
+                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+            }
+        }
+
+        return actions;
     }
 
     @Override
@@ -605,7 +610,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
      *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
-    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
+    public static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
             throws CliScriptException {
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
@@ -669,7 +674,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource
      *                            are missing or are empty (pool-name, jndi-name, driver-name)
      */
-    private static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
+    public static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
             throws CliScriptException {
         String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
@@ -742,7 +747,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource-Property
      *                            are missing or are empty (property-name)
      */
-    private static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
+    public static CliCommandAction createXaPropertyCliAction(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean property)
             throws CliScriptException{
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");
@@ -767,7 +772,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Driver are missing or
      *                            are empty (module, driver-name)
      */
-    private static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException{
+    public static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException{
         String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
@@ -1099,6 +1104,66 @@ public class DatasourceMigrator extends AbstractMigrator {
         resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
 
         return resultScript.toString();
+    }
+
+    /**
+     * Method for creating module.xml for JDBC drivers, which will be copied to modules in AS7
+     *
+     * @param moduleName name of the created module
+     * @param fileName name of the file deployed as module
+     * @return Document representing created module.xml for given driver
+     * @throws javax.xml.parsers.ParserConfigurationException
+     *          if parser cannot be initialized
+     */
+    private static Document createDriverModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
+
+        /**
+         * module.xml for JDBC driver module
+         *
+         * Example of module xml,
+         *  <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
+         *       <resources>
+         *          <resource-root path="h2-1.3.168.jar"/>
+         *       <!-- Insert resources here -->
+         *       </resources>
+         *       <dependencies>
+         *          <module name="javax.api"/>
+         *          <module name="javax.transaction.api"/>
+         *          <module name="javax.servlet.api" optional="true"/>
+         *       </dependencies>
+         *  </module>
+         */
+        Document doc = Utils.createDoc();
+
+        Element root = doc.createElement("module");
+        doc.appendChild(root);
+
+        root.setAttribute("xmlns", "urn:jboss:module:1.1");
+        root.setAttribute("name", moduleName);
+
+        Element resources = doc.createElement("resources");
+        root.appendChild(resources);
+
+        Element resource = doc.createElement("resource-root");
+        resource.setAttribute("path", fileName);
+        resources.appendChild(resource);
+
+        Element dependencies = doc.createElement("dependencies");
+        Element module1 = doc.createElement("module");
+        module1.setAttribute("name", "javax.api");
+        Element module2 = doc.createElement("module");
+        module2.setAttribute("name", "javax.transaction.api");
+        Element module3 = doc.createElement("module");
+        module3.setAttribute("name", "javax.servlet.api");
+        module3.setAttribute("optional", "true");
+
+        dependencies.appendChild(module1);
+        dependencies.appendChild(module2);
+        dependencies.appendChild(module3);
+
+        root.appendChild(dependencies);
+
+        return doc;
     }
     
 }// class
