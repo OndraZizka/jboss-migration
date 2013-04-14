@@ -380,34 +380,5 @@ public class MigratorEngine {
         }
     }
     
-    
-    /**
-     * Calls all migrators' callback for applying migrated configuration.
-     * 
-     * @throws ApplyMigrationException if inserting of generated nodes fails.
-     */
-    private void apply() throws ApplyMigrationException {
-        log.debug("apply()");
-        // Call the callbacks.
-        for (IMigrator mig : this.migrators) {
-            log.debug("    Applying with " + mig.getClass().getSimpleName());
-            mig.apply(this.ctx);
-        }
-        // Put the resulting DOM to AS 7 config file.
-        // TODO: This could alternatively send CLI commands over Management API. MIGR-28.
-        try {
-            // TODO: Isn't Transformer for XSLT? Use some normal XML output.
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            File targetConfigFile = new File(this.config.getGlobal().getAS7Config().getConfigFilePath());
-            StreamResult result = new StreamResult(targetConfigFile);
-            DOMSource source = new DOMSource(this.ctx.getAS7ConfigXmlDoc());
-            transformer.transform(source, result);
-        } catch (TransformerException ex) {
-            throw new ApplyMigrationException(ex);
-        }
-    }
-
 
 }// class
