@@ -38,9 +38,7 @@ import java.util.*;
  */
 public class LoggingMigrator extends AbstractMigrator {
 
-    private Set<String> classes = new HashSet();
-
-    /// iterating number for names of drivers
+    // Sequence number for driver names.
     // TODO: Perhaps move this property to migration context.
     private int number = 1;
     
@@ -94,7 +92,7 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException{
+    public void createActions(MigrationContext ctx) throws ActionException {
         List<CustomHandlerBean> customHandlers = new ArrayList();
 
         for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
@@ -167,8 +165,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 continue;
             }
 
-            throw new ActionException("Config fragment unrecognized by " +
-                    this.getClass().getSimpleName() + ": " + fragment );
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
         HashMap<File, String> tempModules = new HashMap();
@@ -178,8 +175,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 src = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
                         getGlobalConfig().getAS5Config().getProfileName());
             } catch (IOException e) {
-                throw new ActionException("Finding jar containing driver class: " + handler.getClassValue() +
-                        " failed: " + e.getMessage(), e);
+                throw new ActionException("Finding jar containing driver class " + handler.getClassValue() + " failed: " + e.getMessage(), e);
             }
 
             if(tempModules.containsKey(src)){
@@ -189,8 +185,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 try {
                     ctx.getActions().add(createCustomHandlerCliAction(handler));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of the appeneder: " + handler.getName() +
-                            "failed (CLI command): " + e.getMessage(), e);
+                    throw new ActionException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -202,8 +197,7 @@ public class LoggingMigrator extends AbstractMigrator {
             try {
                 ctx.getActions().add(createCustomHandlerCliAction(handler));
             } catch (CliScriptException e) {
-                throw new ActionException("Migration of the appeneder: " + handler.getName() +
-                        "failed (CLI command): " + e.getMessage(), e);
+                throw new ActionException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
             }
 
             File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
@@ -213,8 +207,7 @@ public class LoggingMigrator extends AbstractMigrator {
             try {
                 doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
             } catch (ParserConfigurationException e) {
-                throw new ActionException("Creation of Document representing module.xml for Custom-Handler failed: "
-                        + e.getMessage(), e);
+                throw new ActionException("Creation of Document representing module.xml for Custom-Handler failed: " + e.getMessage(), e);
             }
 
             // Default for now => false
