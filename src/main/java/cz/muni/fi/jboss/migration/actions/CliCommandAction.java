@@ -11,8 +11,8 @@ import org.jboss.dmr.ModelNode;
  */
 public class CliCommandAction extends AbstractStatefulAction {
 
-   //private ModelNode cliCommand;
-   //private String script;
+    //private ModelNode cliCommand;
+    //private String script;
 
     // Better approach
     private BatchedCommand command;
