@@ -363,19 +363,6 @@ public class MigratorEngine {
     }
     
     
-    
-    
-    
-    
-    private void rollback_old( Configuration config ) throws Exception {
-        RollbackUtils.rollbackAS7ConfigFile(ctx.getAs7ConfigXmlDocOriginal(), config);
-        RollbackUtils.removeData(ctx.getFileTransfers());
-        FileUtils.deleteQuietly( Utils.createPath(config.getGlobal().getAS7Config().getDir(), "modules", "jdbc"));
-    }
-    
-    
-    
-
     /**
      * Calls all migrators' callback for loading configuration data from the source server.
      *
@@ -393,12 +380,13 @@ public class MigratorEngine {
         }
     }
     
+    
     /**
      * Calls all migrators' callback for applying migrated configuration.
      * 
      * @throws ApplyMigrationException if inserting of generated nodes fails.
      */
-    public void apply() throws ApplyMigrationException {
+    private void apply() throws ApplyMigrationException {
         log.debug("apply()");
         // Call the callbacks.
         for (IMigrator mig : this.migrators) {
@@ -419,41 +407,6 @@ public class MigratorEngine {
         } catch (TransformerException ex) {
             throw new ApplyMigrationException(ex);
         }
-    }
-
-    
-    /**
-     * Calls all migrators' callback for generating Dom Nodes.
-     *
-     * @return List containing all generated Nodes
-     * @throws MigrationException if migrating of file or generating of nodes fails.
-     */
-    public List<Node> getDOMElements() throws MigrationException {
-        log.debug("getDOMElements()");
-        List<Node> elements = new LinkedList();
-        for (IMigrator mig : this.migrators) {
-            log.debug("    From " + mig.getClass().getSimpleName());
-            elements.addAll(mig.generateDomElements(this.ctx));
-        }
-        return elements;
-    }
-
-    
-    /**
-     * Calls all migrators' callback for generating CLI scripts.
-     *
-     * @return List containing generated scripts from all migrated subsystems
-     * @throws CliScriptException if creation of scripts fail
-     */
-    public List<String> getCLIScripts() throws CliScriptException {
-        log.debug("getCLIScripts()");
-        List<String> scripts = new LinkedList();
-        for (IMigrator mig : this.migrators) {
-            log.debug("    From " + mig.getClass().getSimpleName());
-            scripts.addAll(mig.generateCliScripts(this.ctx));
-        }
-
-        return scripts;
     }
 
 
