@@ -16,7 +16,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "no-tx-datasource")
 
-public class NoTxDatasourceAS5Bean implements IConfigFragment{
+public class NoTxDatasourceAS5Bean implements IConfigFragment {
 
     @XmlElement(name = "jndi-name")
     private String jndiName;

@@ -7,28 +7,27 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class CopyAction extends AbstractStatefulAction {
-    
+
     File src;
     File dest;
     File temp;
     boolean overwrite;
 
 
-    public CopyAction( File src, File dest, boolean overwrite ) {
+    public CopyAction(File src, File dest, boolean overwrite) {
         this.src = src;
         this.dest = dest;
         this.overwrite = overwrite;
     }
-    
+
     @Override
     public void preValidate() throws MigrationException {
-        if( ! src.exists() )
+        if (!src.exists())
             throw new MigrationException("File to copy doesn't exist: " + src.getPath());
-        if( dest.exists() && ! overwrite )
+        if (dest.exists() && !overwrite)
             throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
@@ -36,9 +35,9 @@ public class CopyAction extends AbstractStatefulAction {
     @Override
     public void perform() throws MigrationException {
         try {
-            FileUtils.copyFile( src, dest );
-            setState( State.DONE );
-        } catch( IOException ex ) {
+            FileUtils.copyFile(src, dest);
+            setState(State.DONE);
+        } catch (IOException ex) {
             throw new MigrationException("Copying failed: " + ex.getMessage(), ex);
         }
     }
@@ -46,20 +45,20 @@ public class CopyAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        if( this.isAfterPerform() ){
-            if(this.overwrite && this.temp != null){
+        if (this.isAfterPerform()) {
+            if (this.overwrite && this.temp != null) {
                 try {
-                    FileUtils.copyFile( this.temp, this.dest );
+                    FileUtils.copyFile(this.temp, this.dest);
                 } catch (IOException e) {
                     throw new MigrationException("Rollback of to the previous file failed: " + e.getMessage(), e);
                 }
-            } else{
-                FileUtils.deleteQuietly( this.dest );
+            } else {
+                FileUtils.deleteQuietly(this.dest);
             }
         }
-            // Replace copied file with backup.
+        // Replace copied file with backup.
 
-        setState( State.ROLLED_BACK );
+        setState(State.ROLLED_BACK);
     }
 
 
@@ -72,27 +71,27 @@ public class CopyAction extends AbstractStatefulAction {
     @Override
     public void backup() throws MigrationException {
         // Copy dest, if exists and overwrite allowed, to a temp file.
-        if( this.dest.exists() && this.overwrite ){
+        if (this.dest.exists() && this.overwrite) {
             try {
-                this.temp = File.createTempFile( this.dest.getName(), null );
-                FileUtils.copyFile( this.dest, this.temp );
+                this.temp = File.createTempFile(this.dest.getName(), null);
+                FileUtils.copyFile(this.dest, this.temp);
             } catch (IOException ex) {
                 throw new MigrationException("Creating of backup file failed:" + ex.getMessage(), ex);
             }
         }
-        setState( State.BACKED_UP );
+        setState(State.BACKED_UP);
     }
 
 
     @Override
     public void cleanBackup() {
         // Remove temp file.
-        if( (! this.isAfterBackup()) || (! this.overwrite))
+        if ((!this.isAfterBackup()) || (!this.overwrite))
             return;
-        if( this.temp.exists() ){
-            FileUtils.deleteQuietly( this.temp );
+        if (this.temp.exists()) {
+            FileUtils.deleteQuietly(this.temp);
         }
-        setState( State.FINISHED );
+        setState(State.FINISHED);
     }
 
 }// class

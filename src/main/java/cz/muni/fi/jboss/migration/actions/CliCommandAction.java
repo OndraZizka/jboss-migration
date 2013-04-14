@@ -6,30 +6,29 @@ import org.jboss.as.cli.batch.impl.DefaultBatchedCommand;
 import org.jboss.dmr.ModelNode;
 
 /**
- *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class CliCommandAction extends AbstractStatefulAction {
 
-   //private ModelNode cliCommand;
-   //private String script;
+    //private ModelNode cliCommand;
+    //private String script;
 
     // Better approach
     private BatchedCommand command;
 
     // script parameter is created text script and cliCommand is script representation in CLI API
-    public CliCommandAction(String script, ModelNode cliCommand){
+    public CliCommandAction(String script, ModelNode cliCommand) {
         //this.cliCommand = scriptAPI;
         //this.script = script;
-        this.command = new DefaultBatchedCommand( script, cliCommand );
+        this.command = new DefaultBatchedCommand(script, cliCommand);
     }
-    
-    
+
+
     @Override
     public void preValidate() throws MigrationException {
-        if( (this.command.getCommand() == null) || (this.command.getCommand().isEmpty()) )
+        if ((this.command.getCommand() == null) || (this.command.getCommand().isEmpty()))
             throw new MigrationException("CLI script for CliCommandAction doesn't exist");
-        if( this.command.getRequest() == null ){
+        if (this.command.getRequest() == null) {
             throw new MigrationException("ModelNode for CliCommandAction cannot be null");
         }
     }
@@ -37,8 +36,8 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public void perform() throws MigrationException {
-       getMigrationContext().getBatch().add( this.command );
-       setState(State.DONE);
+        getMigrationContext().getBatch().add(this.command);
+        setState(State.DONE);
     }
 
 
@@ -59,14 +58,14 @@ public class CliCommandAction extends AbstractStatefulAction {
     @Override
     public void backup() throws MigrationException {
         // Will be empty. Batch do everything
-        setState( State.BACKED_UP );
+        setState(State.BACKED_UP);
     }
 
 
     @Override
     public void cleanBackup() {
         // Empty?
-        setState( State.FINISHED );
+        setState(State.FINISHED);
     }
 
 }// class

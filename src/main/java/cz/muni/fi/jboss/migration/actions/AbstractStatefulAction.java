@@ -7,27 +7,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
  * @author Ondrej Zizka, ozizka at redhat.com
- * 
- * TODO: Introduce do***(), eg. doBackup(), to manage the states here, not in the impl.
+ *         <p/>
+ *         TODO: Introduce do***(), eg. doBackup(), to manage the states here, not in the impl.
  */
 public abstract class AbstractStatefulAction implements IMigrationAction {
 
     IMigrationAction.State state = State.INITIAL;
-    
+
     private MigrationContext ctx;
     private String originMessage;
     private List<String> warnings = new LinkedList();
-    
-    
-    public void addWarning( String text ){
-        warnings.add( text );
+
+
+    public void addWarning(String text) {
+        warnings.add(text);
     }
 
-    
+
     @Override
-    public void setMigrationContext( MigrationContext ctx ) {
+    public void setMigrationContext(MigrationContext ctx) {
         this.ctx = ctx;
     }
 
@@ -37,23 +36,31 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     }
 
     @Override
-    public IMigrationAction.State getState() { return state; }
-    public void setState( IMigrationAction.State state ) { this.state = state; }
-    
-    public void checkState( IMigrationAction.State state ) throws MigrationException {
-        if( this.state != state )
+    public IMigrationAction.State getState() {
+        return state;
+    }
+
+    public void setState(IMigrationAction.State state) {
+        this.state = state;
+    }
+
+    public void checkState(IMigrationAction.State state) throws MigrationException {
+        if (this.state != state)
             throw new MigrationException("Action not in expected state '" + state + ": " + this);
     }
 
 
     @Override
-    public String getOriginMessage() { return originMessage; }
+    public String getOriginMessage() {
+        return originMessage;
+    }
 
     @Override
-    public List<String> getWarnings() { return warnings; }
-    
-    
-    
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+
     protected boolean isAfterBackup() {
         return this.state.ordinal() >= State.BACKED_UP.ordinal();
     }
@@ -61,5 +68,5 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     protected boolean isAfterPerform() {
         return this.state.ordinal() >= State.DONE.ordinal();
     }
-    
+
 }

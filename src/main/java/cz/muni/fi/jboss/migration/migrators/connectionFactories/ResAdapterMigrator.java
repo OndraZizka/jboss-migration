@@ -38,10 +38,13 @@ import java.util.*;
 
 public class ResAdapterMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(ResAdapterMigrator.class);
-    
-    @Override protected String getConfigPropertyModuleName() { return "resourceAdapter"; }
 
-    
+    @Override
+    protected String getConfigPropertyModuleName() {
+        return "resourceAdapter";
+    }
+
+
     private Set<String> rars = new HashSet<>();
 
 
@@ -49,7 +52,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         super(globalConfig, config);
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
@@ -59,26 +62,26 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             // Deployments AS 5 dir.
             File dsFiles = getGlobalConfig().getAS5Config().getDeployDir();
-            if( ! dsFiles.canRead() )
-                throw new LoadMigrationException("Can't read: " + dsFiles.getPath() );
+            if (!dsFiles.canRead())
+                throw new LoadMigrationException("Can't read: " + dsFiles.getPath());
 
-            
+
             // -ds.xml files.
             SuffixFileFilter sf = new SuffixFileFilter("-ds.xml");
             Collection<File> dsXmls = FileUtils.listFiles(dsFiles, sf, FileFilterUtils.trueFileFilter());
             log.debug("  Found -ds.xml files #: " + dsXmls.size());
-            if( dsXmls.isEmpty() )
+            if (dsXmls.isEmpty())
                 return;
 
             List<ConnectionFactoriesBean> connFactories = new LinkedList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(ConnectionFactoriesBean.class).createUnmarshaller();
-            
+
             // For each -ds.xml
             for (File dsXml : dsXmls) {
-                Document doc = Utils.parseXmlToDoc( dsXml );
+                Document doc = Utils.parseXmlToDoc(dsXml);
 
                 Element element = doc.getDocumentElement();
-                if("connection-factories".equals( element.getTagName() )) {
+                if ("connection-factories".equals(element.getTagName())) {
                     ConnectionFactoriesBean conn = (ConnectionFactoriesBean) dataUnmarshaller.unmarshal(dsXml);
                     connFactories.add(conn);
                 }
@@ -87,10 +90,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
             MigrationData migrData = new MigrationData();
 
             for (ConnectionFactoriesBean cf : connFactories) {
-                if(cf.getConnectionFactories() != null){
+                if (cf.getConnectionFactories() != null) {
                     migrData.getConfigFragments().addAll(cf.getConnectionFactories());
                 }
-                if(cf.getNoTxConnectionFactories() != null){
+                if (cf.getNoTxConnectionFactories() != null) {
                     migrData.getConfigFragments().addAll(cf.getNoTxConnectionFactories());
                 }
             }
@@ -103,9 +106,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException{
-        for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
-            if( fragment instanceof ConnectionFactoryAS5Bean ) {
+    public void createActions(MigrationContext ctx) throws ActionException {
+        for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
+            if (fragment instanceof ConnectionFactoryAS5Bean) {
                 try {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment)));
@@ -114,7 +117,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 }
                 continue;
             }
-            if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
+            if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
                 try {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment)));
@@ -123,10 +126,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 }
                 continue;
             }
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
-        for( String rar : this.rars ) {
+        for (String rar : this.rars) {
             File src;
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
@@ -134,7 +137,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 throw new ActionException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
             }
 
-            File target =  Utils.createPath(getGlobalConfig().getAS7Config().getDir(),"standalone", "deployments",
+            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",
                     src.getName());
 
             // Default value for overwrite => false
@@ -142,7 +145,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
@@ -152,7 +155,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
-                if( ! (subsystems.item(i) instanceof Element)) {
+                if (!(subsystems.item(i) instanceof Element)) {
                     continue;
                 }
                 if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")) {
@@ -171,38 +174,38 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
-            JAXBContext resAdapCtx = JAXBContext.newInstance( ResourceAdapterBean.class );
+            JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapterBean.class);
             List<Node> nodeList = new LinkedList();
             Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
 
             // FIXME: NPE if there's no record in migration data.
-            for( IConfigFragment fragment : ctx.getMigrationData().get( ResAdapterMigrator.class ).getConfigFragments() ) {
+            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                if( fragment instanceof ConnectionFactoryAS5Bean ) {
-                    resAdapMarshaller.marshal( migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment), doc );
-                    nodeList.add( doc.getDocumentElement() );
+                if (fragment instanceof ConnectionFactoryAS5Bean) {
+                    resAdapMarshaller.marshal(migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
-                    resAdapMarshaller.marshal( migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment), doc );
-                    nodeList.add( doc.getDocumentElement() );
+                if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
+                    resAdapMarshaller.marshal(migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment), doc);
+                    nodeList.add(doc.getDocumentElement());
                     continue;
                 }
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
             }
 
-            for( String rar : this.rars ) {
+            for (String rar : this.rars) {
                 FileTransferInfo rollbackData = new FileTransferInfo();
-                rollbackData.setName( rar );
-                rollbackData.setType( FileTransferInfo.Type.RESOURCE );
-                ctx.getFileTransfers().add( rollbackData );
+                rollbackData.setName(rar);
+                rollbackData.setType(FileTransferInfo.Type.RESOURCE);
+                ctx.getFileTransfers().add(rollbackData);
             }
 
             return nodeList;
@@ -212,7 +215,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
@@ -233,14 +236,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
-    
+
     /**
      * Migrates a tx-connection-factory from AS5 to AS7
      *
      * @param connFactoryAS5 object representing tx-connection-factory
      * @return created resource-adapter
      */
-    public ResourceAdapterBean migrateTxConnFactory(ConnectionFactoryAS5Bean connFactoryAS5){
+    public ResourceAdapterBean migrateTxConnFactory(ConnectionFactoryAS5Bean connFactoryAS5) {
 
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
         resAdapter.setJndiName(connFactoryAS5.getJndiName());
@@ -248,7 +251,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         resAdapter.setArchive(connFactoryAS5.getRarName());
 
-        if(connFactoryAS5.getXaTransaction() != null){
+        if (connFactoryAS5.getXaTransaction() != null) {
             resAdapter.setTransactionSupport("XATransaction");
         } else {
             resAdapter.setTransactionSupport("LocalTransaction");
@@ -263,7 +266,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         connDef.setClassName(connFactoryAS5.getConnectionDefinition());
         connDef.setPrefill(connFactoryAS5.getPrefill());
 
-        if(connFactoryAS5.getConfigProperties() != null){
+        if (connFactoryAS5.getConfigProperties() != null) {
             for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
                 configProperty.setType(null);
             }
@@ -302,10 +305,10 @@ public class ResAdapterMigrator extends AbstractMigrator {
     /**
      * Migrates a no-tx-connection-factory from AS5 to AS7
      *
-     * @param connFactoryAS5  object representing no-tx-connection-factory
+     * @param connFactoryAS5 object representing no-tx-connection-factory
      * @return created resource-adapter
      */
-    public ResourceAdapterBean migrateNoTxConnFactory(NoTxConnectionFactoryAS5Bean connFactoryAS5){
+    public ResourceAdapterBean migrateNoTxConnFactory(NoTxConnectionFactoryAS5Bean connFactoryAS5) {
 
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
         resAdapter.setJndiName(connFactoryAS5.getJndiName());
@@ -324,7 +327,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         connDef.setClassName(connFactoryAS5.getConnectionDefinition());
         connDef.setPrefill(connFactoryAS5.getPrefill());
 
-        if(connFactoryAS5.getConfigProperties() != null){
+        if (connFactoryAS5.getConfigProperties() != null) {
             for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
                 configProperty.setType(null);
             }
@@ -363,12 +366,12 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * Creates a list of CliCommandActions for adding a Resource-Adapter
      *
      * @param adapter Resource-Adapter
-     * @return  list of created CliCommandActions for adding the Resource-Adapter
+     * @return list of created CliCommandActions for adding the Resource-Adapter
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Resource-Adapter are
      *                            missing or are empty (archive-name)
      */
     public static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(adapter.getArchive(), errMsg, "Archive name");
 
@@ -376,7 +379,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         ModelNode adapterCmd = new ModelNode();
         adapterCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        adapterCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        adapterCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
         adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
@@ -399,14 +402,15 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Connection-Definition of the specific Resource-Adapter
      *
      * @param adapter Resource-Adapter containing connection-definition
-     * @param def Connection-Definition
-     * @return  created CliCommandAction for adding the Connection-Definition
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException if required attributes for a creation of the CLI command of the Connection-Definition
-     *                            are missing or are empty (class-name, pool-name)
+     * @param def     Connection-Definition
+     * @return created CliCommandAction for adding the Connection-Definition
+     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException
+     *          if required attributes for a creation of the CLI command of the Connection-Definition
+     *          are missing or are empty (class-name, pool-name)
      */
     private static List<CliCommandAction> createConDefinitionCliAction(ResourceAdapterBean adapter,
                                                                        ConnectionDefinitionBean def)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
         Utils.throwIfBlank(def.getClassName(), errMsg, "Class-name");
         Utils.throwIfBlank(def.getPoolName(), errMsg, "Pool-name");
@@ -415,7 +419,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         ModelNode connDefCmd = new ModelNode();
         connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
         connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
         connDefCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
 
@@ -448,11 +452,11 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
         builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
 
-        actions.add(new CliCommandAction( createConnDefinitionScript(adapter, def), builder.getCommand() ));
+        actions.add(new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand()));
 
         if (def.getConfigProperties() != null) {
             for (ConfigPropertyBean configProperty : def.getConfigProperties()) {
-                actions.add( createPropertyCliAction(adapter, def, configProperty) );
+                actions.add(createPropertyCliAction(adapter, def, configProperty));
 
             }
         }
@@ -464,21 +468,21 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Config-Property of the specific Connection-Definition of the specific
      * Resource-Adapter
      *
-     * @param adapter Resource-Adapter containing Connection-Definition
-     * @param def Connection-Definition containg Config-Property
+     * @param adapter  Resource-Adapter containing Connection-Definition
+     * @param def      Connection-Definition containg Config-Property
      * @param property Config-Property
-     * @return  created CliCommandAction for adding the Config-Property
+     * @return created CliCommandAction for adding the Config-Property
      * @throws CliScriptException if required attributes for a creation of the CLI command of the config-property
      *                            are missing or are empty (name)
      */
     private static CliCommandAction createPropertyCliAction(ResourceAdapterBean adapter, ConnectionDefinitionBean def,
-                                                           ConfigPropertyBean property) throws CliScriptException{
+                                                            ConfigPropertyBean property) throws CliScriptException {
         String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
         Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");
 
         ModelNode propertyCmd = new ModelNode();
         propertyCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        propertyCmd.get(ClientConstants.OP_ADDR).add("subsystem","resource-adapters");
+        propertyCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
         propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
         propertyCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
         propertyCmd.get(ClientConstants.OP_ADDR).add("config-properties", property.getConfigPropertyName());
@@ -520,7 +524,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param adapter Resource-Adapter containing Connection-Definition
      * @param connDef Connection-Definition
      * @return String containing CLI script for adding of the Connection-Definition
-     * @throws CliScriptException  if required attributes for a creation of the CLI command of the Connection-Definition
+     * @throws CliScriptException if required attributes for a creation of the CLI command of the Connection-Definition
      *                            are missing or are empty (class-name, pool-name)
      */
     private static String createConnDefinitionScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef)
@@ -572,19 +576,19 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * Creates CLI script for adding a Config-Property of the specific Connection-Definition of the specific
      * Resource-Adapter
      *
-     * @param adapter Resource-Adapter containing Connection-Definition
-     * @param connDef Connection-Definition containing Config-Property
+     * @param adapter  Resource-Adapter containing Connection-Definition
+     * @param connDef  Connection-Definition containing Config-Property
      * @param property Config-Property
-     * @return  string containing CLI script for adding the Config-Property
+     * @return string containing CLI script for adding the Config-Property
      * @throws CliScriptException if required attributes for a creation of the CLI command of the config-property
      *                            are missing or are empty (name)
      */
     private static String createPropertyScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef,
-                                                    ConfigPropertyBean property) throws CliScriptException{
+                                               ConfigPropertyBean property) throws CliScriptException {
         String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
         Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");
 
-        StringBuilder script = new StringBuilder( "/subsystem=resource-adapters/resource-adapter=");
+        StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=");
 
         script.append(adapter.getArchive());
 

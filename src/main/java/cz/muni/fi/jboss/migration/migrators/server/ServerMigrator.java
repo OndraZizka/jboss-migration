@@ -33,9 +33,12 @@ import java.util.Set;
  */
 
 public class ServerMigrator extends AbstractMigrator {
-    
-    @Override protected String getConfigPropertyModuleName() { return "server"; }
-    
+
+    @Override
+    protected String getConfigPropertyModuleName() {
+        return "server";
+    }
+
 
     private Set<SocketBindingBean> socketTemp = new HashSet();
 
@@ -51,14 +54,14 @@ public class ServerMigrator extends AbstractMigrator {
 
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
-        
+
         // TBC: Maybe use FileUtils and list all files with that name?
         File file = Utils.createPath(
                 super.getGlobalConfig().getAS5Config().getDir(), "server",
                 super.getGlobalConfig().getAS5Config().getProfileName(), "deploy",
                 "jbossweb.sar", "server.xml");
-        
-        if( ! file.canRead() )
+
+        if (!file.canRead())
             throw new LoadMigrationException("Cannot find/open file: " + file.getAbsolutePath(), new FileNotFoundException());
 
         try {
@@ -73,14 +76,13 @@ public class ServerMigrator extends AbstractMigrator {
             }
 
             ctx.getMigrationData().put(ServerMigrator.class, mData);
-        }
-        catch (JAXBException e) {
+        } catch (JAXBException e) {
             throw new LoadMigrationException("Failed parsing logging config file: " + file.getPath(), e);
         }
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException{
+    public void createActions(MigrationContext ctx) throws ActionException {
         try {
             createDefaultSockets(ctx);
         } catch (LoadMigrationException e) {
@@ -105,7 +107,7 @@ public class ServerMigrator extends AbstractMigrator {
                 continue;
             }
 
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
         for (SocketBindingBean sb : this.socketBindings) {
@@ -198,7 +200,7 @@ public class ServerMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
             }
 
             for (SocketBindingBean sb : this.socketBindings) {
@@ -250,13 +252,12 @@ public class ServerMigrator extends AbstractMigrator {
      * Migrates a connector from AS5 to AS7
      *
      * @param connector object representing connector in AS5
-     * @param ctx  migration context
-     * @return  migrated AS7's connector
-     * @throws NodeGenerationException
-     *         if socket-binding cannot be created or set
+     * @param ctx       migration context
+     * @return migrated AS7's connector
+     * @throws NodeGenerationException if socket-binding cannot be created or set
      */
     public ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, MigrationContext ctx)
-            throws NodeGenerationException{
+            throws NodeGenerationException {
         ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
 
         connAS7.setEnabled("true");
@@ -276,7 +277,7 @@ public class ServerMigrator extends AbstractMigrator {
 
         // Socket-binding.. first try
         if (connector.getProtocol().equals("HTTP/1.1")) {
-            if ( ( connector.getSslEnabled() == null ) || ( connector.getSslEnabled().equalsIgnoreCase("false") ) ) {
+            if ((connector.getSslEnabled() == null) || (connector.getSslEnabled().equalsIgnoreCase("false"))) {
                 connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
             } else {
                 connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
@@ -285,7 +286,7 @@ public class ServerMigrator extends AbstractMigrator {
             connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
         }
 
-        if ( ( connector.getSslEnabled() != null ) && ( connector.getSslEnabled().equals("true") ) ) {
+        if ((connector.getSslEnabled() != null) && (connector.getSslEnabled().equals("true"))) {
             connAS7.setScheme("https");
             connAS7.setSecure(connector.getSecure());
 
@@ -314,15 +315,15 @@ public class ServerMigrator extends AbstractMigrator {
      * Migrates a Engine from AS5 to AS7
      *
      * @param engine object representing Engine
-     * @return  created virtual-server
+     * @return created virtual-server
      */
-    public static VirtualServerBean migrateEngine(EngineBean engine){
+    public static VirtualServerBean migrateEngine(EngineBean engine) {
         VirtualServerBean virtualServer = new VirtualServerBean();
         virtualServer.setVirtualServerName(engine.getEngineName());
         virtualServer.setEnableWelcomeRoot("true");
         virtualServer.setAliasName(engine.getHostNames());
 
-        if(engine.getAliases() != null){
+        if (engine.getAliases() != null) {
             virtualServer.getAliasName().addAll(engine.getAliases());
         }
 
@@ -371,7 +372,7 @@ public class ServerMigrator extends AbstractMigrator {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
-            if(sb.getSocketName().equals(name)){
+            if (sb.getSocketName().equals(name)) {
                 name = "createdSocket";
             }
         }
@@ -407,7 +408,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Connector
      *                            are missing or are empty (socket-binding, connector-name, protocol)
      */
-    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException{
+    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException {
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");
@@ -438,7 +439,7 @@ public class ServerMigrator extends AbstractMigrator {
 
         actions.add(new CliCommandAction(createConnectorScript(connAS7), builder.getCommand()));
 
-        if (connAS7.getScheme().equals("https")){
+        if (connAS7.getScheme().equals("https")) {
             ModelNode sslConf = new ModelNode();
             sslConf.get(ClientConstants.OP).set(ClientConstants.ADD);
             sslConf.get(ClientConstants.OP_ADDR).add("subsystem", "web");
@@ -473,7 +474,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Virtual-Server
      *                            are missing or are empty (server-name)
      */
-    public static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException{
+    public static CliCommandAction createVirtualServerCliAction(VirtualServerBean server) throws CliScriptException {
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(server.getVirtualServerName(), errMsg, "Server name");
 
@@ -509,7 +510,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
      *                            are missing or are empty (security-domain-name)
      */
-    public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException{
+    public static CliCommandAction createSocketBindingCliAction(SocketBindingBean socket) throws CliScriptException {
         String errMsg = " in socket-binding must be set.";
         Utils.throwIfBlank(socket.getSocketPort(), errMsg, "Port");
         Utils.throwIfBlank(socket.getSocketName(), errMsg, "Name");
@@ -570,7 +571,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param connAS7 Connector containing SSL configuration
      * @return created string containing the CLI script for adding the SSL configuration
      */
-    private static String createSSLConfScript(ConnectorAS7Bean connAS7){
+    private static String createSSLConfScript(ConnectorAS7Bean connAS7) {
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=web/connector=" + connAS7.getConnectorName());
 
@@ -599,7 +600,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param virtualServer object representing migrated virtual-server
      * @return string containing created CLI script
      */
-    private static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException{
+    private static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException {
         String errMsg = "in virtual-server (engine in AS5) must be set";
         Utils.throwIfBlank(virtualServer.getVirtualServerName(), errMsg, "Server name");
 

@@ -16,7 +16,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "no-tx-connection-factory")
 
-public class NoTxConnectionFactoryAS5Bean implements IConfigFragment{
+public class NoTxConnectionFactoryAS5Bean implements IConfigFragment {
     @XmlElement(name = "jndi-name")
     private String jndiName;
 

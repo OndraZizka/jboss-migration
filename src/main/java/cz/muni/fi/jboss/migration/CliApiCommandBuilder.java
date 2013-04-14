@@ -11,7 +11,7 @@ public class CliApiCommandBuilder {
 
     private ModelNode command;
 
-    public CliApiCommandBuilder(ModelNode request){
+    public CliApiCommandBuilder(ModelNode request) {
         this.command = request;
     }
 
@@ -19,11 +19,11 @@ public class CliApiCommandBuilder {
      * Method for adding new property to ModelNode and checking if its value isn't empty or null
      *
      * @param property name of the property to set
-     * @param value value for setting
+     * @param value    value for setting
      */
     public void addProperty(String property, String value) {
-        if( value != null ){
-            if( !value.isEmpty() ){
+        if (value != null) {
+            if (!value.isEmpty()) {
                 this.command.get(property).set(value);
             }
         }

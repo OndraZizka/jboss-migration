@@ -10,11 +10,10 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ModuleCreationAction extends AbstractStatefulAction {
-    
+
     File src;
     File dest;
     Document moduleDoc;
@@ -22,18 +21,18 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     boolean overwrite;
 
 
-    public ModuleCreationAction( File src, File dest, Document moduleDoc, boolean overwrite ) {
+    public ModuleCreationAction(File src, File dest, Document moduleDoc, boolean overwrite) {
         this.src = src;
         this.dest = dest;
         this.moduleDoc = moduleDoc;
         this.overwrite = overwrite;
     }
-    
+
     @Override
     public void preValidate() throws MigrationException {
-        if( ! src.exists() )
+        if (!src.exists())
             throw new MigrationException("File to copy doesn't exist: " + src.getPath());
-        if( dest.exists() && ! overwrite )
+        if (dest.exists() && !overwrite)
             throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
@@ -42,33 +41,33 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     public void perform() throws MigrationException {
         // Create a module.
         try {
-            FileUtils.copyFile( this.src, this.dest );
+            FileUtils.copyFile(this.src, this.dest);
             File moduleXml = new File(this.dest.getParentFile(), "module.xml");
-            if( ! moduleXml.createNewFile() )
-               throw new MigrationException("Creation of module.xml failed => don't have permission for writing in " +
-                       "directory: " + moduleXml.getParent());
+            if (!moduleXml.createNewFile())
+                throw new MigrationException("Creation of module.xml failed => don't have permission for writing in " +
+                        "directory: " + moduleXml.getParent());
 
 
             Utils.transformDocToFile(this.moduleDoc, moduleXml);
 
             this.moduleXml = moduleXml;
 
-        } catch( IOException ex ) {
+        } catch (IOException ex) {
             throw new MigrationException("Copying failed: " + ex.getMessage(), ex);
-        }  catch (TransformerException e) {
+        } catch (TransformerException e) {
             throw new MigrationException("Creation of the module.xml failed: " + e.getMessage(), e);
         }
-        
-         setState(State.DONE);
+
+        setState(State.DONE);
 
     }
 
 
     @Override
     public void rollback() throws MigrationException {
-        if( this.isAfterPerform() ){
+        if (this.isAfterPerform()) {
             // TODO: For now only delete folder of created module( migration/logging and migration/driver still exist=>delete after?)
-            FileUtils.deleteQuietly( this.dest.getParentFile() );
+            FileUtils.deleteQuietly(this.dest.getParentFile());
         }
 
         setState(State.ROLLED_BACK);
@@ -83,13 +82,13 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void backup() throws MigrationException {
-        setState( State.BACKED_UP );
+        setState(State.BACKED_UP);
     }
 
 
     @Override
     public void cleanBackup() {
-        setState( State.FINISHED );
+        setState(State.FINISHED);
     }
 
 }// class

@@ -44,9 +44,12 @@ public class LoggingMigrator extends AbstractMigrator {
     /// iterating number for names of drivers
     // TODO: Perhaps move this property to migration context.
     private int number = 1;
-    
-    @Override protected String getConfigPropertyModuleName() { return "logging"; }
-    
+
+    @Override
+    protected String getConfigPropertyModuleName() {
+        return "logging";
+    }
+
 
     public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -56,8 +59,8 @@ public class LoggingMigrator extends AbstractMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
-            File log4jConfFile = Utils.createPath( 
-                    super.getGlobalConfig().getAS5Config().getDir(),  "server",
+            File log4jConfFile = Utils.createPath(
+                    super.getGlobalConfig().getAS5Config().getDir(), "server",
                     super.getGlobalConfig().getAS5Config().getProfileName(),
                     "conf", "jboss-log4j.xml");
 
@@ -76,11 +79,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
             MigrationData mData = new MigrationData();
 
-            if(loggingAS5.getCategories() != null){
+            if (loggingAS5.getCategories() != null) {
                 mData.getConfigFragments().addAll(loggingAS5.getCategories());
             }
 
-            if(loggingAS5.getLoggers() != null){
+            if (loggingAS5.getLoggers() != null) {
                 mData.getConfigFragments().addAll(loggingAS5.getLoggers());
             }
 
@@ -95,53 +98,57 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException{
+    public void createActions(MigrationContext ctx) throws ActionException {
         List<CustomHandlerBean> customHandlers = new ArrayList();
 
-        for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
+        for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments()) {
             if (fragment instanceof AppenderBean) {
                 AppenderBean appender = (AppenderBean) fragment;
                 String type = appender.getAppenderClass();
 
                 // Selection of classes which are stored in log4j or jboss logging jars.
-                if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+                if (type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")) {
                     try {
                         String appenderType = StringUtils.substringAfterLast(type, ".");
                         CliCommandAction action;
 
-                        switch( appenderType ) {
-                            case "DailyRollingFileAppender":{
+                        switch (appenderType) {
+                            case "DailyRollingFileAppender": {
                                 PerRotFileHandlerBean handler = createPerRotFileHandler((AppenderBean) fragment, ctx);
                                 action = createPerRotHandlerCliAction(handler);
-                            } break;
-                            case "RollingFileAppender":{
+                            }
+                            break;
+                            case "RollingFileAppender": {
                                 SizeRotFileHandlerBean handler = createSizeRotFileHandler((AppenderBean) fragment, ctx);
                                 action = createSizeRotHandlerCliAction(handler);
-                            } break;
-                            case "ConsoleAppender":{
+                            }
+                            break;
+                            case "ConsoleAppender": {
                                 ConsoleHandlerBean handler = createConsoleHandler((AppenderBean) fragment);
                                 action = createConsoleHandlerCliAction(handler);
-                            } break;
-                            case "AsyncAppender":{
+                            }
+                            break;
+                            case "AsyncAppender": {
                                 AsyncHandlerBean handler = createAsyncHandler((AppenderBean) fragment);
                                 action = createAsyncHandleCliAction(handler);
-                            } break;
+                            }
+                            break;
 
                             //  If the class don't correspond to any type of AS7 handler => CustomHandler
-                            default:{
+                            default: {
                                 // Module of these handler will be set in the method. Module log4j.
                                 CustomHandlerBean handler = createCustomHandler((AppenderBean) fragment, false);
                                 action = createCustomHandlerCliAction(handler);
                             }
                         }
 
-                        ctx.getActions().add( action );
+                        ctx.getActions().add(action);
                     } catch (CliScriptException e) {
                         throw new ActionException("Migration of the appender " +
                                 appender.getAppenderName() + " failed: " + e.getMessage(), e);
                     }
 
-                } else{
+                } else {
                     // Selection of classes which are created by the user
                     // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
                     // Module for these handlers must be set with creation of ModuleCreationAction
@@ -166,13 +173,13 @@ public class LoggingMigrator extends AbstractMigrator {
             }
 
             throw new ActionException("Config fragment unrecognized by " +
-                    this.getClass().getSimpleName() + ": " + fragment );
+                    this.getClass().getSimpleName() + ": " + fragment);
         }
 
         HashMap<File, String> tempModules = new HashMap();
 
-        for(CustomHandlerBean handler : customHandlers){
-              ctx.getActions().addAll( createCustomHandlerActions( handler, tempModules));
+        for (CustomHandlerBean handler : customHandlers) {
+            ctx.getActions().addAll(createCustomHandlerActions(handler, tempModules));
         }
     }
 
@@ -181,8 +188,8 @@ public class LoggingMigrator extends AbstractMigrator {
             throws ActionException {
         File src;
         try {
-            src = Utils.findJarFileWithClass( handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
-                    getGlobalConfig().getAS5Config().getProfileName() );
+            src = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
+                    getGlobalConfig().getAS5Config().getProfileName());
         } catch (IOException e) {
             throw new ActionException("Finding jar containing driver class: " + handler.getClassValue() +
                     " failed: " + e.getMessage(), e);
@@ -190,35 +197,35 @@ public class LoggingMigrator extends AbstractMigrator {
 
         List<IMigrationAction> actions = new ArrayList();
 
-        if(tempModules.containsKey(src)){
+        if (tempModules.containsKey(src)) {
             // It means that moduleAction is already set. No need for another one => create CLI for CustomHandler and
             // continue on the next iteration
             try {
-                handler.setModule( tempModules.get(src) );
+                handler.setModule(tempModules.get(src));
 
-                actions.add( createCustomHandlerCliAction(handler) );
+                actions.add(createCustomHandlerCliAction(handler));
             } catch (CliScriptException e) {
                 throw new ActionException("Migration of the appeneder: " + handler.getName() +
                         "failed (CLI command): " + e.getMessage(), e);
             }
 
-        } else{
+        } else {
             try {
                 // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
-                handler.setModule( "migration.logging.customHandler" + number );
-                tempModules.put( src, handler.getModule() );
+                handler.setModule("migration.logging.customHandler" + number);
+                tempModules.put(src, handler.getModule());
 
-                actions.add( createCustomHandlerCliAction(handler) );
+                actions.add(createCustomHandlerCliAction(handler));
 
-                File targetDir = Utils.createPath( getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                    "logging", "customHandler" + number, "main", src.getName() );
+                File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
+                        "logging", "customHandler" + number, "main", src.getName());
 
-                Document doc =  createLogModuleXML( handler.getModule(), src.getName() );
+                Document doc = createLogModuleXML(handler.getModule(), src.getName());
 
                 // Default for now => false
-                ModuleCreationAction moduleAction = new ModuleCreationAction( src, targetDir, doc, false );
+                ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
 
-                actions.add( moduleAction );
+                actions.add(moduleAction);
 
                 // iterate number of custom handlers for creation of modules
                 number++;
@@ -302,7 +309,7 @@ public class LoggingMigrator extends AbstractMigrator {
             Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
 
             // For each IConfigFragment...
-            for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
+            for (IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments()) {
                 Document doc = Utils.createXmlDocumentBuilder().newDocument();
 
                 if (fragment instanceof AppenderBean) {
@@ -310,20 +317,27 @@ public class LoggingMigrator extends AbstractMigrator {
                     String type = appender.getAppenderClass();
 
                     // Selection of classes which are stored in log4j or jboss logging jars.
-                    if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+                    if (type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")) {
                         switch (StringUtils.substringAfterLast(type, ".")) {
                             case "DailyRollingFileAppender":
-                                perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc); break;
+                                perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc);
+                                break;
                             case "RollingFileAppender":
-                                sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc); break;
-                            case "ConsoleAppender": conHandMarshaller.marshal(createConsoleHandler(appender), doc); break;
-                            case "AsyncAppender": asyHandMarshaller.marshal(createAsyncHandler(appender), doc); break;
+                                sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc);
+                                break;
+                            case "ConsoleAppender":
+                                conHandMarshaller.marshal(createConsoleHandler(appender), doc);
+                                break;
+                            case "AsyncAppender":
+                                asyHandMarshaller.marshal(createAsyncHandler(appender), doc);
+                                break;
 
                             //  If the class don't correspond to any type of AS7 handler => CustomHandler
-                            default: cusHandMarshaller.marshal(createCustomHandler(appender, false), doc);
+                            default:
+                                cusHandMarshaller.marshal(createCustomHandler(appender, false), doc);
                         }
 
-                    } else{
+                    } else {
                         // Selection of classes which are created by the user
                         // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
                         cusHandMarshaller.marshal(createCustomHandler(appender, true), doc);
@@ -361,7 +375,7 @@ public class LoggingMigrator extends AbstractMigrator {
                     continue;
                 }
 
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
             }
 
             return nodeList;
@@ -385,42 +399,41 @@ public class LoggingMigrator extends AbstractMigrator {
             Unmarshaller conHandUnmarshaller = JAXBContext.newInstance(ConsoleHandlerBean.class).createUnmarshaller();
 
             // TBC: Is it wise to go through the XML? Can't we generate directly from model objects?
-            for( Node node : generateDomElements( ctx ) ) {
-                switch( node.getNodeName() ) {
+            for (Node node : generateDomElements(ctx)) {
+                switch (node.getNodeName()) {
                     case "logger":
-                        LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
-                        scripts.add( createLoggerScript( log ) );
+                        LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal(node);
+                        scripts.add(createLoggerScript(log));
                         break;
                     case "root-logger":
-                        RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
-                        scripts.add( createRootLoggerScript( root ) );
+                        RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal(node);
+                        scripts.add(createRootLoggerScript(root));
                         break;
                     case "size-rotating-handler":
-                        SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
-                        scripts.add( createSizeHandlerScript( sizeHandler ) );
+                        SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal(node);
+                        scripts.add(createSizeHandlerScript(sizeHandler));
                         break;
                     case "periodic-rotating-file-handler":
-                        PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
-                        scripts.add( createPerHandlerScript( perHandler ) );
+                        PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal(node);
+                        scripts.add(createPerHandlerScript(perHandler));
                         break;
                     case "custom-handler":
-                        CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
-                        scripts.add( createCustomHandlerScript( cusHandler ) );
+                        CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal(node);
+                        scripts.add(createCustomHandlerScript(cusHandler));
                         break;
                     case "async-handler":
-                        AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
-                        scripts.add( createAsyncHandlerScript( asyncHandler ) );
+                        AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal(node);
+                        scripts.add(createAsyncHandlerScript(asyncHandler));
                         break;
                     case "console-handler":
-                        ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
-                        scripts.add( createConsoleHandlerScript( conHandler ) );
+                        ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal(node);
+                        scripts.add(createConsoleHandlerScript(conHandler));
                         break;
                 }
             }
 
             return scripts;
-        }
-        catch (NodeGenerationException | JAXBException e) {
+        } catch (NodeGenerationException | JAXBException e) {
             throw new CliScriptException(e);
         }
     }
@@ -431,7 +444,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param category object representing category from AS5
      * @return created object of Logger in AS7
      */
-    public static LoggerBean migrateCategory(CategoryBean category){
+    public static LoggerBean migrateCategory(CategoryBean category) {
         LoggerBean logger = new LoggerBean();
 
         logger.setLoggerCategory(category.getCategoryName());
@@ -447,15 +460,15 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param loggerAS5 object representing root-logger from AS5
      * @return created object of root-logger from AS7
      */
-    public static RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5){
+    public static RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5) {
         RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
         /*
         TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
         for now only default INFO
         */
-        if(loggerAS5.getRootPriorityValue().equals("${jboss.server.log.threshold}")) {
+        if (loggerAS5.getRootPriorityValue().equals("${jboss.server.log.threshold}")) {
             rootLoggerAS7.setRootLoggerLevel("INFO");
-        } else{
+        } else {
             rootLoggerAS7.setRootLoggerLevel(loggerAS5.getRootPriorityValue());
         }
 
@@ -474,7 +487,7 @@ public class LoggingMigrator extends AbstractMigrator {
     public static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
         PerRotFileHandlerBean handler = new PerRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
-        if(appender.getParameters() != null){
+        if (appender.getParameters() != null) {
             for (ParameterBean parameter : appender.getParameters()) {
                 if (parameter.getParamName().equalsIgnoreCase("Append")) {
                     handler.setAppend(parameter.getParamValue());
@@ -518,7 +531,7 @@ public class LoggingMigrator extends AbstractMigrator {
         handler.setName(appender.getAppenderName());
         handler.setFormatter(appender.getLayoutParamValue());
 
-        if(appender.getParameters() != null)
+        if (appender.getParameters() != null)
             return handler;
 
         for (ParameterBean parameter : appender.getParameters()) {
@@ -563,7 +576,7 @@ public class LoggingMigrator extends AbstractMigrator {
     public static AsyncHandlerBean createAsyncHandler(AppenderBean appender) {
         AsyncHandlerBean handler = new AsyncHandlerBean();
         handler.setName(appender.getAppenderName());
-        if(appender.getParameters() != null){
+        if (appender.getParameters() != null) {
             // TODO: Problem with queue-length in Async
             for (ParameterBean parameter : appender.getParameters()) {
                 if (parameter.getParamName().equalsIgnoreCase("BufferSize")) {
@@ -601,7 +614,7 @@ public class LoggingMigrator extends AbstractMigrator {
         handler.setName(appender.getAppenderName());
         handler.setFormatter(appender.getLayoutParamValue());
 
-        if(appender.getParameters() != null)
+        if (appender.getParameters() != null)
             return handler;
 
         for (ParameterBean parameter : appender.getParameters()) {
@@ -623,7 +636,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * Migrates a Custom-Appender to a Handler in AS7
      *
      * @param appender object representing Custom-Appender
-     * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
+     * @param custom   true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
     public static CustomHandlerBean createCustomHandler(AppenderBean appender, Boolean custom) {
@@ -633,12 +646,12 @@ public class LoggingMigrator extends AbstractMigrator {
         handler.setClassValue(appender.getAppenderClass());
         handler.setFormatter(appender.getLayoutParamValue());
 
-        if( ! custom )
+        if (!custom)
             // Only possibility is class in log4j=> log4j module in AS7
             handler.setModule("org.apache.log4j");
 
 
-        if(appender.getParameters() != null)
+        if (appender.getParameters() != null)
             return handler;
 
         Set<PropertyBean> properties = new HashSet();
@@ -667,7 +680,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param appender object representing Periodic-Rotating-File-Appender
      * @return migrated File-Handler object
      */
-    public static FileHandlerBean createFileHandler(AppenderBean appender) throws CliScriptException{
+    public static FileHandlerBean createFileHandler(AppenderBean appender) throws CliScriptException {
         return null;
     }
 
@@ -679,13 +692,13 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the logger are missing or
      *                            are empty (loggerCategory)
      */
-    public static CliCommandAction createLoggerCliAction(LoggerBean logger) throws CliScriptException{
+    public static CliCommandAction createLoggerCliAction(LoggerBean logger) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
         ModelNode loggerCmd = new ModelNode();
         loggerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        loggerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        loggerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
 
         if (logger.getHandlers() != null) {
@@ -712,12 +725,12 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Periodic-Rotating-File-Handler
      *
      * @param handler object representing Periodic-Rotating-File-Handler
-     * @return  created CliCommandAction for adding the Periodic-Rotating-File-Handler
+     * @return created CliCommandAction for adding the Periodic-Rotating-File-Handler
      * @throws CliScriptException if required attributes for a creation of CLI command of the handler are missing or
      *                            are empty (name, relativeTo, path, suffix)
      */
     public static CliCommandAction createPerRotHandlerCliAction(PerRotFileHandlerBean handler)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in periodic-rotating-file-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getRelativeTo(), errMsg, "Relative-to");
@@ -726,7 +739,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         handlerCmd.get(ClientConstants.OP_ADDR).add("periodic-rotating-file-handler", handler.getName());
 
         ModelNode temp = new ModelNode();
@@ -751,12 +764,12 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Size-Rotating-File-Handler
      *
      * @param handler object representing Size-Rotating-File-Handler
-     * @return  created CliCommandAction for adding Size-Rotating-File-Handler
+     * @return created CliCommandAction for adding Size-Rotating-File-Handler
      * @throws CliScriptException if required attributes for a creation of the CLI command of the handler are missing or
      *                            are empty (name, relativeTo, path)
      */
     public static CliCommandAction createSizeRotHandlerCliAction(SizeRotFileHandlerBean handler)
-            throws CliScriptException{
+            throws CliScriptException {
         String errMsg = " in size-rotating-file-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getRelativeTo(), errMsg, "Relative-to");
@@ -790,11 +803,11 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Async-Handler
      *
      * @param handler object representing Async-Handler
-     * @return  created CliCommandAction for adding the Async-Handler
+     * @return created CliCommandAction for adding the Async-Handler
      * @throws CliScriptException if required attributes for a creation of the CLI command of the handler are missing
      *                            or are empty (name, queueLength)
      */
-    public static CliCommandAction createAsyncHandleCliAction(AsyncHandlerBean handler) throws CliScriptException{
+    public static CliCommandAction createAsyncHandleCliAction(AsyncHandlerBean handler) throws CliScriptException {
         String errMsg = " in async-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getQueueLength(), errMsg, "Queue length");
@@ -831,11 +844,11 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a Console-Handler
      *
      * @param handler object representing Console-Handler
-     * @return  created CliCommandAction for adding the Console-Handler
+     * @return created CliCommandAction for adding the Console-Handler
      * @throws CliScriptException if required attributes for a creation of the CLI command of the handler are missing or
      *                            are empty (name)
      */
-    public static CliCommandAction createConsoleHandlerCliAction(ConsoleHandlerBean handler) throws CliScriptException{
+    public static CliCommandAction createConsoleHandlerCliAction(ConsoleHandlerBean handler) throws CliScriptException {
         String errMsg = " in console-handler(Appender in AS5) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
 
@@ -859,11 +872,11 @@ public class LoggingMigrator extends AbstractMigrator {
      * Creates CliCommandAction for adding a CustomHandler
      *
      * @param handler object representing Custom-Handler
-     * @return  created CliCommandAction for adding the Custom-Handler
+     * @return created CliCommandAction for adding the Custom-Handler
      * @throws CliScriptException if required attributes for a creation of the CLI command of the handler are missing or
      *                            are empty(name, module, classValue)
      */
-    public static CliCommandAction createCustomHandlerCliAction(CustomHandlerBean handler) throws CliScriptException{
+    public static CliCommandAction createCustomHandlerCliAction(CustomHandlerBean handler) throws CliScriptException {
         String errMsg = " in custom-handler must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getModule(), errMsg, "Module");
@@ -871,13 +884,13 @@ public class LoggingMigrator extends AbstractMigrator {
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
-        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
         handlerCmd.get(ClientConstants.OP_ADDR).add("custom-handler", handler.getName());
 
         if (handler.getProperties() != null) {
             ModelNode propertyNode = new ModelNode();
             for (PropertyBean property : handler.getProperties()) {
-                 propertyNode.get(property.getName()).set(property.getValue());
+                propertyNode.get(property.getName()).set(property.getValue());
             }
 
             handlerCmd.get("properties").set(propertyNode);
@@ -901,7 +914,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return list of created CliCommandActions
      * @throws CliScriptException
      */
-    public static List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException{
+    public static List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException {
         // TODO: Not sure how set handlers in root-logger. Same thing for filter attribute. For now empty
         return null;
     }
@@ -934,7 +947,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
             String handlers = handlersBuilder.toString();
 
-            if ( ! handlers.isEmpty() ) {
+            if (!handlers.isEmpty()) {
                 handlers = handlers.replaceFirst(",", "");
                 resultScript.append(", handlers=[").append(handlers).append("]");
             }
@@ -983,7 +996,8 @@ public class LoggingMigrator extends AbstractMigrator {
      *
      * @param sizeHandler object of Size-Rotating-File-Handler
      * @return string containing created CLI script
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException if required attributes are missing
+     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException
+     *          if required attributes are missing
      */
     private static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {
@@ -1133,15 +1147,15 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     /**
-     *  Creates a CLI script for changing a root-logger. The Root-logger can be only modified with the CLI not added.
-     *  So this method creates a script for changing the level, filter and handlers. Required attribute is level.
-     *  (Changes possible in future)
+     * Creates a CLI script for changing a root-logger. The Root-logger can be only modified with the CLI not added.
+     * So this method creates a script for changing the level, filter and handlers. Required attribute is level.
+     * (Changes possible in future)
      *
      * @param rootLogger object representing root-logger in AS7
-     * @return  String containing scripts
+     * @return String containing scripts
      * @throws CliScriptException if attribute level is missing.
      */
-    private static String createRootLoggerScript(RootLoggerAS7Bean rootLogger) throws CliScriptException{
+    private static String createRootLoggerScript(RootLoggerAS7Bean rootLogger) throws CliScriptException {
         String errMsg = " in root-logger must be set.";
         Utils.throwIfBlank(rootLogger.getRootLoggerLevel(), errMsg, "Level");
 
@@ -1149,7 +1163,7 @@ public class LoggingMigrator extends AbstractMigrator {
         StringBuilder resultScript = new StringBuilder();
 
         // TODO: Is filter attribute even existing in CLI and JBoss conf? Because it is impossible to set filter via CLI
-        if(rootLogger.getRootLogFilValue() != null){
+        if (rootLogger.getRootLogFilValue() != null) {
             resultScript.append("/subsystem=logging/root-logger=ROOT:write-attribute(");
             resultScript.append("name=filter, value=").append(rootLogger.getRootLogFilValue());
             resultScript.append(")\n");
@@ -1159,7 +1173,7 @@ public class LoggingMigrator extends AbstractMigrator {
         resultScript.append("name=level, value=").append(rootLogger.getRootLoggerLevel());
         resultScript.append(")\n");
 
-        for(String handler : rootLogger.getRootLoggerHandlers()){
+        for (String handler : rootLogger.getRootLoggerHandlers()) {
             resultScript.append("/subsystem=logging/root-logger=ROOT:root-logger-assign-handler(name=");
             resultScript.append(handler).append(")\n");
         }
@@ -1171,12 +1185,12 @@ public class LoggingMigrator extends AbstractMigrator {
      * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
      *
      * @param moduleName name of the created module
-     * @param fileName name of the file deployed as module
+     * @param fileName   name of the file deployed as module
      * @return Document representing created module.xml for given logging jar file
      * @throws javax.xml.parsers.ParserConfigurationException
      *          if parser cannot be initialized
      */
-    private static Document createLogModuleXML(String moduleName, String fileName) throws ParserConfigurationException{
+    private static Document createLogModuleXML(String moduleName, String fileName) throws ParserConfigurationException {
 
         Document doc = Utils.createDoc();
 

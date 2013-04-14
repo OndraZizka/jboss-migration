@@ -19,8 +19,8 @@ public class CliAddScriptBuilder {
      * @param value    value of property
      */
     public void addProperty(String property, String value) {
-        if ( value != null ) {
-            if ( !value.isEmpty() ) {
+        if (value != null) {
+            if (!value.isEmpty()) {
                 this.properties.add(property + "=" + value);
             }
         }
@@ -35,7 +35,7 @@ public class CliAddScriptBuilder {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < this.properties.size(); i++) {
-            if ( i == this.properties.size() - 1 ) {
+            if (i == this.properties.size() - 1) {
                 builder.append(this.properties.get(i));
                 continue;
             }
@@ -57,7 +57,7 @@ public class CliAddScriptBuilder {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < this.properties.size(); i++) {
-            if ( i == this.properties.size() - 1 ) {
+            if (i == this.properties.size() - 1) {
                 builder.append(this.properties.get(i));
                 continue;
             }
