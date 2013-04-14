@@ -161,7 +161,7 @@ public class MigratorApp {
      * 
      *  @returns  True if everything is OK.
      */
-    private static List<String> validateConfiguration(Configuration config) {
+    public static List<String> validateConfiguration(Configuration config) {
         LinkedList<String> problems = new LinkedList<>();
         
         // AS 5
@@ -212,7 +212,7 @@ public class MigratorApp {
     /**
      *  Performs the migration.
      */
-    private static void migrate( Configuration conf ) throws MigrationException {
+    public static void migrate( Configuration conf ) throws MigrationException {
         
         log.info("Commencing migration.");
         

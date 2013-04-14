@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration.conf;
 
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.collections.map.MultiValueMap;
 
@@ -11,9 +12,9 @@ import org.apache.commons.collections.map.MultiValueMap;
  */
 public class Configuration {
 
-    private GlobalConfiguration globalConfig;
+    private GlobalConfiguration globalConfig = new GlobalConfiguration();
 
-    private List<ModuleSpecificProperty> moduleConfigs;
+    private List<ModuleSpecificProperty> moduleConfigs = new LinkedList();
 
 
     /**
