@@ -90,63 +90,20 @@ public class LoggingMigrator extends AbstractMigrator {
             throw new LoadMigrationException(e);
         }
     }
-
+    
+    
+    
     @Override
     public void createActions(MigrationContext ctx) throws ActionException {
+        
         List<CustomHandlerBean> customHandlers = new ArrayList();
 
         for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
             if (fragment instanceof AppenderBean) {
                 AppenderBean appender = (AppenderBean) fragment;
-                String type = appender.getAppenderClass();
-
-                // Selection of classes which are stored in log4j or jboss logging jars.
-                if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
-                    
-                    
-                    try {
-                        String appenderType = StringUtils.substringAfterLast(type, ".");
-                        CliCommandAction action;
-                        
-                        switch( appenderType ) {
-                            case "DailyRollingFileAppender":{
-                                PerRotFileHandlerBean handler = createPerRotFileHandler((AppenderBean) fragment, ctx);
-                                action = createPerRotHandlerCliAction(handler);
-                            } break;
-                            case "RollingFileAppender":{
-                                SizeRotFileHandlerBean handler = createSizeRotFileHandler((AppenderBean) fragment, ctx);
-                                action = createSizeRotHandlerCliAction(handler);
-                            } break;
-                            case "ConsoleAppender":{
-                                ConsoleHandlerBean handler = createConsoleHandler((AppenderBean) fragment);
-                                action = createConsoleHandlerCliAction(handler);
-                            } break;
-                            case "AsyncAppender":{
-                                AsyncHandlerBean handler = createAsyncHandler((AppenderBean) fragment);
-                                action = createAsyncHandleCliAction(handler);
-                            } break;
-
-                            //  If the class don't correspond to any type of AS7 handler => CustomHandler
-                            default:{
-                                // Module of these handler will be set in the method. Module log4j.
-                                CustomHandlerBean handler = createCustomHandler((AppenderBean) fragment, false);
-                                action = createCustomHandlerCliAction(handler);
-                            }
-                        }
-                        
-                        ctx.getActions().add( action );
-                    } catch (CliScriptException e) {
-                        throw new ActionException("Migration of the appender " +
-                                appender.getAppenderName() + " failed: " + e.getMessage(), e);
-                    }
-                    
-
-                } else{
-                    // Selection of classes which are created by the user
-                    // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
-                    // Module for these handlers must be set with creation of ModuleCreationAction
-                    customHandlers.add(createCustomHandler((AppenderBean) fragment, true));
-                }
+                CustomHandlerBean customHandler = processAppenderBean( appender, ctx );
+                if( null != customHandler )
+                    customHandlers.add( customHandler );
                 continue;
             }
 
@@ -219,13 +176,78 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
+    
+
+    /**
+     *  Processes AppenderBean. Only used above.
+     */
+    private CustomHandlerBean processAppenderBean( AppenderBean appenderBean, MigrationContext ctx ) throws ActionException {
+        
+        // Selection of classes which are stored in log4j or jboss logging jars.
+        String type = appenderBean.getAppenderClass();
+        if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+            
+            // Selection of classes which are created by the user
+            // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
+            // Module for these handlers must be set with creation of ModuleCreationAction
+            return createCustomHandler(appenderBean, true);
+        }
+            
+
+        try {
+            String appenderType = StringUtils.substringAfterLast(type, ".");
+            CliCommandAction action;
+
+            switch( appenderType ) {
+                case "DailyRollingFileAppender":{
+                    PerRotFileHandlerBean handler = createPerRotFileHandler(appenderBean, ctx);
+                    action = createPerRotHandlerCliAction(handler);
+                } break;
+                case "RollingFileAppender":{
+                    SizeRotFileHandlerBean handler = createSizeRotFileHandler(appenderBean, ctx);
+                    action = createSizeRotHandlerCliAction(handler);
+                } break;
+                case "ConsoleAppender":{
+                    ConsoleHandlerBean handler = createConsoleHandler(appenderBean);
+                    action = createConsoleHandlerCliAction(handler);
+                } break;
+                case "AsyncAppender":{
+                    AsyncHandlerBean handler = createAsyncHandler(appenderBean);
+                    action = createAsyncHandleCliAction(handler);
+                } break;
+
+                //  If the class don't correspond to any type of AS7 handler => CustomHandler
+                default:{
+                    // Module of these handler will be set in the method. Module log4j.
+                    CustomHandlerBean handler = createCustomHandler(appenderBean, false);
+                    action = createCustomHandlerCliAction(handler);
+                }
+            }
+
+            ctx.getActions().add( action );
+        } catch (CliScriptException e) {
+            throw new ActionException("Migration of the appender " + appenderBean.getAppenderName() + " failed: " + e.getMessage(), e);
+        }
+        return null;
+
+    }// processAppenderBean()
+    
+    
+    
+    
+    
+    
+    /**
+     * Applies changes directly to AS 7 config file.
+     * @deprecated  - We use CLI.
+     */
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException {
         try {
             Document doc = ctx.getAS7ConfigXmlDoc();
             NodeList subsystems = doc.getElementsByTagName("subsystem");
             for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
+                if( !(subsystems.item(i) instanceof Element) ) {
                     continue;
                 }
                 if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("logging")) {
@@ -248,7 +270,6 @@ public class LoggingMigrator extends AbstractMigrator {
                         }
                         if (node.getNodeName().equals("logger")) {
                             parent.insertBefore(adopted, lastNode);
-
                             continue;
                         }
                         // Only appending to xml what is wrong. Only for testing of migration
@@ -265,6 +286,7 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
+    
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
@@ -356,6 +378,8 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
+    
+    
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
@@ -410,13 +434,14 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
+    
     /**
-     * Mmigrates a Category from AS5 into Logger in AS7
+     * Migrates a Category from AS5 into Logger in AS7
      *
      * @param category object representing category from AS5
      * @return created object of Logger in AS7
      */
-    public static LoggerBean migrateCategory(CategoryBean category){
+    private static LoggerBean migrateCategory(CategoryBean category){
         LoggerBean logger = new LoggerBean();
 
         logger.setLoggerCategory(category.getCategoryName());
@@ -426,13 +451,14 @@ public class LoggingMigrator extends AbstractMigrator {
         return logger;
     }
 
+    
     /**
      * Migrates a root-logger from AS5 into a root-logger in AS7
      *
      * @param loggerAS5 object representing root-logger from AS5
      * @return created object of root-logger from AS7
      */
-    public static RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5){
+    private static RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5){
         RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
         /*
         TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
@@ -456,7 +482,8 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param ctx      migration context
      * @return migrated Periodic-Rotating-File-Handler object
      */
-    public static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+    private static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+        
         PerRotFileHandlerBean handler = new PerRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
         if(appender.getParameters() != null){
@@ -468,11 +495,8 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 if (parameter.getParamName().equals("File")) {
                     String value = parameter.getParamValue();
-
-
                     handler.setRelativeTo("jboss.server.log.dir");
                     handler.setPath(StringUtils.substringAfterLast(value, "/"));
-
                 }
 
                 if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -499,7 +523,8 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param ctx      migration context
      * @return migrated Size-Rotating-File-Handler object
      */
-    public static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+    private static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+        
         SizeRotFileHandlerBean handler = new SizeRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
         if(appender.getParameters() != null){
@@ -545,7 +570,8 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param appender object representing Async-Appender
      * @return migrated Async-Handler object
      */
-    public static AsyncHandlerBean createAsyncHandler(AppenderBean appender) {
+    private static AsyncHandlerBean createAsyncHandler(AppenderBean appender) {
+        
         AsyncHandlerBean handler = new AsyncHandlerBean();
         handler.setName(appender.getAppenderName());
         if(appender.getParameters() != null){
@@ -580,7 +606,8 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param appender object representing Console-Appender
      * @return migrated Console-Handler object
      */
-    public static ConsoleHandlerBean createConsoleHandler(AppenderBean appender) {
+    private static ConsoleHandlerBean createConsoleHandler(AppenderBean appender) {
+        
         ConsoleHandlerBean handler = new ConsoleHandlerBean();
         handler.setName(appender.getAppenderName());
         if(appender.getParameters() != null){
@@ -608,7 +635,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
-    public static CustomHandlerBean createCustomHandler(AppenderBean appender, Boolean custom) {
+    private static CustomHandlerBean createCustomHandler(AppenderBean appender, Boolean custom) {
         
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
@@ -644,13 +671,14 @@ public class LoggingMigrator extends AbstractMigrator {
      * Not implemented yet. Not sure if it is necessary..
      * Method for migrating File-Appender to Handler in AS7
      *
-     * @param appender object representing Periodic-Rotating-File-Appender
      * @return migrated File-Handler object
      */
-    public static FileHandlerBean createFileHandler(AppenderBean appender) throws CliScriptException{
+    private static FileHandlerBean createFileHandler(AppenderBean appender) throws CliScriptException{
         return null;
     }
 
+    
+    
     /**
      * Creates CliCommandAction for adding a Logger
      *
@@ -1146,5 +1174,4 @@ public class LoggingMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-}
-
+}// class
