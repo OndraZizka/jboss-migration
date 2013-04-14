@@ -82,52 +82,6 @@ public class AS7ModuleUtils {
     }
 
     
-    /**
-     * Method for creating module.xml for logging jar file, which will be copied to modules in AS7
-     *
-     * @param moduleName name of the created module
-     * @param fileName name of the file deployed as module
-     * @return Document representing created module.xml for given logging jar file
-     * @throws javax.xml.parsers.ParserConfigurationException
-     *          if parser cannot be initialized
-     */
-    public static Document createLogModuleXML(String moduleName, String fileName) throws ParserConfigurationException{
-        
-        Document doc = createDoc();
-
-        Element root = doc.createElement("module");
-        doc.appendChild(root);
-
-        root.setAttribute("xmlns", "urn:jboss:module:1.1");
-        root.setAttribute("name", moduleName);
-
-        Element resources = doc.createElement("resources");
-        root.appendChild(resources);
-
-        Element resource = doc.createElement("resource-root");
-        resource.setAttribute("path", fileName);
-        resources.appendChild(resource);
-
-        Element dependencies = doc.createElement("dependencies");
-        Element module1 = doc.createElement("module");
-        module1.setAttribute("name", "javax.api");
-        Element module2 = doc.createElement("module");
-
-        // Default dependencies for logging
-        module2.setAttribute("name", "org.jboss.logging");
-        Element module3 = doc.createElement("module");
-        module3.setAttribute("name", "org.apache.log4j");
-        module3.setAttribute("optional", "true");
-
-        dependencies.appendChild(module1);
-        dependencies.appendChild(module2);
-        dependencies.appendChild(module3);
-
-        root.appendChild(dependencies);
-
-        return doc;
-    }
-
 
     public static File transformDocToFile(Document doc, File file) throws TransformerException {
         final TransformerFactory tf = TransformerFactory.newInstance();
@@ -150,4 +104,4 @@ public class AS7ModuleUtils {
         return doc;
     }
     
-}
+}// class

@@ -224,7 +224,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
             Document doc;
             try {
-                doc  =  AS7ModuleUtils.createLogModuleXML(handler.getModule(), src.getName());
+                doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
             } catch (ParserConfigurationException e) {
                 throw new ActionException("Creation of Document representing module.xml for Custom-Handler failed: "
                         + e.getMessage(), e);
