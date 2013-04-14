@@ -185,7 +185,7 @@ public class LoggingMigrator extends AbstractMigrator {
         
         // Selection of classes which are stored in log4j or jboss logging jars.
         String type = appenderBean.getAppenderClass();
-        if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
+        if( ! (type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")) ){
             
             // Selection of classes which are created by the user
             // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
