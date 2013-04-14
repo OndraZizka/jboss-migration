@@ -105,56 +105,44 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 // Selection of classes which are stored in log4j or jboss logging jars.
                 if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
-                    switch (StringUtils.substringAfterLast(type, ".")) {
-                        case "DailyRollingFileAppender":{
-                            PerRotFileHandlerBean handler = createPerRotFileHandler((AppenderBean) fragment, ctx);
-                            try {
-                                ctx.getActions().add(createPerRotHandlerCliAction(handler));
-                            } catch (CliScriptException e) {
-                                throw new ActionException("Migration of the Appender:" +
-                                        appender.getAppenderName() + "failed: " + e.getMessage(), e);
-                            }
-                        } break;
-                        case "RollingFileAppender":{
-                            SizeRotFileHandlerBean handler = createSizeRotFileHandler((AppenderBean) fragment, ctx);
-                            try {
-                                ctx.getActions().add(createSizeRotHandlerCliAction(handler));
-                            } catch (CliScriptException e) {
-                                throw new ActionException("Migration of the Appender:" +
-                                        appender.getAppenderName() + "failed: " + e.getMessage(), e);
-                            }
-                        } break;
-                        case "ConsoleAppender":{
-                            ConsoleHandlerBean handler = createConsoleHandler((AppenderBean) fragment);
-                            try {
-                                ctx.getActions().add(createConsoleHandlerCliAction(handler));
-                            } catch (CliScriptException e) {
-                                throw new ActionException("Migration of the Appender:" +
-                                        appender.getAppenderName() + "failed: " + e.getMessage(), e);
-                            }
-                        } break;
-                        case "AsyncAppender":{
-                            AsyncHandlerBean handler = createAsyncHandler((AppenderBean) fragment);
-                            try {
-                                ctx.getActions().add(createAsyncHandleCliAction(handler));
-                            } catch (CliScriptException e) {
-                                throw new ActionException("Migration of the Appender:" +
-                                        appender.getAppenderName() + "failed: " + e.getMessage(), e);
-                            }
-                        } break;
+                    
+                    
+                    try {
+                        String appenderType = StringUtils.substringAfterLast(type, ".");
+                        CliCommandAction action;
+                        
+                        switch( appenderType ) {
+                            case "DailyRollingFileAppender":{
+                                PerRotFileHandlerBean handler = createPerRotFileHandler((AppenderBean) fragment, ctx);
+                                action = createPerRotHandlerCliAction(handler);
+                            } break;
+                            case "RollingFileAppender":{
+                                SizeRotFileHandlerBean handler = createSizeRotFileHandler((AppenderBean) fragment, ctx);
+                                action = createSizeRotHandlerCliAction(handler);
+                            } break;
+                            case "ConsoleAppender":{
+                                ConsoleHandlerBean handler = createConsoleHandler((AppenderBean) fragment);
+                                action = createConsoleHandlerCliAction(handler);
+                            } break;
+                            case "AsyncAppender":{
+                                AsyncHandlerBean handler = createAsyncHandler((AppenderBean) fragment);
+                                action = createAsyncHandleCliAction(handler);
+                            } break;
 
-                        //  If the class don't correspond to any type of AS7 handler => CustomHandler
-                        default:{
-                            // Module of these handler will be set in the method. Module log4j.
-                            CustomHandlerBean handler = createCustomHandler((AppenderBean) fragment, false);
-                            try {
-                                ctx.getActions().add(createCustomHandlerCliAction(handler));
-                            } catch (CliScriptException e) {
-                                throw new ActionException("Migration of the Appender:" +
-                                        appender.getAppenderName() + "failed: " + e.getMessage(), e);
+                            //  If the class don't correspond to any type of AS7 handler => CustomHandler
+                            default:{
+                                // Module of these handler will be set in the method. Module log4j.
+                                CustomHandlerBean handler = createCustomHandler((AppenderBean) fragment, false);
+                                action = createCustomHandlerCliAction(handler);
                             }
                         }
+                        
+                        ctx.getActions().add( action );
+                    } catch (CliScriptException e) {
+                        throw new ActionException("Migration of the appender " +
+                                appender.getAppenderName() + " failed: " + e.getMessage(), e);
                     }
+                    
 
                 } else{
                     // Selection of classes which are created by the user
