@@ -1,6 +1,9 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.conf.Configuration;
+import java.io.File;
+import java.io.IOException;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,15 +32,31 @@ public class MigratorEngineTest {
     
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
+        FileUtils.copyDirectory(new File("../AS-7.1.3"), new File("target/as7copy"));
     }
     
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
+        FileUtils.moveDirectory( new File("target/as7copy"), new File("target/as7result-01") );
     }
 
+    
+    
+    private static Configuration createTestConfig01() {
+        Configuration conf = new Configuration();
+        
+        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01");
+        conf.getGlobal().getAS5Config().setProfileName("default");
+        conf.getGlobal().getAS7Config().setDir("target/as7copy");
+        conf.getGlobal().getAS7Config().setConfigPath("standalone");
+                
+        return conf;
+    }
+    
 
+    
     /**
      * Test of doMigration method, of class MigratorEngine.
      */
@@ -52,15 +71,4 @@ public class MigratorEngineTest {
     }
 
 
-    private Configuration createTestConfig01() {
-        Configuration conf = new Configuration();
-        
-        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01");
-        conf.getGlobal().getAS5Config().setProfileName("default");
-        conf.getGlobal().getAS7Config().setDir("target/as7config-result");
-        conf.getGlobal().getAS7Config().setConfigPath("standalone");
-                
-        return conf;
-    }
-   
 }
