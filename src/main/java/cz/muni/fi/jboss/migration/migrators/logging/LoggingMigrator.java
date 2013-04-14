@@ -287,6 +287,9 @@ public class LoggingMigrator extends AbstractMigrator {
     }
 
     
+    /**
+     * @deprecated  - We use CLI.
+     */
     @Override
     public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
         try {
@@ -380,6 +383,9 @@ public class LoggingMigrator extends AbstractMigrator {
 
     
     
+    /**
+     * @deprecated  - We generate actions.
+     */
     @Override
     public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
         try {
