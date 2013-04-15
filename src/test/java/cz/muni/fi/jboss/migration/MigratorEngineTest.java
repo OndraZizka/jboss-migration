@@ -44,8 +44,9 @@ public class MigratorEngineTest {
     private static Configuration createTestConfig01() {
         Configuration conf = new Configuration();
         
-        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01");
-        conf.getGlobal().getAS5Config().setProfileName("default");
+        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01_510all");
+        conf.getGlobal().getAS5Config().setProfileName("all");
+        
         conf.getGlobal().getAS7Config().setDir("target/as7copy");
         conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
                 
