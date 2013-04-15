@@ -211,7 +211,7 @@ public class Utils {
     /**
      * Creates a new default document builder.
      *
-     * @deprecated TODO: No longer needed?
+     *
      */
     public static DocumentBuilder createXmlDocumentBuilder() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
