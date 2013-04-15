@@ -216,37 +216,6 @@ public class ServerMigrator extends AbstractMigrator {
         }
     }
 
-    @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
-        try {
-            List<String> list = new ArrayList();
-
-            Unmarshaller connUnmarshaller = JAXBContext.newInstance(ConnectorAS7Bean.class).createUnmarshaller();
-            Unmarshaller virtualUnmarshaller = JAXBContext.newInstance(VirtualServerBean.class).createUnmarshaller();
-            Unmarshaller socketUnmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
-
-            for (Node node : generateDomElements(ctx)) {
-                if (node.getNodeName().equals("connector")) {
-                    ConnectorAS7Bean conn = (ConnectorAS7Bean) connUnmarshaller.unmarshal(node);
-                    list.add(createConnectorScript(conn));
-                    continue;
-                }
-                if (node.getNodeName().equals("virtual-server")) {
-                    VirtualServerBean virtual = (VirtualServerBean) virtualUnmarshaller.unmarshal(node);
-                    list.add(createVirtualServerScript(virtual));
-                    continue;
-                }
-                if (node.getNodeName().equals("socket-binding")) {
-                    SocketBindingBean socketBinding = (SocketBindingBean) socketUnmarshaller.unmarshal(node);
-                    list.add(createSocketBindingScript(socketBinding));
-                }
-            }
-
-            return list;
-        } catch (NodeGenerationException | JAXBException e) {
-            throw new CliScriptException(e);
-        }
-    }
 
     /**
      * Migrates a connector from AS5 to AS7

@@ -395,65 +395,10 @@ public class LoggingMigrator extends AbstractMigrator {
             throw new NodeGenerationException(e);
         }
     }
-
     
     
-    /**
-     * @deprecated  - We generate actions.
-     */
-    @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
-        try {
-            List<String> scripts = new LinkedList();
 
-            Unmarshaller logUnmarshaller = JAXBContext.newInstance(LoggerBean.class).createUnmarshaller();
-            Unmarshaller rootUnmarshaller = JAXBContext.newInstance(RootLoggerAS7Bean.class).createUnmarshaller();
-            Unmarshaller perHandUnmarshaller = JAXBContext.newInstance(PerRotFileHandlerBean.class).createUnmarshaller();
-            Unmarshaller sizeHandUnmarshaller = JAXBContext.newInstance(SizeRotFileHandlerBean.class).createUnmarshaller();
-            Unmarshaller asyHandUnmarshaller = JAXBContext.newInstance(AsyncHandlerBean.class).createUnmarshaller();
-            Unmarshaller cusHandUnmarshaller = JAXBContext.newInstance(CustomHandlerBean.class).createUnmarshaller();
-            Unmarshaller conHandUnmarshaller = JAXBContext.newInstance(ConsoleHandlerBean.class).createUnmarshaller();
 
-            // TBC: Is it wise to go through the XML? Can't we generate directly from model objects?
-            for( Node node : generateDomElements( ctx ) ) {
-                switch( node.getNodeName() ) {
-                    case "logger":
-                        LoggerBean log = (LoggerBean) logUnmarshaller.unmarshal( node );
-                        scripts.add( createLoggerScript( log ) );
-                        break;
-                    case "root-logger":
-                        RootLoggerAS7Bean root = (RootLoggerAS7Bean) rootUnmarshaller.unmarshal( node );
-                        scripts.add( createRootLoggerScript( root ) );
-                        break;
-                    case "size-rotating-handler":
-                        SizeRotFileHandlerBean sizeHandler = (SizeRotFileHandlerBean) sizeHandUnmarshaller.unmarshal( node );
-                        scripts.add( createSizeHandlerScript( sizeHandler ) );
-                        break;
-                    case "periodic-rotating-file-handler":
-                        PerRotFileHandlerBean perHandler = (PerRotFileHandlerBean) perHandUnmarshaller.unmarshal( node );
-                        scripts.add( createPerHandlerScript( perHandler ) );
-                        break;
-                    case "custom-handler":
-                        CustomHandlerBean cusHandler = (CustomHandlerBean) cusHandUnmarshaller.unmarshal( node );
-                        scripts.add( createCustomHandlerScript( cusHandler ) );
-                        break;
-                    case "async-handler":
-                        AsyncHandlerBean asyncHandler = (AsyncHandlerBean) asyHandUnmarshaller.unmarshal( node );
-                        scripts.add( createAsyncHandlerScript( asyncHandler ) );
-                        break;
-                    case "console-handler":
-                        ConsoleHandlerBean conHandler = (ConsoleHandlerBean) conHandUnmarshaller.unmarshal( node );
-                        scripts.add( createConsoleHandlerScript( conHandler ) );
-                        break;
-                }
-            }
-
-            return scripts;
-        }
-        catch (NodeGenerationException | JAXBException e) {
-            throw new CliScriptException(e);
-        }
-    }
 
     
     /**

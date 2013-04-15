@@ -216,25 +216,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
-        try {
-            List<String> list = new LinkedList();
-            Unmarshaller resUnmarshaller = JAXBContext.newInstance(ResourceAdapterBean.class).createUnmarshaller();
-
-            for (Node node : generateDomElements(ctx)) {
-                ResourceAdapterBean resAdapter = (ResourceAdapterBean) resUnmarshaller.unmarshal(node);
-                list.add(createResAdapterScript(resAdapter));
-            }
-
-            return list;
-        } catch (NodeGenerationException | JAXBException e) {
-            throw new CliScriptException(e);
-        }
-    }
 
 
     /**

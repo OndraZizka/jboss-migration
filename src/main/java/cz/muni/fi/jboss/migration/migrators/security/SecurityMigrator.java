@@ -149,22 +149,6 @@ public class SecurityMigrator extends AbstractMigrator {
         }
     }
 
-    @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
-        try {
-            List<String> list = new ArrayList();
-            Unmarshaller secUnmarshaller = JAXBContext.newInstance(SecurityDomainBean.class).createUnmarshaller();
-
-            for (Node node : generateDomElements(ctx)) {
-                SecurityDomainBean securityDomain = (SecurityDomainBean) secUnmarshaller.unmarshal(node);
-                list.add(createSecurityDomainScript(securityDomain));
-            }
-
-            return list;
-        } catch (NodeGenerationException | JAXBException e) {
-            throw new CliScriptException(e);
-        }
-    }
 
     /**
      * Migrates application-policy from AS5 to AS7

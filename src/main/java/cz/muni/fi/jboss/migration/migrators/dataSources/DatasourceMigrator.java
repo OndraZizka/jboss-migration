@@ -321,37 +321,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
     }// generateDomElements()
 
-    @Override
-    public List<String> generateCliScripts(MigrationContext ctx) throws CliScriptException {
-        try {
-            List<String> list = new ArrayList();
-            Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourceAS7Bean.class).createUnmarshaller();
-            Unmarshaller driverUnmarshaller = JAXBContext.newInstance(DriverBean.class).createUnmarshaller();
-            Unmarshaller xaDataUnmarshaller = JAXBContext.newInstance(XaDatasourceAS7Bean.class).createUnmarshaller();
 
-            for (Node node : generateDomElements(ctx)) {
-                if (node.getNodeName().equals("datasource")) {
-                    DatasourceAS7Bean data = (DatasourceAS7Bean) dataUnmarshaller.unmarshal(node);
-                    list.add(createDatasourceScriptOld(data));
-                    //list.add(createDatasourceScriptNew(data));
-                    continue;
-                }
-                if (node.getNodeName().equals("xa-datasource")) {
-                    XaDatasourceAS7Bean xaData = (XaDatasourceAS7Bean) xaDataUnmarshaller.unmarshal(node);
-                    list.add(createXaDatasourceScriptOld(xaData));
-                    continue;
-                }
-                if (node.getNodeName().endsWith("driver")) {
-                    DriverBean driver = (DriverBean) driverUnmarshaller.unmarshal(node);
-                    list.add(createDriverScript(driver));
-                }
-            }
-
-            return list;
-        } catch (NodeGenerationException | JAXBException e) {
-            throw new CliScriptException(e);
-        }
-    }// generateCliScripts()
 
 
     /**
