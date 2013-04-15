@@ -4,7 +4,10 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.CopyAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.CopyException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -18,13 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
@@ -144,79 +144,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
             ctx.getActions().add(new CopyAction(src, target, false));
         }
     }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException {
-        try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
-                    continue;
-                }
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("resource-adapters")) {
-                    Node parent = doc.createElement("resource-adapters");
-
-                    for (Node node : generateDomElements(ctx)) {
-                        Node adopted = doc.adoptNode(node.cloneNode(true));
-                        parent.appendChild(adopted);
-                    }
-                    subsystems.item(i).appendChild(parent);
-                    break;
-                }
-            }
-        } catch (NodeGenerationException e) {
-            throw new ApplyMigrationException(e);
-        }
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
-        try {
-            JAXBContext resAdapCtx = JAXBContext.newInstance(ResourceAdapterBean.class);
-            List<Node> nodeList = new LinkedList();
-            Marshaller resAdapMarshaller = resAdapCtx.createMarshaller();
-
-            // FIXME: NPE if there's no record in migration data.
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                if (fragment instanceof ConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
-                    resAdapMarshaller.marshal(migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
-            }
-
-            for (String rar : this.rars) {
-                FileTransferInfo rollbackData = new FileTransferInfo();
-                rollbackData.setName(rar);
-                rollbackData.setType(FileTransferInfo.Type.RESOURCE);
-                ctx.getFileTransfers().add(rollbackData);
-            }
-
-            return nodeList;
-
-        } catch (JAXBException e) {
-            throw new NodeGenerationException(e);
-        }
-    }
-
-
-
 
     /**
      * Migrates a tx-connection-factory from AS5 to AS7

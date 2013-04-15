@@ -4,12 +4,7 @@ import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
-import org.w3c.dom.Node;
-
-import java.util.List;
 
 /**
  * A Migrator is responsible for
@@ -38,30 +33,6 @@ public interface IMigrator {
      * @throws LoadMigrationException if loading of AS5 configuration fails (missing files / cannot read / wrong content)
      */
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException;
-
-
-    /**
-     * Method for inserting migrated data to fresh standalone file.
-     *
-     * @param ctx context of migration with necessary object and information
-     * @throws ApplyMigrationException if inserting of generated nodes fails
-     *                                 <p/>
-     *                                 TODO: To be replaced with createActions() and the new logic. MIGR-31
-     */
-    public void apply(MigrationContext ctx) throws ApplyMigrationException;
-
-
-    /**
-     * Method for generating Dom nodes from data stored in MigrationContext. Basically method representing actual migration
-     * of the XML configuration files from AS5 to AS7.
-     *
-     * @param ctx context of migration with necessary object and information
-     * @return List of all nodes, which represent migrated configuration of AS5
-     * @throws NodeGenerationException if something when wrong with the migration of data and generation of Dom Nodes
-     *                                 <p/>
-     *                                 TODO: To be replaced with createActions() and the new logic. MIGR-31
-     */
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException;
 
     /**
      * Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).

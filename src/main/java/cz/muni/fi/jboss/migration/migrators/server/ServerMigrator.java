@@ -3,21 +3,21 @@ package cz.muni.fi.jboss.migration.migrators.server;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.server.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -98,6 +98,7 @@ public class ServerMigrator extends AbstractMigrator {
                 }
                 continue;
             }
+
             if (fragment instanceof EngineBean) {
                 try {
                     ctx.getActions().add(createVirtualServerCliAction(migrateEngine((EngineBean) fragment)));
@@ -116,106 +117,8 @@ public class ServerMigrator extends AbstractMigrator {
             } catch (CliScriptException e) {
                 throw new ActionException("Creation of the new socket-binding failed: " + e.getMessage(), e);
             }
-        }
+       }
     }
-
-    @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException {
-        try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
-                    continue;
-                }
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("web")) {
-                    if (!((Element) subsystems.item(i)).getAttribute("xmlns").contains("web-services")) {
-                        Node parent = subsystems.item(i);
-                        Node lastNode = parent.getLastChild();
-
-                        while (!(lastNode instanceof Element)) {
-                            lastNode = lastNode.getPreviousSibling();
-                        }
-
-                        for (Node node : generateDomElements(ctx)) {
-                            Node adopted = doc.adoptNode(node.cloneNode(true));
-                            if (node.getNodeName().equals("virtual-server")) {
-                                parent.appendChild(adopted);
-                            } else {
-                                parent.insertBefore(adopted, lastNode);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            NodeList socketGroup = doc.getElementsByTagName("socket-binding-group");
-            for (int i = 0; i < socketGroup.getLength(); i++) {
-                if (!(socketGroup.item(i) instanceof Element)) {
-                    continue;
-                }
-                Node parent = socketGroup.item(i);
-                Node lastNode = parent.getLastChild();
-
-                while (!(lastNode instanceof Element)) {
-                    lastNode = lastNode.getPreviousSibling();
-                }
-
-                for (Node node : generateDomElements(ctx)) {
-                    if (node.getNodeName().equals("socket-binding")) {
-                        Node adopted = doc.adoptNode(node.cloneNode(true));
-                        parent.insertBefore(adopted, lastNode);
-                    }
-                }
-                break;
-            }
-        } catch (NodeGenerationException e) {
-            throw new ApplyMigrationException(e);
-        }
-    }
-
-    @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
-        try {
-            JAXBContext connCtx = JAXBContext.newInstance(ConnectorAS7Bean.class);
-            JAXBContext virSerCtx = JAXBContext.newInstance(VirtualServerBean.class);
-            JAXBContext socketCtx = JAXBContext.newInstance(SocketBindingBean.class);
-
-            List<Node> nodeList = new ArrayList();
-
-            Marshaller connMarshaller = connCtx.createMarshaller();
-            Marshaller virSerMarshaller = virSerCtx.createMarshaller();
-            Marshaller socketMarshaller = socketCtx.createMarshaller();
-
-            for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                if (fragment instanceof ConnectorAS5Bean) {
-                    connMarshaller.marshal(migrateConnector((ConnectorAS5Bean) fragment, ctx), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                if (fragment instanceof EngineBean) {
-                    virSerMarshaller.marshal(migrateEngine((EngineBean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
-            }
-
-            for (SocketBindingBean sb : this.socketBindings) {
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                socketMarshaller.marshal(sb, doc);
-                nodeList.add(doc.getDocumentElement());
-            }
-
-            return nodeList;
-
-        } catch (JAXBException e) {
-            throw new NodeGenerationException(e);
-        }
-    }
-
 
     /**
      * Migrates a connector from AS5 to AS7

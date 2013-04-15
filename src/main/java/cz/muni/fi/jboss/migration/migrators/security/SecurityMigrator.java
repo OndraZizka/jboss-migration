@@ -4,7 +4,10 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.CopyAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.CopyException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -12,14 +15,9 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
@@ -98,57 +96,6 @@ public class SecurityMigrator extends AbstractMigrator {
         }
 
     }
-
-    @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException {
-        try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
-                    continue;
-                }
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("security")) {
-                    Node parent = subsystems.item(i).getFirstChild();
-                    while (!(parent instanceof Element)) {
-                        parent = parent.getNextSibling();
-                    }
-
-                    for (Node node : generateDomElements(ctx)) {
-                        Node adopted = doc.adoptNode(node.cloneNode(true));
-                        parent.appendChild(adopted);
-                    }
-                    break;
-                }
-            }
-        } catch (NodeGenerationException e) {
-            throw new ApplyMigrationException(e);
-        }
-    }
-
-    @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
-        try {
-            JAXBContext secDomainCtx = JAXBContext.newInstance(SecurityDomainBean.class);
-            List<Node> nodeList = new ArrayList();
-            Marshaller secDomMarshaller = secDomainCtx.createMarshaller();
-
-            for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
-                if (!(fragment instanceof ApplicationPolicyBean)) {
-                    throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
-                }
-
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                secDomMarshaller.marshal(migrateAppPolicy((ApplicationPolicyBean) fragment, ctx), doc);
-                nodeList.add(doc.getDocumentElement());
-            }
-
-            return nodeList;
-        } catch (JAXBException e) {
-            throw new NodeGenerationException(e);
-        }
-    }
-
 
     /**
      * Migrates application-policy from AS5 to AS7

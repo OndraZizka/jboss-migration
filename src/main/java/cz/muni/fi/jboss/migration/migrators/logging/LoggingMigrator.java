@@ -5,7 +5,9 @@ import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -14,13 +16,9 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
@@ -246,161 +244,7 @@ public class LoggingMigrator extends AbstractMigrator {
         return null;
 
     }// processAppenderBean()
-    
-    
-    
-    
-    
-    
-    /**
-     * Applies changes directly to AS 7 config file.
-     * @deprecated  - We use CLI.
-     */
-    @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException {
-        try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if( !(subsystems.item(i) instanceof Element) ) {
-                    continue;
-                }
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("logging")) {
-                    Node parent = subsystems.item(i);
-                    Node lastNode = parent.getLastChild();
-                    Node firstNode = parent.getFirstChild();
 
-                    while (!(lastNode instanceof Element)) {
-                        lastNode = lastNode.getPreviousSibling();
-                    }
-                    while (!(firstNode instanceof Element)) {
-                        firstNode = firstNode.getNextSibling();
-                    }
-
-                    for (Node node : generateDomElements(ctx)) {
-                        Node adopted = doc.adoptNode(node.cloneNode(true));
-                        if (node.getNodeName().contains("handler")) {
-                            parent.insertBefore(adopted, firstNode);
-                            continue;
-                        }
-                        if (node.getNodeName().equals("logger")) {
-                            parent.insertBefore(adopted, lastNode);
-                            continue;
-                        }
-                        // Only appending to xml what is wrong. Only for testing of migration
-                        if (node.getNodeName().equals("root-logger")) {
-                            parent.appendChild(adopted);
-                        }
-                    }
-                    break;
-
-                }
-            }
-        } catch (MigrationException e) {
-            throw new ApplyMigrationException(e);
-        }
-    }
-
-    
-    /**
-     * @deprecated  - We use CLI.
-     */
-    @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
-        try {
-            JAXBContext loggerCtx = JAXBContext.newInstance(LoggerBean.class);
-            JAXBContext rootLogCtx = JAXBContext.newInstance(RootLoggerAS7Bean.class);
-            JAXBContext sizeHandlerCtx = JAXBContext.newInstance(SizeRotFileHandlerBean.class);
-            JAXBContext asyncHandlerCtx = JAXBContext.newInstance(AsyncHandlerBean.class);
-            JAXBContext perHandlerCtx = JAXBContext.newInstance(PerRotFileHandlerBean.class);
-            JAXBContext consoleHandlerCtx = JAXBContext.newInstance(ConsoleHandlerBean.class);
-            JAXBContext customHandlerCtx = JAXBContext.newInstance(CustomHandlerBean.class);
-
-            List<Node> nodeList = new LinkedList();
-
-            Marshaller logMarshaller = loggerCtx.createMarshaller();
-            Marshaller rootLogMarshaller = rootLogCtx.createMarshaller();
-            Marshaller perHandMarshaller = perHandlerCtx.createMarshaller();
-            Marshaller cusHandMarshaller = customHandlerCtx.createMarshaller();
-            Marshaller asyHandMarshaller = asyncHandlerCtx.createMarshaller();
-            Marshaller sizeHandMarshaller = sizeHandlerCtx.createMarshaller();
-            Marshaller conHandMarshaller = consoleHandlerCtx.createMarshaller();
-
-            // For each IConfigFragment...
-            for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-
-                if (fragment instanceof AppenderBean) {
-                    AppenderBean appender = (AppenderBean) fragment;
-                    String type = appender.getAppenderClass();
-
-                    // Selection of classes which are stored in log4j or jboss logging jars.
-                    if(type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")){
-                        switch (StringUtils.substringAfterLast(type, ".")) {
-                            case "DailyRollingFileAppender":
-                                perHandMarshaller.marshal(createPerRotFileHandler(appender, ctx), doc); break;
-                            case "RollingFileAppender":
-                                sizeHandMarshaller.marshal(createSizeRotFileHandler(appender, ctx), doc); break;
-                            case "ConsoleAppender": conHandMarshaller.marshal(createConsoleHandler(appender), doc); break;
-                            case "AsyncAppender": asyHandMarshaller.marshal(createAsyncHandler(appender), doc); break;
-
-                            //  If the class don't correspond to any type of AS7 handler => CustomHandler
-                            default: cusHandMarshaller.marshal(createCustomHandler(appender, false), doc);
-                        }
-
-                    } else{
-                        // Selection of classes which are created by the user
-                        // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
-                        cusHandMarshaller.marshal(createCustomHandler(appender, true), doc);
-                    }
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-
-                if (fragment instanceof CategoryBean) {
-                    CategoryBean category = (CategoryBean) fragment;
-                    LoggerBean logger = new LoggerBean();
-                    logger.setLoggerCategory(category.getCategoryName());
-                    logger.setLoggerLevelName(category.getCategoryValue());
-                    logger.setHandlers(category.getAppenderRef());
-
-                    logMarshaller.marshal(logger, doc);
-                    nodeList.add(doc.getDocumentElement());
-
-                    continue;
-                }
-
-                if (fragment instanceof RootLoggerAS5Bean) {
-                    RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
-                    RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
-                    /*
-                    TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
-                    for now only default INFO
-                    */
-                    rootLoggerAS7.setRootLoggerLevel("INFO");
-                    rootLoggerAS7.setRootLoggerHandlers(root.getRootAppenderRefs());
-
-                    rootLogMarshaller.marshal(rootLoggerAS7, doc);
-                    nodeList.add(doc.getDocumentElement());
-
-                    continue;
-                }
-
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
-            }
-
-            return nodeList;
-
-        } catch (JAXBException e) {
-            throw new NodeGenerationException(e);
-        }
-    }
-    
-    
-
-
-
-    
     /**
      * Migrates a Category from AS5 into Logger in AS7
      *

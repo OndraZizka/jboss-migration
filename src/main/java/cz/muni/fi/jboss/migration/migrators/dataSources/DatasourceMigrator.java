@@ -5,7 +5,9 @@ import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -19,13 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -220,109 +219,6 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return actions;
     }
-
-
-    @Override
-    public void apply(MigrationContext ctx) throws ApplyMigrationException {
-        try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
-                    continue;
-                }
-
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("datasource")) {
-                    Node parent = subsystems.item(i).getFirstChild();
-                    while (!(parent instanceof Element)) {
-                        parent = parent.getNextSibling();
-                    }
-
-                    Node lastNode = parent.getLastChild();
-
-                    while (!(lastNode instanceof Element)) {
-                        lastNode = lastNode.getPreviousSibling();
-                    }
-
-                    for (Node node : generateDomElements(ctx)) {
-                        ((Element) node).setAttribute("xmlns", "urn:jboss:domain:datasources:1.1");
-                        Node adopted = doc.adoptNode(node.cloneNode(true));
-
-                        if (node.getNodeName().equals("driver")) {
-                            lastNode.appendChild(adopted);
-                        } else {
-                            parent.insertBefore(adopted, lastNode);
-                        }
-                    }
-                    break;
-                }
-            }
-        } catch (NodeGenerationException e) {
-            throw new ApplyMigrationException(e);
-        }
-    }
-
-    @Override
-    public List<Node> generateDomElements(MigrationContext ctx) throws NodeGenerationException {
-        try {
-            List<Node> nodeList = new ArrayList();
-            Marshaller dataMarshaller = JAXBContext.newInstance(DatasourceAS7Bean.class).createMarshaller();
-            Marshaller xaDataMarshaller = JAXBContext.newInstance(XaDatasourceAS7Bean.class).createMarshaller();
-            Marshaller driverMarshaller = JAXBContext.newInstance(DriverBean.class).createMarshaller();
-
-            for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-
-                if (fragment instanceof DatasourceAS5Bean) {
-                    dataMarshaller.marshal(migrateLocalTxDatasource((DatasourceAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                if (fragment instanceof XaDatasourceAS5Bean) {
-                    xaDataMarshaller.marshal(migrateXaDatasource((XaDatasourceAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                if(fragment instanceof NoTxDatasourceAS5Bean){
-                    dataMarshaller.marshal(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment), doc);
-                    nodeList.add(doc.getDocumentElement());
-                    continue;
-                }
-                
-                throw new NodeGenerationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
-            }
-
-            
-            for (DriverBean driver : this.drivers) {
-                FileTransferInfo rollbackData = new FileTransferInfo();
-                rollbackData.setType(FileTransferInfo.Type.DRIVER);
-
-                if(driver.getDriverClass() != null){
-                    //rollbackData.deriveDriverName(driver.getDriverClass());
-                    DatasourceUtils.deriveAndSetDriverName(rollbackData, driver.getDriverClass());
-                    rollbackData.setModuleName(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
-                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getDriverClass()));
-                } else {
-                    rollbackData.setName(driver.getXaDatasourceClass());
-                    rollbackData.setModuleName(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
-                    driver.setDriverModule(DatasourceUtils.deriveDriverModuleName(driver.getXaDatasourceClass()));
-                }
-
-                ctx.getFileTransfers().add(rollbackData);
-
-                Document doc = Utils.createXmlDocumentBuilder().newDocument();
-                driverMarshaller.marshal(driver, doc);
-                nodeList.add(doc.getDocumentElement());
-            }
-
-            return nodeList;
-        } catch (JAXBException e) {
-            throw new NodeGenerationException(e);
-        }
-    }// generateDomElements()
-
-
-
 
     /**
      * Migrates a No-Tx-Datasource from AS5 to AS7
