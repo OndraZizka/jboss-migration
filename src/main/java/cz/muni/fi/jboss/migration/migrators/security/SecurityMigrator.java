@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class SecurityMigrator extends AbstractMigrator {
     
     // Files which must be copied into AS7
     private Set<String> fileNames = new HashSet();
+    private Set<CopyAction> copyActions;
 
 
     @Override
@@ -88,28 +90,36 @@ public class SecurityMigrator extends AbstractMigrator {
      */
     @Override
     public void createActions(MigrationContext ctx) throws ActionException {
-        for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
-            if (fragment instanceof ApplicationPolicyBean) {
+        
+        // Config fragments
+        for( IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
+            if( fragment instanceof ApplicationPolicyBean) {
                 try {
-                    ctx.getActions().addAll(createSecurityDomainCliAction(
-                            migrateAppPolicy((ApplicationPolicyBean) fragment, ctx)));
-                    continue;
+                    SecurityDomainBean appPolicy = migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx);
+                    ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
                 } catch (CliScriptException e) {
                     throw new ActionException("Migration of application-policy failed: " + e.getMessage(), e);
                 }
+                continue;
             }
             throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
-        for (String fileName : this.fileNames) {
+        // Files to copy
+        File as5profileDir = getGlobalConfig().getAS5Config().getProfileDir();
+        String as7Dir      = getGlobalConfig().getAS7Config().getDir();
+        
+        for( String fileName : this.fileNames ) {
             File src;
             try {
-                src = Utils.searchForFile(fileName, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
-            } catch (CopyException e) {
-                throw new ActionException("Copying of file for security failed: " + e.getMessage(), e);
+                // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+                //       Then, create the actions directly in the code creating this "files to copy" collection.
+                src = Utils.searchForFile(fileName, as5profileDir).iterator().next();
+            } catch (CopyException ex) {
+                throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
             }
 
-            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "configuration", src.getName());
+            File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName());
 
             // Default value for overwrite => false
             ctx.getActions().add(new CopyAction(src, target, false));
@@ -132,7 +142,7 @@ public class SecurityMigrator extends AbstractMigrator {
         securityDomain.setCacheType("default");
         if (appPolicy.getLoginModules() != null) {
             for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
-                loginModules.add(createLoginModule(lmAS5));
+                loginModules.add( createLoginModule( lmAS5, this.copyActions ) );
             }
         }
 
@@ -145,7 +155,7 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      *  Migrates the given login module.
      */
-    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5) {
+    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Collection<CopyAction> filesToCopy ) {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
         // Flag
@@ -166,8 +176,14 @@ public class SecurityMigrator extends AbstractMigrator {
             switch( moAS5.getModuleName() ){
                 case "rolesProperties":
                 case "usersProperties":
-                    value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + new File( moAS5.getModuleValue() ).getName();
-                    this.fileNames.add(value); // Add to the list of the files to copy. TODO: Use IMigrationActionListener.
+                    String fName = new File( moAS5.getModuleValue() ).getName();
+                    value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
+                    this.fileNames.add(fName); // Add to the list of the files to copy.
+                    // TODO: Rather directly create CopyActions.
+                    // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+                    /*filesToCopy.add(new CopyAction( 
+                            new File( moAS5.getModuleValue()), 
+                            new File( getGlobalConfig().getAS7Config().getConfigPath(), fName), false, false));*/
                     break;
                 default:
                     value = moAS5.getModuleValue();
@@ -341,4 +357,5 @@ public class SecurityMigrator extends AbstractMigrator {
 
         return resultScript.toString();
     }
-}
+    
+}// class

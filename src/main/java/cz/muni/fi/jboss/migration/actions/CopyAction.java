@@ -5,16 +5,18 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class CopyAction extends AbstractStatefulAction {
 
-    File src;
-    File dest;
-    File temp;
-    boolean overwrite;
+    private File src;
+    private File dest;
+    private File temp;
+    private boolean overwrite;
+    private boolean failIfNotExist = true;
 
 
     public CopyAction(File src, File dest, boolean overwrite) {
@@ -23,9 +25,20 @@ public class CopyAction extends AbstractStatefulAction {
         this.overwrite = overwrite;
     }
 
+
+    public CopyAction( File src, File dest, boolean overwrite, boolean failIfNotExist) {
+        this.src = src;
+        this.dest = dest;
+        this.overwrite = overwrite;
+        this.failIfNotExist = failIfNotExist;
+    }
+
+    
+    
+
     @Override
     public void preValidate() throws MigrationException {
-        if (!src.exists())
+        if ( ! src.exists() && failIfNotExist )
             throw new MigrationException("File to copy doesn't exist: " + src.getPath());
         if (dest.exists() && !overwrite)
             throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
@@ -93,5 +106,35 @@ public class CopyAction extends AbstractStatefulAction {
         }
         setState(State.FINISHED);
     }
+
+
+    //<editor-fold defaultstate="collapsed" desc="hash/eq - use src and dest.">
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode( this.src );
+        hash = 67 * hash + Objects.hashCode( this.dest );
+        return hash;
+    }
+    
+    
+    @Override
+    public boolean equals( Object obj ) {
+        if( obj == null ) {
+            return false;
+        }
+        if( getClass() != obj.getClass() ) {
+            return false;
+        }
+        final CopyAction other = (CopyAction) obj;
+        if( !Objects.equals( this.src, other.src ) ) {
+            return false;
+        }
+        if( !Objects.equals( this.dest, other.dest ) ) {
+            return false;
+        }
+        return true;
+    }
+    //</editor-fold>
 
 }// class

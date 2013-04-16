@@ -189,13 +189,10 @@ public class Utils {
     public static Collection<File> searchForFile(String fileName, File dir) throws CopyException {
 
         IOFileFilter nff = new NameFileFilter(fileName);
-
-        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
-
-        if (list.isEmpty()) {
+        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.trueFileFilter());
+        if( list.isEmpty() ) {
             throw new CopyException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
         }
-
         return list;
     }
 
