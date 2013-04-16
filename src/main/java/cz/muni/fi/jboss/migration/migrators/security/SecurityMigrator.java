@@ -173,31 +173,6 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     
-    @Deprecated
-    private ModuleOptionAS7Bean createModuleOption(ModuleOptionAS5Bean moAS5) {
-        
-        ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();
-        moAS7.setModuleOptionName( moAS5.getModuleName());
-
-        // TODO: We can't blindly assume that any option ending with .properties is a file to copy.
-        if( moAS5.getModuleValue().endsWith(".properties")) {
-            String value;
-            if( moAS5.getModuleValue().contains("/")) {
-                value = StringUtils.substringAfterLast( moAS5.getModuleValue(), "/");
-            } else {
-                value = moAS5.getModuleValue();
-            }
-            moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
-
-            this.fileNames.add(value); // TODO: Move this to the calling method.
-        } else {
-            moAS7.setModuleOptionValue( moAS5.getModuleValue());
-        }
-
-        return moAS7;
-    }
-
-    
     private static String deriveLoginModuleName( String as5moduleName ) {
         
         String type = StringUtils.substringAfterLast(as5moduleName, ".");
