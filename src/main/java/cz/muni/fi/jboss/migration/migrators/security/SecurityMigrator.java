@@ -59,6 +59,9 @@ public class SecurityMigrator extends AbstractMigrator {
         super(globalConfig, config);
     }
 
+    /**
+     *  Loads the AS 5 data.
+     */
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
@@ -79,6 +82,10 @@ public class SecurityMigrator extends AbstractMigrator {
         }
     }
 
+    
+    /**
+     *  Creates the actions.
+     */
     @Override
     public void createActions(MigrationContext ctx) throws ActionException {
         for (IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
@@ -160,7 +167,7 @@ public class SecurityMigrator extends AbstractMigrator {
                 case "rolesProperties":
                 case "usersProperties":
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + new File( moAS5.getModuleValue() ).getName();
-                    this.fileNames.add(value); // Add to the list of the files to copy.
+                    this.fileNames.add(value); // Add to the list of the files to copy. TODO: Use IMigrationActionListener.
                     break;
                 default:
                     value = moAS5.getModuleValue();
