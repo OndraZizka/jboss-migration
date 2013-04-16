@@ -115,7 +115,7 @@ public class SecurityMigrator extends AbstractMigrator {
         for( String fileName : this.fileNames ) {
             File src;
             try {
-                // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+                // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
                 //       Then, create the actions directly in the code creating this "files to copy" collection.
                 src = Utils.searchForFile(fileName, as5profileDir).iterator().next();
             } catch( CopyException ex ) {
