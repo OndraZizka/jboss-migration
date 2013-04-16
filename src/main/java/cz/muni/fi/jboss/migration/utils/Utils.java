@@ -114,8 +114,11 @@ public class Utils {
     }
 
     private static File lookForJarWithAClass(File dir, String classFilePath) throws IOException {
-        log.debug("    Looking for a .jar with: " + classFilePath);
-
+        log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath);
+        if( ! dir.isDirectory() ){
+            log.debug("    Not a directory: " +  dir.getPath());
+            return null;
+        }
 
         //SuffixFileFilter sf = new SuffixFileFilter(".jar");
         //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
