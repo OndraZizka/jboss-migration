@@ -133,41 +133,46 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
     private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5) {
-        Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
-        lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
 
-        lmAS7.setLoginModuleCode( deriveLoginModuleName( lmAS5.getLoginModule() ) );
+        // Flag
+        lmAS7.setLoginModuleFlag( lmAS5.getLoginModuleFlag() );
         
+        // Code
+        lmAS7.setLoginModuleCode( deriveLoginModuleName( lmAS5.getLoginModule() ) );
 
+        // Module options
+        Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
         if (lmAS5.getModuleOptions() != null) {
-            for (ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions()) {
-                moduleOptions.add(createModuleOption(moAS5));
+            for( ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions() ){
+                moduleOptions.add( createModuleOption(moAS5) );
+                // TODO: Handle specific properties properly, not magically in createModuleOption().
             }
         }
-
         lmAS7.setModuleOptions(moduleOptions);
 
         return lmAS7;
     }
 
+    
     private ModuleOptionAS7Bean createModuleOption(ModuleOptionAS5Bean moAS5) {
+        
         ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();
-        moAS7.setModuleOptionName(moAS5.getModuleName());
+        moAS7.setModuleOptionName( moAS5.getModuleName());
 
-        // TODO: Module-option using file can only use .properties?
-        if (moAS5.getModuleValue().contains("properties")) {
+        // TODO: We can't blindly assume that any option ending with .properties is a file to copy.
+        if( moAS5.getModuleValue().endsWith(".properties")) {
             String value;
-            if (moAS5.getModuleValue().contains("/")) {
-                value = StringUtils.substringAfterLast(moAS5.getModuleValue(), "/");
+            if( moAS5.getModuleValue().contains("/")) {
+                value = StringUtils.substringAfterLast( moAS5.getModuleValue(), "/");
             } else {
                 value = moAS5.getModuleValue();
             }
             moAS7.setModuleOptionValue("${jboss.server.config.dir}/" + value);
 
-            this.fileNames.add(value);
+            this.fileNames.add(value); // TODO: Move this to the calling method.
         } else {
-            moAS7.setModuleOptionValue(moAS5.getModuleValue());
+            moAS7.setModuleOptionValue( moAS5.getModuleValue());
         }
 
         return moAS7;
