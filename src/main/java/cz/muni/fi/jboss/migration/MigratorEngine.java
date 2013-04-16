@@ -203,7 +203,7 @@ public class MigratorEngine {
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
             this.prepareActions();
-            message = "Actions validation failed.";
+            message = "Migration actions validation failed.";
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
             this.backupActions();
