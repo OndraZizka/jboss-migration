@@ -136,7 +136,7 @@ public class SecurityMigrator extends AbstractMigrator {
 
     
     /**
-     *  TODO: Should 
+     *  Migrates the given login module.
      */
     private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5) {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
@@ -172,7 +172,10 @@ public class SecurityMigrator extends AbstractMigrator {
         return lmAS7;
     }
 
-    
+    /**
+     *  AS 7 has few aliases for the distributed login modules.
+     *  This methods translates them from AS 5.
+     */
     private static String deriveLoginModuleName( String as5moduleName ) {
         
         String type = StringUtils.substringAfterLast(as5moduleName, ".");
