@@ -216,7 +216,7 @@ public class MigratorEngine {
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
-            throw new MigrationException( message, ex );
+            throw new MigrationException( message + " " + ex.getMessage(), ex );
         }
         finally {
             this.cleanBackupsIfAny();
