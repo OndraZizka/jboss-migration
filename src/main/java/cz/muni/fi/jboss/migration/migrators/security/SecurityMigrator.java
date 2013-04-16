@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Migrator of security subsystem implementing IMigrator
@@ -42,6 +44,7 @@ import java.util.Set;
  * @author Roman Jakubco
  */
 public class SecurityMigrator extends AbstractMigrator {
+    private static final Logger log = LoggerFactory.getLogger(SecurityMigrator.class);
 
     private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
 
@@ -115,8 +118,11 @@ public class SecurityMigrator extends AbstractMigrator {
                 // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
                 //       Then, create the actions directly in the code creating this "files to copy" collection.
                 src = Utils.searchForFile(fileName, as5profileDir).iterator().next();
-            } catch (CopyException ex) {
-                throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
+            } catch( CopyException ex ) {
+                //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
+                // Some files referenced in security may not exist. (?)
+                log.warn("Couldn't find file referenced in AS 5 security config: " + fileName);
+                continue;
             }
 
             File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName());
