@@ -155,7 +155,6 @@ public class MigratorEngine {
     /**
      *  Performs the migration.
      * 
-     * TODO:  MIGR-31
      *      1) Parse AS 7 config into context.
             2) Let the migrators gather the data into the context.
             3) Let them prepare the actions.
