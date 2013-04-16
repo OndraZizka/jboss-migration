@@ -1,2 +1,3 @@
 /target/
 /MigratorAS57.log
+/src/main/java/cz/muni/fi/jboss/migration/actions/IMigrationActionListener.java
