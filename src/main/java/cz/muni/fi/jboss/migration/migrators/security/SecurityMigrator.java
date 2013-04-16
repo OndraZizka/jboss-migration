@@ -8,6 +8,7 @@ import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -92,7 +93,7 @@ public class SecurityMigrator extends AbstractMigrator {
      *  Creates the actions.
      */
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException {
+    public void createActions(MigrationContext ctx) throws MigrationException {
         
         // Config fragments
         for( IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
@@ -101,11 +102,11 @@ public class SecurityMigrator extends AbstractMigrator {
                     SecurityDomainBean appPolicy = migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx);
                     ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of application-policy failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of application-policy failed: " + e.getMessage(), e);
                 }
                 continue;
             }
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
         // Files to copy

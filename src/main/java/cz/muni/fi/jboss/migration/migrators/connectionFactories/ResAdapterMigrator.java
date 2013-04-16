@@ -8,6 +8,7 @@ import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -106,14 +107,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException {
+    public void createActions(MigrationContext ctx) throws MigrationException {
         for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
             if (fragment instanceof ConnectionFactoryAS5Bean) {
                 try {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -122,11 +123,11 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
                 }
                 continue;
             }
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
         for (String rar : this.rars) {
@@ -134,7 +135,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
             } catch (CopyException e) {
-                throw new ActionException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
+                throw new MigrationException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
             }
 
             File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",

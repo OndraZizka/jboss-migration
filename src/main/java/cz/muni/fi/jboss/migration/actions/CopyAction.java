@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.actions;
 
+import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import org.apache.commons.io.FileUtils;
 
@@ -39,9 +40,9 @@ public class CopyAction extends AbstractStatefulAction {
     @Override
     public void preValidate() throws MigrationException {
         if ( ! src.exists() && failIfNotExist )
-            throw new MigrationException("File to copy doesn't exist: " + src.getPath());
+            throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
         if (dest.exists() && !overwrite)
-            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+            throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
 
@@ -51,7 +52,7 @@ public class CopyAction extends AbstractStatefulAction {
             FileUtils.copyFile(src, dest);
             setState(State.DONE);
         } catch (IOException ex) {
-            throw new MigrationException("Copying failed: " + ex.getMessage(), ex);
+            throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
     }
 
@@ -63,7 +64,7 @@ public class CopyAction extends AbstractStatefulAction {
                 try {
                     FileUtils.copyFile(this.temp, this.dest);
                 } catch (IOException e) {
-                    throw new MigrationException("Rollback of to the previous file failed: " + e.getMessage(), e);
+                    throw new ActionException(this, "Restoring the previous file failed: " + e.getMessage(), e);
                 }
             } else {
                 FileUtils.deleteQuietly(this.dest);
@@ -77,7 +78,7 @@ public class CopyAction extends AbstractStatefulAction {
 
     @Override
     public void postValidate() throws MigrationException {
-        // Probably empty..
+        // Empty - JRE would give IOEx if something.
     }
 
 
@@ -89,7 +90,7 @@ public class CopyAction extends AbstractStatefulAction {
                 this.temp = File.createTempFile(this.dest.getName(), null);
                 FileUtils.copyFile(this.dest, this.temp);
             } catch (IOException ex) {
-                throw new MigrationException("Creating of backup file failed:" + ex.getMessage(), ex);
+                throw new ActionException(this, "Creating a backup file failed: " + ex.getMessage(), ex);
             }
         }
         setState(State.BACKED_UP);
