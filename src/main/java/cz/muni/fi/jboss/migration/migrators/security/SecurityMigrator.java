@@ -42,9 +42,12 @@ import java.util.Set;
  */
 public class SecurityMigrator extends AbstractMigrator {
 
+    private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
 
+    
     // Files which must be copied into AS7
-    private Set<String> fileNames = new HashSet<>();
+    private Set<String> fileNames = new HashSet();
+
 
     @Override
     protected String getConfigPropertyModuleName() {
@@ -99,8 +102,7 @@ public class SecurityMigrator extends AbstractMigrator {
                 throw new ActionException("Copying of file for security failed: " + e.getMessage(), e);
             }
 
-            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "configuration",
-                    src.getName());
+            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "configuration", src.getName());
 
             // Default value for overwrite => false
             ctx.getActions().add(new CopyAction(src, target, false));
@@ -132,6 +134,10 @@ public class SecurityMigrator extends AbstractMigrator {
         return securityDomain;
     }
 
+    
+    /**
+     *  TODO: Should 
+     */
     private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5) {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
@@ -143,18 +149,31 @@ public class SecurityMigrator extends AbstractMigrator {
 
         // Module options
         Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
-        if (lmAS5.getModuleOptions() != null) {
-            for( ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions() ){
-                moduleOptions.add( createModuleOption(moAS5) );
-                // TODO: Handle specific properties properly, not magically in createModuleOption().
-            }
-        }
         lmAS7.setModuleOptions(moduleOptions);
+        if( lmAS5.getModuleOptions() == null )
+            return lmAS7;
 
+        for( ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions() ){
+            String value;
+            // Take care of specific module options.
+            switch( moAS5.getModuleName() ){
+                case "rolesProperties":
+                case "usersProperties":
+                    value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + new File( moAS5.getModuleValue() ).getName();
+                    this.fileNames.add(value); // Add to the list of the files to copy.
+                    break;
+                default:
+                    value = moAS5.getModuleValue();
+                    break;
+            }
+            ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean( moAS5.getModuleName(), value );
+            moduleOptions.add( moAS7 );
+        }
         return lmAS7;
     }
 
     
+    @Deprecated
     private ModuleOptionAS7Bean createModuleOption(ModuleOptionAS5Bean moAS5) {
         
         ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean();

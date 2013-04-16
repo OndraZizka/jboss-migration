@@ -20,6 +20,19 @@ public class ModuleOptionAS7Bean {
     @XmlAttribute(name = "value")
     private String moduleOptionValue;
 
+
+    public ModuleOptionAS7Bean() {
+    }
+
+
+    public ModuleOptionAS7Bean( String moduleOptionName, String moduleOptionValue ) {
+        this.moduleOptionName = moduleOptionName;
+        this.moduleOptionValue = moduleOptionValue;
+    }
+
+    
+    
+    
     public String getModuleOptionName() {
         return moduleOptionName;
     }
