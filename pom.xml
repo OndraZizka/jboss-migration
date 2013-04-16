@@ -87,7 +87,6 @@
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
             <version>7.2.0.Final</version>
-            <type>jar</type>
         </dependency>
 
         <!-- Commons -->
@@ -129,12 +128,6 @@
              <artifactId>junit</artifactId>
              <version>4.10</version>
              <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-cli</artifactId>
-            <version>7.2.0.Final</version>
         </dependency>
 
         <!--
