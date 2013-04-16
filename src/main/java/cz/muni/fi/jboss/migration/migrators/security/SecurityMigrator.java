@@ -27,10 +27,21 @@ import java.util.Set;
 
 /**
  * Migrator of security subsystem implementing IMigrator
+ * 
+ * Example AS 5 config:
+ * 
+        <application-policy name="todo">
+            <authentication>
+                <login-module code="org.jboss.security.auth.spi.LdapLoginModule" flag="required">
+                    <module-option name="password-stacking">useFirstPass</module-option>
+                </login-module>
+            </authentication>
+        </application-policy>
  *
  * @author Roman Jakubco
  */
 public class SecurityMigrator extends AbstractMigrator {
+
 
     // Files which must be copied into AS7
     private Set<String> fileNames = new HashSet<>();
@@ -126,76 +137,8 @@ public class SecurityMigrator extends AbstractMigrator {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
         lmAS7.setLoginModuleFlag(lmAS5.getLoginModuleFlag());
 
-        String type = StringUtils.substringAfterLast(lmAS5.getLoginModule(), ".");
-        switch (type) {
-            case "ClientLoginModule":
-                lmAS7.setLoginModuleCode("Client");
-                break;
-            //*
-            case "BaseCertLoginModule":
-                lmAS7.setLoginModuleCode("Certificate");
-                break;
-            case "CertRolesLoginModule":
-                lmAS7.setLoginModuleCode("CertificateRoles");
-                break;
-            //*
-            case "DatabaseServerLoginModule":
-                lmAS7.setLoginModuleCode("Database");
-                break;
-            case "DatabaseCertLoginModule":
-                lmAS7.setLoginModuleCode("DatabaseCertificate");
-                break;
-            case "IdentityLoginModule":
-                lmAS7.setLoginModuleCode("Identity");
-                break;
-            case "LdapLoginModule":
-                lmAS7.setLoginModuleCode("Ldap");
-                break;
-            case "LdapExtLoginModule":
-                lmAS7.setLoginModuleCode("LdapExtended");
-                break;
-            case "RoleMappingLoginModule":
-                lmAS7.setLoginModuleCode("RoleMapping");
-                break;
-            case "RunAsLoginModule":
-                lmAS7.setLoginModuleCode("RunAs");
-                break;
-            case "SimpleServerLoginModule":
-                lmAS7.setLoginModuleCode("Simple");
-                break;
-            case "ConfiguredIdentityLoginModule":
-                lmAS7.setLoginModuleCode("ConfiguredIdentity");
-                break;
-            case "SecureIdentityLoginModule":
-                lmAS7.setLoginModuleCode("SecureIdentity");
-                break;
-            case "PropertiesUsersLoginModule":
-                lmAS7.setLoginModuleCode("PropertiesUsers");
-                break;
-            case "SimpleUsersLoginModule":
-                lmAS7.setLoginModuleCode("SimpleUsers");
-                break;
-            case "LdapUsersLoginModule":
-                lmAS7.setLoginModuleCode("LdapUsers");
-                break;
-            case "Krb5loginModule":
-                lmAS7.setLoginModuleCode("Kerberos");
-                break;
-            case "SPNEGOLoginModule":
-                lmAS7.setLoginModuleCode("SPNEGOUsers");
-                break;
-            case "AdvancedLdapLoginModule":
-                lmAS7.setLoginModuleCode("AdvancedLdap");
-                break;
-            case "AdvancedADLoginModule":
-                lmAS7.setLoginModuleCode("AdvancedADldap");
-                break;
-            case "UsersRolesLoginModule":
-                lmAS7.setLoginModuleCode("UsersRoles");
-                break;
-            default:
-                lmAS7.setLoginModuleCode(lmAS5.getLoginModule());
-        }
+        lmAS7.setLoginModuleCode( deriveLoginModuleName( lmAS5.getLoginModule() ) );
+        
 
         if (lmAS5.getModuleOptions() != null) {
             for (ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions()) {
@@ -230,6 +173,38 @@ public class SecurityMigrator extends AbstractMigrator {
         return moAS7;
     }
 
+    
+    private static String deriveLoginModuleName( String as5moduleName ) {
+        
+        String type = StringUtils.substringAfterLast(as5moduleName, ".");
+        switch( type ) {
+            case "ClientLoginModule": return "Client";
+            case "BaseCertLoginModule": return "Certificate";
+            case "CertRolesLoginModule":  return"CertificateRoles";
+            case "DatabaseServerLoginModule": return "Database";
+            case "DatabaseCertLoginModule": return "DatabaseCertificate";
+            case "IdentityLoginModule": return "Identity";
+            case "LdapLoginModule": return "Ldap";
+            case "LdapExtLoginModule": return "LdapExtended";
+            case "RoleMappingLoginModule": return "RoleMapping";
+            case "RunAsLoginModule": return "RunAs";
+            case "SimpleServerLoginModule": return "Simple";
+            case "ConfiguredIdentityLoginModule": return "ConfiguredIdentity";
+            case "SecureIdentityLoginModule": return "SecureIdentity";
+            case "PropertiesUsersLoginModule": return "PropertiesUsers";
+            case "SimpleUsersLoginModule": return "SimpleUsers";
+            case "LdapUsersLoginModule": return "LdapUsers";
+            case "Krb5loginModule": return "Kerberos";
+            case "SPNEGOLoginModule": return "SPNEGOUsers";
+            case "AdvancedLdapLoginModule": return "AdvancedLdap";
+            case "AdvancedADLoginModule": return "AdvancedADldap";
+            case "UsersRolesLoginModule": return "UsersRoles";
+            default: return as5moduleName;
+        }
+    }
+
+    
+    
     /**
      * Creates a list of CliCommandActions for adding a Security-Domain
      *
