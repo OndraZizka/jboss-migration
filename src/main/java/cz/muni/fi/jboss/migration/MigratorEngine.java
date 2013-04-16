@@ -3,6 +3,7 @@ package cz.muni.fi.jboss.migration;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -215,7 +216,11 @@ public class MigratorEngine {
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
-            throw new MigrationException( message + " " + ex.getMessage(), ex );
+            if( ex instanceof ActionException ){
+                IMigrationAction action = ((ActionException)ex).getAction();
+                String msg = action.toDescription();
+            }
+            throw new MigrationException( message + "\n\t" + ex.getMessage(), ex );
         }
         finally {
             this.cleanBackupsIfAny();
@@ -335,6 +340,6 @@ public class MigratorEngine {
             throw new LoadMigrationException(e);
         }
     }
-    
+
 
 }// class

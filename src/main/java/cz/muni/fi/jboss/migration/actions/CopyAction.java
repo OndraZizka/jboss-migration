@@ -36,6 +36,16 @@ public class CopyAction extends AbstractStatefulAction {
 
     
     
+    @Override
+    public String toDescription() {
+        return "Copy file, may" + (this.overwrite ? "" : " not") + " overwrite, "
+                + (this.failIfNotExist ? "" : "don't ") + "fail if exists,"
+                + "\n  from " + this.src.getPath()
+                + "\n    to " + this.dest.getPath();
+    }
+    
+    
+    
 
     @Override
     public void preValidate() throws MigrationException {

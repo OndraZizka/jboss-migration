@@ -28,6 +28,11 @@ public interface IMigrationAction {
 
     // Data
     String getOriginMessage();
+    
+    /**
+     * @returns A description of this action in terms of what exactly would it do.
+     */
+    String toDescription();
 
     List<String> getWarnings();
 

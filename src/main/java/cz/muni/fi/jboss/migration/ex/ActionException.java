@@ -25,5 +25,10 @@ public class ActionException extends MigrationException {
         super(cause);
         this.action = action;
     }
+
+
+    public IMigrationAction getAction() {
+        return action;
+    }
     
 }// class
