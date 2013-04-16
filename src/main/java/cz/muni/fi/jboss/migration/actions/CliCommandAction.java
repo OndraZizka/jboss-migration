@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.actions;
 
+import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.jboss.as.cli.batch.impl.DefaultBatchedCommand;
@@ -37,9 +38,9 @@ public class CliCommandAction extends AbstractStatefulAction {
     @Override
     public void preValidate() throws MigrationException {
         if ((this.command.getCommand() == null) || (this.command.getCommand().isEmpty()))
-            throw new MigrationException("CLI script for CliCommandAction doesn't exist");
+            throw new ActionException(this, "CLI script for CliCommandAction doesn't exist");
         if (this.command.getRequest() == null) {
-            throw new MigrationException("ModelNode for CliCommandAction cannot be null");
+            throw new ActionException(this, "ModelNode for CliCommandAction cannot be null");
         }
     }
 
