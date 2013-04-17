@@ -216,11 +216,16 @@ public class MigratorEngine {
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
+            String description = "";
             if( ex instanceof ActionException ){
                 IMigrationAction action = ((ActionException)ex).getAction();
-                String msg = action.toDescription();
+                description = 
+                          "\n    Migration action which caused the failure: "
+                        + "\n    " + action.toDescription();
             }
-            throw new MigrationException( message + "\n\t" + ex.getMessage(), ex );
+            throw new MigrationException( message + 
+                    "\n    " + ex.getMessage() 
+                  + description, ex );
         }
         finally {
             this.cleanBackupsIfAny();
