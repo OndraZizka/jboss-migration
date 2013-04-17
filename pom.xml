@@ -22,6 +22,13 @@
                 <excludes> <exclude>**/*.java</exclude> </excludes>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <filtering>false</filtering>
+                <excludes> <exclude>**/*.java</exclude> </excludes>
+            </testResource>
+        </testResources>
         
         <plugins>
             <!-- Java language version -->
@@ -33,6 +40,10 @@
                     <source>7</source>
                     <target>7</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -87,6 +98,7 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- JBoss CLI -->
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
@@ -114,12 +126,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -127,11 +139,18 @@
             <version>1.2.17</version>
         </dependency>
         
+        <!-- Testing -->
+        
         <dependency>
              <groupId>junit</groupId>
              <artifactId>junit</artifactId>
-             <version>4.10</version>
+             <version>4.11</version>
              <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!--
@@ -147,5 +166,17 @@
         </dependency>
         -->
     </dependencies>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>1.0.3.Final</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>    
 
 </project>
