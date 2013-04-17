@@ -30,7 +30,7 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public String toDescription() {
-        return "Perform CLI command: " + this.command;
+        return "Perform CLI command: " + this.command.getCommand();
     }
     
 
