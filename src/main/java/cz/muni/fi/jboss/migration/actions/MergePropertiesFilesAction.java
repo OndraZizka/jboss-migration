@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import java.io.File;
 
 /**
@@ -16,13 +17,13 @@ public class MergePropertiesFilesAction extends FileAbstractAction {
     }
     
 
-    public MergePropertiesFilesAction( File src, File dest ) {
-        super( src, dest );
+    public MergePropertiesFilesAction( Class<? extends IMigrator> fromMigrator, File src, File dest ) {
+        super( fromMigrator, src, dest );
     }
 
 
-    public MergePropertiesFilesAction( File src, File dest, boolean failIfNotExist ) {
-        super( src, dest, failIfNotExist );
+    public MergePropertiesFilesAction( Class<? extends IMigrator> fromMigrator, File src, File dest, boolean failIfNotExist ) {
+        super( fromMigrator, src, dest, failIfNotExist );
     }
     
     

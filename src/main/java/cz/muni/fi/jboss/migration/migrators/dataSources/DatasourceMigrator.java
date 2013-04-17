@@ -542,7 +542,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
 
         //return builder.getCommand();
-        return new CliCommandAction(createDatasourceScriptNew(dataSource), builder.getCommand());
+        return new CliCommandAction( DatasourceMigrator.class, createDatasourceScriptNew(dataSource), builder.getCommand());
     }
 
     /**
@@ -605,7 +605,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("track-statements", dataSource.getTrackStatements());
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
 
-        actions.add(new CliCommandAction(createXaDatasourceScriptNew(dataSource), builder.getCommand()));
+        actions.add( new CliCommandAction( DatasourceMigrator.class, createXaDatasourceScriptNew(dataSource), builder.getCommand()));
 
         if(dataSource.getXaDatasourceProps() != null){
             for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
@@ -640,7 +640,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 ("xa-datasource-properties", property.getXaDatasourcePropName());
         connProperty.get("value").set(property.getXaDatasourceProp());
 
-        return new CliCommandAction(createXaPropertyScript(datasource, property), connProperty);
+        return new CliCommandAction( DatasourceMigrator.class, createXaPropertyScript(datasource, property), connProperty);
     }
 
     /**
@@ -669,7 +669,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-major-version", driver.getMajorVersion());
         builder.addProperty("driver-minor-version", driver.getMinorVersion());
 
-        return new CliCommandAction(createDriverScript(driver), builder.getCommand());
+        return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), builder.getCommand());
     }
     
     /**

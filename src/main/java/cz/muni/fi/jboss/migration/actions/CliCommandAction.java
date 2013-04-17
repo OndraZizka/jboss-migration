@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.jboss.as.cli.batch.impl.DefaultBatchedCommand;
 import org.jboss.dmr.ModelNode;
@@ -19,7 +20,7 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     
     // script parameter is created text script and cliCommand is script representation in CLI API
-    public CliCommandAction(String script, ModelNode cliCommand) {
+    public CliCommandAction( Class<? extends IMigrator> fromMigrator, String script, ModelNode cliCommand) {
         //this.cliCommand = scriptAPI;
         //this.script = script;
         this.command = new DefaultBatchedCommand(script, cliCommand);

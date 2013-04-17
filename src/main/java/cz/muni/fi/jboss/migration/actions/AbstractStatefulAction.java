@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,7 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
 
     private MigrationContext ctx;
     private String originMessage;
+    private Class<? extends IMigrator> fromMigrator;
     private List<String> warnings = new LinkedList();
 
 
@@ -53,6 +55,10 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     @Override
     public String getOriginMessage() {
         return originMessage;
+    }
+    
+    public Class<? extends IMigrator> getFromMigrator(){
+        return fromMigrator;
     }
 
     @Override

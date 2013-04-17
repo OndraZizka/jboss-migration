@@ -4,7 +4,6 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.CopyFileAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
@@ -142,7 +141,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     src.getName());
 
             // Default value for overwrite => false
-            ctx.getActions().add(new CopyFileAction(src, target, false));
+            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, false));
         }
     }
 
@@ -296,7 +295,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("archive", adapter.getArchive());
         builder.addProperty("transaction-support", adapter.getTransactionSupport());
 
-        actions.add(new CliCommandAction(createResAdapterScript(adapter), builder.getCommand()));
+        actions.add( new CliCommandAction( ResAdapterMigrator.class, createResAdapterScript(adapter), builder.getCommand()));
 
         if (adapter.getConnectionDefinitions() != null) {
             for (ConnectionDefinitionBean connDef : adapter.getConnectionDefinitions()) {
@@ -361,7 +360,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
         builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
 
-        actions.add(new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand()));
+        actions.add( new CliCommandAction( ResAdapterMigrator.class, createConnDefinitionScript(adapter, def), builder.getCommand()));
 
         if (def.getConfigProperties() != null) {
             for (ConfigPropertyBean configProperty : def.getConfigProperties()) {
@@ -398,7 +397,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         propertyCmd.get("value").set(property.getConfigProperty());
 
-        return new CliCommandAction(createPropertyScript(adapter, def, property), propertyCmd);
+        return new CliCommandAction( ResAdapterMigrator.class, createPropertyScript(adapter, def, property), propertyCmd);
     }
 
     /**

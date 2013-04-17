@@ -5,7 +5,6 @@ import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -523,7 +522,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("level", logger.getLoggerLevelName());
         builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
 
-        return new CliCommandAction(createLoggerScript(logger), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand());
     }
 
     /**
@@ -562,7 +561,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("append", handler.getAppend());
 
 
-        return new CliCommandAction(createPerHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createPerHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -601,7 +600,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("rotate-size", handler.getRotateSize());
         builder.addProperty("max-backup-index", handler.getMaxBackupIndex());
 
-        return new CliCommandAction(createSizeHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createSizeHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -641,7 +640,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("overflow-action", handler.getOverflowAction());
 
-        return new CliCommandAction(createAsyncHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createAsyncHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -669,7 +668,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("autoflush", handler.getAutoflush());
         builder.addProperty("target", handler.getTarget());
 
-        return new CliCommandAction(createConsoleHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createConsoleHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -707,7 +706,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("class", handler.getClassValue());
         builder.addProperty("module", handler.getModule());
 
-        return new CliCommandAction(createCustomHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), builder.getCommand());
     }
 
     /**

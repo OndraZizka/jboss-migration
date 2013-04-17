@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -32,13 +33,13 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     protected String addToDescription(){ return ""; }
     
     
-    public FileAbstractAction(File src, File dest) {
+    public FileAbstractAction(Class<? extends IMigrator> fromMigrator, File src, File dest) {
         this.src = src;
         this.dest = dest;
     }
 
 
-    public FileAbstractAction( File src, File dest, boolean failIfNotExist) {
+    public FileAbstractAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean failIfNotExist) {
         this.src = src;
         this.dest = dest;
         this.failIfNotExist = failIfNotExist;

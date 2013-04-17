@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -15,14 +16,14 @@ public class CopyFileAction extends FileAbstractAction {
     private boolean overwrite;
 
 
-    public CopyFileAction(File src, File dest, boolean overwrite) {
-        super(src, dest);
+    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean overwrite) {
+        super( fromMigrator, src, dest);
         this.overwrite = overwrite;
     }
 
 
-    public CopyFileAction( File src, File dest, boolean overwrite, boolean failIfNotExist) {
-        super( src, dest, failIfNotExist );
+    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean overwrite, boolean failIfNotExist) {
+        super( fromMigrator, src, dest, failIfNotExist );
         this.overwrite = overwrite;
     }
 

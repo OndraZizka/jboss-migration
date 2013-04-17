@@ -3,7 +3,6 @@ package cz.muni.fi.jboss.migration.migrators.server;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -310,7 +309,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("secure", connAS7.getSecure());
         builder.addProperty("enabled", connAS7.getEnabled());
 
-        actions.add(new CliCommandAction(createConnectorScript(connAS7), builder.getCommand()));
+        actions.add( new CliCommandAction( ServerMigrator.class, createConnectorScript(connAS7), builder.getCommand()));
 
         if (connAS7.getScheme().equals("https")) {
             ModelNode sslConf = new ModelNode();
@@ -333,7 +332,7 @@ public class ServerMigrator extends AbstractMigrator {
             sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
             sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
 
-            actions.add(new CliCommandAction(createSSLConfScript(connAS7), sslBuilder.getCommand()));
+            actions.add( new CliCommandAction( ServerMigrator.class, createSSLConfScript(connAS7), sslBuilder.getCommand()));
         }
 
         return actions;
@@ -372,7 +371,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("enable-welcome-root", server.getEnableWelcomeRoot());
         builder.addProperty("default-web-module", server.getDefaultWebModule());
 
-        return new CliCommandAction(createVirtualServerScript(server), builder.getCommand());
+        return new CliCommandAction( ServerMigrator.class, createVirtualServerScript(server), builder.getCommand());
     }
 
     /**
@@ -398,7 +397,7 @@ public class ServerMigrator extends AbstractMigrator {
         CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
         builder.addProperty("interface", socket.getSocketInterface());
 
-        return new CliCommandAction(createSocketBindingScript(socket), builder.getCommand());
+        return new CliCommandAction( ServerMigrator.class, createSocketBindingScript(socket), builder.getCommand());
     }
 
     /**

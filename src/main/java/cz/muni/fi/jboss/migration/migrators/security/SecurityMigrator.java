@@ -4,7 +4,6 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.CopyFileAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
@@ -129,7 +128,7 @@ public class SecurityMigrator extends AbstractMigrator {
             File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName());
 
             // Default value for overwrite => false
-            ctx.getActions().add(new CopyFileAction(src, target, false));
+            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, false));
         }
 
     }
@@ -188,7 +187,7 @@ public class SecurityMigrator extends AbstractMigrator {
                     this.fileNames.add(fName); // Add to the list of the files to copy.
                     // TODO: Rather directly create CopyActions.
                     // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
-                    /*filesToCopy.add(new CopyAction( 
+                    /*filesToCopy.add( new CopyAction( 
                             new File( moAS5.getModuleValue()), 
                             new File( getGlobalConfig().getAS7Config().getConfigPath(), fName), false, false));*/
                     break;
@@ -257,7 +256,7 @@ public class SecurityMigrator extends AbstractMigrator {
         domainCmd.get(ClientConstants.OP_ADDR).add("subsystem", "security");
         domainCmd.get(ClientConstants.OP_ADDR).add("security-domain", domain.getSecurityDomainName());
 
-        actions.add(new CliCommandAction(createSecurityDomainScript(domain), domainCmd));
+        actions.add( new CliCommandAction( SecurityMigrator.class, createSecurityDomainScript(domain), domainCmd));
 
         if (domain.getLoginModules() != null) {
             for (LoginModuleAS7Bean module : domain.getLoginModules()) {
@@ -302,7 +301,7 @@ public class SecurityMigrator extends AbstractMigrator {
 
         request.get("login-modules").set(list);
 
-        return new CliCommandAction(createLoginModuleScript(domain, module), request);
+        return new CliCommandAction( SecurityMigrator.class, createLoginModuleScript(domain, module), request);
     }
 
     /**
