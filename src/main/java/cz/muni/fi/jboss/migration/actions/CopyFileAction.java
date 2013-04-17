@@ -10,18 +10,18 @@ import java.io.IOException;
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class CopyAction extends FileAbstractAction {
+public class CopyFileAction extends FileAbstractAction {
 
     private boolean overwrite;
 
 
-    public CopyAction(File src, File dest, boolean overwrite) {
+    public CopyFileAction(File src, File dest, boolean overwrite) {
         super(src, dest);
         this.overwrite = overwrite;
     }
 
 
-    public CopyAction( File src, File dest, boolean overwrite, boolean failIfNotExist) {
+    public CopyFileAction( File src, File dest, boolean overwrite, boolean failIfNotExist) {
         super( src, dest, failIfNotExist );
         this.overwrite = overwrite;
     }

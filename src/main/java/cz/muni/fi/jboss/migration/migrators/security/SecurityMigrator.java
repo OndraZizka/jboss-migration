@@ -2,7 +2,7 @@ package cz.muni.fi.jboss.migration.migrators.security;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
-import cz.muni.fi.jboss.migration.actions.CopyAction;
+import cz.muni.fi.jboss.migration.actions.CopyFileAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -52,7 +52,7 @@ public class SecurityMigrator extends AbstractMigrator {
     
     // Files which must be copied into AS7
     private Set<String> fileNames = new HashSet();
-    private Set<CopyAction> copyActions;
+    private Set<CopyFileAction> copyActions;
 
 
     @Override
@@ -129,7 +129,7 @@ public class SecurityMigrator extends AbstractMigrator {
             File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName());
 
             // Default value for overwrite => false
-            ctx.getActions().add(new CopyAction(src, target, false));
+            ctx.getActions().add(new CopyFileAction(src, target, false));
         }
 
     }
@@ -162,7 +162,7 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      *  Migrates the given login module.
      */
-    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Collection<CopyAction> filesToCopy ) {
+    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Collection<CopyFileAction> filesToCopy ) {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
         // Flag

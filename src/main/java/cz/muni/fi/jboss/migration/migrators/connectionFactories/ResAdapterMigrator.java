@@ -2,7 +2,7 @@ package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
-import cz.muni.fi.jboss.migration.actions.CopyAction;
+import cz.muni.fi.jboss.migration.actions.CopyFileAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -142,7 +142,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     src.getName());
 
             // Default value for overwrite => false
-            ctx.getActions().add(new CopyAction(src, target, false));
+            ctx.getActions().add(new CopyFileAction(src, target, false));
         }
     }
 
