@@ -223,6 +223,8 @@ public class MigratorEngine {
                           "\n    Migration action which caused the failure: "
                         + "  (from " + action.getFromMigrator().getSimpleName() + ")"
                         + "\n    " + action.toDescription();
+                if( action.getOriginMessage() != null )
+                    description += "\n    Purpose of the action: " + action.getOriginMessage();
             }
             throw new MigrationException( message
                   + "\n    " + ex.getMessage() 
