@@ -34,12 +34,14 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     
     
     public FileAbstractAction(Class<? extends IMigrator> fromMigrator, File src, File dest) {
+        super(fromMigrator);
         this.src = src;
         this.dest = dest;
     }
 
 
     public FileAbstractAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean failIfNotExist) {
+        super(fromMigrator);
         this.src = src;
         this.dest = dest;
         this.failIfNotExist = failIfNotExist;

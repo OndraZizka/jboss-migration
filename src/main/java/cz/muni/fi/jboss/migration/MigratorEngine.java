@@ -282,8 +282,10 @@ public class MigratorEngine {
         ctx.getBatch().clear();
         
         // Perform the actions.
+        log.info("Performing actions:");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            log.info("    " + action.toDescription());
             action.setMigrationContext(ctx);
             action.perform();
         }

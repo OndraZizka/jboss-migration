@@ -22,6 +22,10 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     private List<String> warnings = new LinkedList();
 
 
+    public AbstractStatefulAction( Class<? extends IMigrator> fromMigrator ) {
+        this.fromMigrator = fromMigrator;
+    }
+
     public void addWarning(String text) {
         warnings.add(text);
     }

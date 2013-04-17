@@ -24,6 +24,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
 
     public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File src, File dest, Document moduleDoc, boolean overwrite) {
+        super(fromMigrator);
         this.src = src;
         this.dest = dest;
         this.moduleDoc = moduleDoc;
