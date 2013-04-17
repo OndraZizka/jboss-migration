@@ -1,14 +1,8 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.conf.Configuration;
-import java.io.File;
-import java.io.IOException;
-import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,7 +31,7 @@ public class ArqTest {
      * Test of doMigration method, of class MigratorEngine.
      */
     @Test
-    @Ignore
+    @RunAsClient
     public void testDoMigration() throws Exception {
         System.out.println( "doMigration" );
         
@@ -47,12 +41,6 @@ public class ArqTest {
         //MigratorApp.migrate( conf );
         MigratorEngine migrator = new MigratorEngine(conf);
         migrator.doMigration();
-    }
-
-    @Test
-    @RunAsClient
-    public void testLiveMigration(){
-        
     }
     
 }// class
