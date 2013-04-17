@@ -5,9 +5,9 @@ import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -93,7 +93,7 @@ public class LoggingMigrator extends AbstractMigrator {
     
     
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException {
+    public void createActions(MigrationContext ctx) throws MigrationException {
         
         List<CustomHandlerBean> customHandlers = new ArrayList();
 
@@ -110,7 +110,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 try {
                     ctx.getActions().add(createLoggerCliAction(migrateCategory((CategoryBean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of the Category failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of the Category failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -121,7 +121,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 continue;
             }
 
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
         HashMap<File, String> tempModules = new HashMap();
@@ -132,13 +132,13 @@ public class LoggingMigrator extends AbstractMigrator {
 
     private List<IMigrationAction> createCustomHandlerActions(CustomHandlerBean handler,
                                                               HashMap<File, String> tempModules)
-            throws ActionException {
+            throws MigrationException {
         File src;
         try {
             src = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
                     getGlobalConfig().getAS5Config().getProfileName());
         } catch (IOException e) {
-            throw new ActionException("Finding jar containing driver class: " + handler.getClassValue() +
+            throw new MigrationException("Finding jar containing driver class: " + handler.getClassValue() +
                     " failed: " + e.getMessage(), e);
         }
 
@@ -152,7 +152,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 actions.add(createCustomHandlerCliAction(handler));
             } catch (CliScriptException e) {
-                throw new ActionException("Migration of the appeneder: " + handler.getName() +
+                throw new MigrationException("Migration of the appeneder: " + handler.getName() +
                         "failed (CLI command): " + e.getMessage(), e);
             }
 
@@ -170,7 +170,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
 
                 // Default for now => false
-                ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
+                ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
 
                 actions.add(moduleAction);
 
@@ -178,10 +178,10 @@ public class LoggingMigrator extends AbstractMigrator {
                 number++;
 
             } catch (ParserConfigurationException e) {
-                throw new ActionException("Creation of Document representing module.xml for Custom-Handler failed: "
+                throw new MigrationException("Creation of Document representing module.xml for Custom-Handler failed: "
                         + e.getMessage(), e);
             } catch (CliScriptException e) {
-                throw new ActionException("Migration of the appeneder: " + handler.getName() +
+                throw new MigrationException("Migration of the appeneder: " + handler.getName() +
                         "failed (CLI command): " + e.getMessage(), e);
             }
         }
@@ -194,7 +194,7 @@ public class LoggingMigrator extends AbstractMigrator {
     /**
      *  Processes AppenderBean. Only used above.
      */
-    private CustomHandlerBean processAppenderBean( AppenderBean appenderBean, MigrationContext ctx ) throws ActionException {
+    private CustomHandlerBean processAppenderBean( AppenderBean appenderBean, MigrationContext ctx ) throws MigrationException {
         
         // Selection of classes which are stored in log4j or jboss logging jars.
         String type = appenderBean.getAppenderClass();
@@ -239,7 +239,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
             ctx.getActions().add( action );
         } catch (CliScriptException e) {
-            throw new ActionException("Migration of the appender " + appenderBean.getAppenderName() + " failed: " + e.getMessage(), e);
+            throw new MigrationException("Migration of the appender " + appenderBean.getAppenderName() + " failed: " + e.getMessage(), e);
         }
         return null;
 
@@ -522,7 +522,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("level", logger.getLoggerLevelName());
         builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
 
-        return new CliCommandAction(createLoggerScript(logger), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand());
     }
 
     /**
@@ -561,7 +561,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("append", handler.getAppend());
 
 
-        return new CliCommandAction(createPerHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createPerHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -600,7 +600,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("rotate-size", handler.getRotateSize());
         builder.addProperty("max-backup-index", handler.getMaxBackupIndex());
 
-        return new CliCommandAction(createSizeHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createSizeHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -640,7 +640,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("overflow-action", handler.getOverflowAction());
 
-        return new CliCommandAction(createAsyncHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createAsyncHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -668,7 +668,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("autoflush", handler.getAutoflush());
         builder.addProperty("target", handler.getTarget());
 
-        return new CliCommandAction(createConsoleHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createConsoleHandlerScript(handler), builder.getCommand());
     }
 
     /**
@@ -706,7 +706,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("class", handler.getClassValue());
         builder.addProperty("module", handler.getModule());
 
-        return new CliCommandAction(createCustomHandlerScript(handler), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), builder.getCommand());
     }
 
     /**

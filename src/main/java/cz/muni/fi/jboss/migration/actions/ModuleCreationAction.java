@@ -1,6 +1,8 @@
 package cz.muni.fi.jboss.migration.actions;
 
+import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
@@ -21,19 +23,27 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     boolean overwrite;
 
 
-    public ModuleCreationAction(File src, File dest, Document moduleDoc, boolean overwrite) {
+    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File src, File dest, Document moduleDoc, boolean overwrite) {
+        super(fromMigrator);
         this.src = src;
         this.dest = dest;
         this.moduleDoc = moduleDoc;
         this.overwrite = overwrite;
     }
 
+
+    @Override
+    public String toDescription() {
+        return "Create an AS 7 module from .jar " + this.src.getPath() + " into " + this.dest.getParent();
+    }
+    
+
     @Override
     public void preValidate() throws MigrationException {
         if (!src.exists())
-            throw new MigrationException("File to copy doesn't exist: " + src.getPath());
+            throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
         if (dest.exists() && !overwrite)
-            throw new MigrationException("Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+            throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
 
@@ -44,18 +54,16 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             FileUtils.copyFile(this.src, this.dest);
             File moduleXml = new File(this.dest.getParentFile(), "module.xml");
             if (!moduleXml.createNewFile())
-                throw new MigrationException("Creation of module.xml failed => don't have permission for writing in " +
-                        "directory: " + moduleXml.getParent());
-
+                throw new ActionException(this, "Creation of module.xml failed - don't have write permission in " + moduleXml.getParent());
 
             Utils.transformDocToFile(this.moduleDoc, moduleXml);
-
             this.moduleXml = moduleXml;
-
-        } catch (IOException ex) {
-            throw new MigrationException("Copying failed: " + ex.getMessage(), ex);
-        } catch (TransformerException e) {
-            throw new MigrationException("Creation of the module.xml failed: " + e.getMessage(), e);
+        }
+        catch (IOException ex) {
+            throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
+        }
+        catch (TransformerException e) {
+            throw new ActionException(this, "Creation of the module.xml failed: " + e.getMessage(), e);
         }
 
         setState(State.DONE);

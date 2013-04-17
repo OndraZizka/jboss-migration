@@ -5,6 +5,7 @@ import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 
 /**
  * A Migrator is responsible for
@@ -37,7 +38,7 @@ public interface IMigrator {
     /**
      * Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).
      */
-    public void createActions(MigrationContext ctx) throws ActionException;
+    public void createActions(MigrationContext ctx) throws MigrationException;
 
 
     /**

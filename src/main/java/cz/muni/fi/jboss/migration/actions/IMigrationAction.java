@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 
 import java.util.List;
 
@@ -21,13 +22,17 @@ public interface IMigrationAction {
         INITIAL, BACKED_UP, DONE, FINISHED, ROLLED_BACK
     }
 
-    ;
-
     State getState();
 
 
     // Data
     String getOriginMessage();
+    Class<? extends IMigrator> getFromMigrator();
+    
+    /**
+     * @returns A description of this action in terms of what exactly would it do.
+     */
+    String toDescription();
 
     List<String> getWarnings();
 

@@ -1,13 +1,11 @@
 package cz.muni.fi.jboss.migration.utils;
 
-import cz.muni.fi.jboss.migration.FileTransferInfo;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -27,7 +25,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -114,13 +111,16 @@ public class Utils {
     }
 
     private static File lookForJarWithAClass(File dir, String classFilePath) throws IOException {
-        log.debug("    Looking for a .jar with: " + classFilePath);
-
+        log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath);
+        if( ! dir.isDirectory() ){
+            log.trace("    Not a directory: " +  dir.getPath());
+            return null;
+        }
 
         //SuffixFileFilter sf = new SuffixFileFilter(".jar");
         //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
         Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
-        log.debug("    Found .jar files: " + jarFiles.size());
+        log.trace("    Found .jar files: " + jarFiles.size());
 
         for (File file : jarFiles) {
             // Search the contained files for those containing $classFilePath.
@@ -140,59 +140,18 @@ public class Utils {
         return null;
     }
 
-
+    
     /**
-     * Searching for file, which is represented as RollbackData in the application, in given directory
-     *
-     * @param rollData object representing file for search
-     * @param dir      directory for searching
-     * @return list of found files
+     *  Searches a file of given name under given directory tree.
+     *  @throws  CopyException if nothing found.
      */
-    public static Collection<File> searchForFile(FileTransferInfo rollData, File dir) {
-        IOFileFilter nff = rollData.getType().equals(FileTransferInfo.Type.DRIVER)
-                ? new WildcardFileFilter("*" + rollData.getName() + "*.jar")
-                : new NameFileFilter(rollData.getName());
-
-        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
-
-        // One more search for driver jar. Other types of rollbackData just return list.
-        if (rollData.getType().equals(FileTransferInfo.Type.DRIVER)) {
-
-            // For now only expecting one jar for driver. Pick the first one.
-            if (list.isEmpty()) {
-
-                // Special case for freeware jdbc driver jdts.jar
-                if (rollData.getAltName() != null) {
-                    final String altName = rollData.getAltName();
-
-                    nff = new NameFileFilter(altName) {
-                        @Override
-                        public boolean accept(File file) {
-                            return file.getName().contains(altName) && file.getName().contains("jar");
-                        }
-                    };
-                    List<File> altList = (List<File>) FileUtils.listFiles(dir, nff,
-                            FileFilterUtils.makeCVSAware(null));
-
-                    return altList;
-                }
-            }
-        }
-
-        return list;
-    }
-
-
     public static Collection<File> searchForFile(String fileName, File dir) throws CopyException {
 
         IOFileFilter nff = new NameFileFilter(fileName);
-
-        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.makeCVSAware(null));
-
-        if (list.isEmpty()) {
+        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.trueFileFilter());
+        if( list.isEmpty() ) {
             throw new CopyException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
         }
-
         return list;
     }
 

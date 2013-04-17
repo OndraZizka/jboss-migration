@@ -3,9 +3,9 @@ package cz.muni.fi.jboss.migration.migrators.server;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.server.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
@@ -82,11 +82,11 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException {
+    public void createActions(MigrationContext ctx) throws MigrationException {
         try {
             createDefaultSockets(ctx);
         } catch (LoadMigrationException e) {
-            throw new ActionException("Migration of web server failed: " + e.getMessage(), e);
+            throw new MigrationException("Migration of web server failed: " + e.getMessage(), e);
         }
 
         for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
@@ -94,7 +94,7 @@ public class ServerMigrator extends AbstractMigrator {
                 try {
                     ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, ctx)));
                 } catch (CliScriptException | NodeGenerationException e) {
-                    throw new ActionException("Migration of the connector failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of the connector failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -103,19 +103,19 @@ public class ServerMigrator extends AbstractMigrator {
                 try {
                     ctx.getActions().add(createVirtualServerCliAction(migrateEngine((EngineBean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of the Engine (virtual-server) failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of the Engine (virtual-server) failed: " + e.getMessage(), e);
                 }
                 continue;
             }
 
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
         for (SocketBindingBean sb : this.socketBindings) {
             try {
                 ctx.getActions().add(createSocketBindingCliAction(sb));
             } catch (CliScriptException e) {
-                throw new ActionException("Creation of the new socket-binding failed: " + e.getMessage(), e);
+                throw new MigrationException("Creation of the new socket-binding failed: " + e.getMessage(), e);
             }
        }
     }
@@ -309,7 +309,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("secure", connAS7.getSecure());
         builder.addProperty("enabled", connAS7.getEnabled());
 
-        actions.add(new CliCommandAction(createConnectorScript(connAS7), builder.getCommand()));
+        actions.add( new CliCommandAction( ServerMigrator.class, createConnectorScript(connAS7), builder.getCommand()));
 
         if (connAS7.getScheme().equals("https")) {
             ModelNode sslConf = new ModelNode();
@@ -332,7 +332,7 @@ public class ServerMigrator extends AbstractMigrator {
             sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
             sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
 
-            actions.add(new CliCommandAction(createSSLConfScript(connAS7), sslBuilder.getCommand()));
+            actions.add( new CliCommandAction( ServerMigrator.class, createSSLConfScript(connAS7), sslBuilder.getCommand()));
         }
 
         return actions;
@@ -371,7 +371,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("enable-welcome-root", server.getEnableWelcomeRoot());
         builder.addProperty("default-web-module", server.getDefaultWebModule());
 
-        return new CliCommandAction(createVirtualServerScript(server), builder.getCommand());
+        return new CliCommandAction( ServerMigrator.class, createVirtualServerScript(server), builder.getCommand());
     }
 
     /**
@@ -397,7 +397,7 @@ public class ServerMigrator extends AbstractMigrator {
         CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
         builder.addProperty("interface", socket.getSocketInterface());
 
-        return new CliCommandAction(createSocketBindingScript(socket), builder.getCommand());
+        return new CliCommandAction( ServerMigrator.class, createSocketBindingScript(socket), builder.getCommand());
     }
 
     /**

@@ -16,27 +16,29 @@ import java.io.IOException;
 public class AS7CliUtils {
     
     /**
-     * Temp method for testing
+     *  Executes CLI request.
      */
     public static void executeRequest(ModelNode request) throws IOException, MigrationException {
         ModelControllerClient client = null;
         try {
             client = ModelControllerClient.Factory.create("localhost", 9999);
             final ModelNode response = client.execute(new OperationBuilder(request).build());
-            reportFailure(response);
-        } catch (IOException e) {
+            throwIfFailure(response);
+        }
+        catch (IOException e) {
             //throw new MigrationException("Execution of the batch failed: " + e.getMessage(), e);
             
             // Specific problem on Roman's PC. Need to connect two times.
             final ModelNode response = client.execute(new OperationBuilder(request).build());
-            reportFailure( response );
-        } finally {
+            throwIfFailure( response );
+        }
+        finally {
             safeClose(client);
         }
     }
     
     /**
-     * Temp method for testing
+     *  Safely closes closeable resource (a CLI connection in our case).
      */
     private static void safeClose(final Closeable closeable) throws MigrationException {
         if (closeable != null) try {
@@ -47,10 +49,10 @@ public class AS7CliUtils {
     }
 
     /**
-     * Temp method for testing
+     *  If the result is an error, throw an exception.
      */
-    private static void reportFailure(final ModelNode node) throws MigrationException {
-        if (!node.get(ClientConstants.OUTCOME).asString().equals(ClientConstants.SUCCESS)) {
+    private static void throwIfFailure(final ModelNode node) throws MigrationException {
+        if( ! ClientConstants.SUCCESS.equals( node.get(ClientConstants.OUTCOME).asString() )) {
             final String msg;
             if (node.hasDefined(ClientConstants.FAILURE_DESCRIPTION)) {
                 if (node.hasDefined(ClientConstants.OP)) {

@@ -3,6 +3,7 @@ package cz.muni.fi.jboss.migration;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
+import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -155,7 +156,6 @@ public class MigratorEngine {
     /**
      *  Performs the migration.
      * 
-     * TODO:  MIGR-31
      *      1) Parse AS 7 config into context.
             2) Let the migrators gather the data into the context.
             3) Let them prepare the actions.
@@ -204,7 +204,7 @@ public class MigratorEngine {
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
             this.prepareActions();
-            message = "Actions validation failed.";
+            message = "Migration actions validation failed.";
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
             this.backupActions();
@@ -216,7 +216,19 @@ public class MigratorEngine {
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
-            throw new MigrationException( message, ex );
+            String description = "";
+            if( ex instanceof ActionException ){
+                IMigrationAction action = ((ActionException)ex).getAction();
+                description = 
+                          "\n    Migration action which caused the failure: "
+                        + "  (from " + action.getFromMigrator().getSimpleName() + ")"
+                        + "\n    " + action.toDescription();
+                if( action.getOriginMessage() != null )
+                    description += "\n    Purpose of the action: " + action.getOriginMessage();
+            }
+            throw new MigrationException( message
+                  + "\n    " + ex.getMessage() 
+                  + description, ex );
         }
         finally {
             this.cleanBackupsIfAny();
@@ -272,8 +284,10 @@ public class MigratorEngine {
         ctx.getBatch().clear();
         
         // Perform the actions.
+        log.info("Performing actions:");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            log.info("    " + action.toDescription());
             action.setMigrationContext(ctx);
             action.perform();
         }
@@ -336,6 +350,6 @@ public class MigratorEngine {
             throw new LoadMigrationException(e);
         }
     }
-    
+
 
 }// class

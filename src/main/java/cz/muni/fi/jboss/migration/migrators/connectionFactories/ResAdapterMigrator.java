@@ -2,12 +2,12 @@ package cz.muni.fi.jboss.migration.migrators.connectionFactories;
 
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
-import cz.muni.fi.jboss.migration.actions.CopyAction;
+import cz.muni.fi.jboss.migration.actions.CopyFileAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.connectionFactories.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -106,14 +106,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException {
+    public void createActions(MigrationContext ctx) throws MigrationException {
         for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
             if (fragment instanceof ConnectionFactoryAS5Bean) {
                 try {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -122,11 +122,11 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
                             migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
                 }
                 continue;
             }
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
         for (String rar : this.rars) {
@@ -134,14 +134,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
             } catch (CopyException e) {
-                throw new ActionException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
+                throw new MigrationException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
             }
 
             File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",
                     src.getName());
 
             // Default value for overwrite => false
-            ctx.getActions().add(new CopyAction(src, target, false));
+            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, false));
         }
     }
 
@@ -295,7 +295,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("archive", adapter.getArchive());
         builder.addProperty("transaction-support", adapter.getTransactionSupport());
 
-        actions.add(new CliCommandAction(createResAdapterScript(adapter), builder.getCommand()));
+        actions.add( new CliCommandAction( ResAdapterMigrator.class, createResAdapterScript(adapter), builder.getCommand()));
 
         if (adapter.getConnectionDefinitions() != null) {
             for (ConnectionDefinitionBean connDef : adapter.getConnectionDefinitions()) {
@@ -360,7 +360,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
         builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
 
-        actions.add(new CliCommandAction(createConnDefinitionScript(adapter, def), builder.getCommand()));
+        actions.add( new CliCommandAction( ResAdapterMigrator.class, createConnDefinitionScript(adapter, def), builder.getCommand()));
 
         if (def.getConfigProperties() != null) {
             for (ConfigPropertyBean configProperty : def.getConfigProperties()) {
@@ -397,7 +397,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         propertyCmd.get("value").set(property.getConfigProperty());
 
-        return new CliCommandAction(createPropertyScript(adapter, def, property), propertyCmd);
+        return new CliCommandAction( ResAdapterMigrator.class, createPropertyScript(adapter, def, property), propertyCmd);
     }
 
     /**

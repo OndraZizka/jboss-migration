@@ -10,6 +10,11 @@
 
     <name>JBoss AS 5 to 7 Config Migration</name>
     
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <as.jvm.args></as.jvm.args>
+    </properties>
+    
     <build>
         <resources>
             <resource>
@@ -18,9 +23,15 @@
                 <excludes> <exclude>**/*.java</exclude> </excludes>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <filtering>false</filtering>
+                <excludes> <exclude>**/*.java</exclude> </excludes>
+            </testResource>
+        </testResources>
         
         <plugins>
-            <!-- Java language version -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -31,6 +42,15 @@
                 </configuration>
             </plugin>
             <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <arq.as.jvm.args>${as.jvm.args}</arq.as.jvm.args>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
@@ -38,6 +58,7 @@
                     <mainClass>cz.muni.fi.jboss.migration.MigratorApp</mainClass>
                 </configuration>
             </plugin>
+            <!-- Application JAR. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -63,6 +84,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Download AS 7 for Arquillian tests. -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution> <id>get-AS7</id> <phase>process-test-classes</phase>
+                        <goals> <goal>unpack</goal> </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.jboss.as</groupId>
+                                    <artifactId>jboss-as-dist</artifactId>
+                                    <version>7.1.1.Final</version>
+                                    <type>zip</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>target</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -70,6 +112,10 @@
         <repository>
             <id>EclipseLink</id>
             <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+        </repository>
+        <repository>
+            <id>JBoss</id>
+            <url>http://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
     </repositories>
 
@@ -83,11 +129,11 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- JBoss CLI -->
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-cli</artifactId>
             <version>7.2.0.Final</version>
-            <type>jar</type>
         </dependency>
 
         <!-- Commons -->
@@ -111,12 +157,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -124,17 +170,24 @@
             <version>1.2.17</version>
         </dependency>
         
+        <!-- Testing -->
+        
         <dependency>
              <groupId>junit</groupId>
              <artifactId>junit</artifactId>
-             <version>4.10</version>
+             <version>4.11</version>
              <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-cli</artifactId>
-            <version>7.2.0.Final</version>
+            <artifactId>jboss-as-arquillian-container-managed</artifactId>
+            <version>7.1.1.Final</version>
+            <scope>test</scope>
         </dependency>
 
         <!--
@@ -150,5 +203,17 @@
         </dependency>
         -->
     </dependencies>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>1.0.3.Final</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>    
 
 </project>

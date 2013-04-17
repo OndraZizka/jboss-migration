@@ -8,6 +8,7 @@ import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -109,7 +110,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws ActionException{
+    public void createActions(MigrationContext ctx) throws MigrationException{
         // Helping list of CliCommnadAction. For successful migration driver CliCommandAction must be added=performed
         // before datasource.
         List<IMigrationAction> tempActions = new ArrayList<>();
@@ -118,7 +119,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 try {
                     tempActions.add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of local-tx-datasource failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of local-tx-datasource failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -127,7 +128,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 try {
                     tempActions.addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of xa-datasource failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of xa-datasource failed: " + e.getMessage(), e);
                 }
                 continue;
             }
@@ -136,11 +137,11 @@ public class DatasourceMigrator extends AbstractMigrator {
                 try {
                     tempActions.add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
-                    throw new ActionException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
+                    throw new MigrationException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
                 }
                 continue;
             }
-            throw new ActionException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
         HashMap<File, String> tempModules = new HashMap();
@@ -166,7 +167,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      *         CliCommandAction fails or if Document representing module.xml cannot be created.
      */
     private List<IMigrationAction> createDriverActions(DriverBean driver, HashMap<File, String> tempModules)
-            throws ActionException {
+            throws MigrationException {
         File src;
         try {
             src = driver.getDriverClass() != null
@@ -176,7 +177,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                     getGlobalConfig().getAS5Config().getProfileName());
 
         } catch (IOException e) {
-            throw new ActionException("Finding jar containing driver class failed: " + e.getMessage(), e);
+            throw new MigrationException("Finding jar containing driver class failed: " + e.getMessage(), e);
         }
 
         List<IMigrationAction> actions = new ArrayList();
@@ -189,7 +190,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 actions.add(createDriverCliAction(driver));
 
             } catch (CliScriptException e) {
-                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+                throw new MigrationException("Migration of driver failed (CLI command): " + e.getMessage(), e);
             }
         } else {
             try {
@@ -205,15 +206,15 @@ public class DatasourceMigrator extends AbstractMigrator {
                 Document doc  =  DatasourceUtils.createJDBCDriverModuleXML(driver.getDriverModule(), src.getName());
 
                 // Default for now => false
-                ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
+                ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
 
                 actions.add(moduleAction);
 
             } catch (ParserConfigurationException e) {
-                throw new ActionException("Creation of Document representing module.xml for driver failed: "
+                throw new MigrationException("Creation of Document representing module.xml for driver failed: "
                         + e.getMessage(), e);
             } catch (CliScriptException e) {
-                throw new ActionException("Migration of driver failed (CLI command): " + e.getMessage(), e);
+                throw new MigrationException("Migration of driver failed (CLI command): " + e.getMessage(), e);
             }
         }
 
@@ -541,7 +542,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
 
         //return builder.getCommand();
-        return new CliCommandAction(createDatasourceScriptNew(dataSource), builder.getCommand());
+        return new CliCommandAction( DatasourceMigrator.class, createDatasourceScriptNew(dataSource), builder.getCommand());
     }
 
     /**
@@ -604,7 +605,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("track-statements", dataSource.getTrackStatements());
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
 
-        actions.add(new CliCommandAction(createXaDatasourceScriptNew(dataSource), builder.getCommand()));
+        actions.add( new CliCommandAction( DatasourceMigrator.class, createXaDatasourceScriptNew(dataSource), builder.getCommand()));
 
         if(dataSource.getXaDatasourceProps() != null){
             for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
@@ -639,7 +640,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 ("xa-datasource-properties", property.getXaDatasourcePropName());
         connProperty.get("value").set(property.getXaDatasourceProp());
 
-        return new CliCommandAction(createXaPropertyScript(datasource, property), connProperty);
+        return new CliCommandAction( DatasourceMigrator.class, createXaPropertyScript(datasource, property), connProperty);
     }
 
     /**
@@ -668,7 +669,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-major-version", driver.getMajorVersion());
         builder.addProperty("driver-minor-version", driver.getMinorVersion());
 
-        return new CliCommandAction(createDriverScript(driver), builder.getCommand());
+        return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), builder.getCommand());
     }
     
     /**

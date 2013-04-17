@@ -23,9 +23,6 @@ public class MigrationContext {
 
     private final Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
 
-    private final Set<FileTransferInfo> rollbackData = new HashSet();
-    // TODO: Replace with:
-
     private final List<IMigrationAction> actions = new LinkedList();
     // TBC: Roman said there are cases when the same file is suggested for copying by multiple migrators?
 
@@ -44,10 +41,6 @@ public class MigrationContext {
 
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() {
         return migrationData;
-    }
-
-    public Set<FileTransferInfo> getFileTransfers() {
-        return rollbackData;
     }
 
     public List<IMigrationAction> getActions() {
