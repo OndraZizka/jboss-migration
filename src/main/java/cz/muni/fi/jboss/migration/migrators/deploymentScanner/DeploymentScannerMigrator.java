@@ -9,22 +9,22 @@ import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
-import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.ListType;
-import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.ValueType;
+import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.*;
+import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -32,6 +32,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,8 @@ import java.util.List;
  */
 public class DeploymentScannerMigrator extends AbstractMigrator {
 
-    private static final Logger log = LoggerFactory.getLogger(DeploymentScannerMigrator.class);
+    private static final Logger log = LoggerFactory.getLogger(
+        DeploymentScannerMigrator.class);
 
 
     public DeploymentScannerMigrator(GlobalConfiguration globalConfig,
@@ -60,20 +62,21 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
 
         AS5Config  as5Config = super.getGlobalConfig().getAS5Config();
-        /**
-        File f = Utils.createPath(as5Config.getDir(), "server",
-            as5Config.getProfileName(),"deploy", "hdscanner-jboss-beans.xml");
-        **/
+        int scanPeriod = getScanPeriod(as5Config);
+
         try {
             File f = Utils.createPath(as5Config.getDir(), "server",
                 as5Config.getProfileName(), "conf/bootstrap", "profile.xml");
 
             if (f.exists() && f.canRead()) {
-                List<ValueType> valueList = getData(f);
+                List<ValueType> valueList = getDeploymentDirs(f);
                 MigrationData mData = new MigrationData();
                 mData.getConfigFragments().addAll(valueList);
                 ctx.getMigrationData().put(this.getClass(), mData);
 
+                for(ValueType v : valueList){
+                    v.setScanPeriod(scanPeriod);
+                }
             } else {
                 throw new LoadMigrationException("Cannot find/open file: " +
                     f.getAbsolutePath(), new FileNotFoundException());
@@ -83,87 +86,82 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         }
     }
 
-    /**
-     *
-     * @param f
-     * @return
-     */
-    private List<ValueType> getData(File f){
-
-        List<ValueType> resultList = new ArrayList<ValueType>();
-
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(false);
-            DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-            Document doc = docBuilder.parse(f);
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            String exp = "/deployment/bean[@name='BootstrapProfileFactory']/property[@name='applicationURIs']//list[@elementClass='java.net.URI']";
-            Node  n = (Node) xpath.evaluate(exp, doc, XPathConstants.NODE);
-
-            Unmarshaller unmarshaller = JAXBContext.newInstance(
-                ListType.class).createUnmarshaller();
-            ListType l = (ListType) unmarshaller.unmarshal(n);
-
-
-            //String URL_PREFIX = "file://";
-
-            for (ValueType v : l.getValue()) {
-                String value = v.getValue().trim();
-                //System.out.println("list value: " + value);
-
-                if (v.isExternalDir() /*value.startsWith(URL_PREFIX)*/) {
-                    //String absPath = value.substring(URL_PREFIX.length());
-                    //System.out.println("external path: " + absPath);
-                    resultList.add(v);
-                }
-            }
-
-        } catch (JAXBException e) {  //TODO: fix these
-            System.out.println(e);
-        } catch (ParserConfigurationException cpe) {
-            //throw new RuntimeException(ex);
-            System.out.println(cpe);
-        } catch (SAXException saxe) {
-            System.out.println(saxe);
-        } catch (IOException ioe) {
-            System.out.println(ioe);
-        } catch (XPathExpressionException pee) {
-            System.out.println(pee);
-        }
-        return resultList;
-    }
-
-
     // step 2
     @Override
     public void createActions( MigrationContext ctx ){
-
+        for (IConfigFragment fragment : ctx.getMigrationData().get(DeploymentScannerMigrator.class)
+            .getConfigFragments()) {
+            // ctx.getActions().addAll(); // create CLI ??
+        }
     }
-
 
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
-        /**
+
         try {
-            Document doc = ctx.getAS7ConfigXmlDoc();
-            NodeList subsystems = doc.getElementsByTagName("subsystem");
-            for (int i = 0; i < subsystems.getLength(); i++) {
-                if (!(subsystems.item(i) instanceof Element)) {
-                    continue;
+
+            Document destDoc = ctx.getAS7ConfigXmlDoc();
+            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            JAXBContext jaxbCtx = JAXBContext.newInstance(
+                StandaloneDeploymentScannerType.class);
+            Marshaller marshaller = jaxbCtx.createMarshaller();
+
+            int cnt = nList.getLength();
+            if (cnt == 0) {
+                createDeploymentScannerSubsystem(destDoc, ctx, docBuilder,
+                    xpath, marshaller);
+            } else {
+                //- There could be more an 1 deployment-scanner subsystem defined,
+                //- however add new ref in only 1 subsystem.
+                Node parentNode = nList.item(0).getParentNode();
+
+                for (IConfigFragment fragment : ctx.getMigrationData().get(
+                    DeploymentScannerMigrator.class).getConfigFragments()) {
+
+                    // transfer data from prev to current version
+                    StandaloneDeploymentScannerType destDScanner =
+                        new StandaloneDeploymentScannerType((ValueType)fragment);
+
+                    // transform data into DOM obj for insertion
+                    Document tmpDoc = docBuilder.newDocument();
+                    marshaller.marshal(destDScanner, tmpDoc);
+
+                    Node newChild = destDoc.adoptNode(
+                        tmpDoc.getDocumentElement().cloneNode(true));
+
+                    parentNode.appendChild(newChild);
                 }
-                if (((Element) subsystems.item(i)).getAttribute("xmlns").contains("deployment-scanner")) {
-                    Node parent = subsystems.item(i);
-                    Node lastNode = parent.getLastChild();
-                    Node firstNode = parent.getFirstChild();
+
+                /*
+                // debug confirm addition
+                NodeList jnList = (NodeList) xpath.evaluate(expression,
+                    destDoc, XPathConstants.NODESET);
+
+                int jcnt = jnList.getLength();
+                System.out.println("jcnt: " + jcnt);
+                StandaloneDeploymentScannerType b = null;
+                for (int j = 0; j < jcnt; j++) {
+                    Node n = jnList.item(j);
+                    b = (StandaloneDeploymentScannerType) unmarshaller.unmarshal(n);
+                    System.out.println("NEW bean path: " + b.getPath());
                 }
+                **/
+
             }
-        } catch (Exception e) {
+
+        } catch (JAXBException e) {
             throw new ApplyMigrationException(e);
+        } catch(XPathExpressionException xee) {
+            throw new ApplyMigrationException(xee);
         }
-        **/
     }
+
 
     @Override
     public List<Node> generateDomElements(MigrationContext ctx)
@@ -177,4 +175,142 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         throws CliScriptException{
         return null;
     }
+
+
+
+    /* --------------------------------------------------------------------*/
+    /* --------------------------------------------------------------------*/
+    /* --------------------------------------------------------------------*/
+
+    private void createDeploymentScannerSubsystem(Document destDoc, MigrationContext ctx,
+        DocumentBuilder docBuilder, XPath xpath, Marshaller marshaller)
+            throws ApplyMigrationException, JAXBException, XPathExpressionException {
+
+        //deployment-scanner subsystem does not exist.  Create it.
+        //System.out.println("create and insert new subsystem.");
+        String exp = "/server/profile";
+        NodeList pList = (NodeList) xpath.evaluate(exp, destDoc,
+            XPathConstants.NODESET);
+
+        if (pList.getLength() == 0) {
+            throw new ApplyMigrationException("profile element not found in file: "
+                + destDoc.getBaseURI());
+        } else {
+
+            Subsystem subsystem = new Subsystem();
+            for (IConfigFragment fragment : ctx.getMigrationData().get(
+                DeploymentScannerMigrator.class).getConfigFragments()) {
+
+                // transfer data from prev to current version
+                StandaloneDeploymentScannerType destDScanner =
+                    new StandaloneDeploymentScannerType((ValueType) fragment);
+                subsystem.getDeploymentScanner().add(destDScanner);
+            }
+
+            // transform data into DOM obj for insertion
+            Document tmpDoc = docBuilder.newDocument();
+            marshaller.marshal(subsystem, tmpDoc);
+
+            Node newChild = destDoc.adoptNode(
+                tmpDoc.getDocumentElement().cloneNode(true));
+            pList.item(0).appendChild(newChild);
+
+        }
+    }
+
+
+
+    /**
+     *  getDeploymentDirs
+     * @param f
+     * @return
+     */
+    private List<ValueType> getDeploymentDirs(File f){
+
+        List<ValueType> resultList = new ArrayList<ValueType>();
+
+        try {
+
+            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            Document doc = docBuilder.parse(f);
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/deployment/bean[@name='BootstrapProfileFactory']/property[@name='applicationURIs']//list[@elementClass='java.net.URI']";
+            Node  n = (Node) xpath.evaluate(exp, doc, XPathConstants.NODE);
+
+            Unmarshaller unmarshaller = JAXBContext.newInstance(
+                ListType.class).createUnmarshaller();
+            ListType l = (ListType) unmarshaller.unmarshal(n);
+
+
+            for (ValueType v : l.getValue()) {
+                //String value = v.getValue().trim();
+                //System.out.println("list value: " + value);
+
+                if (v.isExternalDir()) {
+                    //String absPath = value.substring(URL_PREFIX.length());
+                    //System.out.println("external path: " + absPath);
+                    resultList.add(v);
+                }
+            }
+
+        } catch (JAXBException e) {  //TODO: fix these
+            System.out.println(e);
+            // } catch (ParserConfigurationException cpe) {
+            //     //throw new RuntimeException(ex);
+            //     System.out.println(cpe);
+        } catch (SAXException saxe) {
+            System.out.println(saxe);
+        } catch (IOException ioe) {
+            System.out.println(ioe);
+        } catch (XPathExpressionException pee) {
+            System.out.println(pee);
+        }
+        return resultList;
+    }
+
+    /**
+     *
+     * @param as5Config
+     * @return
+     */
+    private int getScanPeriod(AS5Config  as5Config){
+
+        int result = 5000;  // AS5 default value
+
+        try {
+
+            File f = Utils.createPath(as5Config.getDir(), "server",
+                as5Config.getProfileName(), "deploy", "hdscanner-jboss-beans.xml");
+
+            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            Document doc = docBuilder.parse(f);
+
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/deployment/bean/property[@name='scanPeriod']";
+            Node node = (Node) xpath.evaluate(exp, doc, XPathConstants.NODE);
+
+            if (node != null) {
+
+                JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyType.class);
+                Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+
+                PropertyType pType = (PropertyType) unmarshaller.unmarshal(node);
+                List<Serializable> contentList = pType.getContent();
+                if (contentList.size() > 0) {
+                    Serializable s = contentList.get(0);
+                    if (s instanceof String){
+                        result = Integer.parseInt((String)s);
+                        System.out.println("scanPeriod: " + result);
+                    }
+                }
+            }
+
+        } catch (Exception e) {   //TODO fix this
+            System.out.println(e);
+        }
+        return result;
+    }
+
 }
