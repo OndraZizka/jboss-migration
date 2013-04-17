@@ -224,8 +224,8 @@ public class MigratorEngine {
                         + "  (from " + action.getFromMigrator().getSimpleName() + ")"
                         + "\n    " + action.toDescription();
             }
-            throw new MigrationException( message + 
-                    "\n    " + ex.getMessage() 
+            throw new MigrationException( message
+                  + "\n    " + ex.getMessage() 
                   + description, ex );
         }
         finally {
