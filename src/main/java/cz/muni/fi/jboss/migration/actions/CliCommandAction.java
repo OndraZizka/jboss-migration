@@ -33,8 +33,6 @@ public class CliCommandAction extends AbstractStatefulAction {
         return "Perform CLI command: " + this.command;
     }
     
-    
-    
 
 
     @Override
