@@ -28,7 +28,7 @@ public class CopyFileAction extends FileAbstractAction {
 
     
     @Override protected String verb() {
-        return "Merge";
+        return "Copy";
     }
     
     @Override
