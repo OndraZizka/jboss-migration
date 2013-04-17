@@ -43,7 +43,7 @@ public class CopyFileAction extends FileAbstractAction {
     public void preValidate() throws MigrationException {
         if( ! src.exists() && failIfNotExist )
             throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
-        if( src.exists() && !overwrite)
+        if( dest.exists() && !overwrite)
             throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
