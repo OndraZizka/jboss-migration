@@ -2,6 +2,7 @@ package cz.muni.fi.jboss.migration.actions;
 
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
@@ -22,7 +23,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     boolean overwrite;
 
 
-    public ModuleCreationAction(File src, File dest, Document moduleDoc, boolean overwrite) {
+    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File src, File dest, Document moduleDoc, boolean overwrite) {
         this.src = src;
         this.dest = dest;
         this.moduleDoc = moduleDoc;

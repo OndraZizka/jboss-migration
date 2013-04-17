@@ -170,7 +170,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
 
                 // Default for now => false
-                ModuleCreationAction moduleAction = new ModuleCreationAction(src, targetDir, doc, false);
+                ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
 
                 actions.add(moduleAction);
 

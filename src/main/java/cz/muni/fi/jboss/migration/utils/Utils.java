@@ -113,14 +113,14 @@ public class Utils {
     private static File lookForJarWithAClass(File dir, String classFilePath) throws IOException {
         log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath);
         if( ! dir.isDirectory() ){
-            log.debug("    Not a directory: " +  dir.getPath());
+            log.trace("    Not a directory: " +  dir.getPath());
             return null;
         }
 
         //SuffixFileFilter sf = new SuffixFileFilter(".jar");
         //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
         Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
-        log.debug("    Found .jar files: " + jarFiles.size());
+        log.trace("    Found .jar files: " + jarFiles.size());
 
         for (File file : jarFiles) {
             // Search the contained files for those containing $classFilePath.

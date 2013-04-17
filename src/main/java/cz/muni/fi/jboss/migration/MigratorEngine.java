@@ -221,6 +221,7 @@ public class MigratorEngine {
                 IMigrationAction action = ((ActionException)ex).getAction();
                 description = 
                           "\n    Migration action which caused the failure: "
+                        + "  from " + action.getFromMigrator()
                         + "\n    " + action.toDescription();
             }
             throw new MigrationException( message + 
