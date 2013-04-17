@@ -59,6 +59,7 @@ public class MigratorEngineTest {
      * Test of doMigration method, of class MigratorEngine.
      */
     @Test
+    @Ignore
     public void testDoMigration() throws Exception {
         System.out.println( "doMigration" );
         

@@ -4,8 +4,15 @@
 
     <container qualifier="jboss" default="true">
         <configuration>
-            <property name="jbossHome">${basedir}/target/jbossas</property>
-            <property name="javaVmArguments">${server.jvm.args} -Djboss.inst=${basedir}/target/jbossas</property>
+            <property name="jbossHome">${basedir}/target/jboss-as-7.1.1.Final</property>
+            <!--
+            <property name="javaVmArguments">${arq.as.jvm.args} -Djboss.inst=${basedir}/target/jboss-as-7.1.1.Final</property>
+            ${arq.as.jvm.args[:]} doesn't work.
+            I think Arquillian splits it by spaces and then passes "" to JVM,
+            which then fails with "Error: Could not find or load main class ". Lame.
+            -->
+            <property name="javaVmArguments">-Djboss.inst=${basedir}/target/jboss-as-7.1.1.Final</property>
+            
             <property name="serverConfig">${jboss.server.config.file.name:standalone.xml}</property>
             <property name="allowConnectingToRunningServer">true</property>
             <property name="managementAddress">${node0:127.0.0.1}</property>

@@ -1,6 +1,14 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.conf.Configuration;
+import java.io.File;
+import java.io.IOException;
+import org.apache.commons.io.FileUtils;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,7 +19,38 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ArqTest {
     
+    private static Configuration createTestConfig01() {
+        Configuration conf = new Configuration();
+        
+        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01_510all");
+        conf.getGlobal().getAS5Config().setProfileName("all");
+        
+        conf.getGlobal().getAS7Config().setDir("target/jboss-as-7.1.1.Final");
+        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
+                
+        return conf;
+    }
+    
+
+    
+    /**
+     * Test of doMigration method, of class MigratorEngine.
+     */
     @Test
+    @Ignore
+    public void testDoMigration() throws Exception {
+        System.out.println( "doMigration" );
+        
+        Configuration conf = createTestConfig01();
+        MigratorApp.validateConfiguration( conf );
+        
+        //MigratorApp.migrate( conf );
+        MigratorEngine migrator = new MigratorEngine(conf);
+        migrator.doMigration();
+    }
+
+    @Test
+    @RunAsClient
     public void testLiveMigration(){
         
     }
