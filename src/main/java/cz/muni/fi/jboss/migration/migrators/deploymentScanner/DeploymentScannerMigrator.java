@@ -3,12 +3,10 @@ package cz.muni.fi.jboss.migration.migrators.deploymentScanner;
 import cz.muni.fi.jboss.migration.AbstractMigrator;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
+import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.AS5Config;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
-import cz.muni.fi.jboss.migration.ex.CliScriptException;
-import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
-import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
+import cz.muni.fi.jboss.migration.ex.*;
 import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
@@ -89,9 +87,138 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
     // step 2
     @Override
     public void createActions( MigrationContext ctx ){
-        for (IConfigFragment fragment : ctx.getMigrationData().get(DeploymentScannerMigrator.class)
-            .getConfigFragments()) {
-            // ctx.getActions().addAll(); // create CLI ??
+
+        File as7configFile = new File(getGlobalConfig().getAS7Config().getConfigFilePath());
+
+        try {
+
+            Document destDoc = ctx.getAS7ConfigXmlDoc();
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            if (0 == nList.getLength()) {
+                // No deployment-scanner subsystem found.  Prep to add
+
+                Subsystem subsystem = xxxcreateDeploymentScannerSubsystem(
+                    destDoc, ctx, xpath);
+
+                if (subsystem != null) {
+                    SubsystemAction action = new SubsystemAction(subsystem,
+                        as7configFile, ctx.getAS7ConfigXmlDoc());
+                    ctx.getActions().add(action);
+                }
+            } else {
+
+                // deployment-scanner subsystem exists.  Prep to add element
+
+                StandaloneDeploymentScannerAction sAction =
+                    new StandaloneDeploymentScannerAction(as7configFile,
+                        ctx.getAS7ConfigXmlDoc());
+
+                for (IConfigFragment fragment : ctx.getMigrationData().get(
+                    DeploymentScannerMigrator.class).getConfigFragments()) {
+
+                    StandaloneDeploymentScannerType destDScanner =
+                        new StandaloneDeploymentScannerType((ValueType)fragment);
+                    sAction.addStandaloneDeploymentScannerType(destDScanner);
+                }
+
+                if (!sAction.getStandaloneDeploymentScannerTypeList().isEmpty()){
+                    ctx.getActions().add(sAction);
+                }
+            }
+
+        } catch (JAXBException e) {
+            System.out.println(e);
+        } catch(XPathExpressionException xee) {
+            System.out.println(xee);
+        }
+            // action to alter setting via CLI
+    }
+
+    private void testing (MigrationContext ctx) throws ApplyMigrationException{
+
+        try {
+
+            Document destDoc = ctx.getAS7ConfigXmlDoc();
+            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            int cnt = nList.getLength();
+            if (cnt == 0) {
+                Subsystem subsystem = xxxcreateDeploymentScannerSubsystem(
+                    destDoc, ctx, xpath);
+
+                File as7configFile = new File(getGlobalConfig().getAS7Config().getConfigFilePath());
+                List<IMigrationAction> actionList = ctx.getActions();
+
+                //- action to alter dest file directory
+                SubsystemAction action = new SubsystemAction( subsystem,
+                    as7configFile, ctx.getAS7ConfigXmlDoc());
+                actionList.add(action);
+
+            } else {
+                //- There could be more an 1 deployment-scanner subsystem defined,
+                //- however add new ref in only 1 subsystem.
+                Node parentNode = nList.item(0).getParentNode();
+
+                File as7configFile = new File(getGlobalConfig().getAS7Config().getConfigFilePath());
+                StandaloneDeploymentScannerAction sAction =
+                    new StandaloneDeploymentScannerAction(as7configFile, ctx.getAS7ConfigXmlDoc());
+
+
+                for (IConfigFragment fragment : ctx.getMigrationData().get(
+                    DeploymentScannerMigrator.class).getConfigFragments()) {
+
+                    // transfer data from prev to current version
+                    StandaloneDeploymentScannerType destDScanner =
+                        new StandaloneDeploymentScannerType((ValueType)fragment);
+                    sAction.addStandaloneDeploymentScannerType(destDScanner);
+                    /******
+                    // transform data into DOM obj for insertion
+                    Document tmpDoc = docBuilder.newDocument();
+                    marshaller.marshal(destDScanner, tmpDoc);
+
+                    Node newChild = destDoc.adoptNode(
+                        tmpDoc.getDocumentElement().cloneNode(true));
+
+                    parentNode.appendChild(newChild);
+                    ******/
+                }
+
+                if (!sAction.getStandaloneDeploymentScannerTypeList().isEmpty()){
+                    List<IMigrationAction> actionList = ctx.getActions();
+                    actionList.add(sAction);
+                }
+
+                /*
+                // debug confirm addition
+                NodeList jnList = (NodeList) xpath.evaluate(expression,
+                    destDoc, XPathConstants.NODESET);
+
+                int jcnt = jnList.getLength();
+                System.out.println("jcnt: " + jcnt);
+                StandaloneDeploymentScannerType b = null;
+                for (int j = 0; j < jcnt; j++) {
+                    Node n = jnList.item(j);
+                    b = (StandaloneDeploymentScannerType) unmarshaller.unmarshal(n);
+                    System.out.println("NEW bean path: " + b.getPath());
+                }
+                **/
+
+            }
+
+        } catch (JAXBException e) {
+            throw new ApplyMigrationException(e);
+        } catch(XPathExpressionException xee) {
+            throw new ApplyMigrationException(xee);
         }
     }
 
@@ -218,7 +345,30 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         }
     }
 
+    private Subsystem xxxcreateDeploymentScannerSubsystem(Document destDoc,
+        MigrationContext ctx, XPath xpath)
+        throws JAXBException, XPathExpressionException {
 
+        //deployment-scanner subsystem does not exist.  Create it.
+        String exp = "/server/profile";
+        NodeList pList = (NodeList) xpath.evaluate(exp, destDoc,
+            XPathConstants.NODESET);
+        Subsystem subsystem = null;
+
+        if (pList.getLength() > 0) {
+            subsystem = new Subsystem();
+
+            for (IConfigFragment fragment : ctx.getMigrationData().get(
+                DeploymentScannerMigrator.class).getConfigFragments()) {
+
+                // transfer data from prev to current version
+                StandaloneDeploymentScannerType destDScanner =
+                    new StandaloneDeploymentScannerType((ValueType) fragment);
+                subsystem.getDeploymentScanner().add(destDScanner);
+            }
+        }
+        return subsystem;
+    }
 
     /**
      *  getDeploymentDirs

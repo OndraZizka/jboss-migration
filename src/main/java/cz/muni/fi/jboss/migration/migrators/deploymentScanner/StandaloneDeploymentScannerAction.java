@@ -1,0 +1,171 @@
+package cz.muni.fi.jboss.migration.migrators.deploymentScanner;
+
+import cz.muni.fi.jboss.migration.actions.AbstractStatefulAction;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.StandaloneDeploymentScannerType;
+import cz.muni.fi.jboss.migration.utils.Utils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * User: rsearls
+ * Date: 4/18/13
+ */
+public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
+
+    List<StandaloneDeploymentScannerType> dList =
+        new ArrayList<StandaloneDeploymentScannerType>();
+    File destFile;
+    Document destDoc;
+    Node rootNodeBackup = null;
+
+    public StandaloneDeploymentScannerAction(File destFile, Document destDoc) {
+        this.destFile = destFile;
+        this.destDoc = destDoc;
+    }
+
+    public void addStandaloneDeploymentScannerType(
+        StandaloneDeploymentScannerType sType){
+        dList.add(sType);
+    }
+
+    public List<StandaloneDeploymentScannerType> getStandaloneDeploymentScannerTypeList(){
+        return dList;
+    }
+
+    @Override
+    public void preValidate() throws MigrationException {
+
+        if (destFile == null || !destFile.exists()){
+            throw new MigrationException(
+                "Destination configuration file " +
+                    ((destFile == null)? "name is NULL." : destFile.getAbsolutePath() + " is not found."));
+        } else if (!destFile.canWrite()){
+            throw new MigrationException("No write permissions for file "
+                + destFile.getAbsolutePath());
+        }
+
+        // confirm required xml element
+        try {
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            if (nList.getLength() == 0) {
+                throw new ApplyMigrationException(
+                    "deployment-scanner subsystem not found in file: "
+                    + destDoc.getBaseURI());
+            }
+
+        } catch (XPathExpressionException e) {
+            throw new ApplyMigrationException(e);
+        }
+    }
+
+
+    @Override
+    public void perform() throws MigrationException {
+        try {
+
+            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            if (nList.getLength() > 0) {
+
+                JAXBContext jaxbCtx = JAXBContext.newInstance(
+                    StandaloneDeploymentScannerType.class);
+                Marshaller marshaller = jaxbCtx.createMarshaller();
+
+                for (StandaloneDeploymentScannerType sType : dList) {
+
+                    // transform data into DOM obj for insertion
+                    Document tmpDoc = docBuilder.newDocument();
+                    marshaller.marshal(sType, tmpDoc);
+
+                    Node newChild = destDoc.adoptNode(
+                        tmpDoc.getDocumentElement().cloneNode(true));
+                    nList.item(0).appendChild(newChild);
+                }
+
+            } else {
+                throw new ApplyMigrationException(
+                    "deployment-scanner subsystem  element not found in file: "
+                    + destDoc.getBaseURI());
+            }
+
+            setState(State.DONE);
+
+        } catch (JAXBException e) {
+            throw new ApplyMigrationException(e);
+        } catch(XPathExpressionException xee) {
+            throw new ApplyMigrationException(xee);
+        }
+    }
+
+
+    @Override
+    public void rollback() throws MigrationException {
+
+        if (rootNodeBackup == null) {
+            throw new MigrationException("No backup data to rollback to.");
+        } else {
+            Node rootNode = (Node)destDoc;
+            rootNode.replaceChild(rootNodeBackup, rootNode);
+        }
+
+        setState(State.ROLLED_BACK);
+    }
+
+
+    @Override
+    public void postValidate() throws MigrationException {
+
+        try {
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String exp = "/server/profile/subsystem/deployment-scanner";
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
+                XPathConstants.NODESET);
+
+            if (!(nList.getLength() >= dList.size())){
+                throw new MigrationException(
+                    "new deployment-scanner elements not successfully added to the subsystem.");
+            }
+
+        } catch (XPathExpressionException xee) {
+            throw new ApplyMigrationException(xee);
+        }
+    }
+
+
+    @Override
+    public void backup() throws MigrationException {
+        Node rootNode = (Node)destDoc;
+        rootNodeBackup = rootNode.cloneNode(true);
+        setState(State.BACKED_UP);
+    }
+
+
+    @Override
+    public void cleanBackup() {
+        setState(State.FINISHED);
+    }
+}
