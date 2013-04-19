@@ -3,14 +3,19 @@ package cz.muni.fi.jboss.migration.migrators.deploymentScanner;
 import cz.muni.fi.jboss.migration.AbstractMigrator;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.AS5Config;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.*;
+import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
+import cz.muni.fi.jboss.migration.ex.CliScriptException;
+import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
+import cz.muni.fi.jboss.migration.ex.NodeGenerationException;
 import cz.muni.fi.jboss.migration.migrators.deploymentScanner.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
+import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -52,7 +57,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
     @Override
     protected String getConfigPropertyModuleName() {
-        return "scanner???";//"datasource";
+        return "deployment-scanner";
     }
 
     // step 1
@@ -136,7 +141,14 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         } catch(XPathExpressionException xee) {
             System.out.println(xee);
         }
-            // action to alter setting via CLI
+
+        // provide dummy action. Can't find way to add via CLI
+        ModelNode mNode = new ModelNode();
+        mNode.set("ls");
+        ctx.getActions().add(new CliCommandAction("ls",  mNode));
+
+        //- workaround .. force tools not to fail with null exception.
+        ctx.getBatch().add(new org.jboss.as.cli.batch.impl.DefaultBatchedCommand("ls",  mNode));
     }
 
     private void testing (MigrationContext ctx) throws ApplyMigrationException{
