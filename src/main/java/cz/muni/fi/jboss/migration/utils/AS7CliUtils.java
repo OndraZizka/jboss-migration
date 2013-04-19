@@ -4,7 +4,6 @@ import cz.muni.fi.jboss.migration.CliApiCommandBuilder;
 import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
-import cz.muni.fi.jboss.migration.migrators.logging.jaxb.ConsoleHandlerBean;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -12,7 +11,6 @@ import org.jboss.dmr.ModelNode;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;

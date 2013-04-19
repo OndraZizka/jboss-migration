@@ -37,6 +37,9 @@ import java.util.*;
  * @author Roman Jakubco
  */
 public class LoggingMigrator extends AbstractMigrator {
+    
+    private final static String CLI_PROP__LOG_DIR = "jboss.server.log.dir";
+    
 
     // Sequence number for driver names.
     // TODO: Perhaps move this property to migration context.
@@ -138,9 +141,8 @@ public class LoggingMigrator extends AbstractMigrator {
         try {
             src = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
                     getGlobalConfig().getAS5Config().getProfileName());
-        } catch (IOException e) {
-            throw new MigrationException("Finding jar containing driver class: " + handler.getClassValue() +
-                    " failed: " + e.getMessage(), e);
+        } catch (IOException ex) {
+            throw new MigrationException("Failed finding jar with class " + handler.getClassValue() + ": " + ex.getMessage(), ex);
         }
 
         List<IMigrationAction> actions = new ArrayList();
@@ -154,37 +156,37 @@ public class LoggingMigrator extends AbstractMigrator {
             }
             catch (CliScriptException e) {
                 throw new MigrationException("Migration of the appeneder " + handler.getName() +
-                        "failed (CLI command): " + e.getMessage(), e);
+                        " failed (CLI command): " + e.getMessage(), e);
             }
 
-        } else {
-            try {
-                // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
-                handler.setModule("logging.customHandler" + number);
-                tempModules.put(src, handler.getModule());
+            return actions;
+        }
 
-                actions.add(createCustomHandlerCliAction(handler));
+        
+        // Handler jar is new => create ModuleCreationAction, new module and CLI script for driver
+        try {
+            
+            handler.setModule("logging.customHandler" + number);
+            tempModules.put(src, handler.getModule());
 
-                File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getModulesDir(), 
-                        "logging/customHandler" + number, "main", src.getName());
+            actions.add(createCustomHandlerCliAction(handler));
 
-                Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
+            // TODO: MIGR-60 Rewrite ModuleCreationAction to be about module metadata, not paths and XML doc 
+            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getModulesDir(), 
+                    "logging/customHandler" + number, "main", src.getName());
 
-                // Default for now => false
-                ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
+            Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
 
-                actions.add(moduleAction);
-
-                // iterate number of custom handlers for creation of modules
-                number++;
-
-            }
-            catch (ParserConfigurationException e) {
-                throw new MigrationException("Failed creating Custom-Handler module.xml: " + e.getMessage(), e);
-            }
-            catch (CliScriptException e) {
-                throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
-            }
+            // Default for now => false
+            ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
+            actions.add(moduleAction);
+            number++;
+        }
+        catch (ParserConfigurationException e) {
+            throw new MigrationException("Failed creating Custom-Handler module.xml: " + e.getMessage(), e);
+        }
+        catch (CliScriptException e) {
+            throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
         }
 
         return actions;
@@ -306,7 +308,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
                 if (parameter.getParamName().equals("File")) {
                     String value = parameter.getParamValue();
-                    handler.setRelativeTo("jboss.server.log.dir");
+                    handler.setRelativeTo(CLI_PROP__LOG_DIR);
                     handler.setPath(StringUtils.substringAfterLast(value, "/"));
                 }
 
@@ -560,6 +562,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("autoflush", handler.getAutoflush());
         builder.addProperty("append", handler.getAppend());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
 
         return new CliCommandAction( LoggingMigrator.class, createPerHandlerScript(handler), builder.getCommand());
@@ -600,6 +603,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("append", handler.getAppend());
         builder.addProperty("rotate-size", handler.getRotateSize());
         builder.addProperty("max-backup-index", handler.getMaxBackupIndex());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
         return new CliCommandAction( LoggingMigrator.class, createSizeHandlerScript(handler), builder.getCommand());
     }
@@ -640,6 +644,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("filter", handler.getFilter());
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("overflow-action", handler.getOverflowAction());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "... level filter formatter ...");
 
         return new CliCommandAction( LoggingMigrator.class, createAsyncHandlerScript(handler), builder.getCommand());
     }
@@ -708,6 +713,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("class", handler.getClassValue());
         builder.addProperty("module", handler.getModule());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter class module");
 
         return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), builder.getCommand());
     }
@@ -743,16 +749,19 @@ public class LoggingMigrator extends AbstractMigrator {
         resultScript.append(builder.asString());
 
         if (logger.getHandlers() != null) {
-            StringBuilder handlersBuilder = new StringBuilder();
+            /*StringBuilder handlersBuilder = new StringBuilder();
             for (String handler : logger.getHandlers()) {
                 handlersBuilder.append(",\"").append(handler).append("\"");
             }
-
             String handlers = handlersBuilder.toString();
             if( ! handlers.isEmpty() ) {
                 handlers = handlers.replaceFirst(",", "");
                 resultScript.append(", handlers=[").append(handlers).append("]");
             }
+             */
+            String handlersStr = AS7CliUtils.joinQuoted(logger.getHandlers());
+            if( ! handlersStr.isEmpty() )
+                resultScript.append(", handlers=[").append(handlersStr).append("]");
         }
         
         resultScript.append(")");
@@ -786,6 +795,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", periodic.getFormatter());
         builder.addProperty("autoflush", periodic.getAutoflush());
         builder.addProperty("append", periodic.getAppend());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level formatter autoflush append");
 
         resultScript.append(builder.asString()).append(")");
 
@@ -820,6 +830,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("append", sizeHandler.getAppend());
         builder.addProperty("rotate-size", sizeHandler.getRotateSize());
         builder.addProperty("max-backup-index", sizeHandler.getMaxBackupIndex());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush ...");
 
         resultScript.append(builder.asString()).append(")");
 
@@ -849,6 +860,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("filter", asyncHandler.getFilter());
         builder.addProperty("formatter", asyncHandler.getFormatter());
         builder.addProperty("overflow-action", asyncHandler.getOverflowAction());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
         resultScript.append(builder.asString());
 
@@ -893,6 +905,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", consoleHandler.getFormatter());
         builder.addProperty("autoflush", consoleHandler.getAutoflush());
         builder.addProperty("target", consoleHandler.getTarget());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush target");
 
         resultScript.append(builder.asString()).append(")");
 
@@ -923,22 +936,19 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", customHandler.getFormatter());
         builder.addProperty("class", customHandler.getClassValue());
         builder.addProperty("module", customHandler.getModule());
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter class module");
 
         resultScript.append(builder.asString());
 
-        if (customHandler.getProperties() != null) {
+        if( customHandler.getProperties() != null && customHandler.getProperties().size() != 0 ) {
             StringBuilder propertiesBuilder = new StringBuilder();
             for (PropertyBean property : customHandler.getProperties()) {
                 propertiesBuilder.append(", \"").append(property.getName()).append("\"=>");
-                propertiesBuilder.append("\"").append(property.getValue()).append("\"");
+                propertiesBuilder.append('"').append(property.getValue()).append('"');
             }
-
             String properties = propertiesBuilder.toString();
-
-            if (!properties.isEmpty()) {
-                properties = properties.replaceFirst(", ", "");
-                resultScript.append(", properties={").append(properties).append("}");
-            }
+            properties = properties.replaceFirst(", ", "");
+            resultScript.append(", properties={").append(properties).append('}');
         }
 
         resultScript.append(")");
