@@ -7,16 +7,19 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class CopyFileAction extends FileAbstractAction {
+    private static final Logger log = LoggerFactory.getLogger(CopyFileAction.class);
 
     private boolean overwrite;
     
     public enum IfExists {
-        OVERWRITE, SKIP, FAIL
+        OVERWRITE, SKIP, WARN, FAIL
     }
     
     private IfExists ifExists = IfExists.FAIL;
@@ -52,8 +55,9 @@ public class CopyFileAction extends FileAbstractAction {
         if( ! dest.exists() )
             return;
         switch( this.ifExists ){
-            case FAIL: throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
             case OVERWRITE: return;
+            case FAIL: throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+            case WARN: log.warn("Copy destination exists, skipping: " + dest.getAbsolutePath()); return;
             case SKIP: return;
         }
     }

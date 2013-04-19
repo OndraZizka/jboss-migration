@@ -126,7 +126,7 @@ public class SecurityMigrator extends AbstractMigrator {
             }
 
             File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName());
-            CopyFileAction act = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP );
+            CopyFileAction act = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.WARN );
             ctx.getActions().add( act );
         }
 
