@@ -14,17 +14,23 @@ import java.io.IOException;
 public class CopyFileAction extends FileAbstractAction {
 
     private boolean overwrite;
+    
+    public enum IfExists {
+        OVERWRITE, SKIP, FAIL
+    }
+    
+    private IfExists ifExists = IfExists.FAIL;
 
 
-    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean overwrite) {
+    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, IfExists ifExists) {
         super( fromMigrator, src, dest);
-        this.overwrite = overwrite;
+        this.ifExists = ifExists;
     }
 
 
-    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, boolean overwrite, boolean failIfNotExist) {
+    public CopyFileAction(Class<? extends IMigrator> fromMigrator, File src, File dest, IfExists ifExists, boolean failIfNotExist) {
         super( fromMigrator, src, dest, failIfNotExist );
-        this.overwrite = overwrite;
+        this.ifExists = ifExists;
     }
 
     
@@ -34,7 +40,7 @@ public class CopyFileAction extends FileAbstractAction {
     
     @Override
     public String addToDescription() {
-        return "may" + (this.overwrite ? "" : " not") + " overwrite, ";
+        return "if exists, " + this.ifExists.name().toLowerCase();
     }
     
     
@@ -43,13 +49,20 @@ public class CopyFileAction extends FileAbstractAction {
     public void preValidate() throws MigrationException {
         if( ! src.exists() && failIfNotExist )
             throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
-        if( dest.exists() && !overwrite)
-            throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+        if( ! dest.exists() )
+            return;
+        switch( this.ifExists ){
+            case FAIL: throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+            case OVERWRITE: return;
+            case SKIP: return;
+        }
     }
 
 
     @Override
     public void perform() throws MigrationException {
+        if( dest.exists() && this.ifExists == IfExists.SKIP )
+            return;
         try {
             FileUtils.copyFile( src, dest );
             setState(State.DONE);

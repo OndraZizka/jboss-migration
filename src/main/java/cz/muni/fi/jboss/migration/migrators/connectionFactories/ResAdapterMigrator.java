@@ -140,8 +140,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",
                     src.getName());
 
-            // Default value for overwrite => false
-            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, false));
+            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP));
         }
     }
 
