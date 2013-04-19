@@ -663,6 +663,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
 
+        builder.addProperty("driver-name", driver.getDriverModule());
         builder.addProperty("driver-module-name", driver.getDriverModule());
         builder.addProperty("driver-class-name", driver.getDriverClass());
         builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
