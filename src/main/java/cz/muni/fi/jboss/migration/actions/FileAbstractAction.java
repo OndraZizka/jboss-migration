@@ -58,14 +58,15 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
+        if( ! this.isAfterPerform() )  return;
+        
         // Restore the backup file.
-        if( this.isAfterPerform() ) {
-            if( this.temp != null ) {
-                try {
-                    FileUtils.moveFile(this.temp, this.dest);
-                } catch (IOException ex) {
-                    throw new ActionException(this, "Restoring the previous file failed: " + ex.getMessage(), ex);
-                }
+        if( this.temp != null ) {
+            try {
+                FileUtils.deleteQuietly( this.dest );
+                FileUtils.moveFile(this.temp, this.dest);
+            } catch (IOException ex) {
+                throw new ActionException(this, "Restoring the previous file failed: " + ex.getMessage(), ex);
             }
         }
         setState(IMigrationAction.State.ROLLED_BACK);

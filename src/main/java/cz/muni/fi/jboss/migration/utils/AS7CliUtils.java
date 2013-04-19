@@ -90,9 +90,9 @@ public class AS7CliUtils {
             return null;
         
         ModelNode failDesc = node.get(ClientConstants.FAILURE_DESCRIPTION);
-        
         // "Operation step-1" => "JBAS014803: Duplicate resource ...
-        ModelNode compositeFailDesc = failDesc.get(1);
+        String key = failDesc.keys().iterator().next();
+        ModelNode compositeFailDesc = failDesc.get(key);
         Set<String> keys = compositeFailDesc.keys();
         // "Operation step-XX"
         String opKey = keys.iterator().next();

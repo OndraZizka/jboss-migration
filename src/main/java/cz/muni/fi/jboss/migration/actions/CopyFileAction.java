@@ -43,7 +43,7 @@ public class CopyFileAction extends FileAbstractAction {
     
     @Override
     public String addToDescription() {
-        return "if exists, " + this.ifExists.name().toLowerCase();
+        return "if exists - " + this.ifExists.name().toLowerCase() + ", ";
     }
     
     

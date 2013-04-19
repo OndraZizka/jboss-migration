@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.conf.Configuration;
@@ -299,10 +300,16 @@ public class MigratorEngine {
         // Clear CLI commands, should there be any.
         ctx.getBatch().clear();
         
+        // Store CLI actions into an ordered list.
+        List<CliCommandAction> cliActions = new LinkedList();
+        
         // Perform the actions.
         log.info("Performing actions:");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            if( action instanceof CliCommandAction )
+                cliActions.add((CliCommandAction) action);
+            
             log.info("    " + action.toDescription());
             action.setMigrationContext(ctx);
             action.perform();
@@ -326,7 +333,8 @@ public class MigratorEngine {
                 log.warn("Unable to parse CLI batch operation index: " + ex.getResponseNode());
                 throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
             }
-            throw new ActionException( ctx.getActions().get( i-1 ), "Executing a CLI batch failed.");
+            IMigrationAction causeAction = cliActions.get( index-1 );
+            throw new ActionException( causeAction, "Executing a CLI batch failed.");
             //ctx.getBatch().getCommands().get( i-1 );
         }
         catch( IOException ex ) {
