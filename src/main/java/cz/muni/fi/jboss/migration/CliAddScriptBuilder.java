@@ -1,7 +1,9 @@
 package cz.muni.fi.jboss.migration;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class for building Cli scripts using StringBuilder.
@@ -10,7 +12,7 @@ import java.util.List;
  */
 public class CliAddScriptBuilder {
 
-    private List<String> properties = new ArrayList();
+    private List<String> properties = new LinkedList();
 
     /**
      * Method for adding new property to script. Method checks if value isn't empty or null before storing.
@@ -19,11 +21,8 @@ public class CliAddScriptBuilder {
      * @param value    value of property
      */
     public void addProperty(String property, String value) {
-        if (value != null) {
-            if (!value.isEmpty()) {
-                this.properties.add(property + "=" + value);
-            }
-        }
+        if( value == null || value.isEmpty() )  return;
+        this.properties.add( property + "=" + value);
     }
 
     /**
@@ -32,20 +31,19 @@ public class CliAddScriptBuilder {
      * @return string containing all data
      */
     public String asString() {
-        StringBuilder builder = new StringBuilder();
 
+        /*StringBuilder builder = new StringBuilder();
         for (int i = 0; i < this.properties.size(); i++) {
-            if (i == this.properties.size() - 1) {
-                builder.append(this.properties.get(i));
-                continue;
-            }
             builder.append(this.properties.get(i));
-            builder.append(", ");
+            if (i < this.properties.size() - 1)
+                builder.append(", ");
         }
-
         properties.clear();
-
-        return builder.toString();
+        return builder.toString();*/
+        
+        String join = StringUtils.join( this.properties, ", " );
+        properties.clear();
+        return join;
     }
 
     /**
@@ -54,21 +52,21 @@ public class CliAddScriptBuilder {
      * @return string containing all data
      */
     public String asStringNew() {
-        StringBuilder builder = new StringBuilder();
-
+        /*StringBuilder builder = new StringBuilder();
         for (int i = 0; i < this.properties.size(); i++) {
-            if (i == this.properties.size() - 1) {
-                builder.append(this.properties.get(i));
-                continue;
-            }
-            builder.append(this.properties.get(i));
-            builder.append(" ");
+        if (i == this.properties.size() - 1) {
+        builder.append(this.properties.get(i));
+        continue;
         }
-
+        builder.append(this.properties.get(i));
+        builder.append(" ");
+        }
         properties.clear();
-
-        return builder.toString();
+        return builder.toString();*/
+        
+        String join = StringUtils.join( this.properties, " " );
+        properties.clear();
+        return join;
     }
 
-
-}
+}// class

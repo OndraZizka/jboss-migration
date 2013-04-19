@@ -10,6 +10,7 @@ import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.logging.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
+import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
@@ -149,23 +150,23 @@ public class LoggingMigrator extends AbstractMigrator {
             // continue on the next iteration
             try {
                 handler.setModule(tempModules.get(src));
-
                 actions.add(createCustomHandlerCliAction(handler));
-            } catch (CliScriptException e) {
-                throw new MigrationException("Migration of the appeneder: " + handler.getName() +
+            }
+            catch (CliScriptException e) {
+                throw new MigrationException("Migration of the appeneder " + handler.getName() +
                         "failed (CLI command): " + e.getMessage(), e);
             }
 
         } else {
             try {
                 // Driver file is new => create ModuleCreationAction, new module and CLI script for driver
-                handler.setModule("migration.logging.customHandler" + number);
+                handler.setModule("logging.customHandler" + number);
                 tempModules.put(src, handler.getModule());
 
                 actions.add(createCustomHandlerCliAction(handler));
 
-                File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "modules", "migration",
-                        "logging", "customHandler" + number, "main", src.getName());
+                File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getModulesDir(), 
+                        "logging/customHandler" + number, "main", src.getName());
 
                 Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
 
@@ -177,12 +178,12 @@ public class LoggingMigrator extends AbstractMigrator {
                 // iterate number of custom handlers for creation of modules
                 number++;
 
-            } catch (ParserConfigurationException e) {
-                throw new MigrationException("Creation of Document representing module.xml for Custom-Handler failed: "
-                        + e.getMessage(), e);
-            } catch (CliScriptException e) {
-                throw new MigrationException("Migration of the appeneder: " + handler.getName() +
-                        "failed (CLI command): " + e.getMessage(), e);
+            }
+            catch (ParserConfigurationException e) {
+                throw new MigrationException("Failed creating Custom-Handler module.xml: " + e.getMessage(), e);
+            }
+            catch (CliScriptException e) {
+                throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
             }
         }
 
@@ -667,6 +668,8 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("autoflush", handler.getAutoflush());
         builder.addProperty("target", handler.getTarget());
+        
+        // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush target");
 
         return new CliCommandAction( LoggingMigrator.class, createConsoleHandlerScript(handler), builder.getCommand());
     }
@@ -732,33 +735,27 @@ public class LoggingMigrator extends AbstractMigrator {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(");
-
+        
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         builder.addProperty("level", logger.getLoggerLevelName());
         builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
-
         resultScript.append(builder.asString());
 
         if (logger.getHandlers() != null) {
             StringBuilder handlersBuilder = new StringBuilder();
-
             for (String handler : logger.getHandlers()) {
                 handlersBuilder.append(",\"").append(handler).append("\"");
             }
 
             String handlers = handlersBuilder.toString();
-
-            if (!handlers.isEmpty()) {
+            if( ! handlers.isEmpty() ) {
                 handlers = handlers.replaceFirst(",", "");
-                resultScript.append(", handlers=[").append(handlers).append("])");
-            } else {
-                resultScript.append(")");
+                resultScript.append(", handlers=[").append(handlers).append("]");
             }
-        } else {
-            resultScript.append(")");
         }
-
+        
+        resultScript.append(")");
         return resultScript.toString();
     }
 
