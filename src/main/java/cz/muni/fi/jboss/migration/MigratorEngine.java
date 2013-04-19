@@ -5,6 +5,7 @@ import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
+import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.ex.InitMigratorsExceptions;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -227,6 +228,8 @@ public class MigratorEngine {
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
+            
+            // Build up a description.
             String description = "";
             if( ex instanceof ActionException ){
                 IMigrationAction action = ((ActionException)ex).getAction();
@@ -316,7 +319,17 @@ public class MigratorEngine {
         log.debug("CLI Batch:");
         try {
             AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
-        } catch( IOException ex ) {
+        }
+        catch( CliBatchException ex ){
+            Integer index = AS7CliUtils.parseFailedOperationIndex( ex.getResponseNode() );
+            if( null == index ){
+                log.warn("Unable to parse CLI batch operation index: " + ex.getResponseNode());
+                throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
+            }
+            throw new ActionException( ctx.getActions().get( i-1 ), "Executing a CLI batch failed.");
+            //ctx.getBatch().getCommands().get( i-1 );
+        }
+        catch( IOException ex ) {
             throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
         }
         
