@@ -12,7 +12,13 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <!-- Input defaults -->
+        <download>as7</download>
+        
+        <!-- Build flow control -->
         <as.jvm.args></as.jvm.args>
+        <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
     </properties>
     
     <build>
@@ -118,6 +124,67 @@
             <url>http://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
     </repositories>
+    
+    <profiles>
+        <!-- Download AS or EAP for Arquillian tests. -->
+        <profile>  <id>DownloadContainer</id>
+            <activation> <property> <name>download</name> </property> </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution> <id>get-AS7</id> <phase>process-test-classes</phase>
+                                <goals> <goal>unpack</goal> </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.jboss.as</groupId>
+                                            <artifactId>jboss-as-dist</artifactId>
+                                            <version>${as.download.version}</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                            <outputDirectory>target</outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- Download AS 7 for Arquillian tests. -->
+        <profile>  <id>DownloadAS</id>
+            <activation> <property> <name>download</name> <value>as7</value> </property> </activation>
+            <repositories>
+                <repository>
+                    <id>JBossPublic</id>
+                    <url>http://repository.jboss.org/nexus/content/groups/public</url>
+                </repository>
+            </repositories>
+            <properties>
+                <as.download.version>7.1.1.Final</as.download.version>
+                <arq.asContainer.version>7.1.1.Final</arq.asContainer.version>
+            </properties>
+        </profile>
+        
+        <!-- Download EAP 6 for Arquillian tests. -->
+        <profile>  <id>DownloadEAP</id>
+            <activation> <property> <name>download</name> <value>eap6</value> </property> </activation>
+            <repositories>
+                <repository>
+                    <id>RedHat</id>
+                    <url>http://maven.repository.redhat.com/earlyaccess/all</url>
+                </repository>
+            </repositories>
+            <properties>
+                <as.download.version>7.2.0.Alpha1-redhat-4</as.download.version>
+                <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
 
@@ -186,7 +253,7 @@
         <dependency>
             <groupId>org.jboss.as</groupId>
             <artifactId>jboss-as-arquillian-container-managed</artifactId>
-            <version>7.1.1.Final</version>
+            <version>${arq.asContainer.version}</version>
             <scope>test</scope>
         </dependency>
 
