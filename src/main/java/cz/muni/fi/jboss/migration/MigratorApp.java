@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.Configuration.ModuleSpecificProperty;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
@@ -11,8 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import org.jboss.as.controller.client.ModelControllerClient;
 
 
 /**
@@ -103,6 +107,11 @@ public class MigratorApp {
                 continue;
             }
 
+            if( arg.startsWith("--as7.mgmt=") ) {
+                parseMgmtConn( StringUtils.substringAfter(arg, "="), globalConfig.getAS7Config() );
+                continue;
+            }
+
             if( arg.startsWith("--app.path=") ) {
                 globalConfig.setAppPath(StringUtils.substringAfter(arg, "="));
                 continue;
@@ -180,23 +189,43 @@ public class MigratorApp {
                     problems.add("as5.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
             }
         }
-        
         // AS 7
-        path = config.getGlobal().getAS7Config().getDir();
+        AS7Config as7Config = config.getGlobal().getAS7Config();
+        path = as7Config.getDir();
         if( null == path )
             problems.add("as7.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as7.dir is not a directory: " + path);
         else {
-            String configPath = config.getGlobal().getAS7Config().getConfigFilePath();
+            String configPath = as7Config.getConfigFilePath();
             if( null == configPath )
                 ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
             else{
                 File configFile = new File(path, configPath);
-//                if( ! configFile.exists() )
-//                problems.add("as7.confPath is not a subpath under AS 5 dir: " + configFile.getPath());
+                if( ! configFile.exists() )
+                //    problems.add(
+                    log.warn("as7.confPath is not a subpath under AS 7 dir: " + configFile.getPath() );
             }
         }
+        
+        // Management host and port
+        mgmt: {
+            if( as7Config.getManagementPort() == -1 ){
+                problems.add("as7.mgmt doesn't contain valid port after ':'.");
+                break mgmt;
+            }
+        
+            ModelControllerClient client = null;
+            try {
+                client = ModelControllerClient.Factory.create(as7Config.getHost(), as7Config.getManagementPort());
+                client.close();
+            }
+            catch( UnknownHostException ex ){
+                problems.add("Can't connect to AS 7 management: " + as7Config.getHost() + ":" + as7Config.getManagementPort());
+            }
+            catch( IOException ex ){ } // Happens on close().
+        }
+
         
         // App (deployment)
         path = config.getGlobal().getAppPath();
@@ -207,7 +236,7 @@ public class MigratorApp {
     }
 
 
-    
+
     
     /**
      *  Performs the migration.
@@ -240,6 +269,23 @@ public class MigratorApp {
         }
         
     }// migrate()
+
+
+    /**
+     * @param mgmtConn   localhost:9999
+     */
+    private static void parseMgmtConn( String mgmtConn, AS7Config aS7Config ) {
+        String host = StringUtils.substringBefore(mgmtConn, ":");
+        if( ! mgmtConn.contains(":"))  return;
+        
+        String port = StringUtils.substringAfter(mgmtConn, ":");
+        aS7Config.setHost( host );
+        try {
+            aS7Config.setManagementPort( Integer.parseInt( port ) );
+        } catch( NumberFormatException ex ){
+            aS7Config.setManagementPort( -1 );
+        }
+    }
 
     
 }// class

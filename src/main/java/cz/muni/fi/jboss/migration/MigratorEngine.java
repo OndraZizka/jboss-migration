@@ -302,7 +302,7 @@ public class MigratorEngine {
         // Execution
         log.debug("CLI Batch:");
         try {
-            AS7CliUtils.executeRequest(ctx.getBatch().toRequest());
+            AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
         } catch( IOException ex ) {
             throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
         }

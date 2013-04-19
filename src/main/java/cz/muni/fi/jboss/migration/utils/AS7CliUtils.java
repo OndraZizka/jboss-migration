@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.utils;
 
+import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
@@ -18,10 +19,10 @@ public class AS7CliUtils {
     /**
      *  Executes CLI request.
      */
-    public static void executeRequest(ModelNode request) throws IOException, MigrationException {
+    public static void executeRequest(ModelNode request, AS7Config as7config) throws IOException, MigrationException {
         ModelControllerClient client = null;
         try {
-            client = ModelControllerClient.Factory.create("localhost", 9999);
+            client = ModelControllerClient.Factory.create(as7config.getHost(), as7config.getManagementPort());
             final ModelNode response = client.execute(new OperationBuilder(request).build());
             throwIfFailure(response);
         }
