@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
+import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
@@ -28,7 +29,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.UnknownHostException;
 import java.util.*;
+import org.jboss.as.controller.client.ModelControllerClient;
 
 
 /**
@@ -175,8 +178,10 @@ public class MigratorEngine {
         
         this.resetContext();
         
+        AS7Config as7Config = config.getGlobal().getAS7Config();
+        
         // Parse AS 7 config. MIGR-31 OK
-        File as7configFile = new File(config.getGlobal().getAS7Config().getConfigFilePath());
+        File as7configFile = new File(as7Config.getConfigFilePath());
         try {
             DocumentBuilder db = Utils.createXmlDocumentBuilder();
             Document doc = db.parse(as7configFile);
@@ -192,7 +197,7 @@ public class MigratorEngine {
         }
         
         
-
+        
         
         // MIGR-31 - The new way.
         String message = null;
@@ -200,6 +205,9 @@ public class MigratorEngine {
             // Load the source server config.
             message = "Failed loading AS 5 config from " + as7configFile;
             this.loadAS5Data();
+
+            // Open an AS 7 management client connection.
+            openManagementClient();
             
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
@@ -213,6 +221,9 @@ public class MigratorEngine {
 
             message = "Verification of migration actions results failed.";
             this.postValidateActions();
+            
+            // Close the AS 7 management client connection.
+            closeManagementClient();
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
@@ -243,6 +254,8 @@ public class MigratorEngine {
      */
     private void prepareActions() throws MigrationException {
         log.debug("prepareActions()");
+                
+        // Call all migrators to create their actions.
         try {
             for (IMigrator mig : this.migrators) {
                 log.debug("    Preparing actions with " + mig.getClass().getSimpleName());
@@ -295,7 +308,7 @@ public class MigratorEngine {
         /// DEBUG: Checking created CLI scripts
         log.debug("Generated CLI scripts:");
         int i = 1;
-        for(BatchedCommand command : ctx.getBatch().getCommands()){
+        for( BatchedCommand command : ctx.getBatch().getCommands() ){
             log.debug("    " + i++ + ": " + command.getCommand());
         }
 
@@ -351,5 +364,24 @@ public class MigratorEngine {
         }
     }
 
+
+    // AS 7 management client connection.
+    
+    private void openManagementClient() throws MigrationException {
+        ModelControllerClient as7Client = null;
+        AS7Config as7Config = config.getGlobal().getAS7Config();
+        try {
+            as7Client = ModelControllerClient.Factory.create( as7Config.getHost(), as7Config.getManagementPort() );
+        }
+        catch( UnknownHostException ex ){
+            throw new MigrationException("Unknown AS 7 host.", ex);
+        }
+        ctx.setAS7ManagementClient( as7Client );
+    }
+
+    private void closeManagementClient(){
+        AS7CliUtils.safeClose( ctx.getAS7Client() );
+        ctx.setAS7ManagementClient( null );
+    }
 
 }// class

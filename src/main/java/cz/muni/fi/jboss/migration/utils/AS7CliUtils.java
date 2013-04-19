@@ -41,11 +41,11 @@ public class AS7CliUtils {
     /**
      *  Safely closes closeable resource (a CLI connection in our case).
      */
-    private static void safeClose(final Closeable closeable) throws MigrationException {
+    public static void safeClose(final Closeable closeable) {
         if (closeable != null) try {
             closeable.close();
         } catch (IOException e) {
-            throw new MigrationException("Closing failed: " + e.getMessage(), e);
+            //throw new MigrationException("Closing failed: " + e.getMessage(), e);
         }
     }
 
