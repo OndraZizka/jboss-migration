@@ -1,8 +1,10 @@
 package cz.muni.fi.jboss.migration.utils;
 
+import cz.muni.fi.jboss.migration.CliApiCommandBuilder;
 import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.migrators.logging.jaxb.ConsoleHandlerBean;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -10,6 +12,10 @@ import org.jboss.dmr.ModelNode;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
@@ -103,6 +109,67 @@ public class AS7CliUtils {
         
         return Integer.parseInt( opIndex );
     }
+
+
     
+    /**
+     *  Copies properties using reflection.
+     * @param handler  From this object.
+     * @param builder  Append to this CLI builder.
+     * @param A list of properties, as a space separated string.
+     */
+    public static void copyProperties( Object source, CliApiCommandBuilder builder, String props ) {
+        String[] parts = StringUtils.split( props );
+        for( String prop : parts ) {
+            try {
+                Method method = source.getClass().getMethod( convertPropToMethodName(prop) );
+                if( String.class != method.getReturnType() )
+                    continue;
+                String val = (String) method.invoke(source);
+                builder.addProperty( prop, val );
+            }
+            catch ( NoSuchMethodException ex ){
+                throw new RuntimeException( ex );
+            }
+            catch ( InvocationTargetException ex ){
+                throw new RuntimeException( ex );
+            }
+            catch ( IllegalAccessException ex ){
+                throw new RuntimeException( ex );
+            }
+            catch ( IllegalArgumentException ex ){
+                throw new RuntimeException( ex );
+            }
+        }
+    }
+    
+    private static String convertPropToMethodName( String propName ){
+        StringBuilder sb  = new StringBuilder("get");
+        String[] parts = StringUtils.split( propName, "-");
+        for( String part : parts) {
+            sb.append( StringUtils.capitalize( part ) );
+        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     *  Joins the given list into a string of quoted values joined with ", ".
+     * @param col
+     * @return 
+     */
+    public static String joinQuoted( Collection<String> col ){
+
+        if( col.size() == 0 )
+            return "";
+        
+        StringBuilder sb = new StringBuilder();
+        for( String item : col )
+            sb.append(",\"").append(item).append('"');
+
+        String str = sb.toString();
+        str = str.replaceFirst(",", "");
+        return str;
+    }
     
 }// class
