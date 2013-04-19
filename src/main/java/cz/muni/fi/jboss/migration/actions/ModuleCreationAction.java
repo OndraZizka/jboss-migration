@@ -15,6 +15,8 @@ import java.io.IOException;
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ModuleCreationAction extends AbstractStatefulAction {
+    
+    private static final String MODULE_XML_FNAME = "module.xml";
 
     File src;
     File dest;
@@ -23,9 +25,9 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     boolean overwrite;
 
 
-    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File src, File dest, Document moduleDoc, boolean overwrite) {
+    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File jar, File dest, Document moduleDoc, boolean overwrite) {
         super(fromMigrator);
-        this.src = src;
+        this.src = jar;
         this.dest = dest;
         this.moduleDoc = moduleDoc;
         this.overwrite = overwrite;
@@ -40,10 +42,10 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void preValidate() throws MigrationException {
-        if (!src.exists())
-            throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
-        if (dest.exists() && !overwrite)
-            throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+        if( ! src.exists() )
+            throw new ActionException(this, "Module source jar doesn't exist: " + src.getPath());
+        if( dest.exists() && ! overwrite )
+            throw new ActionException(this, "Module jar exists in AS 7, overwrite not allowed: " + dest.getAbsolutePath());
     }
 
 
@@ -52,9 +54,11 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         // Create a module.
         try {
             FileUtils.copyFile(this.src, this.dest);
-            File moduleXml = new File(this.dest.getParentFile(), "module.xml");
-            if (!moduleXml.createNewFile())
-                throw new ActionException(this, "Creation of module.xml failed - don't have write permission in " + moduleXml.getParent());
+            File moduleXml = new File(this.dest.getParentFile(), MODULE_XML_FNAME);
+            //if( ! moduleXml.createNewFile() )
+            //    throw new ActionException(this, "Creation of module.xml failed - don't have write permission in " + moduleXml.getParent());
+            if( moduleXml.exists() && ! this.overwrite )
+                throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXml.getPath() );
 
             Utils.transformDocToFile(this.moduleDoc, moduleXml);
             this.moduleXml = moduleXml;
@@ -63,11 +67,10 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
         catch (TransformerException e) {
-            throw new ActionException(this, "Creation of the module.xml failed: " + e.getMessage(), e);
+            throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + e.getMessage(), e);
         }
 
         setState(State.DONE);
-
     }
 
 
