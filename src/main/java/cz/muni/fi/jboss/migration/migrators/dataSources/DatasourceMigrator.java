@@ -220,12 +220,15 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return actions;
     }
-
+    
     /**
      * Migrates a No-Tx-Datasource from AS5 to AS7
      *
      * @param noTxDatasourceAS5 object representing No-Tx-Datasource in AS5
      * @return object representing migrated Datasource in AS7
+     * 
+     *  TODO: Many of properties are identical across 3 types of datasources.
+     *        Move them into a parent class and process in a shared method.
      */
     public DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
