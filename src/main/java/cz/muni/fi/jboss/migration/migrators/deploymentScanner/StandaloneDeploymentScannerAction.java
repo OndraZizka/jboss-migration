@@ -21,6 +21,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+
 /**
  * User: rsearls
  * Date: 4/18/13
@@ -31,7 +38,7 @@ public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
         new ArrayList<StandaloneDeploymentScannerType>();
     File destFile;
     Document destDoc;
-    Node rootNodeBackup = null;
+    Document rootNodeBackup = null;
 
     public StandaloneDeploymentScannerAction(File destFile, Document destDoc) {
         this.destFile = destFile;
@@ -128,8 +135,7 @@ public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
         if (rootNodeBackup == null) {
             throw new MigrationException("No backup data to rollback to.");
         } else {
-            Node rootNode = (Node)destDoc;
-            rootNode.replaceChild(rootNodeBackup, rootNode);
+            destDoc = rootNodeBackup;
         }
 
         setState(State.ROLLED_BACK);
@@ -158,9 +164,24 @@ public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
 
     @Override
     public void backup() throws MigrationException {
-        Node rootNode = (Node)destDoc;
-        rootNodeBackup = rootNode.cloneNode(true);
-        setState(State.BACKED_UP);
+
+        // make a backup copy of the doc
+        try {
+
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            DOMSource xmlDomSource = new DOMSource(destDoc);
+            DOMResult domResult = new DOMResult();
+            transformer.transform(xmlDomSource, domResult);
+
+            rootNodeBackup = (Document)domResult.getNode();
+
+            setState(State.BACKED_UP);
+        } catch (TransformerConfigurationException e) {
+            System.out.println(e);
+        } catch (TransformerException te) {
+            System.out.println(te);
+        }
     }
 
 

@@ -4,7 +4,6 @@ import cz.muni.fi.jboss.migration.AbstractMigrator;
 import cz.muni.fi.jboss.migration.MigrationContext;
 import cz.muni.fi.jboss.migration.MigrationData;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
-import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.conf.AS5Config;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ApplyMigrationException;
@@ -25,7 +24,6 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.xpath.XPath;
@@ -62,30 +60,26 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
     // step 1
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException{
+    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
 
-        AS5Config  as5Config = super.getGlobalConfig().getAS5Config();
+        AS5Config as5Config = super.getGlobalConfig().getAS5Config();
         int scanPeriod = getScanPeriod(as5Config);
 
-        try {
-            File f = Utils.createPath(as5Config.getDir(), "server",
-                as5Config.getProfileName(), "conf/bootstrap", "profile.xml");
+        File f = Utils.createPath(as5Config.getDir(), "server",
+            as5Config.getProfileName(), "conf/bootstrap", "profile.xml");
 
-            if (f.exists() && f.canRead()) {
-                List<ValueType> valueList = getDeploymentDirs(f);
-                MigrationData mData = new MigrationData();
-                mData.getConfigFragments().addAll(valueList);
-                ctx.getMigrationData().put(this.getClass(), mData);
+        if (f.exists() && f.canRead()) {
+            List<ValueType> valueList = getDeploymentDirs(f);
+            MigrationData mData = new MigrationData();
+            mData.getConfigFragments().addAll(valueList);
+            ctx.getMigrationData().put(this.getClass(), mData);
 
-                for(ValueType v : valueList){
-                    v.setScanPeriod(scanPeriod);
-                }
-            } else {
-                throw new LoadMigrationException("Cannot find/open file: " +
-                    f.getAbsolutePath(), new FileNotFoundException());
+            for (ValueType v : valueList) {
+                v.setScanPeriod(scanPeriod);
             }
-        } catch (Exception e) { //TODO fix this
-          System.out.println(e);
+        } else {
+            throw new LoadMigrationException("Cannot find/open file: " +
+                f.getAbsolutePath(), new FileNotFoundException());
         }
     }
 
@@ -107,7 +101,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             if (0 == nList.getLength()) {
                 // No deployment-scanner subsystem found.  Prep to add
 
-                Subsystem subsystem = xxxcreateDeploymentScannerSubsystem(
+                Subsystem subsystem = createDeploymentScannerSubsystem(
                     destDoc, ctx, xpath);
 
                 if (subsystem != null) {
@@ -151,156 +145,10 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         ctx.getBatch().add(new org.jboss.as.cli.batch.impl.DefaultBatchedCommand("ls",  mNode));
     }
 
-    private void testing (MigrationContext ctx) throws ApplyMigrationException{
-
-        try {
-
-            Document destDoc = ctx.getAS7ConfigXmlDoc();
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            String exp = "/server/profile/subsystem/deployment-scanner";
-            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
-                XPathConstants.NODESET);
-
-            int cnt = nList.getLength();
-            if (cnt == 0) {
-                Subsystem subsystem = xxxcreateDeploymentScannerSubsystem(
-                    destDoc, ctx, xpath);
-
-                File as7configFile = new File(getGlobalConfig().getAS7Config().getConfigFilePath());
-                List<IMigrationAction> actionList = ctx.getActions();
-
-                //- action to alter dest file directory
-                SubsystemAction action = new SubsystemAction( subsystem,
-                    as7configFile, ctx.getAS7ConfigXmlDoc());
-                actionList.add(action);
-
-            } else {
-                //- There could be more an 1 deployment-scanner subsystem defined,
-                //- however add new ref in only 1 subsystem.
-                Node parentNode = nList.item(0).getParentNode();
-
-                File as7configFile = new File(getGlobalConfig().getAS7Config().getConfigFilePath());
-                StandaloneDeploymentScannerAction sAction =
-                    new StandaloneDeploymentScannerAction(as7configFile, ctx.getAS7ConfigXmlDoc());
-
-
-                for (IConfigFragment fragment : ctx.getMigrationData().get(
-                    DeploymentScannerMigrator.class).getConfigFragments()) {
-
-                    // transfer data from prev to current version
-                    StandaloneDeploymentScannerType destDScanner =
-                        new StandaloneDeploymentScannerType((ValueType)fragment);
-                    sAction.addStandaloneDeploymentScannerType(destDScanner);
-                    /******
-                    // transform data into DOM obj for insertion
-                    Document tmpDoc = docBuilder.newDocument();
-                    marshaller.marshal(destDScanner, tmpDoc);
-
-                    Node newChild = destDoc.adoptNode(
-                        tmpDoc.getDocumentElement().cloneNode(true));
-
-                    parentNode.appendChild(newChild);
-                    ******/
-                }
-
-                if (!sAction.getStandaloneDeploymentScannerTypeList().isEmpty()){
-                    List<IMigrationAction> actionList = ctx.getActions();
-                    actionList.add(sAction);
-                }
-
-                /*
-                // debug confirm addition
-                NodeList jnList = (NodeList) xpath.evaluate(expression,
-                    destDoc, XPathConstants.NODESET);
-
-                int jcnt = jnList.getLength();
-                System.out.println("jcnt: " + jcnt);
-                StandaloneDeploymentScannerType b = null;
-                for (int j = 0; j < jcnt; j++) {
-                    Node n = jnList.item(j);
-                    b = (StandaloneDeploymentScannerType) unmarshaller.unmarshal(n);
-                    System.out.println("NEW bean path: " + b.getPath());
-                }
-                **/
-
-            }
-
-        } catch (JAXBException e) {
-            throw new ApplyMigrationException(e);
-        } catch(XPathExpressionException xee) {
-            throw new ApplyMigrationException(xee);
-        }
-    }
 
     @Override
     public void apply(MigrationContext ctx) throws ApplyMigrationException{
-
-        try {
-
-            Document destDoc = ctx.getAS7ConfigXmlDoc();
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            String exp = "/server/profile/subsystem/deployment-scanner";
-            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
-                XPathConstants.NODESET);
-
-            JAXBContext jaxbCtx = JAXBContext.newInstance(
-                StandaloneDeploymentScannerType.class);
-            Marshaller marshaller = jaxbCtx.createMarshaller();
-
-            int cnt = nList.getLength();
-            if (cnt == 0) {
-                createDeploymentScannerSubsystem(destDoc, ctx, docBuilder,
-                    xpath, marshaller);
-            } else {
-                //- There could be more an 1 deployment-scanner subsystem defined,
-                //- however add new ref in only 1 subsystem.
-                Node parentNode = nList.item(0).getParentNode();
-
-                for (IConfigFragment fragment : ctx.getMigrationData().get(
-                    DeploymentScannerMigrator.class).getConfigFragments()) {
-
-                    // transfer data from prev to current version
-                    StandaloneDeploymentScannerType destDScanner =
-                        new StandaloneDeploymentScannerType((ValueType)fragment);
-
-                    // transform data into DOM obj for insertion
-                    Document tmpDoc = docBuilder.newDocument();
-                    marshaller.marshal(destDScanner, tmpDoc);
-
-                    Node newChild = destDoc.adoptNode(
-                        tmpDoc.getDocumentElement().cloneNode(true));
-
-                    parentNode.appendChild(newChild);
-                }
-
-                /*
-                // debug confirm addition
-                NodeList jnList = (NodeList) xpath.evaluate(expression,
-                    destDoc, XPathConstants.NODESET);
-
-                int jcnt = jnList.getLength();
-                System.out.println("jcnt: " + jcnt);
-                StandaloneDeploymentScannerType b = null;
-                for (int j = 0; j < jcnt; j++) {
-                    Node n = jnList.item(j);
-                    b = (StandaloneDeploymentScannerType) unmarshaller.unmarshal(n);
-                    System.out.println("NEW bean path: " + b.getPath());
-                }
-                **/
-
-            }
-
-        } catch (JAXBException e) {
-            throw new ApplyMigrationException(e);
-        } catch(XPathExpressionException xee) {
-            throw new ApplyMigrationException(xee);
-        }
     }
-
 
     @Override
     public List<Node> generateDomElements(MigrationContext ctx)
@@ -321,43 +169,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
     /* --------------------------------------------------------------------*/
     /* --------------------------------------------------------------------*/
 
-    private void createDeploymentScannerSubsystem(Document destDoc, MigrationContext ctx,
-        DocumentBuilder docBuilder, XPath xpath, Marshaller marshaller)
-            throws ApplyMigrationException, JAXBException, XPathExpressionException {
-
-        //deployment-scanner subsystem does not exist.  Create it.
-        //System.out.println("create and insert new subsystem.");
-        String exp = "/server/profile";
-        NodeList pList = (NodeList) xpath.evaluate(exp, destDoc,
-            XPathConstants.NODESET);
-
-        if (pList.getLength() == 0) {
-            throw new ApplyMigrationException("profile element not found in file: "
-                + destDoc.getBaseURI());
-        } else {
-
-            Subsystem subsystem = new Subsystem();
-            for (IConfigFragment fragment : ctx.getMigrationData().get(
-                DeploymentScannerMigrator.class).getConfigFragments()) {
-
-                // transfer data from prev to current version
-                StandaloneDeploymentScannerType destDScanner =
-                    new StandaloneDeploymentScannerType((ValueType) fragment);
-                subsystem.getDeploymentScanner().add(destDScanner);
-            }
-
-            // transform data into DOM obj for insertion
-            Document tmpDoc = docBuilder.newDocument();
-            marshaller.marshal(subsystem, tmpDoc);
-
-            Node newChild = destDoc.adoptNode(
-                tmpDoc.getDocumentElement().cloneNode(true));
-            pList.item(0).appendChild(newChild);
-
-        }
-    }
-
-    private Subsystem xxxcreateDeploymentScannerSubsystem(Document destDoc,
+    private Subsystem createDeploymentScannerSubsystem(Document destDoc,
         MigrationContext ctx, XPath xpath)
         throws JAXBException, XPathExpressionException {
 
@@ -387,7 +199,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
      * @param f
      * @return
      */
-    private List<ValueType> getDeploymentDirs(File f){
+    private List<ValueType> getDeploymentDirs(File f) throws LoadMigrationException {
 
         List<ValueType> resultList = new ArrayList<ValueType>();
 
@@ -406,27 +218,20 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
 
             for (ValueType v : l.getValue()) {
-                //String value = v.getValue().trim();
-                //System.out.println("list value: " + value);
 
                 if (v.isExternalDir()) {
-                    //String absPath = value.substring(URL_PREFIX.length());
-                    //System.out.println("external path: " + absPath);
                     resultList.add(v);
                 }
             }
 
-        } catch (JAXBException e) {  //TODO: fix these
-            System.out.println(e);
-            // } catch (ParserConfigurationException cpe) {
-            //     //throw new RuntimeException(ex);
-            //     System.out.println(cpe);
+        } catch (JAXBException e) {
+            throw new LoadMigrationException(e);
         } catch (SAXException saxe) {
-            System.out.println(saxe);
+            throw new LoadMigrationException(saxe);
         } catch (IOException ioe) {
-            System.out.println(ioe);
-        } catch (XPathExpressionException pee) {
-            System.out.println(pee);
+            throw new LoadMigrationException(ioe);
+        } catch (XPathExpressionException xee) {
+            throw new LoadMigrationException(xee);
         }
         return resultList;
     }
@@ -436,7 +241,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
      * @param as5Config
      * @return
      */
-    private int getScanPeriod(AS5Config  as5Config){
+    private int getScanPeriod(AS5Config  as5Config) throws LoadMigrationException {
 
         int result = 5000;  // AS5 default value
 
@@ -469,8 +274,14 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 }
             }
 
-        } catch (Exception e) {   //TODO fix this
-            System.out.println(e);
+        } catch (JAXBException e) {
+            throw new LoadMigrationException(e);
+        } catch (SAXException saxe) {
+            throw new LoadMigrationException(saxe);
+        } catch (IOException ioe) {
+            throw new LoadMigrationException(ioe);
+        } catch (XPathExpressionException xee) {
+            throw new LoadMigrationException(xee);
         }
         return result;
     }
