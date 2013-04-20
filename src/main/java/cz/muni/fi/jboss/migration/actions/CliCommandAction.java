@@ -128,7 +128,7 @@ public class CliCommandAction extends AbstractStatefulAction {
     public BatchedCommand getCommand() { return command; }
     public void setCommand( BatchedCommand command ) { this.command = new BatchedCommandWithAction( this, command ); }
     public Configuration.IfExists getIfExists() { return ifExists; }
-    public void setIfExists( Configuration.IfExists ifExists ) { this.ifExists = ifExists; }
+    public CliCommandAction setIfExists( Configuration.IfExists ifExists ) { this.ifExists = ifExists; return this; }
     //</editor-fold>
 
     
