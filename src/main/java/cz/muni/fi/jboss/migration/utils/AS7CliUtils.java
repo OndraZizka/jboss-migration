@@ -26,6 +26,22 @@ public class AS7CliUtils {
     private final static String OP_KEY_PREFIX = "Operation step-";
     
     
+    
+    public static void removeResourceIfExists( ModelNode loggerCmd, ModelControllerClient aS7Client ) throws IOException, CliBatchException {
+        
+        // Check if exists.
+        loggerCmd.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
+        ModelNode res = aS7Client.execute( loggerCmd );
+        if( ! wasSuccess( res ))  return;
+        
+        // Remove.
+        loggerCmd.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
+        res = aS7Client.execute( loggerCmd );
+        throwIfFailure( res );
+    }
+    
+    
+    
     /**
      *  Executes CLI request.
      */
@@ -61,20 +77,27 @@ public class AS7CliUtils {
      *  If the result is an error, throw an exception.
      */
     private static void throwIfFailure(final ModelNode node) throws CliBatchException {
-        if( ! ClientConstants.SUCCESS.equals( node.get(ClientConstants.OUTCOME).asString() )) {
-            final String msg;
-            if (node.hasDefined(ClientConstants.FAILURE_DESCRIPTION)) {
-                if (node.hasDefined(ClientConstants.OP)) {
-                    msg = String.format("Operation '%s' at address '%s' failed: %s", node.get(ClientConstants.OP), node.get(ClientConstants.OP_ADDR), node.get(ClientConstants.FAILURE_DESCRIPTION));
-                } else {
-                    msg = String.format("Operation failed: %s", node.get(ClientConstants.FAILURE_DESCRIPTION));
-                }
+        if( wasSuccess( node ) )
+            return;
+        
+        final String msg;
+        if (node.hasDefined(ClientConstants.FAILURE_DESCRIPTION)) {
+            if (node.hasDefined(ClientConstants.OP)) {
+                msg = String.format("Operation '%s' at address '%s' failed: %s", node.get(ClientConstants.OP), node.get(ClientConstants.OP_ADDR), node.get(ClientConstants.FAILURE_DESCRIPTION));
             } else {
-                msg = String.format("Operation failed: %s", node);
+                msg = String.format("Operation failed: %s", node.get(ClientConstants.FAILURE_DESCRIPTION));
             }
-            throw new CliBatchException(msg, node);
+        } else {
+            msg = String.format("Operation failed: %s", node);
         }
+        throw new CliBatchException(msg, node);
     }
+    
+    private static boolean wasSuccess( ModelNode node ) {
+        return ClientConstants.SUCCESS.equals( node.get(ClientConstants.OUTCOME).asString() );
+    }
+    
+    
     
     /**
      *  Parses the index of operation which failed.
@@ -169,5 +192,5 @@ public class AS7CliUtils {
         str = str.replaceFirst(",", "");
         return str;
     }
-    
+
 }// class
