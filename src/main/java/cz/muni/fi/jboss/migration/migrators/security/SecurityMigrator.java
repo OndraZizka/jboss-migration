@@ -11,6 +11,7 @@ import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.security.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
+import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
@@ -21,9 +22,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -259,19 +260,22 @@ public class SecurityMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
      *                            are missing or are empty (security-domain-name)
      */
-    public static List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
+    public List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
             throws CliScriptException {
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(domain.getSecurityDomainName(), errMsg, "Security name");
 
-        List<CliCommandAction> actions = new ArrayList();
-
+        List<CliCommandAction> actions = new LinkedList();
+        
+        // CLI ADD command
         ModelNode domainCmd = new ModelNode();
         domainCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         domainCmd.get(ClientConstants.OP_ADDR).add("subsystem", "security");
         domainCmd.get(ClientConstants.OP_ADDR).add("security-domain", domain.getSecurityDomainName());
-
-        actions.add( new CliCommandAction( SecurityMigrator.class, createSecurityDomainScript(domain), domainCmd));
+        // Action
+        CliCommandAction action = new CliCommandAction( SecurityMigrator.class, createSecurityDomainScript(domain), domainCmd);
+        action.setIfExists( this.ifExists );
+        actions.add( action );
 
         if (domain.getLoginModules() != null) {
             for (LoginModuleAS7Bean module : domain.getLoginModules()) {

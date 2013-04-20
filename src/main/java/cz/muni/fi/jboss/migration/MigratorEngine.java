@@ -18,6 +18,8 @@ import cz.muni.fi.jboss.migration.migrators.server.ServerMigrator;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
+import cz.muni.fi.jboss.migration.utils.as7.BatchFailure;
+import cz.muni.fi.jboss.migration.utils.as7.BatchedCommandWithAction;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.eclipse.persistence.exceptions.JAXBException;
 import org.jboss.as.cli.batch.BatchedCommand;
@@ -257,7 +259,7 @@ public class MigratorEngine {
      *  Ask all the migrators to create the actions to be performed; stores them in the context.
      */
     private void prepareActions() throws MigrationException {
-        log.debug("prepareActions()");
+        log.debug("====== prepareActions() ========");
                 
         // Call all migrators to create their actions.
         try {
@@ -277,13 +279,16 @@ public class MigratorEngine {
      */
     
     private void preValidateActions() throws MigrationException {
+        log.debug("======== preValidateActions() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
+            action.setMigrationContext(ctx);
             action.preValidate();
         }
     }
     
     private void backupActions() throws MigrationException {
+        log.debug("======== backupActions() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             action.backup();
@@ -315,27 +320,37 @@ public class MigratorEngine {
             action.perform();
         }
         
-        /// DEBUG: Checking created CLI scripts
-        log.debug("Generated CLI scripts:");
+        /// DEBUG: Dump created CLI scripts
+        log.debug("CLI scripts in batch:");
         int i = 1;
         for( BatchedCommand command : ctx.getBatch().getCommands() ){
             log.debug("    " + i++ + ": " + command.getCommand());
         }
 
         // Execution
-        log.debug("CLI Batch:");
+        log.debug("Executing CLI batch:");
         try {
             AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
         }
         catch( CliBatchException ex ){
-            Integer index = AS7CliUtils.parseFailedOperationIndex( ex.getResponseNode() );
-            if( null == index ){
+            //Integer index = AS7CliUtils.parseFailedOperationIndex( ex.getResponseNode() );
+            BatchFailure failure = AS7CliUtils.extractFailedOperationNode( ex.getResponseNode() );
+            if( null == failure ){
                 log.warn("Unable to parse CLI batch operation index: " + ex.getResponseNode());
                 throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
             }
-            IMigrationAction causeAction = cliActions.get( index-1 );
-            throw new ActionException( causeAction, "Executing a CLI batch failed.");
-            //ctx.getBatch().getCommands().get( i-1 );
+            
+            IMigrationAction causeAction;
+                    
+            // First, try if it's a BatchedCommandWithAction, and get the action if so.
+            BatchedCommand cmd = ctx.getBatch().getCommands().get( failure.getIndex() );
+            if( cmd instanceof BatchedCommandWithAction )
+                causeAction = ((BatchedCommandWithAction)cmd).getAction();
+            // Then shoot blindly into cliActions. May be wrong offset - some actions create multiple CLI commands! TODO.
+            else
+                causeAction = cliActions.get( failure.getIndex() - 1 );
+            
+            throw new ActionException( causeAction, "Executing a CLI batch failed: " + failure.getMessage());
         }
         catch( IOException ex ) {
             throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
@@ -374,7 +389,7 @@ public class MigratorEngine {
      * @throws LoadMigrationException
      */
     public void loadAS5Data() throws LoadMigrationException {
-        log.debug("loadAS5Data()");
+        log.debug("======== loadAS5Data() ========");
         try {
             for (IMigrator mig : this.migrators) {
                 log.debug("    Scanning with " + mig.getClass().getSimpleName());

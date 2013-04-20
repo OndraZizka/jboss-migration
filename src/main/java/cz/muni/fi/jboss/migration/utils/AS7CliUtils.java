@@ -4,6 +4,7 @@ import cz.muni.fi.jboss.migration.CliApiCommandBuilder;
 import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
+import cz.muni.fi.jboss.migration.utils.as7.BatchFailure;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -30,16 +31,37 @@ public class AS7CliUtils {
     public static void removeResourceIfExists( ModelNode loggerCmd, ModelControllerClient aS7Client ) throws IOException, CliBatchException {
         
         // Check if exists.
-        loggerCmd.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
-        ModelNode res = aS7Client.execute( loggerCmd );
-        if( ! wasSuccess( res ))  return;
+        if( ! exists( loggerCmd, aS7Client ))  return;
         
         // Remove.
-        loggerCmd.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
-        res = aS7Client.execute( loggerCmd );
+        ModelNode res = aS7Client.execute( createRemoveCommandForResource( loggerCmd ) );
         throwIfFailure( res );
     }
     
+    /**
+     *  Queries the AS 7 if given resource exists.
+     */
+    public static boolean exists( final ModelNode resource, ModelControllerClient client ) throws IOException {
+        // Copy the address.
+        ModelNode query = new ModelNode();
+        query.get(ClientConstants.OP_ADDR).set( resource.get(ClientConstants.OP_ADDR) );
+        // Read operation.
+        query.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
+        ModelNode res = client.execute( resource );
+        return wasSuccess( res );
+    }
+
+
+    
+    public static ModelNode createRemoveCommandForResource( ModelNode resource ) {
+        // Copy the address.
+        ModelNode query = new ModelNode();
+        query.get(ClientConstants.OP_ADDR).set( resource.get(ClientConstants.OP_ADDR) );
+        // Remove operation.
+        query.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
+        
+        return query;
+    }
     
     
     /**
@@ -102,11 +124,14 @@ public class AS7CliUtils {
     /**
      *  Parses the index of operation which failed.
      * 
+     *  "failure-description" => 
      *  {"JBAS014653: Composite operation failed and was rolled back. Steps that failed:" => {
      *      "Operation step-12" => "JBAS014803: Duplicate resource [
                 (\"subsystem\" => \"security\"),
                 (\"security-domain\" => \"other\") ]"
         }}
+        * 
+        * @deprecated  Use extractFailedOperationNode().
      */
     public static Integer parseFailedOperationIndex(final ModelNode node) throws MigrationException {
         
@@ -117,18 +142,52 @@ public class AS7CliUtils {
             return null;
         
         ModelNode failDesc = node.get(ClientConstants.FAILURE_DESCRIPTION);
-        // "Operation step-1" => "JBAS014803: Duplicate resource ...
         String key = failDesc.keys().iterator().next();
+        // "JBAS014653: Composite operation failed and was rolled back. Steps that failed:" => ...
+        
         ModelNode compositeFailDesc = failDesc.get(key);
+        // { "Operation step-1" => "JBAS014803: Duplicate resource ...
+        
         Set<String> keys = compositeFailDesc.keys();
-        // "Operation step-XX"
         String opKey = keys.iterator().next();
+        // "Operation step-XX"
+        
         if( ! opKey.startsWith(OP_KEY_PREFIX) )
             return null;
         
         String opIndex = StringUtils.substring( opKey, OP_KEY_PREFIX.length() );
         
         return Integer.parseInt( opIndex );
+    }
+
+    /**
+     * @returns A ModelNode with two properties: "failedOpIndex" and "failureDesc".
+     */
+    public static BatchFailure extractFailedOperationNode(final ModelNode node) throws MigrationException {
+        
+        if( ClientConstants.SUCCESS.equals( node.get(ClientConstants.OUTCOME).asString() ))
+            return null;
+        
+        if( ! node.hasDefined(ClientConstants.FAILURE_DESCRIPTION))
+            return null;
+        
+        ModelNode failDesc = node.get(ClientConstants.FAILURE_DESCRIPTION);
+        String key = failDesc.keys().iterator().next();
+        // "JBAS014653: Composite operation failed and was rolled back. Steps that failed:" => ...
+        
+        ModelNode compositeFailDesc = failDesc.get(key);
+        // { "Operation step-1" => "JBAS014803: Duplicate resource ...
+        
+        Set<String> keys = compositeFailDesc.keys();
+        String opKey = keys.iterator().next();
+        // "Operation step-XX"
+
+        if( ! opKey.startsWith(OP_KEY_PREFIX) )
+            return null;
+        
+        String opIndex = StringUtils.substring( opKey, OP_KEY_PREFIX.length() );
+        
+        return new BatchFailure( Integer.parseInt( opIndex ), compositeFailDesc.get(opKey).toString());
     }
 
 
@@ -181,7 +240,7 @@ public class AS7CliUtils {
      */
     public static String joinQuoted( Collection<String> col ){
 
-        if( col.size() == 0 )
+        if( col.isEmpty() )
             return "";
         
         StringBuilder sb = new StringBuilder();

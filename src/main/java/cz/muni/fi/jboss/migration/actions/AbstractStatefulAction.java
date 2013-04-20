@@ -30,46 +30,23 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         warnings.add(text);
     }
 
-
-    @Override
-    public void setMigrationContext(MigrationContext ctx) {
-        this.ctx = ctx;
-    }
-
-    @Override
-    public MigrationContext getMigrationContext() {
-        return this.ctx;
-    }
-
-    @Override
-    public IMigrationAction.State getState() {
-        return state;
-    }
-
-    public void setState(IMigrationAction.State state) {
-        this.state = state;
-    }
-
+    
     public void checkState(IMigrationAction.State state) throws MigrationException {
         if (this.state != state)
             throw new MigrationException("Action not in expected state '" + state + ": " + this);
     }
 
 
-    @Override
-    public String getOriginMessage() {
-        return originMessage;
-    }
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    @Override public void setMigrationContext(MigrationContext ctx) { this.ctx = ctx; }
+    @Override public MigrationContext getMigrationContext() { return this.ctx; }
     
-    public Class<? extends IMigrator> getFromMigrator(){
-        return fromMigrator;
-    }
-
-    @Override
-    public List<String> getWarnings() {
-        return warnings;
-    }
-
+    @Override public IMigrationAction.State getState() { return state; }
+    public void setState(IMigrationAction.State state) { this.state = state; }
+    @Override public String getOriginMessage() { return originMessage; }
+    @Override public Class<? extends IMigrator> getFromMigrator(){ return fromMigrator; }
+    @Override public List<String> getWarnings() { return warnings; }
+    //</editor-fold>
 
     protected boolean isAfterBackup() {
         return this.state.ordinal() >= State.BACKED_UP.ordinal();
@@ -79,4 +56,4 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         return this.state.ordinal() >= State.DONE.ordinal();
     }
 
-}
+}// class
