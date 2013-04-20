@@ -3,6 +3,7 @@ package cz.muni.fi.jboss.migration.migrators.security;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.CopyFileAction;
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.CopyException;
@@ -47,11 +48,26 @@ public class SecurityMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(SecurityMigrator.class);
 
     private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
+    
+    
+    // Configurables
+    private Configuration.IfExists ifExists = Configuration.IfExists.WARN;
+
+
+    @Override
+    public int examineConfigProperty( Configuration.ModuleSpecificProperty prop ) {
+        if( ! getConfigPropertyModuleName().equals( prop.getModuleId() ) ) return 0;
+        if( ! "ifExists".equals( prop.getPropName() ) ) return 0;
+        this.ifExists = Configuration.IfExists.valueOf_Custom(prop.getPropName());
+        return 1;
+    }
+    
+    
 
     
     // Files which must be copied into AS7
     private Set<String> fileNames = new HashSet();
-    private Set<CopyFileAction> copyActions;
+    private Set<CopyFileAction> copyActions; // not used, TODO
 
 
     @Override
@@ -332,6 +348,8 @@ public class SecurityMigrator extends AbstractMigrator {
      * @param domain Security-Domain containing Login-Module
      * @param module Login-Module
      * @return created string containing the CLI script for adding the Login-Module
+     * 
+     * TODO: Rewrite using ModuleNode.
      */
     private static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
         StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=" +

@@ -16,6 +16,23 @@ public class Configuration {
     private GlobalConfiguration globalConfig = new GlobalConfiguration();
 
     private List<ModuleSpecificProperty> moduleConfigs = new LinkedList();
+    
+    /**
+     *  What to do if some resource already exists.
+     *  MERGE (ModelNode into current model) and ASK (interactive) are not supported yet.
+     */
+    public enum IfExists {
+        FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK;
+        
+        public static IfExists valueOf_Custom(String str) throws IllegalArgumentException {
+            try {
+                return valueOf( str.toUpperCase() );
+            }
+            catch( IllegalArgumentException ex ){
+                throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK.");
+            }
+        }
+    }// enum
 
 
     /**

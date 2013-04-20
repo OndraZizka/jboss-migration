@@ -513,6 +513,7 @@ public class LoggingMigrator extends AbstractMigrator {
         loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
         
         // TODO: First, check if it exists. If so, delete first.
+        // TODO: MIGR-61 Merge resources instead of skipping or replacing
         try {
             AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
         } catch( IOException | CliBatchException ex ) {
