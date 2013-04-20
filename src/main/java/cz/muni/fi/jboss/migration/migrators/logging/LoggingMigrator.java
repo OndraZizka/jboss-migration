@@ -4,6 +4,7 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -28,7 +29,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -39,14 +39,34 @@ import java.util.*;
  */
 public class LoggingMigrator extends AbstractMigrator {
     
-    private final static String CLI_PROP__LOG_DIR = "jboss.server.log.dir";
-    
+    private final static String CLI_PROP__LOG_DIR      = "jboss.server.log.dir";
+    private final static String AS5_PROP__LOG_TRESHOLD = "jboss.server.log.threshold";
 
+    
+    // Configurables
+    @Override protected String getConfigPropertyModuleName() { return "logging"; }
+    
+    private String rootLoggerTreshold = "INFO";
+    private String getRootLoggerTreshold() { return rootLoggerTreshold; }
+
+    @Override
+    public int examineConfigProperty( Configuration.ModuleSpecificProperty prop ) {
+        if( ! getConfigPropertyModuleName().equals(  prop.getModuleId() )) return 0;
+        switch( prop.getPropName() ){
+            case "rootLoggerTreshold":
+            case AS5_PROP__LOG_TRESHOLD:
+                this.rootLoggerTreshold = prop.getValue();
+                return 1;
+        }
+        return 0;
+    }
+    
+    
     // Sequence number for driver names.
     // TODO: Perhaps move this property to migration context.
     private int number = 1;
     
-    @Override protected String getConfigPropertyModuleName() { return "logging"; }
+    
     
 
     public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
@@ -56,7 +76,6 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
             File log4jConfFile = Utils.createPath( 
                     super.getGlobalConfig().getAS5Config().getDir(),  "server",
                     super.getGlobalConfig().getAS5Config().getProfileName(),
@@ -69,10 +88,10 @@ public class LoggingMigrator extends AbstractMigrator {
             LoggingAS5Bean loggingAS5;
 
             if (log4jConfFile.canRead()) {
+                Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
                 loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
             } else {
-                throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath(), new
-                        FileNotFoundException());
+                throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath());
             }
 
             MigrationData mData = new MigrationData();
@@ -273,14 +292,11 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param loggerAS5 object representing root-logger from AS5
      * @return created object of root-logger from AS7
      */
-    private static RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5){
+    private RootLoggerAS7Bean migrateRootLogger(RootLoggerAS5Bean loggerAS5){
         RootLoggerAS7Bean rootLoggerAS7 = new RootLoggerAS7Bean();
-        /*
-        TODO: Problem with level, because there is relative path in AS:<priority value="${jboss.server.log.threshold}"/>
-        for now only default INFO
-        */
-        if(loggerAS5.getRootPriorityValue().equals("${jboss.server.log.threshold}")) {
-            rootLoggerAS7.setRootLoggerLevel("INFO");
+        // Defined as reference to sys prop in AS 5: <priority value="${jboss.server.log.threshold}"/>
+        if(loggerAS5.getRootPriorityValue().equals("${" + AS5_PROP__LOG_TRESHOLD + "}")) {
+            rootLoggerAS7.setRootLoggerLevel( this.getRootLoggerTreshold() );
         } else{
             rootLoggerAS7.setRootLoggerLevel(loggerAS5.getRootPriorityValue());
         }
