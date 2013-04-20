@@ -2,7 +2,7 @@ package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class MigrationData {
 
-    private List<IConfigFragment> configFragments = new ArrayList();
+    private List<IConfigFragment> configFragments = new LinkedList();
 
 
     @Override

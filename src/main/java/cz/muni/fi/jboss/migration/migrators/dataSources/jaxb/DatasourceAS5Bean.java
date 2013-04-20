@@ -4,8 +4,8 @@ package cz.muni.fi.jboss.migration.migrators.dataSources.jaxb;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -131,7 +131,7 @@ public class DatasourceAS5Bean implements IConfigFragment {
     }
     
     public void setConnectionProperties(Collection<ConnectionPropertyBean> connectionProperties) {
-        List<ConnectionPropertyBean> temp = new ArrayList();
+        List<ConnectionPropertyBean> temp = new LinkedList();
         temp.addAll(connectionProperties);
         this.connectionProperties = temp;
     }

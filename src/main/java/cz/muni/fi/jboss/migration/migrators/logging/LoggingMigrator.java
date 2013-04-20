@@ -85,14 +85,11 @@ public class LoggingMigrator extends AbstractMigrator {
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
             XMLStreamReader xsr = xif.createXMLStreamReader(new StreamSource(log4jConfFile));
 
-            LoggingAS5Bean loggingAS5;
-
-            if (log4jConfFile.canRead()) {
-                Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
-                loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
-            } else {
-                throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath());
-            }
+            //if( ! log4jConfFile.canRead())
+            //    throw new LoadMigrationException("Cannot find/open file: " + log4jConfFile.getAbsolutePath());
+            
+            Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
+            LoggingAS5Bean loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
 
             MigrationData mData = new MigrationData();
 
@@ -108,8 +105,8 @@ public class LoggingMigrator extends AbstractMigrator {
             mData.getConfigFragments().add(loggingAS5.getRootLoggerAS5());
 
             ctx.getMigrationData().put(LoggingMigrator.class, mData);
-
-        } catch (JAXBException | XMLStreamException e) {
+        }
+        catch (JAXBException | XMLStreamException e) {
             throw new LoadMigrationException(e);
         }
     }
@@ -119,7 +116,7 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
         
-        List<CustomHandlerBean> customHandlers = new ArrayList();
+        List<CustomHandlerBean> customHandlers = new LinkedList();
 
         for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
             if (fragment instanceof AppenderBean) {
@@ -141,7 +138,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (fragment instanceof RootLoggerAS5Bean) {
                 RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
-                // For now empty => Find way to create CLI API command for root-logger
+                // TODO: Find way to create CLI API command for root-logger
                 continue;
             }
 
@@ -166,7 +163,7 @@ public class LoggingMigrator extends AbstractMigrator {
             throw new MigrationException("Failed finding jar with class " + handler.getClassValue() + ": " + ex.getMessage(), ex);
         }
 
-        List<IMigrationAction> actions = new ArrayList();
+        List<IMigrationAction> actions = new LinkedList();
 
         if (tempModules.containsKey(src)) {
             // It means that moduleAction is already set. No need for another one => create CLI for CustomHandler and
@@ -175,16 +172,15 @@ public class LoggingMigrator extends AbstractMigrator {
                 handler.setModule(tempModules.get(src));
                 actions.add(createCustomHandlerCliAction(handler));
             }
-            catch (CliScriptException e) {
-                throw new MigrationException("Migration of the appeneder " + handler.getName() +
-                        " failed (CLI command): " + e.getMessage(), e);
+            catch (CliScriptException ex) {
+                throw new MigrationException("Failed creating a CLI command for appeneder " + handler.getName() + ": " + ex.getMessage(), ex);
             }
 
             return actions;
         }
 
         
-        // Handler jar is new => create ModuleCreationAction, new module and CLI script for driver
+        // Handler jar is new => create ModuleCreationAction, new module and CLI script
         try {
             
             handler.setModule("logging.customHandler" + number);
@@ -221,8 +217,8 @@ public class LoggingMigrator extends AbstractMigrator {
     private CustomHandlerBean processAppenderBean( AppenderBean appenderBean, MigrationContext ctx ) throws MigrationException {
         
         // Selection of classes which are stored in log4j or jboss logging jars.
-        String type = appenderBean.getAppenderClass();
-        if( ! (type.contains("org.apache.log4j") || type.contains("org.jboss.logging.appender")) ){
+        String cls = appenderBean.getAppenderClass();
+        if( ! (cls.startsWith("org.apache.log4j") || cls.startsWith("org.jboss.logging.appender")) ){
             
             // Selection of classes which are created by the user
             // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
@@ -232,7 +228,7 @@ public class LoggingMigrator extends AbstractMigrator {
             
 
         try {
-            String appenderType = StringUtils.substringAfterLast(type, ".");
+            String appenderType = StringUtils.substringAfterLast(cls, ".");
             CliCommandAction action;
 
             switch( appenderType ) {

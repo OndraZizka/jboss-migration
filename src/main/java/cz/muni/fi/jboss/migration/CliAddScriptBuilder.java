@@ -1,6 +1,5 @@
 package cz.muni.fi.jboss.migration;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;

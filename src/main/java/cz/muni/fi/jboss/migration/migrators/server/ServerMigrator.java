@@ -21,8 +21,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -287,7 +287,7 @@ public class ServerMigrator extends AbstractMigrator {
         Utils.throwIfBlank(connAS7.getConnectorName(), errMsg, "Connector name");
         Utils.throwIfBlank(connAS7.getProtocol(), errMsg, "Protocol");
 
-        List<CliCommandAction> actions = new ArrayList();
+        List<CliCommandAction> actions = new LinkedList();
 
         ModelNode connCmd = new ModelNode();
         connCmd.get(ClientConstants.OP).set(ClientConstants.ADD);

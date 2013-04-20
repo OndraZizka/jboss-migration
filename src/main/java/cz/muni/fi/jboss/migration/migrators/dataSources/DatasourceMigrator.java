@@ -73,7 +73,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             if( dsXmls.isEmpty() )
                 return;
 
-            List<DatasourcesBean> dsColl = new ArrayList();
+            List<DatasourcesBean> dsColl = new LinkedList();
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             
             for( File dsXml : dsXmls ) {
@@ -114,7 +114,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     public void createActions(MigrationContext ctx) throws MigrationException{
         // Helping list of CliCommnadAction. For successful migration driver CliCommandAction must be added=performed
         // before datasource.
-        List<IMigrationAction> tempActions = new ArrayList<>();
+        List<IMigrationAction> tempActions = new LinkedList();
         for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
             if (fragment instanceof DatasourceAS5Bean) {
                 try {
@@ -569,7 +569,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(dataSource.getDriver(), errMsg, "Driver name");
 
-        List<CliCommandAction> actions = new ArrayList();
+        List<CliCommandAction> actions = new LinkedList();
 
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
