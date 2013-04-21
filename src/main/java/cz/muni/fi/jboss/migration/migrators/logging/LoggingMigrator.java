@@ -190,7 +190,8 @@ public class LoggingMigrator extends AbstractMigrator {
             actions.add(createCustomHandlerCliAction(handler));
 
             // TODO: MIGR-60 Rewrite ModuleCreationAction to be about module metadata, not paths and XML doc 
-            File targetDir = Utils.createPath(getGlobalConfig().getAS7Config().getModulesDir(), 
+            File targetDir = Utils.createPath(
+                    getGlobalConfig().getAS7Config().getModulesDir().getPath(), 
                     "logging/customHandler" + number, "main", src.getName());
 
             Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());

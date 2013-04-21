@@ -22,11 +22,14 @@ public class AS7Config {
     }
 
 
-    public String getModulesDir() {
+    public File getModulesDir() {
+        String modulesSubPath;
         if( modulesDir != null )
-            return modulesDir;
+            modulesSubPath = modulesDir;
+        else
+            modulesSubPath = isVersionLaterThan("7.2.0") ? "modules" : "modules/system/layers/base";
         
-        return isVersionLaterThan("7.2.0") ? "modules" : "modules/system/layers/base";
+        return new File(this.getDir(), modulesSubPath);
     }
     
 

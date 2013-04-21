@@ -169,6 +169,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     private List<IMigrationAction> createDriverActions(DriverBean driver, HashMap<File, String> tempModules)
             throws MigrationException {
         
+        // Find driver .jar
         File driverJar;
         try {
             driverJar = Utils.findJarFileWithClass(
@@ -200,17 +201,19 @@ public class DatasourceMigrator extends AbstractMigrator {
             final String moduleName = "jdbcdrivers." + driver.getDriverName();
             driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
+
             // CliAction
             try{
-                CliCommandAction createDriverCliAction = createDriverCliAction(driver);
-                actions.add( createDriverCliAction );
+                CliCommandAction action = createDriverCliAction(driver);
+                actions.add( action );
             }
             catch (CliScriptException ex) {
                 throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
             }
 
             File targetDir = Utils.createPath(
-                    getGlobalConfig().getAS7Config().getModulesDir(), moduleName.replace('.', '/'), "main", driverJar.getName());
+                    getGlobalConfig().getAS7Config().getModulesDir().getPath(),
+                    moduleName.replace('.', '/'), "main", driverJar.getName());
 
             Document doc  =  DatasourceUtils.createJDBCDriverModuleXML( driver.getDriverModule(), driverJar.getName());
 
@@ -694,7 +697,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         //JBAS010414: the attribute driver-name (jdbcdrivers.createdDriver1) 
         //            cannot be different from driver resource name (createdDriver1)
-        request.get(ClientConstants.OP_ADDR).add("jdbc-driver", driver.getDriverName());
+        request.get(ClientConstants.OP_ADDR).add("jdbc-driver", driver.getDriverModule()); // getDriverName()
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
 
@@ -747,6 +750,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
      *                           (pool-name, jndi-name, connection-url, driver-name)
+     * 
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
     private static String createDatasourceScriptNew(DatasourceAS7Bean datasourceAS7) throws CliScriptException {
 
@@ -805,6 +811,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
      *                           (pool-name, jndi-name, driver-name)
+     * 
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
     private static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xaDatasourceAS7) throws CliScriptException {
         
@@ -870,6 +879,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return created string containing CLI script for adding Xa-Datasource-Property
      * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
      *                           (property-name)
+     * 
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
     private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
             throws CliScriptException {
