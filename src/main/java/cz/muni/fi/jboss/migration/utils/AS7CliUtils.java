@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.dmr.ModelType;
 
 /**
  *
@@ -252,4 +253,44 @@ public class AS7CliUtils {
         return str;
     }
 
+
+    /**
+     *   Formats Model node to the form of CLI script command - /foo=a/bar=b/:operation(param=value,...) .
+     */
+    public static String formatCommand( ModelNode command ) {
+        
+        if( ! command.has(ClientConstants.OP) )
+            throw new IllegalArgumentException("'"+ClientConstants.OP+"' not defined.");
+        if( command.get(ClientConstants.OP).getType() != ModelType.STRING )
+            throw new IllegalArgumentException("'"+ClientConstants.OP+"' must be a string.");
+        if( ! command.has(ClientConstants.OP_ADDR) )
+            throw new IllegalArgumentException("'"+ClientConstants.OP_ADDR+"' not defined.");
+        
+        // Address and operation.
+        String op = command.get(ClientConstants.OP).asString();
+        ModelNode addr = command.get(ClientConstants.OP_ADDR);
+        Set<String> keys = addr.keys();
+        
+        StringBuilder sb = new StringBuilder("/");
+        for( String key : keys ) {
+            sb.append(key).append('=').append(addr.get(key)).append('/');
+        }
+        sb.append(':').append(op);
+        
+        // Params.
+        boolean hasParams = false;
+        keys = command.keys();
+        for( String key : keys ) {
+            switch( key ){
+                case ClientConstants.OP:
+                case ClientConstants.OP_ADDR: continue;
+            }
+            sb.append( hasParams ? ',' : '(');
+            hasParams = true;
+            sb.append(key).append('=').append(command.get(key));
+        }
+        if( hasParams )  sb.append(')');
+        return sb.toString();
+    }
+    
 }// class
