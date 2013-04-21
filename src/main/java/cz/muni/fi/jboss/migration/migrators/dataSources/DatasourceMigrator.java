@@ -11,6 +11,7 @@ import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
+import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -107,38 +108,31 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void createActions(MigrationContext ctx) throws MigrationException{
-        // Helping list of CliCommnadAction. For successful migration driver CliCommandAction must be added=performed
-        // before datasource.
+    public void createActions(MigrationContext ctx) throws MigrationException {
+        // The driver creation CliCommandAction must be added (performed) before datasource creation.
         List<IMigrationAction> tempActions = new LinkedList();
-        for (IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments()) {
-            if (fragment instanceof DatasourceAS5Bean) {
-                try {
+        for( IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments() ) {
+            
+            String dsType = null;
+            try {
+                if( fragment instanceof DatasourceAS5Bean ) {
+                    dsType = "local-tx-datasource";
                     tempActions.add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of local-tx-datasource failed: " + e.getMessage(), e);
                 }
-                continue;
-            }
-
-            if (fragment instanceof XaDatasourceAS5Bean) {
-                try {
+                else if( fragment instanceof XaDatasourceAS5Bean ) {
+                    dsType = "xa-datasource";
                     tempActions.addAll(createXaDatasourceCliActions(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of xa-datasource failed: " + e.getMessage(), e);
                 }
-                continue;
-            }
-
-            if(fragment instanceof NoTxDatasourceAS5Bean){
-                try {
+                else if( fragment instanceof NoTxDatasourceAS5Bean ){
+                    dsType = "no-tx-datasource";
                     tempActions.add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of no-tx-datasource failed: " + e.getMessage(), e);
                 }
-                continue;
+                else 
+                    throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            catch (CliScriptException ex) {
+                throw new MigrationException("Migration of " + dsType + " failed: " + ex.getMessage(), ex);
+            }
         }
 
         
@@ -194,15 +188,15 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         // Driver jar not processed yet => create ModuleCreationAction, new module and a CLI script.
         try {
-            driver.setDriverModule("jdbcdrivers." + driver.getDriverName());
+            final String moduleName = "jdbcdrivers." + driver.getDriverName();
+            driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
             
             // CliAction
             actions.add( createDriverCliAction(driver));
 
             File targetDir = Utils.createPath(
-                    getGlobalConfig().getAS7Config().getModulesDir(), "jdbcdrivers", 
-                    driver.getDriverName(), "main", driverJar.getName());
+                    getGlobalConfig().getAS7Config().getModulesDir(), moduleName.replace('.', '/'), "main", driverJar.getName());
 
             Document doc  =  DatasourceUtils.createJDBCDriverModuleXML( driver.getDriverModule(), driverJar.getName());
 
@@ -665,6 +659,8 @@ public class DatasourceMigrator extends AbstractMigrator {
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
+        //JBAS010414: the attribute driver-name (jdbcdrivers.createdDriver1) 
+        //            cannot be different from driver resource name (createdDriver1)
         request.get(ClientConstants.OP_ADDR).add("jdbc-driver", driver.getDriverName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
@@ -686,6 +682,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
      *                           (module, driver-name)
+     * 
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
     private static String createDriverScript(DriverBean driver) throws CliScriptException {
         String errMsg = " in driver must be set.";
