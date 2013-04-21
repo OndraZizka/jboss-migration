@@ -185,7 +185,7 @@ public class Utils {
     /**
      * @deprecated TODO: useless?
      */
-    public static Document parseXmlToDoc(File file) throws SAXException, IOException {
+    public static Document parseFileToXmlDoc(File file) throws SAXException, IOException {
         DocumentBuilder db = Utils.createXmlDocumentBuilder();
         Document doc = db.parse(file);
         return doc;

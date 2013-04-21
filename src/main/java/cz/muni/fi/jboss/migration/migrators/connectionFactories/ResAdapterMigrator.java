@@ -78,7 +78,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             // For each -ds.xml
             for (File dsXml : dsXmls) {
-                Document doc = Utils.parseXmlToDoc(dsXml);
+                Document doc = Utils.parseFileToXmlDoc(dsXml);
 
                 Element element = doc.getDocumentElement();
                 if ("connection-factories".equals(element.getTagName())) {

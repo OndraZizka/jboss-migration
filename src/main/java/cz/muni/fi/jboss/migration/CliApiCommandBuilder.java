@@ -22,11 +22,9 @@ public class CliApiCommandBuilder {
      * @param value    value for setting
      */
     public void addProperty(String property, String value) {
-        if (value != null) {
-            if (!value.isEmpty()) {
-                this.command.get(property).set(value);
-            }
-        }
+        if( value == null || value.isEmpty() )
+            return;
+        this.command.get(property).set(value);
     }
 
     public ModelNode getCommand() {

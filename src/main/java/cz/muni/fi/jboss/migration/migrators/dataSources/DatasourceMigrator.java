@@ -45,11 +45,9 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
 
     
-    private static final String ROOT_ELEMENT_NAME = "datasources";
+    private static final String DATASOURCES_ROOT_ELEMENT_NAME = "datasources";
 
-    // iterating number for names of drivers
-    // TODO: Perhaps move this property to migration context.
-    private int it = 1;
+    private int namingSequence = 1;
 
     private Set<DriverBean> drivers = new HashSet();
 
@@ -77,10 +75,9 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             
             for( File dsXml : dsXmls ) {
-                Document doc = Utils.parseXmlToDoc( dsXml );
-
+                Document doc = Utils.parseFileToXmlDoc( dsXml );
                 Element element = doc.getDocumentElement();
-                if( ROOT_ELEMENT_NAME.equals( element.getTagName() )){
+                if( DATASOURCES_ROOT_ELEMENT_NAME.equals( element.getTagName() )){
                     DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(dsXml);
                     dsColl.add(dataSources);
                 }
@@ -100,7 +97,6 @@ public class DatasourceMigrator extends AbstractMigrator {
                 if(ds.getNoTxDatasourceAS5s() != null){
                     mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
                 }
-
             }
 
             ctx.getMigrationData().put(DatasourceMigrator.class, mData);
@@ -127,7 +123,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             if (fragment instanceof XaDatasourceAS5Bean) {
                 try {
-                    tempActions.addAll(createXaDatasourceCliAction(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
+                    tempActions.addAll(createXaDatasourceCliActions(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
                 } catch (CliScriptException e) {
                     throw new MigrationException("Migration of xa-datasource failed: " + e.getMessage(), e);
                 }
@@ -145,10 +141,10 @@ public class DatasourceMigrator extends AbstractMigrator {
             throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
         }
 
+        
+        // Search for driver class in jars and create module. Similar to finding logging classes.
         HashMap<File, String> tempModules = new HashMap();
-
         for (DriverBean driver : this.drivers) {
-            // New approach to drivers. Similar to finding logging classes. Search for driver class in jars and create module
             ctx.getActions().addAll(createDriverActions(driver, tempModules));
         }
 
@@ -242,9 +238,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setDriverClass( noTxDatasourceAS5.getDriverClass() );
         if( this.drivers.add(driver) ){
-            datasourceAS7.setDriver("createdDriver" + this.it);
-            driver.setDriverName("createdDriver" + this.it);
-            this.it++;
+            datasourceAS7.setDriver("createdDriver" + this.namingSequence);
+            driver.setDriverName("createdDriver" + this.namingSequence);
+            this.namingSequence++;
         }
         else {
             for( DriverBean temp : this.drivers ) {
@@ -331,9 +327,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setDriverClass(datasourceAS5.getDriverClass());
         if(this.drivers.add(driver)){
-            datasourceAS7.setDriver("createdDriver" + this.it);
-            driver.setDriverName("createdDriver" + this.it);
-            this.it++;
+            datasourceAS7.setDriver("createdDriver" + this.namingSequence);
+            driver.setDriverName("createdDriver" + this.namingSequence);
+            this.namingSequence++;
         } else{
             for (DriverBean temp : this.drivers) {
                 if (temp.equals(driver)) {
@@ -412,7 +408,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param xaDataAS5 object representing Xa-Datasource in AS5
      * @return object representing migrated Xa-Datasource in AS7
      */
-    public XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5) {
+    private XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5) {
         XaDatasourceAS7Bean xaDataAS7 = new XaDatasourceAS7Bean();
 
         xaDataAS7.setJndiName("java:jboss/datasources/" + xaDataAS5.getJndiName());
@@ -423,9 +419,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
         if(this.drivers.add(driver)){
-            xaDataAS7.setDriver("createdDriver" + this.it);
-            driver.setDriverName("createdDriver" + this.it);
-            this.it++;
+            xaDataAS7.setDriver("createdDriver" + this.namingSequence);
+            driver.setDriverName("createdDriver" + this.namingSequence);
+            this.namingSequence++;
         } else{
             for (DriverBean temp : this.drivers) {
                 if (temp.equals(driver)) {
@@ -562,7 +558,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource
      *                            are missing or are empty (pool-name, jndi-name, driver-name)
      */
-    private static List<CliCommandAction> createXaDatasourceCliAction(XaDatasourceAS7Bean dataSource)
+    private static List<CliCommandAction> createXaDatasourceCliActions(XaDatasourceAS7Bean dataSource)
             throws CliScriptException {
         String errMsg = " in xaDatasource must be set.";
         Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
@@ -684,145 +680,6 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
     
     /**
-     * Creates CLI script for adding Datasource. Old format of script.
-     *
-     * @param datasourceAS7 object of Datasource
-     * @return string containing created CLI script
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (property-name)
-     */
-    private static String createDatasourceScriptOld(DatasourceAS7Bean datasourceAS7)
-            throws CliScriptException {
-        
-        String errMsg = " in datasource must be set.";
-        Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(datasourceAS7.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
-        Utils.throwIfBlank(datasourceAS7.getDriver(), errMsg, "Driver name");
-
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("/subsystem=datasources/data-source=");
-
-        resultScript.append(datasourceAS7.getPoolName()).append(":add(");
-
-        builder.addProperty("jndi-name", datasourceAS7.getJndiName());
-        builder.addProperty("jta", datasourceAS7.getJta());
-        builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
-        builder.addProperty("driver-name", datasourceAS7.getDriver());
-        builder.addProperty("connection-url", datasourceAS7.getConnectionUrl());
-        builder.addProperty("url-delimeter", datasourceAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
-        builder.addProperty("transaction-isolation", datasourceAS7.getTransIsolation());
-        builder.addProperty("new-connection-sql", datasourceAS7.getNewConnectionSql());
-        builder.addProperty("prefill", datasourceAS7.getPrefill());
-        builder.addProperty("min-pool-size", datasourceAS7.getMinPoolSize());
-        builder.addProperty("max-pool-size", datasourceAS7.getMaxPoolSize());
-        builder.addProperty("password", datasourceAS7.getPassword());
-        builder.addProperty("user-name", datasourceAS7.getUserName());
-        builder.addProperty("security-domain", datasourceAS7.getSecurityDomain());
-        builder.addProperty("check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
-        builder.addProperty("validate-on-match", datasourceAS7.getValidateOnMatch());
-        builder.addProperty("background-validation", datasourceAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", datasourceAS7.getBackgroundValidMin());
-        builder.addProperty("use-fast-fail", datasourceAS7.getUseFastFail());
-        builder.addProperty("exception-sorter-class-name", datasourceAS7.getExceptionSorter());
-        builder.addProperty("valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
-        builder.addProperty("stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
-        builder.addProperty("blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
-        builder.addProperty("set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
-        builder.addProperty("query-timeout", datasourceAS7.getQueryTimeout());
-        builder.addProperty("allocation-retry", datasourceAS7.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", datasourceAS7.getAllocRetryWaitMillis());
-        builder.addProperty("use-try-lock", datasourceAS7.getUseTryLock());
-        builder.addProperty("prepared-statement-cache-size", datasourceAS7.getPreStatementCacheSize());
-        builder.addProperty("track-statements", datasourceAS7.getTrackStatements());
-        builder.addProperty("share-prepared-statements", datasourceAS7.getSharePreStatements());
-
-        resultScript.append(builder.asString()).append(")\n");
-        resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
-
-        return resultScript.toString();
-    }
-
-    
-    /**
-     * Creates CLI script for adding XaDatsource. Old format of script.
-     *
-     * @param xaDatasourceAS7 object of XaDatasource
-     * @return string containing created CLI script
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (pool-name, jndi-name, driver-name)
-     */
-    private static String createXaDatasourceScriptOld(XaDatasourceAS7Bean xaDatasourceAS7)
-            throws CliScriptException {
-        
-        String errMsg = " in xaDatasource must be set.";
-        Utils.throwIfBlank(xaDatasourceAS7.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(xaDatasourceAS7.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(xaDatasourceAS7.getDriver(), errMsg, "Driver name");
-
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("/subsystem=datasources/xa-data-source=");
-
-        resultScript.append(xaDatasourceAS7.getPoolName()).append(":add(");
-
-        builder.addProperty("jndi-name", xaDatasourceAS7.getJndiName());
-        builder.addProperty("use-java-context", xaDatasourceAS7.getUseJavaContext());
-        builder.addProperty("driver-name", xaDatasourceAS7.getDriver());
-        builder.addProperty("url-delimeter", xaDatasourceAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
-        builder.addProperty("transaction-isolation", xaDatasourceAS7.getTransIsolation());
-        builder.addProperty("new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
-        builder.addProperty("prefill", xaDatasourceAS7.getPrefill());
-        builder.addProperty("min-pool-size", xaDatasourceAS7.getMinPoolSize());
-        builder.addProperty("max-pool-size", xaDatasourceAS7.getMaxPoolSize());
-        builder.addProperty("is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
-        builder.addProperty("interleaving", xaDatasourceAS7.getInterleaving());
-        builder.addProperty("no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
-        builder.addProperty("password", xaDatasourceAS7.getPassword());
-        builder.addProperty("user-name", xaDatasourceAS7.getUserName());
-        builder.addProperty("security-domain", xaDatasourceAS7.getSecurityDomain());
-        builder.addProperty("check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
-        builder.addProperty("validate-on-match", xaDatasourceAS7.getValidateOnMatch());
-        builder.addProperty("background-validation", xaDatasourceAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
-        builder.addProperty("use-fast-fail", xaDatasourceAS7.getUseFastFail());
-        builder.addProperty("exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
-        builder.addProperty("valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
-        builder.addProperty("stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
-        builder.addProperty("blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMinutes());
-        builder.addProperty("set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
-        builder.addProperty("query-timeout", xaDatasourceAS7.getQueryTimeout());
-        builder.addProperty("allocation-retry", xaDatasourceAS7.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", xaDatasourceAS7.getAllocRetryWaitMillis());
-        builder.addProperty("use-try-lock", xaDatasourceAS7.getUseTryLock());
-        builder.addProperty("xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
-        builder.addProperty("prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
-        builder.addProperty("track-statements", xaDatasourceAS7.getTrackStatements());
-        builder.addProperty("share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
-
-        resultScript.append(builder.asString()).append(")\n");
-
-        if (xaDatasourceAS7.getXaDatasourceProps() != null) {
-            for (XaDatasourcePropertyBean xaDatasourceProperty : xaDatasourceAS7.getXaDatasourceProps()) {
-                errMsg = "in xa-datasource property must be set";
-                Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
-
-                resultScript.append("/subsystem=datasources/xa-data-source=").append(xaDatasourceAS7.getPoolName());
-                resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
-                resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")\n");
-
-            }
-        }
-
-        resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
-
-        return resultScript.toString();
-    }
-
-    /**
      * Creates a CLI script for adding a Driver
      *
      * @param driver object of DriverBean
@@ -870,10 +727,11 @@ public class DatasourceMigrator extends AbstractMigrator {
         StringBuilder resultScript = new StringBuilder("data-source add ");
 
         builder.addProperty("name", datasourceAS7.getPoolName());
+        builder.addProperty("driver-name", datasourceAS7.getDriver());
         builder.addProperty("jndi-name", datasourceAS7.getJndiName());
+        
         builder.addProperty("jta", datasourceAS7.getJta());
         builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
-        builder.addProperty("driver-name", datasourceAS7.getDriver());
         builder.addProperty("connection-url", datasourceAS7.getConnectionUrl());
         builder.addProperty("url-delimeter", datasourceAS7.getUrlDelimeter());
         builder.addProperty("url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
