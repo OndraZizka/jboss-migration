@@ -11,7 +11,6 @@ import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.migrators.dataSources.jaxb.*;
 import cz.muni.fi.jboss.migration.spi.IConfigFragment;
-import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
@@ -483,19 +482,25 @@ public class DatasourceMigrator extends AbstractMigrator {
     /**
      * Creates CliCommandAction for adding a Datasource
      *
-     * @param dataSource Datasource for adding
+     * @param datasource Datasource for adding
      * @return  created CliCommandAction for adding the Datasource
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
      *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
-    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean dataSource)
+    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean datasource)
             throws CliScriptException {
         String errMsg = " in datasource must be set.";
-        Utils.throwIfBlank(dataSource.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(dataSource.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(dataSource.getConnectionUrl(), errMsg, "Connection url");
-        Utils.throwIfBlank(dataSource.getDriver(), errMsg, "Driver name");
+        Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
+        Utils.throwIfBlank(datasource.getJndiName(), errMsg, "Jndi-name");
+        Utils.throwIfBlank(datasource.getConnectionUrl(), errMsg, "Connection url");
+        Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
 
+        return new CliCommandAction( DatasourceMigrator.class, 
+                createDatasourceScriptNew(datasource), 
+                createDatasourceModelNode(datasource) );
+    }
+
+    private static ModelNode createDatasourceModelNode( DatasourceAS7Bean dataSource ){
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
@@ -539,10 +544,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
         builder.addProperty("track-statements", dataSource.getTrackStatements());
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
-
-        //return builder.getCommand();
-        return new CliCommandAction( DatasourceMigrator.class, createDatasourceScriptNew(dataSource), builder.getCommand());
+        return builder.getCommand();
     }
+
 
     /**
      * Creates a list of CliCommandActions for adding a Xa-Datasource
@@ -630,16 +634,20 @@ public class DatasourceMigrator extends AbstractMigrator {
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(property.getXaDatasourcePropName(), errMsg, "Property name");
 
+        ModelNode xaDsPropNode = createXaPropertyModelNode( datasource.getPoolName(), property);
+        String    xaDsPropCli  = createXaPropertyScript(datasource, property);
+
+        return new CliCommandAction( DatasourceMigrator.class, xaDsPropCli, xaDsPropNode);
+    }
+    
+    private static ModelNode createXaPropertyModelNode( String dsName, XaDatasourcePropertyBean property ){
         ModelNode connProperty = new ModelNode();
         connProperty.get(ClientConstants.OP).set(ClientConstants.ADD);
         connProperty.get(ClientConstants.OP_ADDR).add("subsystem","datasources");
-        connProperty.get(ClientConstants.OP_ADDR).add("xa-data-source", datasource.getPoolName());
-
-        connProperty.get(ClientConstants.OP_ADDR).add
-                ("xa-datasource-properties", property.getXaDatasourcePropName());
+        connProperty.get(ClientConstants.OP_ADDR).add("xa-data-source", dsName);
+        connProperty.get(ClientConstants.OP_ADDR).add("xa-datasource-properties", property.getXaDatasourcePropName());
         connProperty.get("value").set(property.getXaDatasourceProp());
-
-        return new CliCommandAction( DatasourceMigrator.class, createXaPropertyScript(datasource, property), connProperty);
+        return connProperty;
     }
 
     /**
@@ -656,6 +664,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
 
+        return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), createDriverModelNode(driver) );
+    }
+    
+    private static ModelNode createDriverModelNode( DriverBean driver){
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
@@ -671,9 +683,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
         builder.addProperty("driver-major-version", driver.getMajorVersion());
         builder.addProperty("driver-minor-version", driver.getMinorVersion());
-
-        return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), builder.getCommand());
-    }
+        
+        return builder.getCommand();
+    }    
     
     /**
      * Creates a CLI script for adding a Driver
