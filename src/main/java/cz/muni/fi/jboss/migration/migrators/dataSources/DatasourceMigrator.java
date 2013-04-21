@@ -577,6 +577,23 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         List<CliCommandAction> actions = new LinkedList();
 
+
+        actions.add( new CliCommandAction( DatasourceMigrator.class, 
+                createXaDatasourceScriptNew(dataSource),
+                createXaDatasourceModelNode(dataSource)));
+
+        // Properties
+        if(dataSource.getXaDatasourceProps() != null){
+            for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
+                actions.add(createXaPropertyCliAction(dataSource, property));
+            }
+        }
+
+        return actions;
+    }
+
+    
+    private static ModelNode createXaDatasourceModelNode( XaDatasourceAS7Bean dataSource){
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
@@ -619,18 +636,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
         builder.addProperty("track-statements", dataSource.getTrackStatements());
         builder.addProperty("share-prepared-statements", dataSource.getSharePreStatements());
-
-        actions.add( new CliCommandAction( DatasourceMigrator.class, createXaDatasourceScriptNew(dataSource), builder.getCommand()));
-
-        if(dataSource.getXaDatasourceProps() != null){
-            for(XaDatasourcePropertyBean property : dataSource.getXaDatasourceProps()){
-                actions.add(createXaPropertyCliAction(dataSource, property));
-            }
-        }
-
-        return actions;
+        
+        return builder.getCommand();
     }
-
+    
 
     /**
      * Creates CliCommandAction for adding a Xa-Datasource-Property of the specific Xa-Datasource
