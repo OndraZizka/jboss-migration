@@ -53,6 +53,7 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     
     @Override public StackTraceElement getOriginStackTrace(){ return originStacktrace; }
     @Override public String getOriginMessage() { return originMessage; }
+    public AbstractStatefulAction setOriginMessage(String msg) { this.originMessage = msg; return this; }
     @Override public Class<? extends IMigrator> getFromMigrator(){ return fromMigrator; }
     @Override public List<String> getWarnings() { return warnings; }
     //</editor-fold>
