@@ -343,7 +343,7 @@ public class MigratorEngine {
             IMigrationAction causeAction;
                     
             // First, try if it's a BatchedCommandWithAction, and get the action if so.
-            BatchedCommand cmd = ctx.getBatch().getCommands().get( failure.getIndex() );
+            BatchedCommand cmd = ctx.getBatch().getCommands().get( failure.getIndex() - 1 );
             if( cmd instanceof BatchedCommandWithAction )
                 causeAction = ((BatchedCommandWithAction)cmd).getAction();
             // Then shoot blindly into cliActions. May be wrong offset - some actions create multiple CLI commands! TODO.
