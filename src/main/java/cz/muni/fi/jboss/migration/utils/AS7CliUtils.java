@@ -42,12 +42,12 @@ public class AS7CliUtils {
      *  Queries the AS 7 if given resource exists.
      */
     public static boolean exists( final ModelNode resource, ModelControllerClient client ) throws IOException {
-        // Copy the address.
         ModelNode query = new ModelNode();
-        query.get(ClientConstants.OP_ADDR).set( resource.get(ClientConstants.OP_ADDR) );
         // Read operation.
         query.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
-        ModelNode res = client.execute( resource );
+        // Copy the address.
+        query.get(ClientConstants.OP_ADDR).set( resource.get(ClientConstants.OP_ADDR) );
+        ModelNode res = client.execute( query );
         return wasSuccess( res );
     }
 
