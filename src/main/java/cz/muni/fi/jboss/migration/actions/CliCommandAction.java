@@ -23,14 +23,13 @@ import org.slf4j.LoggerFactory;
 public class CliCommandAction extends AbstractStatefulAction {
     private static final Logger log = LoggerFactory.getLogger(CliCommandAction.class);
     
-
-    //private ModelNode cliCommand;
-    //private String script;
-
-    // Better approach
+    /** Management API command to perform. */
     private BatchedCommandWithAction command;
     
+    /** What to do if the resource (node) already exists (for ADD operations). */
     private Configuration.IfExists ifExists = Configuration.IfExists.WARN;
+    
+    // Workflow control - what to do in the perform step.
     private Configuration.IfExists todo = null;
     
     
@@ -97,28 +96,27 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        // Batch provides rollback. Probably empty method.
+        // Batch provides rollback.
         setState(State.ROLLED_BACK);
-
     }
 
 
     @Override
     public void postValidate() throws MigrationException {
-        // Empty?
+        // Empty
     }
 
 
     @Override
     public void backup() throws MigrationException {
-        // Will be empty. Batch do everything
+        // Batch handles backup.
         setState(State.BACKED_UP);
     }
 
 
     @Override
     public void cleanBackup() {
-        // Empty?
+        // Empty
         setState(State.FINISHED);
     }
 
