@@ -749,11 +749,6 @@ public class DatasourceMigrator extends AbstractMigrator {
      *                           (pool-name, jndi-name, connection-url, driver-name)
      */
     private static String createDatasourceScriptNew(DatasourceAS7Bean datasourceAS7) throws CliScriptException {
-        String errMsg = " in datasource must be set.";
-        Utils.throwIfBlank(datasourceAS7.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(datasourceAS7.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(datasourceAS7.getConnectionUrl(), errMsg, "Connection url");
-        Utils.throwIfBlank(datasourceAS7.getDriver(), errMsg, "Driver name");
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("data-source add ");
