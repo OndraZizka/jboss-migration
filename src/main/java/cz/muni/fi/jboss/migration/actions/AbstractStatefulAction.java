@@ -25,7 +25,12 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
 
     public AbstractStatefulAction( Class<? extends IMigrator> fromMigrator ) {
         this.fromMigrator = fromMigrator;
-        this.originStacktrace = Thread.currentThread().getStackTrace()[0];
+        this.originStacktrace = Thread.currentThread().getStackTrace()[3];
+        // 0 - Thread.getStackTrace().
+        // 1 - This constructor.
+        // 2 - *Action constructor.
+        // 3 - Whatever called new CliCommandAction.
+        // Could be better, e.g. first non-constructor after 2.
     }
 
     public void addWarning(String text) {

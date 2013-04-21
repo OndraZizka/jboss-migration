@@ -236,10 +236,16 @@ public class MigratorEngine {
             String description = "";
             if( ex instanceof ActionException ){
                 IMigrationAction action = ((ActionException)ex).getAction();
+                // Header
                 description = 
                           "\n    Migration action which caused the failure: "
-                        + "  (from " + action.getFromMigrator().getSimpleName() + ")"
-                        + "\n    " + action.toDescription();
+                        + "  (from " + action.getFromMigrator().getSimpleName() + ")";
+                // StackTraceElement
+                if( action.getOriginStackTrace() != null )
+                    description += "\n\tat " + action.getOriginStackTrace().toString();
+                // Description
+                description += "\n    " + action.toDescription();
+                // Origin message
                 if( action.getOriginMessage() != null )
                     description += "\n    Purpose of the action: " + action.getOriginMessage();
             }
