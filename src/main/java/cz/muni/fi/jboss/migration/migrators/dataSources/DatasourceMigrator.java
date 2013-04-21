@@ -49,7 +49,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     private int namingSequence = 1;
 
-    private Set<DriverBean> drivers = new HashSet();
+    
 
     public DatasourceMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -106,9 +106,16 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
     }
 
+    
+    
+    
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
+        
         // The driver creation CliCommandAction must be added (performed) before datasource creation.
+        
+        Set<DriverBean> drivers = new HashSet();        
+        
         List<IMigrationAction> tempActions = new LinkedList();
         for( IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments() ) {
             
@@ -116,15 +123,18 @@ public class DatasourceMigrator extends AbstractMigrator {
             try {
                 if( fragment instanceof DatasourceAS5Bean ) {
                     dsType = "local-tx-datasource";
-                    tempActions.add(createDatasourceCliAction(migrateLocalTxDatasource((DatasourceAS5Bean) fragment)));
+                    final DatasourceAS7Bean ds = migrateLocalTxDatasource((DatasourceAS5Bean) fragment, drivers);
+                    tempActions.add( createDatasourceCliAction(ds) );
                 }
                 else if( fragment instanceof XaDatasourceAS5Bean ) {
                     dsType = "xa-datasource";
-                    tempActions.addAll(createXaDatasourceCliActions(migrateXaDatasource((XaDatasourceAS5Bean) fragment)));
+                    final XaDatasourceAS7Bean ds = migrateXaDatasource((XaDatasourceAS5Bean) fragment, drivers);
+                    tempActions.addAll(createXaDatasourceCliActions(ds));
                 }
                 else if( fragment instanceof NoTxDatasourceAS5Bean ){
                     dsType = "no-tx-datasource";
-                    tempActions.add(createDatasourceCliAction(migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment)));
+                    final DatasourceAS7Bean ds = migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment, drivers);
+                    tempActions.add(createDatasourceCliAction(ds));
                 }
                 else 
                     throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
@@ -137,7 +147,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         // Search for driver class in jars and create module. Similar to finding logging classes.
         HashMap<File, String> tempModules = new HashMap();
-        for (DriverBean driver : this.drivers) {
+        for (DriverBean driver : drivers) {
             ctx.getActions().addAll(createDriverActions(driver, tempModules));
         }
 
@@ -226,19 +236,19 @@ public class DatasourceMigrator extends AbstractMigrator {
      *  TODO: Many of properties are identical across 3 types of datasources.
      *        Move them into a parent class and process in a shared method.
      */
-    public DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5) {
+    public DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5, Set<DriverBean> drivers) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
         // Setting name for driver
         DriverBean driver = new DriverBean();
         driver.setDriverClass( noTxDatasourceAS5.getDriverClass() );
-        if( this.drivers.add(driver) ){
+        if( drivers.add(driver) ){
             datasourceAS7.setDriver("createdDriver" + this.namingSequence);
             driver.setDriverName("createdDriver" + this.namingSequence);
             this.namingSequence++;
         }
         else {
-            for( DriverBean temp : this.drivers ) {
+            for( DriverBean temp : drivers ) {
                 if( temp.equals(driver) ) {
                     datasourceAS7.setDriver(temp.getDriverName());
                     break;
@@ -316,17 +326,17 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param datasourceAS5 object representing Local-Tx-Datasource in AS5
      * @return object representing migrated Datasource in AS7
      */
-    public DatasourceAS7Bean migrateLocalTxDatasource(DatasourceAS5Bean datasourceAS5) {
+    public DatasourceAS7Bean migrateLocalTxDatasource(DatasourceAS5Bean datasourceAS5, Set<DriverBean> drivers) {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
         DriverBean driver = new DriverBean();
         driver.setDriverClass(datasourceAS5.getDriverClass());
-        if(this.drivers.add(driver)){
+        if( drivers.add(driver) ){
             datasourceAS7.setDriver("createdDriver" + this.namingSequence);
             driver.setDriverName("createdDriver" + this.namingSequence);
             this.namingSequence++;
         } else{
-            for (DriverBean temp : this.drivers) {
+            for (DriverBean temp : drivers) {
                 if (temp.equals(driver)) {
                     datasourceAS7.setDriver(temp.getDriverName());
                     break;
@@ -403,7 +413,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param xaDataAS5 object representing Xa-Datasource in AS5
      * @return object representing migrated Xa-Datasource in AS7
      */
-    private XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5) {
+    private XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5, Set<DriverBean> drivers) {
         XaDatasourceAS7Bean xaDataAS7 = new XaDatasourceAS7Bean();
 
         xaDataAS7.setJndiName("java:jboss/datasources/" + xaDataAS5.getJndiName());
@@ -413,12 +423,12 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         DriverBean driver = new DriverBean();
         driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
-        if(this.drivers.add(driver)){
+        if( drivers.add(driver)){
             xaDataAS7.setDriver("createdDriver" + this.namingSequence);
             driver.setDriverName("createdDriver" + this.namingSequence);
             this.namingSequence++;
         } else{
-            for (DriverBean temp : this.drivers) {
+            for (DriverBean temp : drivers) {
                 if (temp.equals(driver)) {
                     xaDataAS7.setDriver(temp.getDriverName());
                     break;
