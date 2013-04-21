@@ -265,21 +265,26 @@ public class AS7CliUtils {
             throw new IllegalArgumentException("'"+ClientConstants.OP+"' must be a string.");
         if( ! command.has(ClientConstants.OP_ADDR) )
             throw new IllegalArgumentException("'"+ClientConstants.OP_ADDR+"' not defined.");
+        if( command.get(ClientConstants.OP_ADDR).getType() != ModelType.LIST )
+            throw new IllegalArgumentException("'"+ClientConstants.OP_ADDR+"' must be a list.");
         
-        // Address and operation.
+        // Operation.
         String op = command.get(ClientConstants.OP).asString();
-        ModelNode addr = command.get(ClientConstants.OP_ADDR);
-        Set<String> keys = addr.keys();
         
+        // Address
+        ModelNode addr = command.get(ClientConstants.OP_ADDR);
         StringBuilder sb = new StringBuilder("/");
-        for( String key : keys ) {
-            sb.append(key).append('=').append(addr.get(key)).append('/');
+        for( int i = 0; ; i++ ) {
+            if( ! addr.has(i) )  break;
+            ModelNode segment = addr.get( i );
+            String key = segment.keys().iterator().next();
+            sb.append(key).append('=').append(segment.get(key).asString()).append('/');
         }
         sb.append(':').append(op);
         
         // Params.
         boolean hasParams = false;
-        keys = command.keys();
+        Set<String> keys = command.keys();
         for( String key : keys ) {
             switch( key ){
                 case ClientConstants.OP:
