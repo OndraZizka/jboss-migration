@@ -190,9 +190,14 @@ public class DatasourceMigrator extends AbstractMigrator {
             final String moduleName = "jdbcdrivers." + driver.getDriverName();
             driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
-            
             // CliAction
-            actions.add( createDriverCliAction(driver));
+            try{
+                CliCommandAction createDriverCliAction = createDriverCliAction(driver);
+                actions.add( createDriverCliAction );
+            }
+            catch (CliScriptException ex) {
+                throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
+            }
 
             File targetDir = Utils.createPath(
                     getGlobalConfig().getAS7Config().getModulesDir(), moduleName.replace('.', '/'), "main", driverJar.getName());
@@ -207,9 +212,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
         catch (ParserConfigurationException ex) {
             throw new MigrationException("Failed creating an XML document for JDBC driver's module.xml: " + ex.getMessage(), ex);
-        }
-        catch (CliScriptException ex) {
-            throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
         }
 
         return actions;
