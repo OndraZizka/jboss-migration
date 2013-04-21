@@ -62,13 +62,15 @@ public class MigratorEngine {
     public MigratorEngine( Configuration config ) throws InitMigratorsExceptions {
         this.config = config;
         this.init();
-        this.resetContext();
+        this.resetContext( config.getGlobal().getAS7Config() );
     }
     
-    private void resetContext() {
-        this.ctx = new MigrationContext();
+    /**  Creates a brand new fresh clear context. */
+    private void resetContext( AS7Config as7Config ) {
+        this.ctx = new MigrationContext( as7Config );
     }
 
+    
     /**
      *  Initializes this Migrator, especially instantiates the IMigrators.
      */
@@ -180,10 +182,11 @@ public class MigratorEngine {
         
         log.info("Commencing migration.");
         
-        this.resetContext();
-        
         AS7Config as7Config = config.getGlobal().getAS7Config();
+
+        this.resetContext( as7Config );
         
+
         // Parse AS 7 config. MIGR-31 OK
         File as7configFile = new File(as7Config.getConfigFilePath());
         try {

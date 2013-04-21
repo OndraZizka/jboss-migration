@@ -3,10 +3,9 @@ package cz.muni.fi.jboss.migration.migrators.logging;
 import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
-import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
+import cz.muni.fi.jboss.migration.actions.ModuleCreationOldAction;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
-import cz.muni.fi.jboss.migration.ex.CliBatchException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
 import cz.muni.fi.jboss.migration.ex.LoadMigrationException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
@@ -197,7 +196,7 @@ public class LoggingMigrator extends AbstractMigrator {
             Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
 
             // Default for now => false
-            ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), src, targetDir, doc, false);
+            ModuleCreationOldAction moduleAction = new ModuleCreationOldAction( this.getClass(), src, targetDir, doc, false);
             actions.add(moduleAction);
             number++;
         }

@@ -1,6 +1,7 @@
 package cz.muni.fi.jboss.migration;
 
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
+import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
 import org.jboss.as.cli.batch.Batch;
 import org.jboss.as.cli.batch.impl.DefaultBatch;
@@ -36,6 +37,14 @@ public class MigrationContext {
     
     private ModelControllerClient as7Client;
 
+    private final AS7Config as7Config;
+            
+    
+
+    MigrationContext( AS7Config as7Config ) {
+        this.as7Config = as7Config;
+    }
+
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
@@ -48,7 +57,11 @@ public class MigrationContext {
     public Batch getBatch() { return batch; }
     void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
     public ModelControllerClient getAS7Client() { return as7Client; }
+
+    public AS7Config getAs7Config() { return as7Config; }
     //</editor-fold>
+    
+    
 
     
 }// class

@@ -3,13 +3,16 @@ package cz.muni.fi.jboss.migration.actions;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
+import cz.muni.fi.jboss.migration.utils.AS7ModuleUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import org.apache.commons.io.FileUtils;
-import org.w3c.dom.Document;
 
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
@@ -18,34 +21,41 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     
     private static final String MODULE_XML_FNAME = "module.xml";
 
-    File src;
-    File dest;
-    Document moduleDoc;
-    File moduleXml;
+    // Action data
+    File jarFile;
+    String moduleName;
+    String[] deps;
     boolean overwrite;
+    
+    // Backup
+    private File moduleDir;
 
 
-    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, File jar, File dest, Document moduleDoc, boolean overwrite) {
+    public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, 
+            String moduleName, String[] deps, File jar, boolean overwrite)
+    {
         super(fromMigrator);
-        this.src = jar;
-        this.dest = dest;
-        this.moduleDoc = moduleDoc;
+        this.jarFile = jar;
+        this.moduleName = moduleName;
+        this.deps = deps;
         this.overwrite = overwrite;
     }
 
 
     @Override
     public String toDescription() {
-        return "Create an AS 7 module from .jar " + this.src.getPath() + " into " + this.dest.getParent();
+        return "Create an AS 7 module '"+moduleName+"' from .jar " + this.jarFile.getPath() + ", deps: " + StringUtils.join(deps, " ");
     }
     
 
     @Override
     public void preValidate() throws MigrationException {
-        if( ! src.exists() )
-            throw new ActionException(this, "Module source jar doesn't exist: " + src.getPath());
-        if( dest.exists() && ! overwrite )
-            throw new ActionException(this, "Module jar exists in AS 7, overwrite not allowed: " + dest.getAbsolutePath());
+        if( ! jarFile.exists() )
+            throw new ActionException(this, "Module source jar doesn't exist: " + jarFile.getPath());
+        
+        File dir = getModuleDir();
+        if( dir.exists() && ! overwrite )
+            throw new ActionException(this, "Module dir already exists in AS 7, overwrite not allowed: " + dir.getAbsolutePath());
     }
 
 
@@ -53,21 +63,31 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     public void perform() throws MigrationException {
         // Create a module.
         try {
-            FileUtils.copyFile(this.src, this.dest);
-            File moduleXml = new File(this.dest.getParentFile(), MODULE_XML_FNAME);
-            //if( ! moduleXml.createNewFile() )
-            //    throw new ActionException(this, "Creation of module.xml failed - don't have write permission in " + moduleXml.getParent());
-            if( moduleXml.exists() && ! this.overwrite )
-                throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXml.getPath() );
+            // Copy jar file
+            File dir = getModuleDir();
+            FileUtils.copyFileToDirectory(this.jarFile, dir);
+            //File dest = new File(dir, this.jarFile.getName());
+            //FileUtils.copyFile( jarFile, dest );
+            
+            // XML doc
+            File moduleXmlFile = new File(dir, MODULE_XML_FNAME);
+            if( moduleXmlFile.exists() && ! this.overwrite )
+                throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXmlFile.getPath() );
+            
+            Document doc = AS7ModuleUtils.createModuleXML( moduleName, jarFile.getName(), deps );
+            Utils.transformDocToFile( doc, moduleXmlFile );
 
-            Utils.transformDocToFile(this.moduleDoc, moduleXml);
-            this.moduleXml = moduleXml;
+            // Backup
+            this.moduleDir = dir;
         }
-        catch (IOException ex) {
+        catch( IOException ex ) {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
-        catch (TransformerException e) {
-            throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + e.getMessage(), e);
+        catch( TransformerException ex ) {
+            throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + ex.getMessage(), ex);
+        }
+        catch( ParserConfigurationException ex ) {
+            throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + ex.getMessage(), ex);
         }
 
         setState(State.DONE);
@@ -76,13 +96,10 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        if (this.isAfterPerform()) {
-            // TODO: For now only delete folder of created module( migration/logging and migration/driver still exist=>delete after?)
-            FileUtils.deleteQuietly(this.dest.getParentFile());
+        if( this.isAfterPerform() ) {
+            FileUtils.deleteQuietly( this.moduleDir );
         }
-
         setState(State.ROLLED_BACK);
-
     }
 
 
@@ -100,6 +117,11 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     @Override
     public void cleanBackup() {
         setState(State.FINISHED);
+    }
+
+
+    private File getModuleDir() {
+        return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName + "/main" );
     }
 
 }// class

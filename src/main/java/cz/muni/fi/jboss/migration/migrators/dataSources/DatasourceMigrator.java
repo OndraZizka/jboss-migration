@@ -4,6 +4,7 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
+import cz.muni.fi.jboss.migration.actions.ModuleCreationOldAction;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -197,7 +198,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         
         // Driver jar not processed yet => create ModuleCreationAction, new module and a CLI script.
-        try {
+        {
             final String moduleName = "jdbcdrivers." + driver.getDriverName();
             driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
@@ -211,20 +212,10 @@ public class DatasourceMigrator extends AbstractMigrator {
                 throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
             }
 
-            File targetDir = Utils.createPath(
-                    getGlobalConfig().getAS7Config().getModulesDir().getPath(),
-                    moduleName.replace('.', '/'), "main", driverJar.getName());
-
-            Document doc  =  DatasourceUtils.createJDBCDriverModuleXML( driver.getDriverModule(), driverJar.getName());
-
-            // ModuleCreationAction
-            // TODO: ModuleCreationAction should only take metadata, not concrete paths and XML doc.
-            //       It should create the XML doc on it's own.
-            ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), driverJar, targetDir, doc, true);
+            String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"};
+            
+            IMigrationAction moduleAction = new ModuleCreationAction( DatasourceMigrator.class, moduleName, deps, driverJar, true);
             actions.add(moduleAction);
-        }
-        catch (ParserConfigurationException ex) {
-            throw new MigrationException("Failed creating an XML document for JDBC driver's module.xml: " + ex.getMessage(), ex);
         }
 
         return actions;
