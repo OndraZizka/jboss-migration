@@ -18,12 +18,14 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
 
     private MigrationContext ctx;
     private String originMessage;
+    private StackTraceElement originStacktrace;
     private Class<? extends IMigrator> fromMigrator;
     private List<String> warnings = new LinkedList();
 
 
     public AbstractStatefulAction( Class<? extends IMigrator> fromMigrator ) {
         this.fromMigrator = fromMigrator;
+        this.originStacktrace = Thread.currentThread().getStackTrace()[0];
     }
 
     public void addWarning(String text) {
@@ -43,6 +45,8 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     
     @Override public IMigrationAction.State getState() { return state; }
     public void setState(IMigrationAction.State state) { this.state = state; }
+    
+    @Override public StackTraceElement getOriginStackTrace(){ return originStacktrace; }
     @Override public String getOriginMessage() { return originMessage; }
     @Override public Class<? extends IMigrator> getFromMigrator(){ return fromMigrator; }
     @Override public List<String> getWarnings() { return warnings; }

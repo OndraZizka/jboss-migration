@@ -26,7 +26,14 @@ public interface IMigrationAction {
 
 
     // Data
+    
+    /**  Why was this action created. I.e. what AS 5 config piece is it's counterpart? */
     String getOriginMessage();
+    
+    /** Where was this action created. (Debug purposes) */
+    StackTraceElement getOriginStackTrace();
+    
+    /** Which migrator created this action. */
     Class<? extends IMigrator> getFromMigrator();
     
     /**
