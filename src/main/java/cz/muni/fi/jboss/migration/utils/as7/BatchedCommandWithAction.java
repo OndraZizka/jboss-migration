@@ -32,7 +32,7 @@ public class BatchedCommandWithAction extends DefaultBatchedCommand {
 
     @Override
     public String toString() {
-        return "BatchedCommandWithAction{" + super.toString() + "; action: " + action + '}';
+        return "BatchedCommandWithAction{" + this.getCommand() + "; action: " + action + '}';
     }
     
     
