@@ -108,7 +108,7 @@ public class MigratorEngine {
             MultiValueMap config
     ) throws InitMigratorsExceptions {
         
-        Map<Class<? extends IMigrator>, IMigrator> migs = new HashMap<>();
+        Map<Class<? extends IMigrator>, IMigrator> migs = new LinkedHashMap();
         List<Exception> exs  = new LinkedList<>();
         
         for( Class<? extends IMigrator> cls : migratorClasses ){
