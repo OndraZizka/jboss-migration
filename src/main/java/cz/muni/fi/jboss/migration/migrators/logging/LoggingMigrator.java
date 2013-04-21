@@ -129,7 +129,8 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (fragment instanceof CategoryBean) {
                 try {
-                    ctx.getActions().add( createLoggerCliAction( ctx, migrateCategory((CategoryBean) fragment)));
+                    CliCommandAction action = createLoggerCliAction( ctx, migrateCategory((CategoryBean) fragment), this.getIfExists());
+                    ctx.getActions().add( action );
                 } catch (CliScriptException e) {
                     throw new MigrationException("Migration of the Category failed: " + e.getMessage(), e);
                 }
@@ -515,7 +516,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the logger are missing or
      *                            are empty (loggerCategory)
      */
-    static CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger) throws CliScriptException {
+    static CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, Configuration.IfExists ifExists) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
@@ -524,13 +525,13 @@ public class LoggingMigrator extends AbstractMigrator {
         loggerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
         loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
         
-        // TODO: First, check if it exists. If so, delete first.
+        // First, check if it exists. If so, delete first.
         // TODO: MIGR-61 Merge resources instead of skipping or replacing
-        try {
+        /*try {
             AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
         } catch( IOException | CliBatchException ex ) {
             throw new CliScriptException("Failed removing resource: " + ex.getMessage(), ex );
-        }
+        }*/
 
         
         // ADD
@@ -550,7 +551,8 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("level", logger.getLoggerLevelName());
         builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
 
-        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand());
+        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand())
+                .setIfExists( ifExists );
     }
 
     
