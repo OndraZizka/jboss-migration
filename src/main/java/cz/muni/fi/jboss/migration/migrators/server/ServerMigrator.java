@@ -89,26 +89,23 @@ public class ServerMigrator extends AbstractMigrator {
             throw new MigrationException("Migration of web server failed: " + e.getMessage(), e);
         }
 
-        for (IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments()) {
-            if (fragment instanceof ConnectorAS5Bean) {
-                try {
+        for( IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments() ) {
+            String what = null;
+            try {
+                if (fragment instanceof ConnectorAS5Bean) {
+                    what = "connector";
                     ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, ctx)));
-                } catch (CliScriptException | NodeGenerationException e) {
-                    throw new MigrationException("Migration of the connector failed: " + e.getMessage(), e);
                 }
-                continue;
-            }
-
-            if (fragment instanceof EngineBean) {
-                try {
+                else if (fragment instanceof EngineBean) {
+                    what = "Engine (virtual-server)";
                     ctx.getActions().add(createVirtualServerCliAction(migrateEngine((EngineBean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of the Engine (virtual-server) failed: " + e.getMessage(), e);
                 }
-                continue;
+                else
+                    throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
             }
-
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            catch (CliScriptException | NodeGenerationException e) {
+                throw new MigrationException("Migration of the " + what + " failed: " + e.getMessage(), e);
+            }
         }
 
         for (SocketBindingBean sb : this.socketBindings) {
@@ -144,30 +141,32 @@ public class ServerMigrator extends AbstractMigrator {
         // Ajp connector need scheme too. So http is set.
         connAS7.setScheme("http");
 
-        connAS7.setConnectorName("connector" + this.randomConnector);
-        this.randomConnector++;
-
-        // Socket-binding.. first try
-        if (connector.getProtocol().equals("HTTP/1.1")) {
-            if ((connector.getSslEnabled() == null) || (connector.getSslEnabled().equalsIgnoreCase("false"))) {
-                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "http"));
-            } else {
-                connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "https"));
-            }
+        
+        // Socket-binding
+        String protocol = null;
+        if( connector.getProtocol().equals("HTTP/1.1") ) {
+                protocol = "true".equalsIgnoreCase( connector.getSslEnabled() ) ? "https" : "http";
         } else {
-            connAS7.setSocketBinding(createSocketBinding(connector.getPort(), "ajp"));
+            // TODO: This can't be just assumed!
+            protocol = "ajp";
         }
+        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), protocol));
 
-        if ((connector.getSslEnabled() != null) && (connector.getSslEnabled().equals("true"))) {
+        // Name
+        connAS7.setConnectorName(protocol);
+
+        
+        // SSL enabled?
+        if( "true".equalsIgnoreCase( connector.getSslEnabled() ) ) {
             connAS7.setScheme("https");
             connAS7.setSecure(connector.getSecure());
 
             connAS7.setSslName("ssl");
             connAS7.setVerifyClient(connector.getClientAuth());
-            // TODO: Problem with place of the file
+            // TODO: Problem with file location
             connAS7.setCertifKeyFile(connector.getKeystoreFile());
 
-            // TODO: No sure which protocols can be in AS5. Hard to find..
+            // TODO: No sure which protocols can be in AS5.
             if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
                 connAS7.setSslProtocol("TLSv1");
             }
@@ -176,7 +175,7 @@ public class ServerMigrator extends AbstractMigrator {
             connAS7.setCiphers(connector.getCiphers());
             connAS7.setKeyAlias(connAS7.getKeyAlias());
 
-            // TODO: Problem with passwords. Password in AS7 stores keystorePass and truststorePass(there are same)
+            // TODO: AS 7 has just one password, while AS 5 has keystorePass and truststorePass.
             connAS7.setPassword(connector.getKeystorePass());
         }
 
@@ -212,7 +211,7 @@ public class ServerMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
-            // Or maybe use FileUtils and list all files with that name?
+            // TODO:  Read over Management API.
             NodeList bindings = ctx.getAS7ConfigXmlDoc().getElementsByTagName("socket-binding");
             for (int i = 0; i < bindings.getLength(); i++) {
                 if (!(bindings.item(i) instanceof Element)) {
@@ -225,8 +224,7 @@ public class ServerMigrator extends AbstractMigrator {
 
             }
         } catch (JAXBException e) {
-            throw new LoadMigrationException("Parsing of socket-bindings in standalone file failed: " +
-                    e.getMessage(), e);
+            throw new LoadMigrationException("Parsing of socket-bindings in standalone file failed: " + e.getMessage(), e);
         }
 
     }
@@ -289,6 +287,19 @@ public class ServerMigrator extends AbstractMigrator {
 
         List<CliCommandAction> actions = new LinkedList();
 
+
+        actions.add( new CliCommandAction( ServerMigrator.class, createConnectorScript(connAS7), createConnectorModelNode( connAS7 )));
+
+        if (connAS7.getScheme().equals("https")) {
+            actions.add( new CliCommandAction( ServerMigrator.class, 
+                    createSSLConfScript( connAS7 ), 
+                    createSSLConfModelNode( connAS7 )));
+        }
+
+        return actions;
+    }
+    
+    private static ModelNode createConnectorModelNode( ConnectorAS7Bean connAS7 ){
         ModelNode connCmd = new ModelNode();
         connCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         connCmd.get(ClientConstants.OP_ADDR).add("subsystem", "web");
@@ -308,35 +319,32 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("scheme", connAS7.getScheme());
         builder.addProperty("secure", connAS7.getSecure());
         builder.addProperty("enabled", connAS7.getEnabled());
-
-        actions.add( new CliCommandAction( ServerMigrator.class, createConnectorScript(connAS7), builder.getCommand()));
-
-        if (connAS7.getScheme().equals("https")) {
-            ModelNode sslConf = new ModelNode();
-            sslConf.get(ClientConstants.OP).set(ClientConstants.ADD);
-            sslConf.get(ClientConstants.OP_ADDR).add("subsystem", "web");
-            sslConf.get(ClientConstants.OP_ADDR).add("connector", connAS7.getConnectorName());
-            sslConf.get(ClientConstants.OP_ADDR).add("ssl", "configuration");
-
-            CliApiCommandBuilder sslBuilder = new CliApiCommandBuilder(sslConf);
-
-            sslBuilder.addProperty("name", connAS7.getSslName());
-            sslBuilder.addProperty("verify-client", connAS7.getVerifyClient());
-            sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
-            sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
-            sslBuilder.addProperty("password", connAS7.getPassword());
-            sslBuilder.addProperty("protocol", connAS7.getProtocol());
-            sslBuilder.addProperty("ciphers", connAS7.getCiphers());
-            sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
-            sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
-            sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
-            sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
-
-            actions.add( new CliCommandAction( ServerMigrator.class, createSSLConfScript(connAS7), sslBuilder.getCommand()));
-        }
-
-        return actions;
+        return builder.getCommand();
     }
+    
+    private static ModelNode createSSLConfModelNode( ConnectorAS7Bean connAS7 ){
+        ModelNode sslConf = new ModelNode();
+        sslConf.get(ClientConstants.OP).set(ClientConstants.ADD);
+        sslConf.get(ClientConstants.OP_ADDR).add("subsystem", "web");
+        sslConf.get(ClientConstants.OP_ADDR).add("connector", connAS7.getConnectorName());
+        sslConf.get(ClientConstants.OP_ADDR).add("ssl", "configuration");
+
+        CliApiCommandBuilder sslBuilder = new CliApiCommandBuilder(sslConf);
+
+        sslBuilder.addProperty("name", connAS7.getSslName());
+        sslBuilder.addProperty("verify-client", connAS7.getVerifyClient());
+        sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
+        sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
+        sslBuilder.addProperty("password", connAS7.getPassword());
+        sslBuilder.addProperty("protocol", connAS7.getProtocol());
+        sslBuilder.addProperty("ciphers", connAS7.getCiphers());
+        sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
+        sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
+        sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
+        sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
+        return sslBuilder.getCommand();
+    }
+    
 
     /**
      * Creates CliCommandAction for adding a Virtual-Server
@@ -406,6 +414,8 @@ public class ServerMigrator extends AbstractMigrator {
      * @param connAS7 object of migrated connector
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * 
+     * @deprecated  Generate this from the ModelNode.
      */
     private static String createConnectorScript(ConnectorAS7Bean connAS7) throws CliScriptException {
         String errMsg = " in connector must be set.";
@@ -442,6 +452,8 @@ public class ServerMigrator extends AbstractMigrator {
      *
      * @param connAS7 Connector containing SSL configuration
      * @return created string containing the CLI script for adding the SSL configuration
+     * 
+     * @deprecated  Generate this from the ModelNode.
      */
     private static String createSSLConfScript(ConnectorAS7Bean connAS7) {
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
@@ -471,6 +483,8 @@ public class ServerMigrator extends AbstractMigrator {
      *
      * @param virtualServer object representing migrated virtual-server
      * @return string containing created CLI script
+     * 
+     * @deprecated  Generate this from the ModelNode.
      */
     private static String createVirtualServerScript(VirtualServerBean virtualServer) throws CliScriptException {
         String errMsg = "in virtual-server (engine in AS5) must be set";
@@ -509,6 +523,8 @@ public class ServerMigrator extends AbstractMigrator {
      * @param socketBinding object representing socket-binding
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * 
+     * @deprecated  Generate this from the ModelNode.
      */
     private static String createSocketBindingScript(SocketBindingBean socketBinding)
             throws CliScriptException {
@@ -528,4 +544,5 @@ public class ServerMigrator extends AbstractMigrator {
 
         return resultScript.toString();
     }
-}
+    
+}// class
