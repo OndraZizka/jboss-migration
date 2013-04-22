@@ -3,7 +3,8 @@ package cz.muni.fi.jboss.migration.migrators.dataSources.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing driver (AS7)
+ * JDBC driver JAXB bean (for AS7).
+ * Equals/hashCode work based on driverClass and xaDatasourceClass.
  *
  * @author Roman Jakubco
  */

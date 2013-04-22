@@ -45,6 +45,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
 
     
+    private static final String JDBC_DRIVER_MODULE_PREFIX = "jdbcdrivers.";
     private static final String DATASOURCES_ROOT_ELEMENT_NAME = "datasources";
 
     private int namingSequence = 1;
@@ -113,6 +114,8 @@ public class DatasourceMigrator extends AbstractMigrator {
     public void createActions(MigrationContext ctx) throws MigrationException {
         
         // The driver creation CliCommandAction must be added (performed) before datasource creation.
+        
+        // TODO: Rewrite to some sane form. I.e. code drivers "cache" and references handover properly.
         
         Set<DriverBean> drivers = new HashSet();        
         
@@ -198,7 +201,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         // Driver jar not processed yet => create ModuleCreationAction, new module and a CLI script.
         {
-            final String moduleName = "jdbcdrivers." + driver.getDriverName();
+            final String moduleName = JDBC_DRIVER_MODULE_PREFIX + driver.getDriverName();
             driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
 
@@ -211,7 +214,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
             }
 
-            String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"};
+            String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
             
             IMigrationAction moduleAction = new ModuleCreationAction( DatasourceMigrator.class, moduleName, deps, driverJar, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
@@ -236,9 +239,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setDriverClass( noTxDatasourceAS5.getDriverClass() );
         if( drivers.add(driver) ){
-            datasourceAS7.setDriver("createdDriver" + this.namingSequence);
-            driver.setDriverName("createdDriver" + this.namingSequence);
-            this.namingSequence++;
+            String driverName = "createdDriver" + this.namingSequence ++;
+            datasourceAS7.setDriver(driverName);
+            driver.setDriverName(driverName);
         }
         else {
             for( DriverBean temp : drivers ) {
@@ -323,18 +326,22 @@ public class DatasourceMigrator extends AbstractMigrator {
         DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
 
         DriverBean driver = new DriverBean();
-        driver.setDriverClass(datasourceAS5.getDriverClass());
-        if( drivers.add(driver) ){
-            datasourceAS7.setDriver("createdDriver" + this.namingSequence);
-            driver.setDriverName("createdDriver" + this.namingSequence);
-            this.namingSequence++;
-        } else{
-            for (DriverBean temp : drivers) {
-                if (temp.equals(driver)) {
+        driver.setDriverClass( datasourceAS5.getDriverClass() );
+        
+        // Driver already added?
+        if( drivers.contains( driver )){
+            for( DriverBean temp : drivers ) {
+                if( ! temp.equals(driver) ) {
                     datasourceAS7.setDriver(temp.getDriverName());
                     break;
                 }
             }
+        }
+        else{
+            String driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++;
+            datasourceAS7.setDriver(driverName);
+            driver.setDriverName(driverName);
+            drivers.add( driver );
         }
 
         // Standalone elements in AS7
@@ -417,9 +424,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         DriverBean driver = new DriverBean();
         driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
         if( drivers.add(driver)){
-            xaDataAS7.setDriver("createdDriver" + this.namingSequence);
-            driver.setDriverName("createdDriver" + this.namingSequence);
-            this.namingSequence++;
+            String driverName = "createdDriver" + this.namingSequence ++;
+            xaDataAS7.setDriver(driverName);
+            driver.setDriverName(driverName);
         } else{
             for (DriverBean temp : drivers) {
                 if (temp.equals(driver)) {
@@ -517,9 +524,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         // TODO: Try if property enabled works
         builder.addProperty("enabled", "true");
 
+        builder.addProperty("driver-name", dataSource.getDriver());
+        
         builder.addProperty("jta", dataSource.getJta());
         builder.addProperty("use-java-context", dataSource.getUseJavaContext());
-        builder.addProperty("driver-name", dataSource.getDriver());
         builder.addProperty("connection-url", dataSource.getConnectionUrl());
         builder.addProperty("url-delimeter", dataSource.getUrlDelimeter());
         builder.addProperty("url-selector-strategy-class-name", dataSource.getUrlSelector());
