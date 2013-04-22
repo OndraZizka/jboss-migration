@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Level;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -119,6 +120,13 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         if( this.isAfterPerform() ) {
             FileUtils.deleteQuietly( this.moduleDir );
         }
+        if( this.backupDir != null ){
+            try {
+                FileUtils.moveDirectory( this.backupDir, this.moduleDir );
+            } catch( IOException ex ) {
+                throw new ActionException( this, "Can't move " + backupDir + " to " + moduleDir );
+            }
+        }
         setState(State.ROLLED_BACK);
     }
 
@@ -136,10 +144,12 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         } catch( IOException ex ) {
             throw new ActionException( this, "Failed creating a backup dir. " + ex.getMessage(), ex);
         }
-        try {
-            FileUtils.copyDirectory( getModuleDir(), tmpDir.toFile() );
-        } catch( IOException ex ) {
-            throw new ActionException( this, "Failed copying to the backup dir " + tmpDir + " : " + ex.getMessage(), ex);
+        if( getModuleDir().exists() ){
+            try {
+                FileUtils.copyDirectory( getModuleDir(), tmpDir.toFile() );
+            } catch( IOException ex ) {
+                throw new ActionException( this, "Failed copying to the backup dir " + tmpDir + " : " + ex.getMessage(), ex);
+            }
         }
         this.backupDir = tmpDir.toFile();
         setState(State.BACKED_UP);
