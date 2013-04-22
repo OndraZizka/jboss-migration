@@ -16,6 +16,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelType;
 
@@ -297,5 +299,48 @@ public class AS7CliUtils {
         if( hasParams )  sb.append(')');
         return sb.toString();
     }
+    
+    /**
+        /path=jboss.server.base.dir/:read-attribute(name=path,include-defaults=true)
+        {
+            "outcome" => "success",
+            "result" => "/home/ondra/work/AS/Migration/AS-7.1.3/standalone"
+        }
+     */
+    public static String queryServerPath( String path, ModelControllerClient client ) throws MigrationException{
+
+        ModelNode query = new ModelNode();
+        query.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        query.get(ClientConstants.OP_ADDR).add("path", path);
+        query.get("name").set("path");
+        ModelNode res;
+        try {
+            res = client.execute( query );
+            throwIfFailure( res );
+        } catch( IOException | CliBatchException ex ) {
+            throw new MigrationException("Failed querying for AS 7 directory.", ex);
+        }
+        
+        return res.get(ClientConstants.RESULT).asString();
+    }
+    
+    /**
+     *  Actually it returns the base dir, i.e. the dir containing bin/, standalone/ etc.
+     */
+    public static String queryServerHomeDir( ModelControllerClient client ) throws MigrationException{
+        return queryServerPath( "jboss.home.dir", client);
+    }
+    
+    /**
+     *  E.g. $AS/standalone (full path).
+     */
+    public static String queryServerBaseDir( ModelControllerClient client ) throws MigrationException{
+        return queryServerPath( "jboss.server.base.dir", client);
+    }
+    
+    public static String queryServerConfigDir( ModelControllerClient client ) throws MigrationException{
+        return queryServerPath( "jboss.server.config.dir", client);
+    }
+    
     
 }// class
