@@ -64,7 +64,7 @@ public class AS7ModuleUtils {
 
         boolean optional = false;
         for( String modName : deps ) {
-            if( deps == null ){
+            if( modName == null ){
                 optional = true;
                 continue;
             }
