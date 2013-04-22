@@ -121,7 +121,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
 
     private File getModuleDir() {
-        return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName + "/main" );
+        return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName.replace('.', '/') + "/main" );
     }
 
 }// class
