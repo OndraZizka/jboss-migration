@@ -1,11 +1,13 @@
 package cz.muni.fi.jboss.migration;
 
+import cz.muni.fi.jboss.migration.conf.AS7Config;
 import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.container.ManagementClient;
+import org.jboss.as.controller.client.ModelControllerClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,17 +37,32 @@ public class ArqTest {
      */
     @Test
     @RunAsClient
-    public void testDoMigration( @ArquillianResource ManagementClient client ) throws Exception {
+    public void testDoMigration( /*@ArquillianResource ManagementClient client*/ ) throws Exception {
         System.out.println( "doMigration" );
                 
         Configuration conf = createTestConfig01();
+        AS7Config as7Config = conf.getGlobal().getAS7Config();
         
         // Set the Mgmt host & port from the client;
-        conf.getGlobal().getAS7Config().setHost( client.getMgmtAddress() );
-        conf.getGlobal().getAS7Config().setManagementPort( client.getMgmtPort() );
+        //as7Config.setHost( client.getMgmtAddress() );
+        //as7Config.setManagementPort( client.getMgmtPort() );
+        
+        
+        /*
+           This fails for some reason:
+
+            java.lang.RuntimeException: Provider for type class org.jboss.as.arquillian.container.ManagementClient returned a null value: org.jboss.as.arquillian.container.ManagementClientProvider@4aee4b87
+                at org.jboss.arquillian.test.impl.enricher.resource.ArquillianResourceTestEnricher.lookup(ArquillianResourceTestEnricher.java:115)
+                at org.jboss.arquillian.test.impl.enricher.resource.ArquillianResourceTestEnricher.resolve(ArquillianResourceTestEnricher.java:91)        
+                 
+           Let's resort to default values.
+        */
+        
+        //ModelControllerClient as7client = client.getControllerClient();
+        ModelControllerClient as7client = ModelControllerClient.Factory.create(as7Config.getHost(), as7Config.getManagementPort());
         
         // Then query for the server path.
-        String as7Dir = AS7CliUtils.queryServerHomeDir(client.getControllerClient() );
+        String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
         conf.getGlobal().getAS7Config().setDir( as7Dir );
         
         MigratorApp.validateConfiguration( conf );
