@@ -1,5 +1,6 @@
 package cz.muni.fi.jboss.migration.actions;
 
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.MigrationException;
 import cz.muni.fi.jboss.migration.spi.IMigrator;
@@ -10,14 +11,19 @@ import org.apache.commons.io.FileUtils;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ModuleCreationAction extends AbstractStatefulAction {
+    private static final Logger log = LoggerFactory.getLogger(ModuleCreationAction.class);
     
     private static final String MODULE_XML_FNAME = "module.xml";
 
@@ -25,20 +31,21 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     File jarFile;
     String moduleName;
     String[] deps;
-    boolean overwrite;
+    Configuration.IfExists ifExists;
     
     // Backup
     private File moduleDir;
+    private File backupDir;
 
 
     public ModuleCreationAction( Class<? extends IMigrator> fromMigrator, 
-            String moduleName, String[] deps, File jar, boolean overwrite)
+            String moduleName, String[] deps, File jar, Configuration.IfExists ifExists)
     {
         super(fromMigrator);
         this.jarFile = jar;
         this.moduleName = moduleName;
         this.deps = deps;
-        this.overwrite = overwrite;
+        this.ifExists = ifExists;
     }
 
 
@@ -54,8 +61,21 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             throw new ActionException(this, "Module source jar doesn't exist: " + jarFile.getPath());
         
         File dir = getModuleDir();
-        if( dir.exists() && ! overwrite )
-            throw new ActionException(this, "Module dir already exists in AS 7, overwrite not allowed: " + dir.getAbsolutePath());
+        if( dir.exists() ){
+            switch( this.ifExists ){
+                case FAIL:
+                    throw new ActionException(this, "Module dir already exists in AS 7, overwrite not allowed: " + dir.getAbsolutePath());
+                case ASK:
+                case MERGE:
+                    throw new UnsupportedOperationException("ASK and MERGE are not supported for " + getClass().getSimpleName());
+                case WARN:
+                    log.warn("Module directory for "+this.moduleName+" already exists: " + this.moduleDir);
+                    break;
+                case SKIP:
+                    log.debug("Module directory for "+this.moduleName+" already exists, skipping: " + this.moduleDir);
+                    break;
+            }
+        }
     }
 
 
@@ -71,7 +91,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             
             // XML doc
             File moduleXmlFile = new File(dir, MODULE_XML_FNAME);
-            if( moduleXmlFile.exists() && ! this.overwrite )
+            if( moduleXmlFile.exists() && this.ifExists != Configuration.IfExists.OVERWRITE )
                 throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXmlFile.getPath() );
             
             Document doc = AS7ModuleUtils.createModuleXML( moduleName, jarFile.getName(), deps );
@@ -110,6 +130,18 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void backup() throws MigrationException {
+        Path tmpDir;
+        try {
+            tmpDir = Files.createTempDirectory( "JBossAS-migr-backup-"+moduleName );
+        } catch( IOException ex ) {
+            throw new ActionException( this, "Failed creating a backup dir. " + ex.getMessage(), ex);
+        }
+        try {
+            FileUtils.copyDirectory( getModuleDir(), tmpDir.toFile() );
+        } catch( IOException ex ) {
+            throw new ActionException( this, "Failed copying to the backup dir " + tmpDir + " : " + ex.getMessage(), ex);
+        }
+        this.backupDir = tmpDir.toFile();
         setState(State.BACKED_UP);
     }
 

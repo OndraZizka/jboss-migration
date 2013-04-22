@@ -4,7 +4,7 @@ import cz.muni.fi.jboss.migration.*;
 import cz.muni.fi.jboss.migration.actions.CliCommandAction;
 import cz.muni.fi.jboss.migration.actions.IMigrationAction;
 import cz.muni.fi.jboss.migration.actions.ModuleCreationAction;
-import cz.muni.fi.jboss.migration.actions.ModuleCreationOldAction;
+import cz.muni.fi.jboss.migration.conf.Configuration;
 import cz.muni.fi.jboss.migration.conf.GlobalConfiguration;
 import cz.muni.fi.jboss.migration.ex.ActionException;
 import cz.muni.fi.jboss.migration.ex.CliScriptException;
@@ -28,7 +28,6 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -214,7 +213,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"};
             
-            IMigrationAction moduleAction = new ModuleCreationAction( DatasourceMigrator.class, moduleName, deps, driverJar, true);
+            IMigrationAction moduleAction = new ModuleCreationAction( DatasourceMigrator.class, moduleName, deps, driverJar, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
         }
 
