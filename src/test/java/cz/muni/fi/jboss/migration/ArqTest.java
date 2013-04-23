@@ -63,7 +63,9 @@ public class ArqTest {
         
         // Then query for the server path.
         String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
-        conf.getGlobal().getAS7Config().setDir( as7Dir );
+        // AS 7.1.1 doesn't define it.
+        if( as7Dir != null )
+            conf.getGlobal().getAS7Config().setDir( as7Dir );
         
         MigratorApp.validateConfiguration( conf );
         

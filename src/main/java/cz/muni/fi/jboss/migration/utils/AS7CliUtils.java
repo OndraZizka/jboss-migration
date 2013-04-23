@@ -313,15 +313,17 @@ public class AS7CliUtils {
         query.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
         query.get(ClientConstants.OP_ADDR).add("path", path);
         query.get("name").set("path");
-        ModelNode res;
+        ModelNode response;
         try {
-            res = client.execute( query );
-            throwIfFailure( res );
+            response = client.execute( query );
+            throwIfFailure( response );
         } catch( IOException | CliBatchException ex ) {
             throw new MigrationException("Failed querying for AS 7 directory.", ex);
         }
-        
-        return res.get(ClientConstants.RESULT).asString();
+        ModelNode result = response.get(ClientConstants.RESULT);
+        if( result.getType() == ModelType.UNDEFINED )
+            return null;
+        return result.asString();
     }
     
     /**
