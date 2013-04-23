@@ -343,4 +343,15 @@ public class AS7CliUtils {
     }
     
     
+    /**
+     *  Escape CLI address element - the parts between / and = in /foo=bar/baz=moo .
+     */
+    public static String escapeAddressElement(String element) {
+        element = element.replace(":", "\\:");
+        element = element.replace("/", "\\/");
+        element = element.replace("=", "\\=");
+        element = element.replace(" ", "\\ ");
+        return element;
+    }  
+    
 }// class
