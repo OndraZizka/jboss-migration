@@ -201,7 +201,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         // Driver jar not processed yet => create ModuleCreationAction, new module and a CLI script.
         {
-            final String moduleName = JDBC_DRIVER_MODULE_PREFIX + driver.getDriverName();
+            final String moduleName = driver.getDriverName();
             driver.setDriverModule( moduleName );
             tempModules.put(driverJar, driver.getDriverModule());
 
