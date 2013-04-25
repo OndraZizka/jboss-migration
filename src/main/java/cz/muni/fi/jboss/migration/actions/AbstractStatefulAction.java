@@ -22,6 +22,8 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     private Class<? extends IMigrator> fromMigrator;
     private List<String> warnings = new LinkedList();
 
+    public AbstractStatefulAction(){
+    }
 
     public AbstractStatefulAction( Class<? extends IMigrator> fromMigrator ) {
         this.fromMigrator = fromMigrator;

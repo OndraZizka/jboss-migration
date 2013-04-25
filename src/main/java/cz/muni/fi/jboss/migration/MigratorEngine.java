@@ -20,6 +20,7 @@ import cz.muni.fi.jboss.migration.utils.AS7CliUtils;
 import cz.muni.fi.jboss.migration.utils.Utils;
 import cz.muni.fi.jboss.migration.utils.as7.BatchFailure;
 import cz.muni.fi.jboss.migration.utils.as7.BatchedCommandWithAction;
+import cz.muni.fi.jboss.migration.migrators.deploymentScanner.DeploymentScannerMigrator;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.eclipse.persistence.exceptions.JAXBException;
 import org.jboss.as.cli.batch.BatchedCommand;
@@ -36,7 +37,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
-
 
 /**
  *  Controls the core migration processes.
@@ -153,7 +153,7 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-        
+        migratorClasses.add( DeploymentScannerMigrator.class );
         return migratorClasses;
     }
     
