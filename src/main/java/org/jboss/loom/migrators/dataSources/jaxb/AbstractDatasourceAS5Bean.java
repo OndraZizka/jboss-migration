@@ -23,9 +23,6 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelectStratClName;
 
-    @XmlElement(name = "connection-url")
-    private String connectionUrl;
-
     @XmlElement(name = "driver-class")
     private String driverClass;
 
@@ -101,10 +98,41 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
     @XmlElement(name = "share-prepared-statements")
     private String sharePreStatements;
 
+    @XmlElement(name = "transaction-isolation")
+    private String transIsolation;
+
+    @XmlElement(name = "connection-url")
+    private String connectionUrl;
 
     // Special class for storing connection-property
     @XmlElements(@XmlElement(name = "connection-property", type = ConnectionPropertyBean.class))
     private List<ConnectionPropertyBean> connectionProperties;
+
+
+    public String getTransIsolation() {
+        return transIsolation;
+    }
+
+    public void setTransIsolation(String transIsolation) {
+        this.transIsolation = transIsolation;
+    }
+
+    public String getConnectionUrl() {
+        return connectionUrl;
+    }
+
+    public void setConnectionUrl(String connectionUrl) {
+        this.connectionUrl = connectionUrl;
+    }
+
+    public List<ConnectionPropertyBean> getConnectionProperties() {
+        return connectionProperties;
+    }
+
+    public void setConnectionProperties(List<ConnectionPropertyBean> connectionProperties) {
+        this.connectionProperties = connectionProperties;
+    }
+
 
     public String getJndiName() {
         return jndiName;
@@ -136,14 +164,6 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
 
     public void setUrlSelectStratClName(String urlSelectStratClName) {
         this.urlSelectStratClName = urlSelectStratClName;
-    }
-
-    public String getConnectionUrl() {
-        return connectionUrl;
-    }
-
-    public void setConnectionUrl(String connectionUrl) {
-        this.connectionUrl = connectionUrl;
     }
 
     public String getDriverClass() {
@@ -344,13 +364,5 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
 
     public void setSharePreStatements(String sharePreStatements) {
         this.sharePreStatements = sharePreStatements;
-    }
-
-    public List<ConnectionPropertyBean> getConnectionProperties() {
-        return connectionProperties;
-    }
-
-    public void setConnectionProperties(List<ConnectionPropertyBean> connectionProperties) {
-        this.connectionProperties = connectionProperties;
     }
 }

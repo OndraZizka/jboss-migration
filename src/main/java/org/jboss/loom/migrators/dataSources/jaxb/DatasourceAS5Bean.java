@@ -1,7 +1,10 @@
 package org.jboss.loom.migrators.dataSources.jaxb;
 
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * Class for unmarshalling and representing local-tx-datasource (AS5)
@@ -15,15 +18,5 @@ import javax.xml.bind.annotation.*;
 
 public class DatasourceAS5Bean extends AbstractDatasourceAS5Bean{
 
-    @XmlElement(name = "transaction-isolation")
-    private String transIsolation;
 
-
-    public String getTransIsolation() {
-        return transIsolation;
-    }
-
-    public void setTransIsolation(String transIsolation) {
-        this.transIsolation = transIsolation;
-    }
 }// class

@@ -130,17 +130,17 @@ public class DatasourceMigrator extends AbstractMigrator {
             try {
                 if( fragment instanceof DatasourceAS5Bean ) {
                     dsType = "local-tx-datasource";
-                    final DatasourceAS7Bean ds = migrateLocalTxDatasource((DatasourceAS5Bean) fragment, classToDriverMap);
+                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
                     tempActions.add( createDatasourceCliAction(ds) );
                 }
                 else if( fragment instanceof XaDatasourceAS5Bean ) {
                     dsType = "xa-datasource";
-                    final XaDatasourceAS7Bean ds = migrateXaDatasource((XaDatasourceAS5Bean) fragment, classToDriverMap);
+                    final XaDatasourceAS7Bean ds = (XaDatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
                     tempActions.addAll(createXaDatasourceCliActions(ds));
                 }
                 else if( fragment instanceof NoTxDatasourceAS5Bean ){
                     dsType = "no-tx-datasource";
-                    final DatasourceAS7Bean ds = migrateNoTxDatasource((NoTxDatasourceAS5Bean) fragment, classToDriverMap);
+                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
                     tempActions.add(createDatasourceCliAction(ds));
                 }
                 else 
@@ -226,116 +226,36 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return actions;
     }
-    
+
     /**
-     * Migrates a No-Tx-Datasource from AS5 to AS7
+     * Migrates datasource (all types) from AS5 to its equivalent in AS7
      *
-     * @param noTxDatasourceAS5 object representing No-Tx-Datasource in AS5
-     * @return object representing migrated Datasource in AS7
-     * 
-     *  TODO: Many of properties are identical across 3 types of datasources.
-     *        Move them into a parent class and process in a shared method.
+     * @param datasourceAS5 datasource to be migrated
+     * @param drivers map containing created drivers to this point
+     * @return created AS7 datasource
      */
-    private DatasourceAS7Bean migrateNoTxDatasource(NoTxDatasourceAS5Bean noTxDatasourceAS5, Map<String, DriverBean> drivers) {
-        DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
+    private AbstractDatasourceAS7Bean migrateDatasouceAS5(AbstractDatasourceAS5Bean datasourceAS5, Map<String, DriverBean> drivers){
+        AbstractDatasourceAS7Bean datasourceAS7;
+        DriverBean driver;
+
+        if(datasourceAS5 instanceof XaDatasourceAS5Bean){
+            datasourceAS7 = new XaDatasourceAS7Bean();
+            driver = drivers.get( ((XaDatasourceAS5Bean) datasourceAS5).getXaDatasourceClass() );
+            setXaDatasourceProps( (XaDatasourceAS7Bean) datasourceAS7, (XaDatasourceAS5Bean) datasourceAS5 );
+        } else {
+            datasourceAS7 = new DatasourceAS7Bean();
+            driver = drivers.get( datasourceAS5.getDriverClass() );
+            setDatasourceProps((DatasourceAS7Bean) datasourceAS7, datasourceAS5);
+        }
 
         // Setting name for driver
-        DriverBean driver = drivers.get( noTxDatasourceAS5.getDriverClass() );
         if( null != driver ){
             datasourceAS7.setDriver( driver.getDriverName());
         }
         else {
             driver = new DriverBean();
-            driver.setDriverClass( noTxDatasourceAS5.getDriverClass() );
-
-            String driverName = "createdDriver" + this.namingSequence ++;
-            datasourceAS7.setDriver(driverName);
-            driver.setDriverName(driverName);
-            drivers.put( noTxDatasourceAS5.getDriverClass(), driver );
-        }
-
-        //this.drivers.add(noTxDatasourceAS5.getDriverClass());
-
-        // Standalone elements in AS7
-        datasourceAS7.setJta("false");
-        datasourceAS7.setJndiName("java:jboss/datasources/" + noTxDatasourceAS5.getJndiName());
-        datasourceAS7.setPoolName(noTxDatasourceAS5.getJndiName());
-        datasourceAS7.setEnabled("true");
-        datasourceAS7.setUseJavaContext(noTxDatasourceAS5.getUseJavaContext());
-        datasourceAS7.setUrlDelimeter(noTxDatasourceAS5.getUrlDelimeter());
-        datasourceAS7.setUrlSelector(noTxDatasourceAS5.getUrlSelectStratClName());
-        datasourceAS7.setConnectionUrl(noTxDatasourceAS5.getConnectionUrl());
-
-        if (noTxDatasourceAS5.getConnectionProperties() != null) {
-            datasourceAS7.setConnectionProperties(noTxDatasourceAS5.getConnectionProperties());
-        }
-
-        datasourceAS7.setNewConnectionSql(noTxDatasourceAS5.getNewConnectionSql());
-
-        // Elements in element <security> in AS7
-        datasourceAS7.setUserName(noTxDatasourceAS5.getUserName());
-        datasourceAS7.setPassword(noTxDatasourceAS5.getPassword());
-
-        datasourceAS7.setSecurityDomain(noTxDatasourceAS5.getSecurityDomain());
-
-        // Elements in element <pool> in AS7
-        datasourceAS7.setMinPoolSize(noTxDatasourceAS5.getMinPoolSize());
-        datasourceAS7.setMaxPoolSize(noTxDatasourceAS5.getMaxPoolSize());
-        datasourceAS7.setPrefill(noTxDatasourceAS5.getPrefill());
-
-        // Elements in element <timeout> in AS7
-        datasourceAS7.setBlockingTimeoutMillis(noTxDatasourceAS5.getBlockingTimeMillis());
-        datasourceAS7.setIdleTimeoutMin(noTxDatasourceAS5.getIdleTimeoutMin());
-        datasourceAS7.setQueryTimeout(noTxDatasourceAS5.getQueryTimeout());
-        datasourceAS7.setAllocationRetry(noTxDatasourceAS5.getAllocationRetry());
-        datasourceAS7.setAllocRetryWaitMillis(noTxDatasourceAS5.getAllocRetryWaitMillis());
-        datasourceAS7.setSetTxQueryTimeout(noTxDatasourceAS5.getSetTxQueryTime());
-        datasourceAS7.setUseTryLock(noTxDatasourceAS5.getUseTryLock());
-
-        // Elements in element <validation> in AS7
-        datasourceAS7.setCheckValidConSql(noTxDatasourceAS5.getCheckValidConSql());
-        datasourceAS7.setValidateOnMatch(noTxDatasourceAS5.getValidateOnMatch());
-        datasourceAS7.setBackgroundValid(noTxDatasourceAS5.getBackgroundValid());
-        datasourceAS7.setExceptionSorter(noTxDatasourceAS5.getExcepSorterClName());
-        datasourceAS7.setValidConChecker(noTxDatasourceAS5.getValidConCheckerClName());
-        datasourceAS7.setStaleConChecker(noTxDatasourceAS5.getStaleConCheckerClName());
-        // Millis represents Milliseconds?
-        if (noTxDatasourceAS5.getBackgroundValidMillis() != null) {
-            Integer tmp = Integer.valueOf(noTxDatasourceAS5.getBackgroundValidMillis()) / 60000;
-            datasourceAS7.setBackgroundValidMin(tmp.toString());
-
-        }
-
-        // Elements in element <statement> in AS7
-        datasourceAS7.setTrackStatements(noTxDatasourceAS5.getTrackStatements());
-        datasourceAS7.setSharePreStatements(noTxDatasourceAS5.getSharePreStatements());
-        datasourceAS7.setQueryTimeout(noTxDatasourceAS5.getQueryTimeout());
-
-        // Strange element use-fast-fail
-        //datasourceAS7.setUseFastFail(datasourceAS5.gF);
-
-        return datasourceAS7;
-    }// migrateNoTxDatasource()
-    
-
-    /**
-     * Migrates a Local-Tx-Datasource from AS5 to AS7
-     *
-     * @param datasourceAS5 object representing Local-Tx-Datasource in AS5
-     * @return object representing migrated Datasource in AS7
-     */
-    private DatasourceAS7Bean migrateLocalTxDatasource(DatasourceAS5Bean datasourceAS5, Map<String, DriverBean> drivers) {
-        DatasourceAS7Bean datasourceAS7 = new DatasourceAS7Bean();
-
-        // Driver already added?
-        DriverBean driver = drivers.get( datasourceAS5.getDriverClass() );
-        if( null != driver ){
-            datasourceAS7.setDriver( driver.getDriverName() );
-        }
-        else {
-            driver = new DriverBean();
             driver.setDriverClass( datasourceAS5.getDriverClass() );
-            
+
             String driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++;
             datasourceAS7.setDriver(driverName);
             driver.setDriverName(driverName);
@@ -349,13 +269,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         datasourceAS7.setUseJavaContext(datasourceAS5.getUseJavaContext());
         datasourceAS7.setUrlDelimeter(datasourceAS5.getUrlDelimeter());
         datasourceAS7.setUrlSelector(datasourceAS5.getUrlSelectStratClName());
-        datasourceAS7.setConnectionUrl(datasourceAS5.getConnectionUrl());
 
-        if (datasourceAS5.getConnectionProperties() != null) {
-            datasourceAS7.setConnectionProperties(datasourceAS5.getConnectionProperties());
-        }
-
-        datasourceAS7.setTransIsolation(datasourceAS5.getTransIsolation());
         datasourceAS7.setNewConnectionSql(datasourceAS5.getNewConnectionSql());
 
         // Elements in element <security> in AS7
@@ -363,11 +277,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         datasourceAS7.setPassword(datasourceAS5.getPassword());
 
         datasourceAS7.setSecurityDomain(datasourceAS5.getSecurityDomain());
-
-        // Elements in element <pool> in AS7
-        datasourceAS7.setMinPoolSize(datasourceAS5.getMinPoolSize());
-        datasourceAS7.setMaxPoolSize(datasourceAS5.getMaxPoolSize());
-        datasourceAS7.setPrefill(datasourceAS5.getPrefill());
 
         // Elements in element <timeout> in AS7
         datasourceAS7.setBlockingTimeoutMillis(datasourceAS5.getBlockingTimeMillis());
@@ -401,93 +310,55 @@ public class DatasourceMigrator extends AbstractMigrator {
         //datasourceAS7.setUseFastFail(datasourceAS5.gF);
 
         return datasourceAS7;
-        
-    }// migrateLocalTxDatasource()
-    
+    }
 
     /**
-     * Migrates a Xa-Datasource from AS5 to AS7
+     * Sets specific attributes for Xa-Datasource
      *
-     * @param xaDataAS5 object representing Xa-Datasource in AS5
-     * @return object representing migrated Xa-Datasource in AS7
+     * @param xaDatasourceAS7 xa-datasource from AS7 for setting attributes
+     * @param xaDatasourceAS5 xa-datasource from AS5 for getting attributes
      */
-    private XaDatasourceAS7Bean migrateXaDatasource(XaDatasourceAS5Bean xaDataAS5, Map<String, DriverBean> drivers) {
-        XaDatasourceAS7Bean xaDataAS7 = new XaDatasourceAS7Bean();
-
-        xaDataAS7.setJndiName("java:jboss/datasources/" + xaDataAS5.getJndiName());
-        xaDataAS7.setPoolName(xaDataAS5.getJndiName());
-        xaDataAS7.setUseJavaContext(xaDataAS5.getUseJavaContext());
-        xaDataAS7.setEnabled("true");
-
-        
-        DriverBean driver = drivers.get( xaDataAS5.getXaDatasourceClass() );
-        if( null != driver ){
-            xaDataAS7.setDriver(driver.getDriverName());
-        }
-        else {
-            driver = new DriverBean();
-            driver.setXaDatasourceClass(xaDataAS5.getXaDatasourceClass());
-            
-            String driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++;
-            xaDataAS7.setDriver(driverName);
-            driver.setDriverName(driverName);
-            drivers.put( xaDataAS5.getXaDatasourceClass(), driver );
-        }
-        
-        xaDataAS7.setXaDatasourceProps(xaDataAS5.getXaDatasourceProps());
-        xaDataAS7.setUrlDelimeter(xaDataAS5.getUrlDelimeter());
-        xaDataAS7.setUrlSelector(xaDataAS5.getUrlSelectStratClName());
-        xaDataAS7.setTransIsolation(xaDataAS5.getTransIsolation());
-        xaDataAS7.setNewConnectionSql(xaDataAS5.getNewConnectionSql());
-
+    private static void setXaDatasourceProps(XaDatasourceAS7Bean xaDatasourceAS7, XaDatasourceAS5Bean xaDatasourceAS5){
         // Elements in element <xa-pool> in AS7
-        xaDataAS7.setMinPoolSize(xaDataAS5.getMinPoolSize());
-        xaDataAS7.setMaxPoolSize(xaDataAS5.getMaxPoolSize());
-        xaDataAS7.setPrefill(xaDataAS5.getPrefill());
-        xaDataAS7.setSameRmOverride(xaDataAS5.getSameRM());
-        xaDataAS7.setInterleaving(xaDataAS5.getInterleaving());
-        xaDataAS7.setNoTxSeparatePools(xaDataAS5.getNoTxSeparatePools());
+        xaDatasourceAS7.setMinPoolSize(xaDatasourceAS5.getMinPoolSize());
+        xaDatasourceAS7.setMaxPoolSize(xaDatasourceAS5.getMaxPoolSize());
+        xaDatasourceAS7.setPrefill(xaDatasourceAS5.getPrefill());
+        xaDatasourceAS7.setSameRmOverride(xaDatasourceAS5.getSameRM());
+        xaDatasourceAS7.setInterleaving(xaDatasourceAS5.getInterleaving());
+        xaDatasourceAS7.setNoTxSeparatePools(xaDatasourceAS5.getNoTxSeparatePools());
 
-        // Elements in element <security> in AS7
-        xaDataAS7.setUserName(xaDataAS5.getUserName());
-        xaDataAS7.setPassword(xaDataAS5.getPassword());
-
-        xaDataAS7.setSecurityDomain(xaDataAS5.getSecurityDomain());
-
-        // Elements in element <validation> in AS7
-        xaDataAS7.setCheckValidConSql(xaDataAS5.getCheckValidConSql());
-        xaDataAS7.setValidateOnMatch(xaDataAS5.getValidateOnMatch());
-        xaDataAS7.setBackgroundValid(xaDataAS5.getBackgroundValid());
-        xaDataAS7.setExceptionSorter(xaDataAS5.getExcepSorterClName());
-        xaDataAS7.setValidConChecker(xaDataAS5.getValidConCheckerClName());
-        xaDataAS7.setStaleConChecker(xaDataAS5.getStaleConCheckerClName());
-        // Millis represents Milliseconds?:p
-        if (xaDataAS5.getBackgroundValidMillis() != null) {
-            Integer tmp = Integer.valueOf(xaDataAS5.getBackgroundValidMillis()) / 60000;
-            xaDataAS7.setBackgroundValidMin(tmp.toString());
+        if(xaDatasourceAS5.getXaDatasourceProps() != null){
+            xaDatasourceAS7.setXaDatasourceProps(xaDatasourceAS5.getXaDatasourceProps());
         }
 
-        // Elements in element <timeout> in AS7
-        xaDataAS7.setBlockingTimeoutMillis(xaDataAS5.getBlockingTimeMillis());
-        xaDataAS7.setIdleTimeoutMin(xaDataAS5.getIdleTimeoutMin());
-        xaDataAS7.setQueryTimeout(xaDataAS5.getQueryTimeout());
-        xaDataAS7.setAllocationRetry(xaDataAS5.getAllocationRetry());
-        xaDataAS7.setAllocRetryWaitMillis(xaDataAS5.getAllocRetryWaitMillis());
-        xaDataAS7.setSetTxQueryTimeout(xaDataAS5.getSetTxQueryTime());
-        xaDataAS7.setUseTryLock(xaDataAS5.getUseTryLock());
-        xaDataAS7.setXaResourceTimeout(xaDataAS5.getXaResourceTimeout());
+        xaDatasourceAS7.setXaResourceTimeout(xaDatasourceAS5.getXaResourceTimeout());
+        xaDatasourceAS7.setTransIsolation(xaDatasourceAS5.getTransIsolation());
 
-        // Elements in element <statement> in AS7
-        xaDataAS7.setPreStatementCacheSize(xaDataAS5.getPreStatementCacheSize());
-        xaDataAS7.setTrackStatements(xaDataAS5.getTrackStatements());
-        xaDataAS7.setSharePreStatements(xaDataAS5.getSharePreStatements());
+    }
 
-        // Strange element use-fast-fail
-        //datasourceAS7.setUseFastFail(datasourceAS5.gF);
+    /**
+     * Sets specific attributes for Datasource
+     *
+     * @param datasourceAS7 datasource from AS7 for setting attributes
+     * @param datasourceAS5 datasource from AS5 for getting attributes
+     */
+    private static void setDatasourceProps(DatasourceAS7Bean datasourceAS7, AbstractDatasourceAS5Bean datasourceAS5){
+        if(datasourceAS5 instanceof NoTxDatasourceAS5Bean){
+            datasourceAS7.setJta("false");
 
-        return xaDataAS7;
-        
-    }// migrateXaDatasource()
+        } else{
+            datasourceAS7.setJta("true");
+        }
+
+        if( datasourceAS5.getConnectionProperties() != null){
+            datasourceAS7.setConnectionProperties( datasourceAS5.getConnectionProperties() );
+        }
+
+        datasourceAS7.setConnectionUrl( datasourceAS5.getConnectionUrl() );
+        datasourceAS7.setMinPoolSize(datasourceAS5.getMinPoolSize());
+        datasourceAS7.setMaxPoolSize(datasourceAS5.getMaxPoolSize());
+        datasourceAS7.setPrefill(datasourceAS5.getPrefill());
+    }
 
     /**
      * Creates CliCommandAction for adding a Datasource

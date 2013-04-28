@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlElement;
  * User: Roman Jakubco
  * Date: 4/28/13
  */
-public class AbstractDatasourceAS7Bean{
+public abstract class AbstractDatasourceAS7Bean{
     private String linkedSecurity;
 
     @XmlPath("@jndi-name")
@@ -108,6 +108,8 @@ public class AbstractDatasourceAS7Bean{
 
     @XmlPath("/statement/share-prepared-statements/text()")
     private String sharePreStatements;
+
+
 
 
     public String getLinkedSecurity() {
