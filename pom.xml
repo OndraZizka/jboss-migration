@@ -13,8 +13,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
-        <!-- Input defaults -->
-        <download>as7</download>
+        <!-- User input defaults -->
+        <download>as7</download> <!-- "as7" or "eap6" -->
         
         <!-- Build flow control -->
         <as.jvm.args></as.jvm.args>
