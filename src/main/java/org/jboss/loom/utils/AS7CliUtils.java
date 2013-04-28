@@ -175,6 +175,9 @@ public class AS7CliUtils {
             return null;
         
         ModelNode failDesc = node.get(ClientConstants.FAILURE_DESCRIPTION);
+        if( failDesc.getType() != ModelType.OBJECT )
+            return null;
+        
         String key = failDesc.keys().iterator().next();
         // "JBAS014653: Composite operation failed and was rolled back. Steps that failed:" => ...
         
