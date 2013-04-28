@@ -195,7 +195,7 @@ public class SecurityMigrator extends AbstractMigrator {
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
                     this.fileNames.add(fName); // Add to the list of the files to copy.
                     // TODO: Rather directly create CopyActions.
-                    // TODO: The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+                    // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
                     /*filesToCopy.add( new CopyAction( 
                             new File( moAS5.getModuleValue()), 
                             new File( getGlobalConfig().getAS7Config().getConfigPath(), fName), false, false));*/
