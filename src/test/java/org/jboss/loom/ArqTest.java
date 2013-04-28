@@ -60,6 +60,7 @@ public class ArqTest {
      */
     @Test @Category( AS.class )
     @RunAsClient
+    //@Ignore
     public void test_AS_510_all( /*@ArquillianResource ManagementClient client*/ ) throws Exception {
         System.out.println( "doMigration" );
                 
@@ -85,6 +86,8 @@ public class ArqTest {
         String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
         if( as7Dir != null )  // AS 7.1.1 doesn't define it.
             conf.getGlobal().getAS7Config().setDir( as7Dir );
+        
+        announceMigration( conf );
         
         MigratorApp.validateConfiguration( conf );
         
@@ -113,10 +116,23 @@ public class ArqTest {
         if( as7Dir != null )  // AS 7.1.1 doesn't define it.
             conf.getGlobal().getAS7Config().setDir( as7Dir );
         
+        announceMigration( conf );
+        
         MigratorApp.validateConfiguration( conf );
         
         MigratorEngine migrator = new MigratorEngine(conf);
         migrator.doMigration();
+    }
+    
+    
+    private static String announceMigration( Configuration conf ){
+        return "\n\n"
+                + "==========================================================="
+                + "  Migrating "
+                + "  " + conf.getGlobal().getAS5Config().getDir() + " | " + conf.getGlobal().getAS5Config().getProfileName()
+                + "  to "
+                + "   " + conf.getGlobal().getAS7Config().getDir() + " | " + conf.getGlobal().getAS7Config().getConfigPath()
+                + "===========================================================\n";
     }
     
 }// class
