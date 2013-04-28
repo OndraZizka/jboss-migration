@@ -469,7 +469,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         // Elements in element <timeout> in AS7
         xaDataAS7.setBlockingTimeoutMillis(xaDataAS5.getBlockingTimeMillis());
-        xaDataAS7.setIdleTimeoutMinutes(xaDataAS5.getIdleTimeoutMin());
+        xaDataAS7.setIdleTimeoutMin(xaDataAS5.getIdleTimeoutMin());
         xaDataAS7.setQueryTimeout(xaDataAS5.getQueryTimeout());
         xaDataAS7.setAllocationRetry(xaDataAS5.getAllocationRetry());
         xaDataAS7.setAllocRetryWaitMillis(xaDataAS5.getAllocRetryWaitMillis());
@@ -625,7 +625,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
         builder.addProperty("stale-connection-checker-class-name", dataSource.getStaleConChecker());
         builder.addProperty("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", dataSource.getIdleTimeoutMinutes());
+        builder.addProperty("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
         builder.addProperty("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
         builder.addProperty("query-timeout", dataSource.getQueryTimeout());
         builder.addProperty("allocation-retry", dataSource.getAllocationRetry());
@@ -847,7 +847,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
         builder.addProperty("stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
         builder.addProperty("blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMinutes());
+        builder.addProperty("idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMin());
         builder.addProperty("set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
         builder.addProperty("query-timeout", xaDatasourceAS7.getQueryTimeout());
         builder.addProperty("allocation-retry", xaDatasourceAS7.getAllocationRetry());
