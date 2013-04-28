@@ -1,5 +1,15 @@
 package org.jboss.loom.migrators.connectionFactories;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -7,14 +17,10 @@ import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.connectionFactories.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -27,17 +33,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConfigPropertyBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionDefinitionBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionFactoriesBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionFactoryAS5Bean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.NoTxConnectionFactoryAS5Bean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ResourceAdapterBean;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -320,7 +315,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param adapter Resource-Adapter containing connection-definition
      * @param def     Connection-Definition
      * @return created CliCommandAction for adding the Connection-Definition
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException
+     * @throws CliScriptException
      *          if required attributes for a creation of the CLI command of the Connection-Definition
      *          are missing or are empty (class-name, pool-name)
      */
