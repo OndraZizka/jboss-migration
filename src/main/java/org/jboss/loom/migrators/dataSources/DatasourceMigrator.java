@@ -1,5 +1,16 @@
 package org.jboss.loom.migrators.dataSources;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ModuleCreationAction;
@@ -9,14 +20,10 @@ import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.dataSources.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -29,20 +36,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.apache.commons.lang.StringUtils;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.dataSources.jaxb.DatasourceAS5Bean;
-import org.jboss.loom.migrators.dataSources.jaxb.DatasourceAS7Bean;
-import org.jboss.loom.migrators.dataSources.jaxb.DatasourcesBean;
-import org.jboss.loom.migrators.dataSources.jaxb.DriverBean;
-import org.jboss.loom.migrators.dataSources.jaxb.NoTxDatasourceAS5Bean;
-import org.jboss.loom.migrators.dataSources.jaxb.XaDatasourceAS5Bean;
-import org.jboss.loom.migrators.dataSources.jaxb.XaDatasourceAS7Bean;
-import org.jboss.loom.migrators.dataSources.jaxb.XaDatasourcePropertyBean;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
@@ -292,7 +285,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         // Elements in element <timeout> in AS7
         datasourceAS7.setBlockingTimeoutMillis(noTxDatasourceAS5.getBlockingTimeMillis());
-        datasourceAS7.setIdleTimeoutMin(noTxDatasourceAS5.getIdleTimeoutMinutes());
+        datasourceAS7.setIdleTimeoutMin(noTxDatasourceAS5.getIdleTimeoutMin());
         datasourceAS7.setQueryTimeout(noTxDatasourceAS5.getQueryTimeout());
         datasourceAS7.setAllocationRetry(noTxDatasourceAS5.getAllocationRetry());
         datasourceAS7.setAllocRetryWaitMillis(noTxDatasourceAS5.getAllocRetryWaitMillis());
@@ -378,7 +371,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         // Elements in element <timeout> in AS7
         datasourceAS7.setBlockingTimeoutMillis(datasourceAS5.getBlockingTimeMillis());
-        datasourceAS7.setIdleTimeoutMin(datasourceAS5.getIdleTimeoutMinutes());
+        datasourceAS7.setIdleTimeoutMin(datasourceAS5.getIdleTimeoutMin());
         datasourceAS7.setQueryTimeout(datasourceAS5.getQueryTimeout());
         datasourceAS7.setAllocationRetry(datasourceAS5.getAllocationRetry());
         datasourceAS7.setAllocRetryWaitMillis(datasourceAS5.getAllocRetryWaitMillis());
@@ -443,7 +436,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         xaDataAS7.setXaDatasourceProps(xaDataAS5.getXaDatasourceProps());
         xaDataAS7.setUrlDelimeter(xaDataAS5.getUrlDelimeter());
-        xaDataAS7.setUrlSelector(xaDataAS5.getUrlSelectorStratClName());
+        xaDataAS7.setUrlSelector(xaDataAS5.getUrlSelectStratClName());
         xaDataAS7.setTransIsolation(xaDataAS5.getTransIsolation());
         xaDataAS7.setNewConnectionSql(xaDataAS5.getNewConnectionSql());
 
@@ -465,7 +458,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         xaDataAS7.setCheckValidConSql(xaDataAS5.getCheckValidConSql());
         xaDataAS7.setValidateOnMatch(xaDataAS5.getValidateOnMatch());
         xaDataAS7.setBackgroundValid(xaDataAS5.getBackgroundValid());
-        xaDataAS7.setExceptionSorter(xaDataAS5.getExSorterClassName());
+        xaDataAS7.setExceptionSorter(xaDataAS5.getExcepSorterClName());
         xaDataAS7.setValidConChecker(xaDataAS5.getValidConCheckerClName());
         xaDataAS7.setStaleConChecker(xaDataAS5.getStaleConCheckerClName());
         // Millis represents Milliseconds?:p
@@ -475,12 +468,12 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
 
         // Elements in element <timeout> in AS7
-        xaDataAS7.setBlockingTimeoutMillis(xaDataAS5.getBlockingTimeoutMillis());
-        xaDataAS7.setIdleTimeoutMinutes(xaDataAS5.getIdleTimeoutMinutes());
+        xaDataAS7.setBlockingTimeoutMillis(xaDataAS5.getBlockingTimeMillis());
+        xaDataAS7.setIdleTimeoutMinutes(xaDataAS5.getIdleTimeoutMin());
         xaDataAS7.setQueryTimeout(xaDataAS5.getQueryTimeout());
         xaDataAS7.setAllocationRetry(xaDataAS5.getAllocationRetry());
         xaDataAS7.setAllocRetryWaitMillis(xaDataAS5.getAllocRetryWaitMillis());
-        xaDataAS7.setSetTxQueryTimeout(xaDataAS5.getSetTxQueryTimeout());
+        xaDataAS7.setSetTxQueryTimeout(xaDataAS5.getSetTxQueryTime());
         xaDataAS7.setUseTryLock(xaDataAS5.getUseTryLock());
         xaDataAS7.setXaResourceTimeout(xaDataAS5.getXaResourceTimeout());
 
