@@ -185,6 +185,7 @@ public class LoggingMigrator extends AbstractMigrator {
         // Handler jar is new => create ModuleCreationAction, new module and CLI script
         try {
             String moduleName = "logging.customHandler" + number;
+            number++;
             handler.setModule( moduleName );
             tempModules.put( fileJar, moduleName );
 
@@ -829,7 +830,7 @@ public class LoggingMigrator extends AbstractMigrator {
      *
      * @param sizeHandler object of Size-Rotating-File-Handler
      * @return string containing created CLI script
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes are missing
      */
     static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {
