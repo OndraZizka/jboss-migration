@@ -10,14 +10,13 @@ import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
-import org.jboss.loom.ex.CliScriptException;
-import org.jboss.loom.ex.LoadMigrationException;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.ex.NodeGenerationException;
+import org.jboss.loom.ex.*;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.server.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -43,6 +42,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
+    private static final Logger log = LoggerFactory.getLogger(ServerMigrator.class);
 
     public ServerMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -160,11 +160,11 @@ public class ServerMigrator extends AbstractMigrator {
 
             connAS7.setSslName("ssl");
             connAS7.setVerifyClient(connector.getClientAuth());
-            // TODO: Problem with file location
+
             if( connector.getKeystoreFile() != null ) {
                 String fName =  new File(connector.getKeystoreFile()).getName();
                 connAS7.setCertifKeyFile(AS7_CONFIG_DIR_PLACEHOLDER +  "/keys/" + fName);
-                createCopyActionForKeyFile(resource, connector.getKeystoreFile());
+                createCopyActionForKeyFile(resource, fName, ctx);
             }
 
             // TODO: No sure which protocols can be in AS5.
@@ -184,8 +184,28 @@ public class ServerMigrator extends AbstractMigrator {
         return connAS7;
     }
 
-    private static CopyFileAction createCopyActionForKeyFile(ServerMigratorResource resource, String key){
-        return null;
+    private void createCopyActionForKeyFile(ServerMigratorResource resource, String fName, MigrationContext ctx){
+        // TODO:
+        final String property = "${jboss.server.home.dir}";
+
+        // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+        //       Then, create the actions directly in the code creating this "files to copy" collection.
+        File as5profileDir = getGlobalConfig().getAS5Config().getProfileDir();
+        File src;
+        try {
+            src = Utils.searchForFile(fName, as5profileDir).iterator().next();
+        } catch( CopyException ex ) {
+            //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
+            // Some files referenced in security may not exist. (?)
+            log.warn("Couldn't find file referenced in AS 5 server config: " + fName);
+            return;
+        }
+
+        if(resource.getKeystores().add(src)){
+            File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), "keys", src.getName());
+            CopyFileAction action = new CopyFileAction(ServerMigrator.class, src, target, CopyFileAction.IfExists.SKIP);
+            ctx.getActions().add( action );
+        }
     }
 
     /**
@@ -217,7 +237,7 @@ public class ServerMigrator extends AbstractMigrator {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
-            // TODO:  Read over Management API.
+            // TODO:  Read over Management API. MIGR-71
             NodeList bindings = ctx.getAS7ConfigXmlDoc().getElementsByTagName("socket-binding");
             for (int i = 0; i < bindings.getLength(); i++) {
                 if (!(bindings.item(i) instanceof Element)) {
@@ -245,6 +265,7 @@ public class ServerMigrator extends AbstractMigrator {
      */
     private static String createSocketBinding(String port, String name, ServerMigratorResource resource)
             throws NodeGenerationException {
+        // TODO: Refactor and change the logic MIGR-71
         for (SocketBindingBean sb : resource.getSocketTemp()) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
