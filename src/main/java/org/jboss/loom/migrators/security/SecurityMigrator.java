@@ -1,5 +1,13 @@
 package org.jboss.loom.migrators.security;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -7,36 +15,21 @@ import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.security.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.lang.StringUtils;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.security.jaxb.ApplicationPolicyBean;
-import org.jboss.loom.migrators.security.jaxb.LoginModuleAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.LoginModuleAS7Bean;
-import org.jboss.loom.migrators.security.jaxb.ModuleOptionAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.ModuleOptionAS7Bean;
-import org.jboss.loom.migrators.security.jaxb.SecurityAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.SecurityDomainBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Migrator of security subsystem implementing IMigrator
@@ -135,7 +128,7 @@ public class SecurityMigrator extends AbstractMigrator {
                 continue;
             }
 
-            File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName()); // TODO: getConfigDir();
+            File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), src.getName());
             CopyFileAction act = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.WARN );
             ctx.getActions().add( act );
         }
@@ -157,7 +150,7 @@ public class SecurityMigrator extends AbstractMigrator {
         securityDomain.setCacheType("default");
         if (appPolicy.getLoginModules() != null) {
             for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
-                loginModules.add( createLoginModule( lmAS5, this.copyActions ) );
+                //loginModules.add( createLoginModule( lmAS5, this.copyActions, ctx ) );
             }
         }
 
@@ -170,14 +163,16 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      *  Migrates the given login module.
      */
-    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Collection<CopyFileAction> filesToCopy ) {
+    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Set<String> filesToCopy, MigrationContext ctx ) {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
         // Flag
         lmAS7.setLoginModuleFlag( lmAS5.getLoginModuleFlag() );
         
         // Code
-        lmAS7.setLoginModuleCode( deriveLoginModuleName( lmAS5.getLoginModule() ) );
+        String lmName = deriveLoginModuleName( lmAS5.getLoginModule() );
+        lmAS7.setLoginModuleCode( lmName );
+
 
         // Module options
         Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
@@ -193,7 +188,10 @@ public class SecurityMigrator extends AbstractMigrator {
                 case "usersProperties":
                     String fName = new File( moAS5.getModuleValue() ).getName();
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
-                    this.fileNames.add(fName); // Add to the list of the files to copy.
+                    if(filesToCopy.add(fName)){
+
+                    }
+
                     // TODO: Rather directly create CopyActions.
                     // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
                     /*filesToCopy.add( new CopyAction( 
@@ -208,6 +206,10 @@ public class SecurityMigrator extends AbstractMigrator {
             moduleOptions.add( moAS7 );
         }
         return lmAS7;
+    }
+
+    private static CopyFileAction createCopyAction( ) {
+        return null;
     }
 
     /**

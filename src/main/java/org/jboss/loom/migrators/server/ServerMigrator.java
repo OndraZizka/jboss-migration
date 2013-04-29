@@ -8,6 +8,7 @@ import org.jboss.loom.CliApiCommandBuilder;
 import org.jboss.loom.MigrationContext;
 import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
+import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.LoadMigrationException;
@@ -25,10 +26,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Migrator of server subsystem implementing IMigrator.
@@ -43,14 +42,7 @@ public class ServerMigrator extends AbstractMigrator {
         return "server";
     }
 
-
-    private Set<SocketBindingBean> socketTemp = new HashSet();
-
-    private Set<SocketBindingBean> socketBindings = new HashSet();
-
-    private Integer randomSocket = 1;
-
-    private Integer randomConnector = 1;
+    private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
 
     public ServerMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -87,19 +79,20 @@ public class ServerMigrator extends AbstractMigrator {
 
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
+         ServerMigratorResource resource = new ServerMigratorResource();
+
         try {
-            createDefaultSockets(ctx);
+            createDefaultSockets(ctx, resource);
         } catch (LoadMigrationException e) {
             throw new MigrationException("Migration of web server failed: " + e.getMessage(), e);
         }
-        Set<String> keystores = new HashSet();
 
         for( IConfigFragment fragment : ctx.getMigrationData().get(ServerMigrator.class).getConfigFragments() ) {
             String what = null;
             try {
                 if (fragment instanceof ConnectorAS5Bean) {
                     what = "connector";
-                    ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, keystores)));
+                    ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, resource, ctx)));
                 }
                 else if (fragment instanceof EngineBean) {
                     what = "Engine (virtual-server)";
@@ -113,7 +106,7 @@ public class ServerMigrator extends AbstractMigrator {
             }
         }
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             try {
                 ctx.getActions().add(createSocketBindingCliAction(sb));
             } catch (CliScriptException e) {
@@ -129,7 +122,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @return migrated AS7's connector
      * @throws NodeGenerationException if socket-binding cannot be created or set
      */
-    private ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, Set<String> keystores)
+    private ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, ServerMigratorResource resource, MigrationContext ctx)
             throws NodeGenerationException {
         ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
 
@@ -154,7 +147,7 @@ public class ServerMigrator extends AbstractMigrator {
             // TODO: This can't be just assumed!
             protocol = "ajp";
         }
-        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), protocol));
+        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), protocol, resource));
 
         // Name
         connAS7.setConnectorName(protocol);
@@ -169,11 +162,9 @@ public class ServerMigrator extends AbstractMigrator {
             connAS7.setVerifyClient(connector.getClientAuth());
             // TODO: Problem with file location
             if( connector.getKeystoreFile() != null ) {
-//                File fName =
-//                keystores.add(connector.getKeystoreFile());
-
-
-                connAS7.setCertifKeyFile("${jboss.server.config.dir}/keystores/" + connector.getKeystoreFile());
+                String fName =  new File(connector.getKeystoreFile()).getName();
+                connAS7.setCertifKeyFile(AS7_CONFIG_DIR_PLACEHOLDER +  "/keys/" + fName);
+                createCopyActionForKeyFile(resource, connector.getKeystoreFile());
             }
 
             // TODO: No sure which protocols can be in AS5.
@@ -191,6 +182,10 @@ public class ServerMigrator extends AbstractMigrator {
         }
 
         return connAS7;
+    }
+
+    private static CopyFileAction createCopyActionForKeyFile(ServerMigratorResource resource, String key){
+        return null;
     }
 
     /**
@@ -218,7 +213,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(MigrationContext ctx) throws LoadMigrationException {
+    private void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
@@ -230,7 +225,7 @@ public class ServerMigrator extends AbstractMigrator {
                 }
                 SocketBindingBean socketBinding = (SocketBindingBean) unmarshaller.unmarshal(bindings.item(i));
                 if ((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)) {
-                    this.socketTemp.add(socketBinding);
+                    resource.getSocketTemp().add(socketBinding);
                 }
 
             }
@@ -248,8 +243,9 @@ public class ServerMigrator extends AbstractMigrator {
      * @return name of the socket-binding so it cant be referenced in connector
      * @throws NodeGenerationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name) throws NodeGenerationException {
-        for (SocketBindingBean sb : this.socketTemp) {
+    private static String createSocketBinding(String port, String name, ServerMigratorResource resource)
+            throws NodeGenerationException {
+        for (SocketBindingBean sb : resource.getSocketTemp()) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
@@ -260,23 +256,22 @@ public class ServerMigrator extends AbstractMigrator {
 
         SocketBindingBean socketBinding = new SocketBindingBean();
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
         }
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             if (sb.getSocketName().equals(name)) {
-                name = name.concat(this.randomSocket.toString());
-                this.randomSocket++;
+                name = name.concat(resource.getRandomSocket().toString());
             }
         }
 
         socketBinding.setSocketName(name);
         socketBinding.setSocketPort(port);
 
-        this.socketBindings.add(socketBinding);
+        resource.getSocketBindings().add(socketBinding);
 
         return name;
     }
