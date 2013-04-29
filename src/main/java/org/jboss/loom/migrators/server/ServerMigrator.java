@@ -164,7 +164,8 @@ public class ServerMigrator extends AbstractMigrator {
             if( connector.getKeystoreFile() != null ) {
                 String fName =  new File(connector.getKeystoreFile()).getName();
                 connAS7.setCertifKeyFile(AS7_CONFIG_DIR_PLACEHOLDER +  "/keys/" + fName);
-                createCopyActionForKeyFile(resource, fName, ctx);
+                CopyFileAction action = createCopyActionForKeyFile(resource, fName);
+                if ( action != null ) ctx.getActions().add(action);
             }
 
             // TODO: No sure which protocols can be in AS5.
@@ -184,7 +185,15 @@ public class ServerMigrator extends AbstractMigrator {
         return connAS7;
     }
 
-    private void createCopyActionForKeyFile(ServerMigratorResource resource, String fName, MigrationContext ctx){
+    /**
+     * Creates CopyFileAction for keystores files from Connectors
+     *
+     * @param resource helping class containing all resources for ServerMigrator
+     * @param fName name of the keystore file to be copied into AS7
+     * @return  null if the file is already set for copying or the file cannot be found in the AS5 structure else
+     *          created CopyFileAction
+     */
+    private CopyFileAction createCopyActionForKeyFile(ServerMigratorResource resource, String fName){
         // TODO:
         final String property = "${jboss.server.home.dir}";
 
@@ -198,14 +207,14 @@ public class ServerMigrator extends AbstractMigrator {
             //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
             // Some files referenced in security may not exist. (?)
             log.warn("Couldn't find file referenced in AS 5 server config: " + fName);
-            return;
+            return null;
         }
 
-        if(resource.getKeystores().add(src)){
-            File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), "keys", src.getName());
-            CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP);
-            ctx.getActions().add( action );
-        }
+        if( ! resource.getKeystores().add(src) ) return null;
+
+        File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), "keys", src.getName());
+        CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP);
+        return action;
     }
 
     /**

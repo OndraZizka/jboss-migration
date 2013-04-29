@@ -153,7 +153,15 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
-    
+    /**
+     * Creates Custom-Handler CliCommandAction along with ModuleCreationAction if needed
+     *
+     * @param handler Custom-Handler with custom class, which must be deployed into AS7
+     * @param tempModules Map containing names of the jar files and their created modules, which were already migrated
+     * @return  list containing CliCommandAction for adding Custom-Handler and ModuleCreationAction for adding module if
+     *          needed
+     * @throws MigrationException if class cannot be found in jars in AS5 structure
+     */
     private List<IMigrationAction> createCustomHandlerActions(CustomHandlerBean handler,
                                                               HashMap<File, String> tempModules)
             throws MigrationException {
@@ -316,7 +324,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 if (parameter.getParamName().equals("File")) {
                     String value = parameter.getParamValue();
                     handler.setRelativeTo(CLI_PROP__LOG_DIR);
-                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    handler.setPath( new File( value ).getName() );
                 }
 
                 if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -358,8 +366,8 @@ public class LoggingMigrator extends AbstractMigrator {
                     String value = parameter.getParamValue();
 
                     //TODO: Problem with bad parse? same thing in DailyRotating
-                    handler.setRelativeTo("jboss.server.log.dir");
-                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    handler.setRelativeTo(CLI_PROP__LOG_DIR);
+                    handler.setPath( new File(value).getName() );
                     continue;
                 }
 

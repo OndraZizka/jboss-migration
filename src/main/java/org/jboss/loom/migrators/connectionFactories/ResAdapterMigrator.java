@@ -146,6 +146,13 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    /**
+     * Migrates Connection-Factory (both types) from AS5 to Resource-Adapter in AS7
+     *
+     * @param connFactoryAS5 Connection-Factory for migration
+     * @param rars Files already set for copy into AS7
+     * @return created Resource-Adapter with the configuration of the given Connection-Factory
+     */
     private static ResourceAdapterBean migrateConnFactory(AbstractConnectionFactoryAS5Bean connFactoryAS5, Set<String> rars){
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
 

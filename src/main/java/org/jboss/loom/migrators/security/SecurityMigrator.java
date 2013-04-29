@@ -190,6 +190,13 @@ public class SecurityMigrator extends AbstractMigrator {
         return lmAS7;
     }
 
+    /**
+     * Creates CopyFileAction for File referenced in migrated Module-Options
+     *
+     * @param resource helping class containing all resources of the SecurityMigrator
+     * @param fileName  file, which should be copied into AS7
+     * @return  If the file is already set for copying then null else the created CopyFileAction
+     */
     private  CopyFileAction createCopyActionForFile(SecurityMigResource resource, String fileName ) {
 
         if( ! resource.getFileNames().add(fileName) ) return null;
@@ -212,6 +219,16 @@ public class SecurityMigrator extends AbstractMigrator {
         return action;
     }
 
+    /**
+     * Creates ModuleCreationAction for the custom made class for the Login-Module, which should be deployed as module
+     *
+     * @param lmAS7  Login-Module containing this class
+     * @param className custom made class, which should be deployed into AS7
+     * @param resource helping class containing all resources of the SecurityMigrator
+     * @return  null if the JAR file containing the given class is already set for the creation of the module else
+     *          created ModuleCreationAction.
+     * @throws MigrationException
+     */
     private ModuleCreationAction createModuleActionForLogMod(LoginModuleAS7Bean lmAS7, String className,
                                                                     SecurityMigResource resource)
             throws MigrationException{
