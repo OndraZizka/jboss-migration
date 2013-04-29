@@ -220,7 +220,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
             
-            IMigrationAction moduleAction = new ModuleCreationAction( DatasourceMigrator.class, moduleName, deps, driverJar, Configuration.IfExists.OVERWRITE);
+            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, driverJar, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
         }
 

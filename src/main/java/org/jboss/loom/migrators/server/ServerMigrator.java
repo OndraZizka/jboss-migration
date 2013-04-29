@@ -203,7 +203,7 @@ public class ServerMigrator extends AbstractMigrator {
 
         if(resource.getKeystores().add(src)){
             File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), "keys", src.getName());
-            CopyFileAction action = new CopyFileAction(ServerMigrator.class, src, target, CopyFileAction.IfExists.SKIP);
+            CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP);
             ctx.getActions().add( action );
         }
     }
