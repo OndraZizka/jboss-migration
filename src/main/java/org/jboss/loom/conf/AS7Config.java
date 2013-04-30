@@ -12,6 +12,7 @@ public class AS7Config {
     private String as7dir;
     private String as7configPath = "standalone/configuration/standalone.xml";
     private String modulesDir = null;
+    private String configDir = "standalone/configuration";
     
     private String host = "localhost";
     private int mgmtPort = 9999;
@@ -21,6 +22,9 @@ public class AS7Config {
         return new File(getDir(), getConfigPath()).getPath();  // TODO: Return File and use that.
     }
 
+    public String getConfigDir(){
+        return new File(getDir(), configDir).getPath();
+    }
 
     public File getModulesDir() {
         String modulesSubPath;
@@ -43,7 +47,10 @@ public class AS7Config {
     public void setHost( String host ) { this.host = host; }
     public int getManagementPort() { return mgmtPort; }
     public void setManagementPort( int port ) { this.mgmtPort = port; }
+
+
     //</editor-fold>
+
 
 
     private boolean isVersionLaterThan( String string ) {

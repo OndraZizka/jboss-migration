@@ -55,6 +55,24 @@ public class ConnectionDefinitionBean {
     @XmlPath("/pool/max-pool-size/text()")
     private String maxPoolSize;
 
+    @XmlPath("/xa-pool/prefill/text()")
+    private String xaPrefill;
+
+    @XmlPath("/xa-pool/use-strict-min/text()")
+    private String xaUseStrictMin;
+
+    @XmlPath("/xa-pool/flush-strategy/text()")
+    private String xaFlushStrategy;
+
+    @XmlPath("/xa-pool/min-pool-size/text()")
+    private String xaMinPoolSize;
+
+    @XmlPath("/xa-pool/max-pool-size/text()")
+    private String xaMaxPoolSize;
+
+    @XmlPath("/xa-pool/no-tx-separate-pools/text()")
+    private String xaNoTxSeparatePools;
+
     @XmlPath("/security/security-domain/text()")
     private String securityDomain;
 
@@ -264,5 +282,55 @@ public class ConnectionDefinitionBean {
         this.xaResourceTimeout = xaResourceTimeout;
     }
 
+    public void setConfigProperties(Set<ConfigPropertyBean> configProperties) {
+        this.configProperties = configProperties;
+    }
 
+    public String getXaPrefill() {
+        return xaPrefill;
+    }
+
+    public void setXaPrefill(String xaPrefill) {
+        this.xaPrefill = xaPrefill;
+    }
+
+    public String getXaUseStrictMin() {
+        return xaUseStrictMin;
+    }
+
+    public void setXaUseStrictMin(String xaUseStrictMin) {
+        this.xaUseStrictMin = xaUseStrictMin;
+    }
+
+    public String getXaFlushStrategy() {
+        return xaFlushStrategy;
+    }
+
+    public void setXaFlushStrategy(String xaFlushStrategy) {
+        this.xaFlushStrategy = xaFlushStrategy;
+    }
+
+    public String getXaMinPoolSize() {
+        return xaMinPoolSize;
+    }
+
+    public void setXaMinPoolSize(String xaMinPoolSize) {
+        this.xaMinPoolSize = xaMinPoolSize;
+    }
+
+    public String getXaMaxPoolSize() {
+        return xaMaxPoolSize;
+    }
+
+    public void setXaMaxPoolSize(String xaMaxPoolSize) {
+        this.xaMaxPoolSize = xaMaxPoolSize;
+    }
+
+    public String getXaNoTxSeparatePools() {
+        return xaNoTxSeparatePools;
+    }
+
+    public void setXaNoTxSeparatePools(String xaNoTxSeparatePools) {
+        this.xaNoTxSeparatePools = xaNoTxSeparatePools;
+    }
 }

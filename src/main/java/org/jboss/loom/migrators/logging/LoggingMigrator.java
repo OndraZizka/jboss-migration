@@ -1,26 +1,30 @@
 package org.jboss.loom.migrators.logging;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
-import org.jboss.loom.actions.ModuleCreationOldAction;
+import org.jboss.loom.actions.ModuleCreationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.logging.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.AS7CliUtils;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.lang.StringUtils;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
-import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -28,25 +32,6 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.logging.jaxb.AppenderBean;
-import org.jboss.loom.migrators.logging.jaxb.AsyncHandlerBean;
-import org.jboss.loom.migrators.logging.jaxb.CategoryBean;
-import org.jboss.loom.migrators.logging.jaxb.ConsoleHandlerBean;
-import org.jboss.loom.migrators.logging.jaxb.CustomHandlerBean;
-import org.jboss.loom.migrators.logging.jaxb.FileHandlerBean;
-import org.jboss.loom.migrators.logging.jaxb.LoggerBean;
-import org.jboss.loom.migrators.logging.jaxb.LoggingAS5Bean;
-import org.jboss.loom.migrators.logging.jaxb.ParameterBean;
-import org.jboss.loom.migrators.logging.jaxb.PerRotFileHandlerBean;
-import org.jboss.loom.migrators.logging.jaxb.PropertyBean;
-import org.jboss.loom.migrators.logging.jaxb.RootLoggerAS5Bean;
-import org.jboss.loom.migrators.logging.jaxb.RootLoggerAS7Bean;
-import org.jboss.loom.migrators.logging.jaxb.SizeRotFileHandlerBean;
 
 /**
  * Migrator of logging subsystem implementing IMigrator
@@ -168,13 +153,21 @@ public class LoggingMigrator extends AbstractMigrator {
         }
     }
 
-    
+    /**
+     * Creates Custom-Handler CliCommandAction along with ModuleCreationAction if needed
+     *
+     * @param handler Custom-Handler with custom class, which must be deployed into AS7
+     * @param tempModules Map containing names of the jar files and their created modules, which were already migrated
+     * @return  list containing CliCommandAction for adding Custom-Handler and ModuleCreationAction for adding module if
+     *          needed
+     * @throws MigrationException if class cannot be found in jars in AS5 structure
+     */
     private List<IMigrationAction> createCustomHandlerActions(CustomHandlerBean handler,
                                                               HashMap<File, String> tempModules)
             throws MigrationException {
-        File src;
+        File fileJar;
         try {
-            src = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
+            fileJar = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
                     getGlobalConfig().getAS5Config().getProfileName());
         } catch (IOException ex) {
             throw new MigrationException("Failed finding jar with class " + handler.getClassValue() + ": " + ex.getMessage(), ex);
@@ -182,11 +175,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
         List<IMigrationAction> actions = new LinkedList();
 
-        if (tempModules.containsKey(src)) {
+        if (tempModules.containsKey(fileJar)) {
             // It means that moduleAction is already set. No need for another one => create CLI for CustomHandler and
             // continue on the next iteration
             try {
-                handler.setModule(tempModules.get(src));
+                handler.setModule(tempModules.get(fileJar));
                 actions.add(createCustomHandlerCliAction(handler));
             }
             catch (CliScriptException ex) {
@@ -199,28 +192,18 @@ public class LoggingMigrator extends AbstractMigrator {
         
         // Handler jar is new => create ModuleCreationAction, new module and CLI script
         try {
-            
-            handler.setModule("logging.customHandler" + number);
-            tempModules.put(src, handler.getModule());
+            String moduleName = "logging.customHandler" + number;
+            number++;
+            handler.setModule( moduleName );
+            tempModules.put( fileJar, moduleName );
 
             actions.add(createCustomHandlerCliAction(handler));
 
-            // TODO: MIGR-60 Rewrite ModuleCreationAction to be about module metadata, not paths and XML doc 
-            File targetDir = Utils.createPath(
-                    getGlobalConfig().getAS7Config().getModulesDir().getPath(), 
-                    "logging/customHandler" + number, "main", src.getName());
+            String[] deps = new String[]{"javax.api", "org.jboss.logging", null, "org.apache.log4j"};
 
-            Document doc  =  LoggingUtils.createLoggingModuleXML(handler.getModule(), src.getName());
-
-            // Default for now => false
-            ModuleCreationOldAction moduleAction = new ModuleCreationOldAction( this.getClass(), src, targetDir, doc, false);
+            ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, fileJar, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
-            number++;
-        }
-        catch (ParserConfigurationException e) {
-            throw new MigrationException("Failed creating Custom-Handler module.xml: " + e.getMessage(), e);
-        }
-        catch (CliScriptException e) {
+        }catch (CliScriptException e) {
             throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
         }
 
@@ -341,7 +324,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 if (parameter.getParamName().equals("File")) {
                     String value = parameter.getParamValue();
                     handler.setRelativeTo(CLI_PROP__LOG_DIR);
-                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    handler.setPath( new File( value ).getName() );
                 }
 
                 if (parameter.getParamName().equalsIgnoreCase("DatePattern")) {
@@ -383,8 +366,8 @@ public class LoggingMigrator extends AbstractMigrator {
                     String value = parameter.getParamValue();
 
                     //TODO: Problem with bad parse? same thing in DailyRotating
-                    handler.setRelativeTo("jboss.server.log.dir");
-                    handler.setPath(StringUtils.substringAfterLast(value, "/"));
+                    handler.setRelativeTo(CLI_PROP__LOG_DIR);
+                    handler.setPath( new File(value).getName() );
                     continue;
                 }
 
@@ -855,7 +838,7 @@ public class LoggingMigrator extends AbstractMigrator {
      *
      * @param sizeHandler object of Size-Rotating-File-Handler
      * @return string containing created CLI script
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException if required attributes are missing
+     * @throws CliScriptException if required attributes are missing
      */
     static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {

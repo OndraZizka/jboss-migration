@@ -1,42 +1,38 @@
 package org.jboss.loom.migrators.security;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
+import org.jboss.loom.actions.ModuleCreationAction;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.security.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.lang.StringUtils;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.security.jaxb.ApplicationPolicyBean;
-import org.jboss.loom.migrators.security.jaxb.LoginModuleAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.LoginModuleAS7Bean;
-import org.jboss.loom.migrators.security.jaxb.ModuleOptionAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.ModuleOptionAS7Bean;
-import org.jboss.loom.migrators.security.jaxb.SecurityAS5Bean;
-import org.jboss.loom.migrators.security.jaxb.SecurityDomainBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Migrator of security subsystem implementing IMigrator
@@ -60,8 +56,8 @@ public class SecurityMigrator extends AbstractMigrator {
     
     
     // Files which must be copied into AS7
-    private Set<String> fileNames = new HashSet();
-    private Set<CopyFileAction> copyActions; // not used, TODO
+
+    //private Set<CopyFileAction> copyActions; // not used, TODO
 
 
     @Override
@@ -103,12 +99,13 @@ public class SecurityMigrator extends AbstractMigrator {
      */
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
-        
+        SecurityMigResource resource = new SecurityMigResource();
+
         // Config fragments
         for( IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
             if( fragment instanceof ApplicationPolicyBean) {
                 try {
-                    SecurityDomainBean appPolicy = migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx);
+                    SecurityDomainBean appPolicy = migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx, resource);
                     ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
                 } catch (CliScriptException e) {
                     throw new MigrationException("Migration of application-policy failed: " + e.getMessage(), e);
@@ -116,28 +113,6 @@ public class SecurityMigrator extends AbstractMigrator {
                 continue;
             }
             throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
-        }
-
-        // Files to copy
-        File as5profileDir = getGlobalConfig().getAS5Config().getProfileDir();
-        String as7Dir      = getGlobalConfig().getAS7Config().getDir();
-        
-        for( String fileName : this.fileNames ) {
-            File src;
-            try {
-                // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
-                //       Then, create the actions directly in the code creating this "files to copy" collection.
-                src = Utils.searchForFile(fileName, as5profileDir).iterator().next();
-            } catch( CopyException ex ) {
-                //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
-                // Some files referenced in security may not exist. (?)
-                log.warn("Couldn't find file referenced in AS 5 security config: " + fileName);
-                continue;
-            }
-
-            File target = Utils.createPath(as7Dir, "standalone", "configuration", src.getName()); // TODO: getConfigDir();
-            CopyFileAction act = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.WARN );
-            ctx.getActions().add( act );
         }
 
     }
@@ -149,7 +124,8 @@ public class SecurityMigrator extends AbstractMigrator {
      * @param ctx       migration context
      * @return created security-domain
      */
-    public SecurityDomainBean migrateAppPolicy(ApplicationPolicyBean appPolicy, MigrationContext ctx) {
+    public SecurityDomainBean migrateAppPolicy(ApplicationPolicyBean appPolicy, MigrationContext ctx,
+                                               SecurityMigResource resource) throws MigrationException{
         Set<LoginModuleAS7Bean> loginModules = new HashSet();
         SecurityDomainBean securityDomain = new SecurityDomainBean();
 
@@ -157,7 +133,7 @@ public class SecurityMigrator extends AbstractMigrator {
         securityDomain.setCacheType("default");
         if (appPolicy.getLoginModules() != null) {
             for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
-                loginModules.add( createLoginModule( lmAS5, this.copyActions ) );
+                loginModules.add( createLoginModule( lmAS5, resource, ctx ) );
             }
         }
 
@@ -170,14 +146,20 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      *  Migrates the given login module.
      */
-    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, Collection<CopyFileAction> filesToCopy ) {
+    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, SecurityMigResource resource, MigrationContext ctx )
+            throws MigrationException{
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
         // Flag
         lmAS7.setLoginModuleFlag( lmAS5.getLoginModuleFlag() );
         
         // Code
-        lmAS7.setLoginModuleCode( deriveLoginModuleName( lmAS5.getLoginModule() ) );
+        String lmName = deriveLoginModuleName( lmAS5.getLoginModule() );
+        lmAS7.setLoginModuleCode( lmName );
+        if( lmName.equals( lmAS5.getLoginModule() ) ){
+            ModuleCreationAction action = createModuleActionForLogMod(lmAS7, lmName, resource);
+            if(action != null) ctx.getActions().add( action );
+        }
 
         // Module options
         Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
@@ -193,12 +175,10 @@ public class SecurityMigrator extends AbstractMigrator {
                 case "usersProperties":
                     String fName = new File( moAS5.getModuleValue() ).getName();
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
-                    this.fileNames.add(fName); // Add to the list of the files to copy.
-                    // TODO: Rather directly create CopyActions.
-                    // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
-                    /*filesToCopy.add( new CopyAction( 
-                            new File( moAS5.getModuleValue()), 
-                            new File( getGlobalConfig().getAS7Config().getConfigPath(), fName), false, false));*/
+                    if(resource.getFileNames().add(fName)){
+                        CopyFileAction action = createCopyActionForFile(resource, fName);
+                        if( action != null) ctx.getActions().add( action );
+                    }
                     break;
                 default:
                     value = moAS5.getModuleValue();
@@ -208,6 +188,75 @@ public class SecurityMigrator extends AbstractMigrator {
             moduleOptions.add( moAS7 );
         }
         return lmAS7;
+    }
+
+    /**
+     * Creates CopyFileAction for File referenced in migrated Module-Options
+     *
+     * @param resource helping class containing all resources of the SecurityMigrator
+     * @param fileName  file, which should be copied into AS7
+     * @return  If the file is already set for copying then null else the created CopyFileAction
+     */
+    private  CopyFileAction createCopyActionForFile(SecurityMigResource resource, String fileName ) {
+
+        if( ! resource.getFileNames().add(fileName) ) return null;
+
+        File src;
+        try {
+            // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+            //       Then, create the actions directly in the code creating this "files to copy" collection.
+            src = Utils.searchForFile(fileName, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
+        } catch( CopyException ex ) {
+            //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
+            // Some files referenced in security may not exist. (?)
+            log.warn("Couldn't find file referenced in AS 5 security config: " + fileName);
+            return null;
+        }
+
+        File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), src.getName());
+        CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.WARN );
+
+        return action;
+    }
+
+    /**
+     * Creates ModuleCreationAction for the custom made class for the Login-Module, which should be deployed as module
+     *
+     * @param lmAS7  Login-Module containing this class
+     * @param className custom made class, which should be deployed into AS7
+     * @param resource helping class containing all resources of the SecurityMigrator
+     * @return  null if the JAR file containing the given class is already set for the creation of the module else
+     *          created ModuleCreationAction.
+     * @throws MigrationException
+     */
+    private ModuleCreationAction createModuleActionForLogMod(LoginModuleAS7Bean lmAS7, String className,
+                                                                    SecurityMigResource resource)
+            throws MigrationException{
+        File fileJar;
+        try {
+            fileJar = Utils.findJarFileWithClass(className, getGlobalConfig().getAS5Config().getDir(),
+                    getGlobalConfig().getAS5Config().getProfileName());
+        } catch (IOException ex) {
+            throw new MigrationException("Failed finding jar with class " + className + ": " + ex.getMessage(), ex);
+        }
+
+        if ( resource.getModules().containsKey(fileJar) ) {
+            lmAS7.setModule( resource.getModules().get(fileJar) );
+            return null;
+        }
+
+        String moduleName = "security.loginModule" + resource.getIncrement();
+
+        // Handler jar is new => create ModuleCreationAction, new module and CLI script
+        lmAS7.setModule( moduleName );
+        resource.getModules().put(fileJar, moduleName);
+
+        // TODO: Dependencies are little unknown. This two are the best possibilities from example of custom login module
+        String[] deps = new String[]{"javax.api", "org.picketbox", null}; // null = next is optional.
+
+        ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, fileJar, Configuration.IfExists.OVERWRITE);
+
+        return moduleAction;
     }
 
     /**
