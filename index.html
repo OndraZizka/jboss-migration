@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>JBoss Loom by OndraZizka</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>JBoss Loom</h1>
+        <h2>JBoss AS 5.x to 7+ Configuration Migrator</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/OndraZizka/jboss-migration/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/OndraZizka/jboss-migration/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/OndraZizka/jboss-migration" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>JBoss Migration</h1>
+
+<p>Program for migrating configuration of JBoss AS5 to JBoss AS7
+(Still in development)</p>
+
+<p>Application is migrating configuration of these subsystems:</p>
+
+<ul>
+<li>datasource</li>
+<li>logging</li>
+<li>resource-adapters</li>
+<li>security</li>
+<li>server(jboss-web / tomcat)</li>
+</ul><p>App creates Cli scripts and writes them on console output. App then tries to migrate AS5 XML configuration to its
+representation in AS7 and apply it to defined standalone file.</p>
+
+<p>This conversion also include copying files required for successful migration from AS5 directory to their right place in
+AS7 home directory (drivers jars, resource-adapters, logging files, property files).</p>
+
+<p>If migration fails (missing files, wrong configuration in AS5 etc.) then it rollbacks all changes made in AS7 home directory
+and in selected standalone file.</p>
+
+<p>Application best works on fresh AS7.</p>
+
+<h2>Usage:</h2>
+
+<p>java -jar AsMigration-1.0.jar  --as5.dir= --as7.dir=  [, ...]</p>
+
+<h2>Options:</h2>
+
+<pre><code>    --as5.profile=&lt;name&gt;
+        Path to AS 5 profile.
+        Default: "default"
+
+    --as7.confPath=&lt;path&gt;
+        Path to AS 7 config file.
+        Default: "standalone/configuration/standalone.xml"
+
+    --conf.&lt;module&gt;.&lt;property&gt;=&lt;value&gt;  := Module-specific options.
+
+        &lt;module&gt; := Name of one of modules. E.g. datasource, jaas, security, ...
+        &lt;property&gt; := Name of the property to set. Specific per module. May occur multiple times.
+      -&gt; *This option doesn't have any effect at this moment. It will be implemented soon.*
+</code></pre>
+      </section>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-40541816-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
