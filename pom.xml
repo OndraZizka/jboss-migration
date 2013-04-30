@@ -292,6 +292,7 @@
         </dependencies>
     </dependencyManagement>    
 
+    <licenses> <license> <name>GPL3</name> <url>http://www.gnu.org/licenses/gpl.html</url> </license> </licenses>
     <scm>
         <url>https://github.com/OndraZizka/jboss-migration</url>
         <connection>git://github.com/OndraZizka/jboss-migration.git</connection>
