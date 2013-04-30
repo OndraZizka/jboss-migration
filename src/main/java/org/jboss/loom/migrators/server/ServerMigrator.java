@@ -1,16 +1,22 @@
 package org.jboss.loom.migrators.server;
 
-import org.jboss.loom.actions.CliCommandAction;
-import org.jboss.loom.conf.GlobalConfiguration;
-import org.jboss.loom.ex.CliScriptException;
-import org.jboss.loom.ex.LoadMigrationException;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.ex.NodeGenerationException;
-import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.utils.Utils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
+import org.jboss.loom.actions.CliCommandAction;
+import org.jboss.loom.actions.CopyFileAction;
+import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ex.*;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.server.jaxb.*;
+import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -19,22 +25,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.server.jaxb.ConnectorAS5Bean;
-import org.jboss.loom.migrators.server.jaxb.ConnectorAS7Bean;
-import org.jboss.loom.migrators.server.jaxb.EngineBean;
-import org.jboss.loom.migrators.server.jaxb.ServerAS5Bean;
-import org.jboss.loom.migrators.server.jaxb.ServiceBean;
-import org.jboss.loom.migrators.server.jaxb.SocketBindingBean;
-import org.jboss.loom.migrators.server.jaxb.VirtualServerBean;
 
 /**
  * Migrator of server subsystem implementing IMigrator.
@@ -49,14 +41,8 @@ public class ServerMigrator extends AbstractMigrator {
         return "server";
     }
 
-
-    private Set<SocketBindingBean> socketTemp = new HashSet();
-
-    private Set<SocketBindingBean> socketBindings = new HashSet();
-
-    private Integer randomSocket = 1;
-
-    private Integer randomConnector = 1;
+    private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
+    private static final Logger log = LoggerFactory.getLogger(ServerMigrator.class);
 
     public ServerMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -93,8 +79,10 @@ public class ServerMigrator extends AbstractMigrator {
 
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
+         ServerMigratorResource resource = new ServerMigratorResource();
+
         try {
-            createDefaultSockets(ctx);
+            createDefaultSockets(ctx, resource);
         } catch (LoadMigrationException e) {
             throw new MigrationException("Migration of web server failed: " + e.getMessage(), e);
         }
@@ -104,7 +92,7 @@ public class ServerMigrator extends AbstractMigrator {
             try {
                 if (fragment instanceof ConnectorAS5Bean) {
                     what = "connector";
-                    ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, ctx)));
+                    ctx.getActions().addAll(createConnectorCliAction(migrateConnector((ConnectorAS5Bean) fragment, resource, ctx)));
                 }
                 else if (fragment instanceof EngineBean) {
                     what = "Engine (virtual-server)";
@@ -118,7 +106,7 @@ public class ServerMigrator extends AbstractMigrator {
             }
         }
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             try {
                 ctx.getActions().add(createSocketBindingCliAction(sb));
             } catch (CliScriptException e) {
@@ -131,11 +119,10 @@ public class ServerMigrator extends AbstractMigrator {
      * Migrates a connector from AS5 to AS7
      *
      * @param connector object representing connector in AS5
-     * @param ctx       migration context
      * @return migrated AS7's connector
      * @throws NodeGenerationException if socket-binding cannot be created or set
      */
-    public ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, MigrationContext ctx)
+    private ConnectorAS7Bean migrateConnector(ConnectorAS5Bean connector, ServerMigratorResource resource, MigrationContext ctx)
             throws NodeGenerationException {
         ConnectorAS7Bean connAS7 = new ConnectorAS7Bean();
 
@@ -160,7 +147,7 @@ public class ServerMigrator extends AbstractMigrator {
             // TODO: This can't be just assumed!
             protocol = "ajp";
         }
-        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), protocol));
+        connAS7.setSocketBinding(createSocketBinding(connector.getPort(), protocol, resource));
 
         // Name
         connAS7.setConnectorName(protocol);
@@ -173,14 +160,20 @@ public class ServerMigrator extends AbstractMigrator {
 
             connAS7.setSslName("ssl");
             connAS7.setVerifyClient(connector.getClientAuth());
-            // TODO: Problem with file location
-            connAS7.setCertifKeyFile(connector.getKeystoreFile());
+
+            if( connector.getKeystoreFile() != null ) {
+                String fName =  new File(connector.getKeystoreFile()).getName();
+                connAS7.setCertifKeyFile(AS7_CONFIG_DIR_PLACEHOLDER +  "/keys/" + fName);
+                CopyFileAction action = createCopyActionForKeyFile(resource, fName);
+                if ( action != null ) ctx.getActions().add(action);
+            }
 
             // TODO: No sure which protocols can be in AS5.
             if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
                 connAS7.setSslProtocol("TLSv1");
+            } else{
+                connAS7.setSslProtocol(connector.getSslProtocol());
             }
-            connAS7.setSslProtocol(connector.getSslProtocol());
 
             connAS7.setCiphers(connector.getCiphers());
             connAS7.setKeyAlias(connAS7.getKeyAlias());
@@ -193,12 +186,44 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     /**
+     * Creates CopyFileAction for keystores files from Connectors
+     *
+     * @param resource helping class containing all resources for ServerMigrator
+     * @param fName name of the keystore file to be copied into AS7
+     * @return  null if the file is already set for copying or the file cannot be found in the AS5 structure else
+     *          created CopyFileAction
+     */
+    private CopyFileAction createCopyActionForKeyFile(ServerMigratorResource resource, String fName){
+        // TODO:
+        final String property = "${jboss.server.home.dir}";
+
+        // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
+        //       Then, create the actions directly in the code creating this "files to copy" collection.
+        File as5profileDir = getGlobalConfig().getAS5Config().getProfileDir();
+        File src;
+        try {
+            src = Utils.searchForFile(fName, as5profileDir).iterator().next();
+        } catch( CopyException ex ) {
+            //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
+            // Some files referenced in security may not exist. (?)
+            log.warn("Couldn't find file referenced in AS 5 server config: " + fName);
+            return null;
+        }
+
+        if( ! resource.getKeystores().add(src) ) return null;
+
+        File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), "keys", src.getName());
+        CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP);
+        return action;
+    }
+
+    /**
      * Migrates a Engine from AS5 to AS7
      *
      * @param engine object representing Engine
      * @return created virtual-server
      */
-    public static VirtualServerBean migrateEngine(EngineBean engine) {
+    private static VirtualServerBean migrateEngine(EngineBean engine) {
         VirtualServerBean virtualServer = new VirtualServerBean();
         virtualServer.setVirtualServerName(engine.getEngineName());
         virtualServer.setEnableWelcomeRoot("true");
@@ -217,11 +242,11 @@ public class ServerMigrator extends AbstractMigrator {
      * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(MigrationContext ctx) throws LoadMigrationException {
+    private void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
-            // TODO:  Read over Management API.
+            // TODO:  Read over Management API. MIGR-71
             NodeList bindings = ctx.getAS7ConfigXmlDoc().getElementsByTagName("socket-binding");
             for (int i = 0; i < bindings.getLength(); i++) {
                 if (!(bindings.item(i) instanceof Element)) {
@@ -229,7 +254,7 @@ public class ServerMigrator extends AbstractMigrator {
                 }
                 SocketBindingBean socketBinding = (SocketBindingBean) unmarshaller.unmarshal(bindings.item(i));
                 if ((socketBinding.getSocketName() != null) || (socketBinding.getSocketPort() != null)) {
-                    this.socketTemp.add(socketBinding);
+                    resource.getSocketTemp().add(socketBinding);
                 }
 
             }
@@ -247,8 +272,10 @@ public class ServerMigrator extends AbstractMigrator {
      * @return name of the socket-binding so it cant be referenced in connector
      * @throws NodeGenerationException if createDefaultSocket fails to unmarshall socket-bindings
      */
-    private String createSocketBinding(String port, String name) throws NodeGenerationException {
-        for (SocketBindingBean sb : this.socketTemp) {
+    private static String createSocketBinding(String port, String name, ServerMigratorResource resource)
+            throws NodeGenerationException {
+        // TODO: Refactor and change the logic MIGR-71
+        for (SocketBindingBean sb : resource.getSocketTemp()) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
@@ -259,23 +286,22 @@ public class ServerMigrator extends AbstractMigrator {
 
         SocketBindingBean socketBinding = new SocketBindingBean();
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             if (sb.getSocketPort().equals(port)) {
                 return sb.getSocketName();
             }
         }
 
-        for (SocketBindingBean sb : this.socketBindings) {
+        for (SocketBindingBean sb : resource.getSocketBindings()) {
             if (sb.getSocketName().equals(name)) {
-                name = name.concat(this.randomSocket.toString());
-                this.randomSocket++;
+                name = name.concat(resource.getRandomSocket().toString());
             }
         }
 
         socketBinding.setSocketName(name);
         socketBinding.setSocketPort(port);
 
-        this.socketBindings.add(socketBinding);
+        resource.getSocketBindings().add(socketBinding);
 
         return name;
     }
@@ -288,7 +314,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Connector
      *                            are missing or are empty (socket-binding, connector-name, protocol)
      */
-    public static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException {
+    private static List<CliCommandAction> createConnectorCliAction(ConnectorAS7Bean connAS7) throws CliScriptException {
         String errMsg = " in connector must be set.";
         Utils.throwIfBlank(connAS7.getScheme(), errMsg, "Scheme");
         Utils.throwIfBlank(connAS7.getSocketBinding(), errMsg, "Socket-binding");

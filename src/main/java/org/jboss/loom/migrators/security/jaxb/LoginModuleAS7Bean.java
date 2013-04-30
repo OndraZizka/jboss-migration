@@ -23,6 +23,9 @@ public class LoginModuleAS7Bean {
     @XmlAttribute(name = "flag")
     private String loginModuleFlag;
 
+    @XmlAttribute(name = "module")
+    private String module;
+
     @XmlElements(@XmlElement(name = "module-option", type = ModuleOptionAS7Bean.class))
     private Set<ModuleOptionAS7Bean> moduleOptions;
 
@@ -50,6 +53,18 @@ public class LoginModuleAS7Bean {
         Set<ModuleOptionAS7Bean> temp = new HashSet();
         temp.addAll(moduleOptions);
         this.moduleOptions = temp;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
+    }
+
+    public void setModuleOptions(Set<ModuleOptionAS7Bean> moduleOptions) {
+        this.moduleOptions = moduleOptions;
     }
 }
 

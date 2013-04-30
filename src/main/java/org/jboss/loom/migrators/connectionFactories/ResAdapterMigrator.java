@@ -1,5 +1,15 @@
 package org.jboss.loom.migrators.connectionFactories;
 
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.CliAddScriptBuilder;
+import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.MigrationContext;
+import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -7,14 +17,10 @@ import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.connectionFactories.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -27,17 +33,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jboss.loom.CliAddScriptBuilder;
-import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConfigPropertyBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionDefinitionBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionFactoriesBean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ConnectionFactoryAS5Bean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.NoTxConnectionFactoryAS5Bean;
-import org.jboss.loom.migrators.connectionFactories.jaxb.ResourceAdapterBean;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -52,10 +47,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
     protected String getConfigPropertyModuleName() {
         return "resourceAdapter";
     }
-
-
-    private Set<String> rars = new HashSet<>();
-
 
     public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
         super(globalConfig, config);
@@ -116,29 +107,31 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
+        Set<String> rars = new HashSet<>();
         for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
-            if (fragment instanceof ConnectionFactoryAS5Bean) {
-                try {
+
+            String raType = null;
+            try {
+                if (fragment instanceof ConnectionFactoryAS5Bean) {
+                    raType = "tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateTxConnFactory((ConnectionFactoryAS5Bean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, rars )));
+                    continue;
                 }
-                continue;
-            }
-            if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
-                try {
+                if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
+                    raType = "no-tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateNoTxConnFactory((NoTxConnectionFactoryAS5Bean) fragment)));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of resource-adapter failed: " + e.getMessage(), e);
+                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, rars )));
+                    continue;
                 }
-                continue;
+                throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+
+            } catch (CliScriptException e) {
+                throw new MigrationException("Migration of " + raType +" failed: " + e.getMessage(), e);
             }
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
 
-        for (String rar : this.rars) {
+        for (String rar : rars) {
             File src;
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
@@ -154,126 +147,84 @@ public class ResAdapterMigrator extends AbstractMigrator {
     }
 
     /**
-     * Migrates a tx-connection-factory from AS5 to AS7
+     * Migrates Connection-Factory (both types) from AS5 to Resource-Adapter in AS7
      *
-     * @param connFactoryAS5 object representing tx-connection-factory
-     * @return created resource-adapter
+     * @param connFactoryAS5 Connection-Factory for migration
+     * @param rars Files already set for copy into AS7
+     * @return created Resource-Adapter with the configuration of the given Connection-Factory
      */
-    public ResourceAdapterBean migrateTxConnFactory(ConnectionFactoryAS5Bean connFactoryAS5) {
-
+    private static ResourceAdapterBean migrateConnFactory(AbstractConnectionFactoryAS5Bean connFactoryAS5, Set<String> rars){
         ResourceAdapterBean resAdapter = new ResourceAdapterBean();
-        resAdapter.setJndiName(connFactoryAS5.getJndiName());
-        this.rars.add(connFactoryAS5.getRarName());
 
+        rars.add(connFactoryAS5.getRarName());
+
+        resAdapter.setJndiName(connFactoryAS5.getJndiName());
         resAdapter.setArchive(connFactoryAS5.getRarName());
 
-        if (connFactoryAS5.getXaTransaction() != null) {
-            resAdapter.setTransactionSupport("XATransaction");
-        } else {
-            resAdapter.setTransactionSupport("LocalTransaction");
-        }
-
         ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
-        connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
-        connDef.setPoolName(connFactoryAS5.getJndiName());
-        connDef.setEnabled("true");
-        connDef.setUseJavaCont("true");
-        connDef.setEnabled("true");
-        connDef.setClassName(connFactoryAS5.getConnectionDefinition());
-        connDef.setPrefill(connFactoryAS5.getPrefill());
 
-        if (connFactoryAS5.getConfigProperties() != null) {
-            for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
-                configProperty.setType(null);
+        if(connFactoryAS5 instanceof ConnectionFactoryAS5Bean){
+            if ( ( ( ConnectionFactoryAS5Bean )connFactoryAS5 ).getXaTransaction() != null ) {
+                resAdapter.setTransactionSupport( "XATransaction" );
+                ConnectionFactoryAS5Bean tempFactory = ( ConnectionFactoryAS5Bean ) connFactoryAS5;
+
+                connDef.setXaResourceTimeout( tempFactory.getXaResourceTimeout() );
+                connDef.setXaFlushStrategy( tempFactory.getXaResourceTimeout() );
+                connDef.setXaMaxPoolSize( tempFactory.getXaResourceTimeout() );
+                connDef.setXaMinPoolSize( tempFactory.getXaResourceTimeout() );
+                connDef.setXaNoTxSeparatePools( tempFactory.getXaResourceTimeout() );
+                connDef.setXaPrefill( tempFactory.getXaResourceTimeout() );
+                connDef.setXaUseStrictMin( tempFactory.getXaResourceTimeout() );
+
+            } else {
+                resAdapter.setTransactionSupport( "LocalTransaction" );
+                connDef.setMaxPoolSize( connDef.getMaxPoolSize() );
+                connDef.setMinPoolSize( connDef.getMinPoolSize() );
+                connDef.setPrefill( connDef.getPrefill() );
+                connDef.setUseStrictMin( connDef.getUseStrictMin() );
+                connDef.setFlushStrategy( connDef.getFlushStrategy() );
             }
-            connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
+        } else{
+            resAdapter.setTransactionSupport( "NoTransaction" );
         }
 
-        if (connFactoryAS5.getApplicationManagedSecurity() != null) {
+        connDef.setJndiName( "java:jboss/" + connFactoryAS5.getJndiName() );
+        connDef.setPoolName( connFactoryAS5.getJndiName() );
+        connDef.setEnabled( "true" );
+        connDef.setUseJavaCont( "true" );
+        connDef.setEnabled( "true" );
+        connDef.setClassName( connFactoryAS5.getConnectionDefinition() );
+        connDef.setPrefill( connFactoryAS5.getPrefill() );
+
+        if ( connFactoryAS5.getConfigProperties() != null ) {
+            for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
+                configProperty.setType( null );
+            }
+            connDef.setConfigProperties( connFactoryAS5.getConfigProperties() );
+        }
+
+        if ( connFactoryAS5.getApplicationManagedSecurity() != null ) {
             connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
-        }
-        if (connFactoryAS5.getSecurityDomain() != null) {
+        } else if ( connFactoryAS5.getSecurityDomain() != null ) {
             connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
-        }
-        if (connFactoryAS5.getSecDomainAndApp() != null) {
+        } else if ( connFactoryAS5.getSecDomainAndApp() != null ) {
             connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
         }
 
-        connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
-        connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
+        connDef.setMinPoolSize( connFactoryAS5.getMinPoolSize() );
+        connDef.setMaxPoolSize( connFactoryAS5.getMaxPoolSize() );
 
-        connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
-        connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
+        connDef.setBackgroundValidation( connFactoryAS5.getBackgroundValid() );
+        connDef.setBackgroundValiMillis( connFactoryAS5.getBackgroundValiMillis() );
 
-        connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
-        connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
-        connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
-        connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
-        connDef.setXaResourceTimeout(connFactoryAS5.getXaResourceTimeout());
-
-        Set<ConnectionDefinitionBean> connDefColl = new HashSet();
-        connDefColl.add(connDef);
-        resAdapter.setConnectionDefinitions(connDefColl);
-
-        return resAdapter;
-    }
-
-    /**
-     * Migrates a no-tx-connection-factory from AS5 to AS7
-     *
-     * @param connFactoryAS5 object representing no-tx-connection-factory
-     * @return created resource-adapter
-     */
-    public ResourceAdapterBean migrateNoTxConnFactory(NoTxConnectionFactoryAS5Bean connFactoryAS5) {
-
-        ResourceAdapterBean resAdapter = new ResourceAdapterBean();
-        resAdapter.setJndiName(connFactoryAS5.getJndiName());
-        this.rars.add(connFactoryAS5.getRarName());
-
-        resAdapter.setArchive(connFactoryAS5.getRarName());
-
-        resAdapter.setTransactionSupport("NoTransaction");
-
-        ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
-        connDef.setJndiName("java:jboss/" + connFactoryAS5.getJndiName());
-        connDef.setPoolName(connFactoryAS5.getJndiName());
-        connDef.setEnabled("true");
-        connDef.setUseJavaCont("true");
-        connDef.setEnabled("true");
-        connDef.setClassName(connFactoryAS5.getConnectionDefinition());
-        connDef.setPrefill(connFactoryAS5.getPrefill());
-
-        if (connFactoryAS5.getConfigProperties() != null) {
-            for (ConfigPropertyBean configProperty : connFactoryAS5.getConfigProperties()) {
-                configProperty.setType(null);
-            }
-            connDef.setConfigProperties(connFactoryAS5.getConfigProperties());
-        }
-
-        if (connFactoryAS5.getApplicationManagedSecurity() != null) {
-            connDef.setAppManagedSec(connFactoryAS5.getApplicationManagedSecurity());
-        }
-        if (connFactoryAS5.getSecurityDomain() != null) {
-            connDef.setSecurityDomain(connFactoryAS5.getSecurityDomain());
-        }
-        if (connFactoryAS5.getSecDomainAndApp() != null) {
-            connDef.setSecDomainAndApp(connFactoryAS5.getSecDomainAndApp());
-        }
-
-        connDef.setMinPoolSize(connFactoryAS5.getMinPoolSize());
-        connDef.setMaxPoolSize(connFactoryAS5.getMaxPoolSize());
-
-        connDef.setBackgroundValidation(connFactoryAS5.getBackgroundValid());
-        connDef.setBackgroundValiMillis(connFactoryAS5.getBackgroundValiMillis());
-
-        connDef.setBlockingTimeoutMillis(connFactoryAS5.getBlockingTimeoutMillis());
-        connDef.setIdleTimeoutMinutes(connFactoryAS5.getIdleTimeoutMin());
-        connDef.setAllocationRetry(connFactoryAS5.getAllocationRetry());
-        connDef.setAllocRetryWaitMillis(connFactoryAS5.getAllocRetryWaitMillis());
+        connDef.setBlockingTimeoutMillis( connFactoryAS5.getBlockingTimeoutMillis() );
+        connDef.setIdleTimeoutMinutes( connFactoryAS5.getIdleTimeoutMin() );
+        connDef.setAllocationRetry( connFactoryAS5.getAllocationRetry() );
+        connDef.setAllocRetryWaitMillis( connFactoryAS5.getAllocRetryWaitMillis() );
 
         Set<ConnectionDefinitionBean> connDefColl = new HashSet();
         connDefColl.add(connDef);
-        resAdapter.setConnectionDefinitions(connDefColl);
+        resAdapter.setConnectionDefinitions( connDefColl );
 
         return resAdapter;
     }
@@ -286,7 +237,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Resource-Adapter are
      *                            missing or are empty (archive-name)
      */
-    public static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
+    private static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
             throws CliScriptException {
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(adapter.getArchive(), errMsg, "Archive name");
@@ -320,7 +271,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @param adapter Resource-Adapter containing connection-definition
      * @param def     Connection-Definition
      * @return created CliCommandAction for adding the Connection-Definition
-     * @throws cz.muni.fi.jboss.migration.ex.CliScriptException
+     * @throws CliScriptException
      *          if required attributes for a creation of the CLI command of the Connection-Definition
      *          are missing or are empty (class-name, pool-name)
      */
