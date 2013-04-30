@@ -247,7 +247,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode adapterCmd = new ModelNode();
         adapterCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         adapterCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
 
@@ -287,7 +287,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode connDefCmd = new ModelNode();
         connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
         connDefCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
@@ -350,7 +350,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode propertyCmd = new ModelNode();
         propertyCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         propertyCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
         propertyCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
         propertyCmd.get(ClientConstants.OP_ADDR).add("config-properties", property.getConfigPropertyName());
 
@@ -375,7 +375,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         StringBuilder resultBuilder = new StringBuilder();
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
-        String adapterScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive() + ":add(";
+        String adapterScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName() + ":add(";
         cliBuilder.addProperty("archive", resourceAdapter.getArchive());
         cliBuilder.addProperty("transaction-support", resourceAdapter.getTransactionSupport());
 
@@ -403,7 +403,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
         StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=" +
-                adapter.getArchive());
+                adapter.getJndiName());
 
         script.append("/connection-definitions=").append(connDef.getPoolName()).append(":add(");
 
@@ -457,7 +457,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=");
 
-        script.append(adapter.getArchive());
+        script.append(adapter.getJndiName());
 
         script.append("/connection-definitions=").append(connDef.getPoolName());
 
