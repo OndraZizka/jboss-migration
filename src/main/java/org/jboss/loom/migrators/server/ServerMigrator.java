@@ -372,7 +372,7 @@ public class ServerMigrator extends AbstractMigrator {
         sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
         sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
         sslBuilder.addProperty("password", connAS7.getPassword());
-        sslBuilder.addProperty("protocol", connAS7.getProtocol());
+        sslBuilder.addProperty("protocol", connAS7.getSslProtocol());
         sslBuilder.addProperty("ciphers", connAS7.getCiphers());
         sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
         sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
@@ -502,7 +502,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("verify-depth", connAS7.getVerifyDepth());
         builder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
         builder.addProperty("password", connAS7.getPassword());
-        builder.addProperty("protocol", connAS7.getProtocol());
+        builder.addProperty("protocol", connAS7.getSslProtocol());
         builder.addProperty("ciphers", connAS7.getCiphers());
         builder.addProperty("key-alias", connAS7.getKeyAlias());
         builder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
