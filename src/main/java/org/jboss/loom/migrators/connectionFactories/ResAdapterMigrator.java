@@ -168,21 +168,17 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 resAdapter.setTransactionSupport( "XATransaction" );
                 ConnectionFactoryAS5Bean tempFactory = ( ConnectionFactoryAS5Bean ) connFactoryAS5;
 
-                connDef.setXaResourceTimeout( tempFactory.getXaResourceTimeout() );
-                connDef.setXaFlushStrategy( tempFactory.getXaResourceTimeout() );
-                connDef.setXaMaxPoolSize( tempFactory.getXaResourceTimeout() );
-                connDef.setXaMinPoolSize( tempFactory.getXaResourceTimeout() );
-                connDef.setXaNoTxSeparatePools( tempFactory.getXaResourceTimeout() );
-                connDef.setXaPrefill( tempFactory.getXaResourceTimeout() );
-                connDef.setXaUseStrictMin( tempFactory.getXaResourceTimeout() );
+                connDef.setXaResourceTimeout(tempFactory.getXaResourceTimeout());
+                connDef.setXaMaxPoolSize(tempFactory.getMaxPoolSize());
+                connDef.setXaMinPoolSize( tempFactory.getMinPoolSize() );
+                connDef.setXaNoTxSeparatePools(tempFactory.getNoTxSeparatePools());
+                connDef.setXaPrefill( tempFactory.getPrefill() );
 
             } else {
                 resAdapter.setTransactionSupport( "LocalTransaction" );
-                connDef.setMaxPoolSize( connDef.getMaxPoolSize() );
-                connDef.setMinPoolSize( connDef.getMinPoolSize() );
-                connDef.setPrefill( connDef.getPrefill() );
-                connDef.setUseStrictMin( connDef.getUseStrictMin() );
-                connDef.setFlushStrategy( connDef.getFlushStrategy() );
+                connDef.setMaxPoolSize( connFactoryAS5.getMaxPoolSize() );
+                connDef.setMinPoolSize( connFactoryAS5.getMinPoolSize() );
+                connDef.setPrefill( connFactoryAS5.getPrefill() );
             }
         } else{
             resAdapter.setTransactionSupport( "NoTransaction" );
@@ -297,11 +293,22 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("use-java-context", def.getUseJavaCont());
         builder.addProperty("class-name", def.getClassName());
         builder.addProperty("use-ccm", def.getUseCcm());
-        builder.addProperty("prefill", def.getPrefill());
-        builder.addProperty("use-strict-min", def.getUseStrictMin());
+
         builder.addProperty("flush-strategy", def.getFlushStrategy());
-        builder.addProperty("min-pool-size", def.getMinPoolSize());
-        builder.addProperty("max-pool-size", def.getMaxPoolSize());
+
+        if(adapter.getTransactionSupport().equalsIgnoreCase("xatransaction")){
+            builder.addProperty("min-pool-size", def.getXaMinPoolSize());
+            builder.addProperty("max-pool-size", def.getXaMaxPoolSize());
+            builder.addProperty("prefill", def.getXaPrefill());
+            builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
+            builder.addProperty("no-tx-separate-pools", def.getXaNoTxSeparatePools());
+            builder.addProperty("use-strict-min",def.getXaUseStrictMin());
+        } else{
+            builder.addProperty("min-pool-size", def.getMinPoolSize());
+            builder.addProperty("max-pool-size", def.getMaxPoolSize());
+            builder.addProperty("prefill", def.getPrefill());
+            builder.addProperty("use-strict-min", def.getUseStrictMin());
+        }
 
         if (def.getSecurityDomain() != null) {
             builder.addProperty("security-domain", def.getSecurityDomain());
