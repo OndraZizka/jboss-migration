@@ -754,9 +754,48 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return list of created CliCommandActions
      * @throws CliScriptException
      */
-    static List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException{
-        // TODO: Not sure how set handlers in root-logger. Same thing for filter attribute. For now empty
-        return null;
+    private List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException{
+        // TODO first implementation of changing root-logger... probably needs refactor
+        List<CliCommandAction> actions = new ArrayList();
+        if(root.getRootLoggerLevel() != null){
+            String level ="/subsystem=logging/root-logger=ROOT:write-attribute(name=level, value=" + root.getRootLoggerLevel() + ")";
+
+            ModelNode levelNode = new ModelNode();
+            levelNode.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+            levelNode.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+            levelNode.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
+            levelNode.get("name").set("level");
+            levelNode.get("value").set(root.getRootLoggerLevel());
+
+            actions.add(new CliCommandAction(this.getClass(), level, levelNode));
+        }
+
+        if( (root.getRootLoggerHandlers() != null) || !(root.getRootLoggerHandlers().isEmpty())){
+            StringBuilder handlerTemp = new StringBuilder();
+            for(String handler : root.getRootLoggerHandlers()){
+                handlerTemp.append("\"" + handler + "\",");
+            }
+
+            String temp = handlerTemp.toString();
+            String handlers ="/subsystem=logging/root-logger=ROOT:write-attribute(name=handlers, value=[" +
+                    StringUtils.substringBeforeLast(temp, "," + "])");
+
+            ModelNode handlersNode = new ModelNode();
+            handlersNode.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+            handlersNode.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+            handlersNode.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
+            handlersNode.get("name").set("handlers");
+
+            ModelNode list = new ModelNode();
+            for(String test : root.getRootLoggerHandlers()){
+                list.add(test);
+            }
+            handlersNode.get("value").set(list);
+
+            actions.add(new CliCommandAction(this.getClass(), handlers, handlersNode));
+
+        }
+        return actions;
     }
 
     
