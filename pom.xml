@@ -70,7 +70,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <mainClass>cz.muni.fi.jboss.migration.MigratorApp</mainClass>
+                    <mainClass>org.jboss.loom.MigratorApp</mainClass>
                 </configuration>
             </plugin>
             <!-- Application JAR. -->
