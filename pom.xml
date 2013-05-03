@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jboss.migr.as</groupId>
-    <artifactId>AsMigration</artifactId>
+    <artifactId>AsMigrator</artifactId>
     <version>0.9.0</version>
 
     <parent>
