@@ -168,7 +168,6 @@ public class ServerMigrator extends AbstractMigrator {
                 if ( action != null ) ctx.getActions().add(action);
             }
 
-            // TODO: No sure which protocols can be in AS5.
             if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
                 connAS7.setSslProtocol("TLSv1");
             } else{
@@ -242,7 +241,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
+    private static void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 

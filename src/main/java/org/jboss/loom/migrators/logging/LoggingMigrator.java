@@ -140,7 +140,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (fragment instanceof RootLoggerAS5Bean) {
                 RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
-                // TODO: Find way to create CLI API command for root-logger
+                ctx.getActions().addAll( createRootLoggerCliAction( migrateRootLogger(root) ) );
                 continue;
             }
 
@@ -754,8 +754,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return list of created CliCommandActions
      * @throws CliScriptException
      */
-    private List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException{
-        // TODO first implementation of changing root-logger... probably needs refactor
+      List<CliCommandAction> createRootLoggerCliAction(RootLoggerAS7Bean root) throws CliScriptException{
         List<CliCommandAction> actions = new ArrayList();
         if(root.getRootLoggerLevel() != null){
             String level ="/subsystem=logging/root-logger=ROOT:write-attribute(name=level, value=" + root.getRootLoggerLevel() + ")";
