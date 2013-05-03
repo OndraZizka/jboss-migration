@@ -168,21 +168,17 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 resAdapter.setTransactionSupport( "XATransaction" );
                 ConnectionFactoryAS5Bean tempFactory = ( ConnectionFactoryAS5Bean ) connFactoryAS5;
 
-                connDef.setXaResourceTimeout( tempFactory.getXaResourceTimeout() );
-                connDef.setXaFlushStrategy( tempFactory.getXaResourceTimeout() );
-                connDef.setXaMaxPoolSize( tempFactory.getXaResourceTimeout() );
-                connDef.setXaMinPoolSize( tempFactory.getXaResourceTimeout() );
-                connDef.setXaNoTxSeparatePools( tempFactory.getXaResourceTimeout() );
-                connDef.setXaPrefill( tempFactory.getXaResourceTimeout() );
-                connDef.setXaUseStrictMin( tempFactory.getXaResourceTimeout() );
+                connDef.setXaResourceTimeout(tempFactory.getXaResourceTimeout());
+                connDef.setXaMaxPoolSize(tempFactory.getMaxPoolSize());
+                connDef.setXaMinPoolSize( tempFactory.getMinPoolSize() );
+                connDef.setXaNoTxSeparatePools(tempFactory.getNoTxSeparatePools());
+                connDef.setXaPrefill( tempFactory.getPrefill() );
 
             } else {
                 resAdapter.setTransactionSupport( "LocalTransaction" );
-                connDef.setMaxPoolSize( connDef.getMaxPoolSize() );
-                connDef.setMinPoolSize( connDef.getMinPoolSize() );
-                connDef.setPrefill( connDef.getPrefill() );
-                connDef.setUseStrictMin( connDef.getUseStrictMin() );
-                connDef.setFlushStrategy( connDef.getFlushStrategy() );
+                connDef.setMaxPoolSize( connFactoryAS5.getMaxPoolSize() );
+                connDef.setMinPoolSize( connFactoryAS5.getMinPoolSize() );
+                connDef.setPrefill( connFactoryAS5.getPrefill() );
             }
         } else{
             resAdapter.setTransactionSupport( "NoTransaction" );
@@ -247,7 +243,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode adapterCmd = new ModelNode();
         adapterCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         adapterCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        adapterCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
 
@@ -287,7 +283,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode connDefCmd = new ModelNode();
         connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        connDefCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
         connDefCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
@@ -297,11 +293,22 @@ public class ResAdapterMigrator extends AbstractMigrator {
         builder.addProperty("use-java-context", def.getUseJavaCont());
         builder.addProperty("class-name", def.getClassName());
         builder.addProperty("use-ccm", def.getUseCcm());
-        builder.addProperty("prefill", def.getPrefill());
-        builder.addProperty("use-strict-min", def.getUseStrictMin());
+
         builder.addProperty("flush-strategy", def.getFlushStrategy());
-        builder.addProperty("min-pool-size", def.getMinPoolSize());
-        builder.addProperty("max-pool-size", def.getMaxPoolSize());
+
+        if(adapter.getTransactionSupport().equalsIgnoreCase("xatransaction")){
+            builder.addProperty("min-pool-size", def.getXaMinPoolSize());
+            builder.addProperty("max-pool-size", def.getXaMaxPoolSize());
+            builder.addProperty("prefill", def.getXaPrefill());
+            builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
+            builder.addProperty("no-tx-separate-pools", def.getXaNoTxSeparatePools());
+            builder.addProperty("use-strict-min",def.getXaUseStrictMin());
+        } else{
+            builder.addProperty("min-pool-size", def.getMinPoolSize());
+            builder.addProperty("max-pool-size", def.getMaxPoolSize());
+            builder.addProperty("prefill", def.getPrefill());
+            builder.addProperty("use-strict-min", def.getUseStrictMin());
+        }
 
         if (def.getSecurityDomain() != null) {
             builder.addProperty("security-domain", def.getSecurityDomain());
@@ -350,7 +357,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         ModelNode propertyCmd = new ModelNode();
         propertyCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         propertyCmd.get(ClientConstants.OP_ADDR).add("subsystem", "resource-adapters");
-        propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getArchive());
+        propertyCmd.get(ClientConstants.OP_ADDR).add("resource-adapter", adapter.getJndiName());
         propertyCmd.get(ClientConstants.OP_ADDR).add("connection-definitions", def.getPoolName());
         propertyCmd.get(ClientConstants.OP_ADDR).add("config-properties", property.getConfigPropertyName());
 
@@ -375,7 +382,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         StringBuilder resultBuilder = new StringBuilder();
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
-        String adapterScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getArchive() + ":add(";
+        String adapterScript = "/subsystem=resource-adapters/resource-adapter=" + resourceAdapter.getJndiName() + ":add(";
         cliBuilder.addProperty("archive", resourceAdapter.getArchive());
         cliBuilder.addProperty("transaction-support", resourceAdapter.getTransactionSupport());
 
@@ -403,7 +410,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
         StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=" +
-                adapter.getArchive());
+                adapter.getJndiName());
 
         script.append("/connection-definitions=").append(connDef.getPoolName()).append(":add(");
 
@@ -457,7 +464,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=");
 
-        script.append(adapter.getArchive());
+        script.append(adapter.getJndiName());
 
         script.append("/connection-definitions=").append(connDef.getPoolName());
 
