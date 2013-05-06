@@ -168,7 +168,6 @@ public class ServerMigrator extends AbstractMigrator {
                 if ( action != null ) ctx.getActions().add(action);
             }
 
-            // TODO: No sure which protocols can be in AS5.
             if ((connector.getSslProtocol().equals("TLS")) || (connector.getSslProtocol() == null)) {
                 connAS7.setSslProtocol("TLSv1");
             } else{
@@ -242,7 +241,7 @@ public class ServerMigrator extends AbstractMigrator {
      * @param ctx migration context
      * @throws LoadMigrationException if unmarshalling socket-bindings from standalone file fails
      */
-    private void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
+    private static void createDefaultSockets(MigrationContext ctx, ServerMigratorResource resource) throws LoadMigrationException {
         try {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SocketBindingBean.class).createUnmarshaller();
 
@@ -372,7 +371,7 @@ public class ServerMigrator extends AbstractMigrator {
         sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
         sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
         sslBuilder.addProperty("password", connAS7.getPassword());
-        sslBuilder.addProperty("protocol", connAS7.getProtocol());
+        sslBuilder.addProperty("protocol", connAS7.getSslProtocol());
         sslBuilder.addProperty("ciphers", connAS7.getCiphers());
         sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
         sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
@@ -502,7 +501,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("verify-depth", connAS7.getVerifyDepth());
         builder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
         builder.addProperty("password", connAS7.getPassword());
-        builder.addProperty("protocol", connAS7.getProtocol());
+        builder.addProperty("protocol", connAS7.getSslProtocol());
         builder.addProperty("ciphers", connAS7.getCiphers());
         builder.addProperty("key-alias", connAS7.getKeyAlias());
         builder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());

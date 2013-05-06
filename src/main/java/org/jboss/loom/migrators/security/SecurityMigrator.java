@@ -163,7 +163,7 @@ public class SecurityMigrator extends AbstractMigrator {
 
         // Module options
         Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
-        lmAS7.setModuleOptions(moduleOptions);
+
         if( lmAS5.getModuleOptions() == null )
             return lmAS7;
 
@@ -187,6 +187,8 @@ public class SecurityMigrator extends AbstractMigrator {
             ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean( moAS5.getModuleName(), value );
             moduleOptions.add( moAS7 );
         }
+        lmAS7.setModuleOptions(moduleOptions);
+
         return lmAS7;
     }
 
@@ -402,14 +404,14 @@ public class SecurityMigrator extends AbstractMigrator {
                 domain.getSecurityDomainName());
         resultScript.append("/authentication=classic:add(login-modules=[{");
 
-        if ((module.getLoginModuleCode() != null) || !(module.getLoginModuleCode().isEmpty())) {
+        if ((module.getLoginModuleCode() != null) && !(module.getLoginModuleCode().isEmpty())) {
             resultScript.append("\"code\"=>\"").append(module.getLoginModuleCode()).append("\"");
         }
-        if ((module.getLoginModuleFlag() != null) || !(module.getLoginModuleFlag().isEmpty())) {
+        if ((module.getLoginModuleFlag() != null) && !(module.getLoginModuleFlag().isEmpty())) {
             resultScript.append(", \"flag\"=>\"").append(module.getLoginModuleFlag()).append("\"");
         }
 
-        if ((module.getModuleOptions() != null) || (!module.getModuleOptions().isEmpty())) {
+        if ((module.getModuleOptions() != null) && !(module.getModuleOptions().isEmpty())) {
             StringBuilder modulesBuilder = new StringBuilder();
             for (ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions()) {
                 modulesBuilder.append(", (\"").append(moduleOptionAS7.getModuleOptionName()).append("\"=>");
