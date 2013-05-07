@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <!-- User input defaults -->
-        <download>as7</download> <!-- "as7" or "eap6" -->
+        <download>eap6</download> <!-- "as7" or "eap6" -->
         
         <!-- Build flow control -->
         <as.jvm.args></as.jvm.args>
@@ -143,20 +143,30 @@
                     <plugin>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>
-                            <execution> <id>get-AS7</id> <phase>process-test-classes</phase>
-                                <goals> <goal>unpack</goal> </goals>
+                            <execution> <id>as-dist.download</id> <phase>process-test-classes</phase>
+                                <goals> <goal>get</goal> </goals>
                                 <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.jboss.as</groupId>
-                                            <artifactId>jboss-as-dist</artifactId>
-                                            <version>${as.download.version}</version>
-                                            <type>zip</type>
-                                            <overWrite>false</overWrite>
-                                            <outputDirectory>target</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
+                                    <artifact>org.jboss.as:jboss-as-dist:${as.download.version}:zip</artifact>
+                                    <destination>target</destination>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>  <id>as-dist.unzip</id>
+                                <phase>process-test-classes</phase>
+                                <goals> <goal>run</goal> </goals>
+                                <configuration>
+                                    <target>
+                                        <unzip src="target/jboss-as-dist-${as.download.version}.zip" dest="target/as-dist">
+                                            <cutdirsmapper dirs="1"/>
+                                        </unzip>
+                                    </target>
+                                </configuration>
+                                
                             </execution>
                         </executions>
                     </plugin>

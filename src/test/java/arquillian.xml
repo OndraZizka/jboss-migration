@@ -4,7 +4,7 @@
 
     <container qualifier="jboss" default="true">
         <configuration>
-            <property name="jbossHome">${basedir}/target/jboss-as-7.1.1.Final</property>
+            <property name="jbossHome">${basedir}/target/as-dist</property>
             <!--
             <property name="javaVmArguments">${arq.as.jvm.args} -Djboss.inst=${basedir}/target/jboss-as-7.1.1.Final</property>
             ${arq.as.jvm.args[:]} doesn't work.
