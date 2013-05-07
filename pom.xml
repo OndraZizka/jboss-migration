@@ -92,7 +92,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>cz.muni.fi.jboss.migration.MigratorApp</mainClass>
+                                    <mainClass>org.jboss.loom.MigratorApp</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
