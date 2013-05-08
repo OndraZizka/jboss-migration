@@ -1,5 +1,7 @@
 package org.jboss.loom.conf;
 
+import java.util.Set;
+
 
 /**
  * Class for storing global information needed for migration. Like dir of AS7, AS5, and profiles
@@ -20,7 +22,7 @@ public class GlobalConfiguration {
 
 
     // Non-server stuff
-    private String appPath;
+    private Set<String> appPaths;
 
     private boolean skipValidation;
 
@@ -36,12 +38,12 @@ public class GlobalConfiguration {
     }
     //public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
-    public String getAppPath() {
-        return appPath;
+    public Set<String> getAppPaths() {
+        return appPaths;
     }
 
-    public void setAppPath(String appPath) {
-        this.appPath = appPath;
+    public void addAppPath(String appPath) {
+        this.appPaths.add( appPath );
     }
 
     public boolean isSkipValidation() {

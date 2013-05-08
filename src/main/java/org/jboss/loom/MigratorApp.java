@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.jboss.as.controller.client.ModelControllerClient;
 
 
@@ -113,7 +114,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("--app.path=") ) {
-                globalConfig.setAppPath(StringUtils.substringAfter(arg, "="));
+                globalConfig.addAppPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -225,12 +226,14 @@ public class MigratorApp {
             }
             catch( IOException ex ){ } // Happens on close().
         }
-
+        
         
         // App (deployment)
-        path = config.getGlobal().getAppPath();
-        if( null != path && ! new File(path).exists())
-            problems.add("App path was set but does not exist: " + path);
+        Set<String> paths = config.getGlobal().getAppPaths();
+        for( String string : paths ) {
+            if( null != path && ! new File(path).exists())
+                problems.add("App path was set but does not exist: " + path);
+        }
         
         return problems;
     }
