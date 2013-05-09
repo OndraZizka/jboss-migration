@@ -90,27 +90,27 @@ public class MigratorApp {
                 Utils.writeHelp();
                 return null;
             }
-            if( arg.startsWith("as5.dir=") ) {
+            if( arg.startsWith("as5.dir=") || arg.startsWith("eap5.dir=") || arg.startsWith("srcServer.dir=") ) {
                 globalConfig.getAS5Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.dir=") ) {
+            if( arg.startsWith("as7.dir=") || arg.startsWith("eap6.dir=") || arg.startsWith("targetServer.dir=") || arg.startsWith("wfly.dir=") ) {
                 globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as5.profile=") ) {
+            if( arg.startsWith("as5.profile=") || arg.startsWith("eap5.profile=") || arg.startsWith("srcServer.profile=") ) {
                 globalConfig.getAS5Config().setProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.confPath=") ) {
+            if( arg.startsWith("as7.confPath=") || arg.startsWith("eap6.confPath=") || arg.startsWith("targetServer.confPath=") || arg.startsWith("wfly.confPath=") ) {
                 globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.mgmt=") ) {
+            if( arg.startsWith("as7.mgmt=") ||  arg.startsWith("eap6.mgmt=") ||  arg.startsWith("targetServer.mgmt=") ||  arg.startsWith("wfly.mgmt=") ) {
                 parseMgmtConn( StringUtils.substringAfter(arg, "="), globalConfig.getAS7Config() );
                 continue;
             }
@@ -143,6 +143,13 @@ public class MigratorApp {
                 moduleConfigs.add( new ModuleSpecificProperty(module, propName, value));
             }
 
+            
+            // Unrecognized.
+            
+            if( ! arg.contains("=") ){
+                // TODO: Could be AS5 or AS7 dir.
+            }
+            
             System.err.println("Warning: Unknown argument: " + arg + " !");
             Utils.writeHelp();
             continue;
@@ -181,6 +188,8 @@ public class MigratorApp {
             problems.add("as5.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as5.dir is not a directory: " + path);
+        else if( ! new File(path, "server").isDirectory() )
+            problems.add("as5.dir doesn't appear to be JBoss AS 5 directory - doesn't contain server/ subdir: " + path);
         else {
             String profileName = config.getGlobal().getAS5Config().getProfileName();
             if( null == profileName )
@@ -198,6 +207,8 @@ public class MigratorApp {
             problems.add("as7.dir was not set.");
         else if( ! new File(path).isDirectory() )
             problems.add("as7.dir is not a directory: " + path);
+        else if( ! new File(path, "jboss-modules.jar").isFile())
+            problems.add("as7.dir doesn't appear to be JBoss AS 7 directory - doesn't contain jboss-modules.jar: " + path);
         else {
             String configPath = as7Config.getConfigFilePath();
             if( null == configPath )
