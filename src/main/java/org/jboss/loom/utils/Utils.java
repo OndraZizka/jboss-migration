@@ -57,9 +57,15 @@ public class Utils {
      */
     public static void writeHelp() {
         System.out.println();
+        System.out.println(" JBoss configuration migration tool for AS 5 / EAP 5 -> AS 7 / EAP 6 / WildFly 8");
+        System.out.println();
         System.out.println(" Usage:");
         System.out.println();
         System.out.println("    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>");
+        System.out.println();
+        System.out.println("       <as5.dir>   is expected to contain path to AS 5 or EAP 5 home directory, i.e. the one with server/ subdirectory.");
+        System.out.println();
+        System.out.println("       <as7.dir>   is expected to contain path to AS 7 or EAP 6 home directory, i.e. the one with jboss-modules.jar.");
         System.out.println();
         System.out.println(" Options:");
         System.out.println();
