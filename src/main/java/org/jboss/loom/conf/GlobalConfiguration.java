@@ -1,5 +1,6 @@
 package org.jboss.loom.conf;
 
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -22,7 +23,7 @@ public class GlobalConfiguration {
 
 
     // Non-server stuff
-    private Set<String> appPaths;
+    private Set<String> appPaths = new HashSet();
 
     private boolean skipValidation;
 
