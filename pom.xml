@@ -203,6 +203,49 @@
                 <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
             </properties>
         </profile>
+
+        <!-- License headers. -->
+        <profile> <id>Headers</id>
+            <activation> <property> <name>headers</name> </property> </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.mycila.maven-license-plugin</groupId>
+                        <artifactId>maven-license-plugin</artifactId>
+                        <version>1.10.b1</version>
+                        <configuration>
+                            <header>src/main/licenseHeader.txt</header>
+                            <includes>
+                                <include>src/main/**/*.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>src/main/**/I*.java</exclude>
+                            </excludes>
+                            <!-- We already have comment stars.
+                            <mapping>
+                                <java>PLAIN</java>
+                            </mapping>
+                            <headerDefinitions>
+                                <headerDefinition>
+                                    
+                                </headerDefinition>
+                            </headerDefinitions>
+                            -->
+                            <properties>
+                                <year>2013</year>
+                            </properties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>    
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>mc-release</id>
+                    <name>Local Maven repository of releases</name>
+                    <url>http://mc-repo.googlecode.com/svn/maven2/releases</url>
+                </pluginRepository>
+            </pluginRepositories>  
+        </profile>
     </profiles>
 
     <dependencies>
