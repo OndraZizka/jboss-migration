@@ -160,7 +160,7 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-        migratorClasses.add( DeploymentScannerMigrator.class );
+        //TODO: get this working properly migratorClasses.add( DeploymentScannerMigrator.class );
         return migratorClasses;
     }
     

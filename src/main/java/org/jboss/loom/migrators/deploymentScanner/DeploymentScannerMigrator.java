@@ -13,6 +13,7 @@ import org.jboss.loom.MigrationContext;
 import org.jboss.loom.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.conf.AS5Config;
+import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.spi.IConfigFragment;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
@@ -81,6 +83,10 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
         if (f.exists() && f.canRead()) {
             List<ValueType> valueList = getDeploymentDirs(f);
+
+            valueList = checkDestinationPath(valueList);
+            valueList = checkSourcePath(valueList);
+
             MigrationData mData = new MigrationData();
             mData.getConfigFragments().addAll(valueList);
             ctx.getMigrationData().put(this.getClass(), mData);
@@ -93,6 +99,75 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 f.getAbsolutePath(), new FileNotFoundException());
         }
     }
+
+
+    /**
+     * Check the destination subsystem entries for duplicate directory names.
+     * Remove the dup ones from the create list.
+     *
+     * @param valueList
+     * @return
+     * @throws LoadMigrationException
+     */
+    private List<ValueType> checkDestinationPath(List<ValueType> valueList)
+        throws LoadMigrationException {
+
+        AS7Config as7Config = super.getGlobalConfig().getAS7Config();
+
+        File f = new File(as7Config.getConfigFilePath());
+
+        if (f.exists() && f.canRead()) {
+            try {
+
+                DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+                Document doc = docBuilder.parse(f);
+
+                XPath xpath = XPathFactory.newInstance().newXPath();
+                String exp = "/server/profile/subsystem/deployment-scanner";
+                NodeList nodeList = (NodeList) xpath.evaluate(exp, doc, XPathConstants.NODESET );
+
+                int cnt = nodeList.getLength();
+                for(int i =0; i < cnt; i++){
+                    Element node = (Element) nodeList.item(i);
+                    String tmpPath = node.getAttribute("path");
+                    //System.out.println("tmpPath: " + tmpPath);
+
+                    for (ValueType v: valueList){
+                        //System.out.println("v: deploy: " + v.getDeployPath() + "   value: " + v.getValue());
+                        if (tmpPath.equals(v.getDeployPath())){
+                            // do not process duplication paths.
+                            valueList.remove(v);
+                        }
+                    }
+
+                }
+
+           // } catch (JAXBException e) {
+           //     throw new LoadMigrationException(e);
+            } catch (SAXException saxe) {
+                throw new LoadMigrationException(saxe);
+            } catch (IOException ioe) {
+                throw new LoadMigrationException(ioe);
+            } catch (XPathExpressionException xee) {
+                throw new LoadMigrationException(xee);
+            }
+        }
+        return valueList;
+    }
+
+
+    private List<ValueType> checkSourcePath(List<ValueType> valueList) {
+
+        for (ValueType v: valueList){
+            File f = new File(v.getDeployPath());
+            if (!f.exists()){
+                valueList.remove(v);
+            }
+        }
+
+        return valueList;
+    }
+
 
     // step 2
     @Override
