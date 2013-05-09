@@ -84,48 +84,50 @@ public class MigratorApp {
         
         // For each argument...
         for (String arg : args) {
-            if( arg.startsWith("--help") ){
+            arg = StringUtils.removeStart( arg, "--" );
+            
+            if( arg.equals("help") ){
                 Utils.writeHelp();
                 return null;
             }
-            if( arg.startsWith("--as5.dir=") || arg.startsWith("as5.dir=") ) {
+            if( arg.startsWith("as5.dir=") ) {
                 globalConfig.getAS5Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("--as7.dir=") || arg.startsWith("as7.dir=")) {
+            if( arg.startsWith("as7.dir=") ) {
                 globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("--as5.profile=") ) {
+            if( arg.startsWith("as5.profile=") ) {
                 globalConfig.getAS5Config().setProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("--as7.confPath=") ) {
+            if( arg.startsWith("as7.confPath=") ) {
                 globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("--as7.mgmt=") ) {
+            if( arg.startsWith("as7.mgmt=") ) {
                 parseMgmtConn( StringUtils.substringAfter(arg, "="), globalConfig.getAS7Config() );
                 continue;
             }
 
-            if( arg.startsWith("--app.path=") ) {
-                globalConfig.addAppPath(StringUtils.substringAfter(arg, "="));
+            if( arg.startsWith("app.path=") ) {
+                globalConfig.addAppPath( StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("--valid.skip") ) {
+            if( arg.startsWith("valid.skip") ) {
                 globalConfig.setSkipValidation(true);
                 continue;
             }
 
             // Module-specific configurations.
             // TODO: Process by calling IMigrator instances' callback.
-            if (arg.startsWith("--conf.")) {
+            if (arg.startsWith("conf.")) {
                 
                 // --conf.<module>.<property.name>[=<value>]
                 String conf = StringUtils.substringAfter(arg, ".");
@@ -145,7 +147,6 @@ public class MigratorApp {
             Utils.writeHelp();
             continue;
         }
-        //globalConfig.setStandaloneFilePath();
 
         Configuration configuration = new Configuration();
         configuration.setModuleConfigs(moduleConfigs);
