@@ -1,3 +1,10 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 .
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
 package org.jboss.loom;
 
 import org.jboss.loom.conf.AS7Config;
@@ -90,27 +97,27 @@ public class MigratorApp {
                 Utils.writeHelp();
                 return null;
             }
-            if( arg.startsWith("as5.dir=") || arg.startsWith("eap5.dir=") || arg.startsWith("srcServer.dir=") ) {
+            if( arg.startsWith("as5.dir=") || arg.startsWith("eap5.dir=") || arg.startsWith("src.dir=") ) {
                 globalConfig.getAS5Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.dir=") || arg.startsWith("eap6.dir=") || arg.startsWith("targetServer.dir=") || arg.startsWith("wfly.dir=") ) {
+            if( arg.startsWith("as7.dir=") || arg.startsWith("eap6.dir=") || arg.startsWith("dest.dir=") || arg.startsWith("wfly.dir=") ) {
                 globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as5.profile=") || arg.startsWith("eap5.profile=") || arg.startsWith("srcServer.profile=") ) {
+            if( arg.startsWith("as5.profile=") || arg.startsWith("eap5.profile=") || arg.startsWith("src.profile=") ) {
                 globalConfig.getAS5Config().setProfileName(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.confPath=") || arg.startsWith("eap6.confPath=") || arg.startsWith("targetServer.confPath=") || arg.startsWith("wfly.confPath=") ) {
+            if( arg.startsWith("as7.confPath=") || arg.startsWith("eap6.confPath=") || arg.startsWith("dest.conf.file=") || arg.startsWith("wfly.confPath=") ) {
                 globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.mgmt=") ||  arg.startsWith("eap6.mgmt=") ||  arg.startsWith("targetServer.mgmt=") ||  arg.startsWith("wfly.mgmt=") ) {
+            if( arg.startsWith("as7.mgmt=") ||  arg.startsWith("eap6.mgmt=") ||  arg.startsWith("dest.mgmt=") ||  arg.startsWith("wfly.mgmt=") ) {
                 parseMgmtConn( StringUtils.substringAfter(arg, "="), globalConfig.getAS7Config() );
                 continue;
             }
