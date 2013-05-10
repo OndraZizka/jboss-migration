@@ -36,6 +36,7 @@ Various parts of configuration is covered by so-called "migrators", e.g.
  * ResAdapterMigrator
  * SecurityMigrator
  * ServerMigrator for JBoss Web
+ * etc...
 
 
 If the migration fails (invalid input, missing files, wrong configuration in AS5 etc.),
@@ -48,6 +49,8 @@ The application is meant to be run on a fresh installation of the target server.
 
 Currently, **the target server must be running** during the migration.
 The future versions of the app will be able to start the server for you.
+
+Currently, the **JBOSS_HOME** system property **must NOT be set**. [MIGR-84](https://issues.jboss.org/browse/MIGR-84)
 
 To run the app, use the distribution jar as follows:
 
@@ -71,3 +74,5 @@ To run the app, use the distribution jar as follows:
     conf.<module>.<property>=<value> := Module-specific options.
         <module> := Name of one of modules. E.g. datasource, jaas, security, ...
         <property> := Name of the property to set. Specific per module. May occur multiple times.
+
+  For the full list of options please see the project [wiki pages](https://github.com/OndraZizka/jboss-migration/wiki).
