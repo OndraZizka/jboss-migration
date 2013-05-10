@@ -25,6 +25,9 @@ public class AS7Config {
     private int mgmtPort = 9999;
 
 
+    /**
+     *  @returns  A constructed path of server dir + config file subpath.
+     */
     public String getConfigFilePath() {
         return new File(getDir(), getConfigPath()).getPath();  // TODO: Return File and use that.
     }
