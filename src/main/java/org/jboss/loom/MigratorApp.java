@@ -80,7 +80,7 @@ public class MigratorApp {
      *  Parses app's arguments.
      *  @returns  Configuration initialized according to args.
      */
-    private static Configuration parseArguments(String[] args) {
+    static Configuration parseArguments(String[] args) {
     
         // Global config
         GlobalConfiguration globalConfig = new GlobalConfiguration();
@@ -102,7 +102,7 @@ public class MigratorApp {
                 continue;
             }
 
-            if( arg.startsWith("as7.dir=") || arg.startsWith("eap6.dir=") || arg.startsWith("dest.dir=") || arg.startsWith("wfly.dir=") ) {
+            if( arg.startsWith("dest.dir=") || arg.startsWith("eap6.dir=") || arg.startsWith("dest.dir=") || arg.startsWith("wfly.dir=") ) {
                 globalConfig.getAS7Config().setDir(StringUtils.substringAfter(arg, "="));
                 continue;
             }
@@ -112,12 +112,12 @@ public class MigratorApp {
                 continue;
             }
 
-            if( arg.startsWith("as7.confPath=") || arg.startsWith("eap6.confPath=") || arg.startsWith("dest.conf.file=") || arg.startsWith("wfly.confPath=") ) {
+            if( arg.startsWith("dest.confPath=") || arg.startsWith("eap6.confPath=") || arg.startsWith("dest.conf.file=") || arg.startsWith("wfly.confPath=") ) {
                 globalConfig.getAS7Config().setConfigPath(StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
-            if( arg.startsWith("as7.mgmt=") ||  arg.startsWith("eap6.mgmt=") ||  arg.startsWith("dest.mgmt=") ||  arg.startsWith("wfly.mgmt=") ) {
+            if( arg.startsWith("dest.mgmt=") ||  arg.startsWith("eap6.mgmt=") ||  arg.startsWith("dest.mgmt=") ||  arg.startsWith("wfly.mgmt=") ) {
                 parseMgmtConn( StringUtils.substringAfter(arg, "="), globalConfig.getAS7Config() );
                 continue;
             }
@@ -192,11 +192,11 @@ public class MigratorApp {
         // AS 5
         String path = config.getGlobal().getAS5Config().getDir();
         if( null == path )
-            problems.add("as5.dir was not set.");
+            problems.add("src.dir was not set.");
         else if( ! new File(path).isDirectory() )
-            problems.add("as5.dir is not a directory: " + path);
+            problems.add("src.dir is not a directory: " + path);
         else if( ! new File(path, "server").isDirectory() )
-            problems.add("as5.dir doesn't appear to be JBoss AS 5 directory - doesn't contain server/ subdir: " + path);
+            problems.add("src.dir doesn't appear to be JBoss AS 5 directory - doesn't contain server/ subdir: " + path);
         else {
             String profileName = config.getGlobal().getAS5Config().getProfileName();
             if( null == profileName )
@@ -204,34 +204,34 @@ public class MigratorApp {
             else {
                 File profileDir = config.getGlobal().getAS5Config().getProfileDir();
                 if( ! profileDir.exists() )
-                    problems.add("as5.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
+                    problems.add("src.profile is not a subdirectory in AS 5 dir: " + profileDir.getPath());
             }
         }
         // AS 7
         AS7Config as7Config = config.getGlobal().getAS7Config();
         path = as7Config.getDir();
         if( null == path )
-            problems.add("as7.dir was not set.");
+            problems.add("dest.dir was not set.");
         else if( ! new File(path).isDirectory() )
-            problems.add("as7.dir is not a directory: " + path);
+            problems.add("dest.dir is not a directory: " + path);
         else if( ! new File(path, "jboss-modules.jar").isFile())
-            problems.add("as7.dir doesn't appear to be JBoss AS 7 directory - doesn't contain jboss-modules.jar: " + path);
+            problems.add("dest.dir doesn't appear to be JBoss AS 7 directory - doesn't contain jboss-modules.jar: " + path);
         else {
             String configPath = as7Config.getConfigFilePath();
             if( null == configPath )
-                ; //problems.add("as7.confPath was not set."); // TODO: Put defaults to the config.
+                ; //problems.add("dest.confPath was not set."); // TODO: Put defaults to the config.
             else{
-                File configFile = new File(path, configPath);
+                File configFile = new File(configPath);
                 if( ! configFile.exists() )
                 //    problems.add(
-                    log.warn("as7.confPath is not a subpath under AS 7 dir: " + configFile.getPath() );
+                    log.warn("dest.conf.file is not not found in AS 7 dir: " + configFile.getPath() );
             }
         }
         
         // Management host and port
         mgmt: {
             if( as7Config.getManagementPort() == -1 ){
-                problems.add("as7.mgmt doesn't contain valid port after ':'.");
+                problems.add("dest.mgmt doesn't contain valid port after ':'.");
                 break mgmt;
             }
         
