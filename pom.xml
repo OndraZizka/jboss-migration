@@ -6,7 +6,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -99,7 +99,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Download AS 7 for Arquillian tests. -->
+            <!-- Download AS 7 for Arquillian tests. 
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -120,6 +120,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
     
@@ -137,7 +138,10 @@
     <profiles>
         <!-- Download AS or EAP for Arquillian tests. -->
         <profile>  <id>DownloadContainer</id>
-            <activation> <property> <name>download</name> </property> </activation>
+            <activation> 
+                <activeByDefault>true</activeByDefault> 
+                <property>  <name>download</name>  </property> 
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -166,7 +170,6 @@
                                         </unzip>
                                     </target>
                                 </configuration>
-                                
                             </execution>
                         </executions>
                     </plugin>
@@ -191,7 +194,10 @@
         
         <!-- Download EAP 6 for Arquillian tests. -->
         <profile>  <id>DownloadEAP</id>
-            <activation> <property> <name>download</name> <value>eap6</value> </property> </activation>
+            <activation>
+                <property> <name>download</name> <value>eap6</value> </property> 
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <repositories>
                 <repository>
                     <id>RedHat</id>
