@@ -55,20 +55,20 @@ Currently, the **JBOSS_HOME** system property **must NOT be set**. [MIGR-84](htt
 To run the app, use the distribution jar as follows:
 
 
-    java -jar AsMigrator.jar [<option>, ...] [as5.dir=]<as5.dir> [as7.dir=]<as7.dir>
+    java -jar AsMigrator.jar [<option>, ...] [src.dir=]<src.dir> [dest.dir=]<dest.dir>
 
-       <as5.dir>   is expected to contain path to AS 5 or EAP 5 home directory, i.e. the one with server/ subdirectory.
+       <src.dir>    is expected to contain path to AS 5.1+ or EAP 5.x home directory, i.e. the one with server/ subdirectory.
 
-       <as7.dir>   is expected to contain path to AS 7 or EAP 6 home directory, i.e. the one with jboss-modules.jar.
+       <dest.dir>   is expected to contain path to AS 7.1+ or EAP 6.1+ home directory, i.e. the one with jboss-modules.jar.
 
  Options:
 
-    as5.profile=<name>
-        Path to AS 5 profile.
+    src.profile=<name>
+        Path to AS 5 or EAP 5 profile.
         Default: "default"
 
-    as7.confPath=<path> 
-        Path to AS 7 config file.
+    dest.conf.file=<path> 
+        Path to AS 7 or EAP 6 config file.
         Default: "standalone/configuration/standalone.xml"
 
     conf.<module>.<property>=<value> := Module-specific options.
