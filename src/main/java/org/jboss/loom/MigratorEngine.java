@@ -44,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.actions.ManualAction;
 
 /**
  *  Controls the core migration processes.
@@ -238,6 +239,10 @@ public class MigratorEngine {
             
             // Close the AS 7 management client connection.
             closeManagementClient();
+            
+            // Inform the user about necessary manual actions
+            this.announceManualActions();
+            
         }
         catch( MigrationException ex ) {
             this.rollbackActionsWhichWerePerformed();
@@ -396,6 +401,35 @@ public class MigratorEngine {
             //if( action.isAfterPerform()) // Checked in rollback() itself.
             action.rollback();
         }
+    }
+    
+    private void announceManualActions(){
+        boolean bannerShown = false;
+        List<IMigrationAction> actions = ctx.getActions();
+        for( IMigrationAction action : actions ) {
+            if( ! ( action instanceof ManualAction ) )
+                continue;
+            List<String> warns = ((ManualAction)action).getWarnings();
+            for( String warn : warns ) {
+                if( ! bannerShown )  bannerShown = showBanner();
+                log.warn( warn );
+            }
+        }
+        if( bannerShown ){
+            log.warn("\n"
+                    + "\n===================================================================="
+                    + "\n  End of manual actions."
+                    + "\n====================================================================\n");
+        }
+    }
+    
+    private boolean showBanner(){
+        log.warn("\n"
+                + "\n===================================================================="
+                + "\n  Some parts of the source server configuration are not supported   "
+                + "\n  and need to be done manually. See the messages bellow."
+                + "\n====================================================================\n");
+        return true;
     }
     
     
