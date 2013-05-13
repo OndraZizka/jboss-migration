@@ -7,6 +7,7 @@
  */
 package org.jboss.loom;
 
+import java.io.File;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.spi.IMigrator;
@@ -45,6 +46,8 @@ public class MigrationContext {
     private ModelControllerClient as7Client;
 
     private final AS7Config as7Config;
+    
+    private List<File> deploymentsDirs = new LinkedList();
             
     
 
@@ -66,9 +69,10 @@ public class MigrationContext {
     public ModelControllerClient getAS7Client() { return as7Client; }
 
     public AS7Config getAs7Config() { return as7Config; }
-    //</editor-fold>
-    
-    
 
+    public List<File> getDeploymentsDirs() { return deploymentsDirs; }
+    public void setDeploymentsDirs( List<File> deploymentsDirs ) { this.deploymentsDirs = deploymentsDirs; }
+
+    //</editor-fold>
     
 }// class

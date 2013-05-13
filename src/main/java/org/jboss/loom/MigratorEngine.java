@@ -42,7 +42,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ManualAction;
 
@@ -195,30 +199,18 @@ public class MigratorEngine {
         this.resetContext( as7Config );
         
 
-        // Parse AS 7 config. MIGR-31 OK
-        File as7configFile = new File(as7Config.getConfigFilePath());
-        try {
-            DocumentBuilder db = Utils.createXmlDocumentBuilder();
-            Document doc = db.parse(as7configFile);
-            ctx.setAS7ConfigXmlDoc(doc);
-            
-            // TODO: Do backup at file level, instead of parsing and writing back.
-            //       And rework it in general. MIGR-23.
-            doc = db.parse(as7configFile);
-            ctx.setAs7ConfigXmlDocOriginal(doc);
-        } 
-        catch ( SAXException | IOException ex ) {
-            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
-        }
+        // Parse AS 7 config. Not needed anymore - we use CLI.
+        this.parseAS7Config();
         
-        
+        // Unzip the deployments.
+        this.unzipDeployments();
         
         
         // MIGR-31 - The new way.
         String message = null;
         try {
             // Load the source server config.
-            message = "Failed loading AS 5 config from " + as7configFile;
+            message = "Failed loading AS 5 config.";
             this.loadAS5Data();
 
             // Open an AS 7 management client connection.
@@ -438,7 +430,7 @@ public class MigratorEngine {
      *
      * @throws LoadMigrationException
      */
-    public void loadAS5Data() throws LoadMigrationException {
+    private void loadAS5Data() throws LoadMigrationException {
         log.debug("======== loadAS5Data() ========");
         try {
             for (IMigrator mig : this.migrators) {
@@ -447,6 +439,53 @@ public class MigratorEngine {
             }
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);
+        }
+    }
+    
+    
+    /**
+     *  Unzips the apps specified in config to temp dirs, to be deleted at the end.
+     */
+    private void unzipDeployments() throws MigrationException {
+        Set<String> deplPaths = this.config.getGlobal().getAppPaths();
+        List<File> deplDirs = new ArrayList( deplPaths.size() );
+
+        for( String path : deplPaths ) {
+            File deplZip = new File( path );
+            if( !deplZip.exists() ){
+                log.warn( "Application not found: " + path );
+                continue;
+            }
+            // It's a dir - no need to unzip.
+            if( deplZip.isDirectory() ){
+                deplDirs.add( deplZip );
+                continue;
+            }
+            // It's a file - try to unzip.
+            deplDirs.add( unzipDeployment( deplZip ) );
+        }
+        
+        ctx.setDeploymentsDirs( deplDirs );
+    }
+    
+    /**
+     *  Unzips given zip to a temp dir.
+     */
+    private static File unzipDeployment( File deplZip ) throws MigrationException {
+        try {
+            Path tmpDir = Files.createTempDirectory( "JBossAS-MigrTmp-" + deplZip.getName() + "-" );
+            tmpDir.toFile().deleteOnExit();
+
+            ZipFile zipFile = new ZipFile(deplZip);
+            zipFile.extractAll( tmpDir.toFile().getPath() );
+            
+            return tmpDir.toFile();
+        }
+        catch( ZipException ex ){
+            throw new MigrationException("Failed unzipping the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
+        }
+        catch( IOException ex ){
+            throw new MigrationException("Failed creating a tmp dir for the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
         }
     }
 
@@ -468,6 +507,28 @@ public class MigratorEngine {
     private void closeManagementClient(){
         AS7CliUtils.safeClose( ctx.getAS7Client() );
         ctx.setAS7ManagementClient( null );
+    }
+
+
+    /**
+     *  Parses AS 7 config.
+     *  @deprecated  Not needed anymore - we use CLI.
+     */
+    private void parseAS7Config() throws MigrationException {
+        File as7configFile = new File( this.config.getGlobal().getAS7Config().getConfigFilePath() );
+        try {
+            DocumentBuilder db = Utils.createXmlDocumentBuilder();
+            Document doc = db.parse(as7configFile);
+            ctx.setAS7ConfigXmlDoc(doc);
+            
+            // TODO: Do backup at file level, instead of parsing and writing back.
+            //       And rework it in general. MIGR-23.
+            doc = db.parse(as7configFile);
+            ctx.setAs7ConfigXmlDocOriginal(doc);
+        } 
+        catch ( SAXException | IOException ex ) {
+            throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
+        }
     }
 
 }// class
