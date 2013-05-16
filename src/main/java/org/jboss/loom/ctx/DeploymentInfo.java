@@ -1,9 +1,10 @@
 package org.jboss.loom.ctx;
 
 import java.io.File;
+import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.migrators.AppConfigUtils;
+import org.jboss.loom.migrators.DeploymentConfigUtils;
 
 /**
  * Info about deployment provided by user as input.
@@ -12,31 +13,44 @@ import org.jboss.loom.migrators.AppConfigUtils;
  * 
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class DeploymentInfo {
+public final class DeploymentInfo {
     
     // What user provided as parameter.
-    String userProvidedPath;
+    private String userProvidedPath;
+    // The same as a canonical file. Used e.g. for map keys.
+    private final File canonicalFile;
     
     // EAR, WAR, JAR?
-    AppConfigUtils.DeploymentType type;
+    private DeploymentConfigUtils.DeploymentType type;
     
     // Where did we extract to?
-    File unzippedToTmpDirectory = null;
+    private File unzippedToTmpDirectory = null;
+    
+    
 
 
-    public DeploymentInfo( String userProvidedPath ) {
+    public DeploymentInfo( String userProvidedPath ) throws MigrationException {
+        
+        // Validation
+        try {
+            this.canonicalFile = new File(this.userProvidedPath).getCanonicalFile();
+        } catch( IOException ex ) {
+            throw new MigrationException( "Failed resolving canonical path for the deployment " 
+                    + userProvidedPath + ": " + ex.getMessage(), ex );
+        }
+        
         this.userProvidedPath = userProvidedPath;
         this.type = guessTypeFromName();
     }
     
-    public AppConfigUtils.DeploymentType guessTypeFromName(){
+    public DeploymentConfigUtils.DeploymentType guessTypeFromName(){
         String suffix = StringUtils.substringAfterLast(userProvidedPath, ".");
-        return AppConfigUtils.DeploymentType.from( suffix );
+        return DeploymentConfigUtils.DeploymentType.from( suffix );
     }
     
 
     public File unzipToTmpDir() throws MigrationException {
-        this.unzippedToTmpDirectory = AppConfigUtils.unzipDeployment( new File( userProvidedPath ) );
+        this.unzippedToTmpDirectory = DeploymentConfigUtils.unzipDeployment( new File( userProvidedPath ) );
         return this.unzippedToTmpDirectory;
     }
     
@@ -52,11 +66,37 @@ public class DeploymentInfo {
         return new File( this.userProvidedPath );
     }
     
+    public final File getAsCanonicalFile(){
+        return canonicalFile;
+    }
+    
+    
+    /**
+        EAR => myapp.ear/META-INF
+        WAR => myapp.war/WEB-INF
+        JAR => mylib.jar/META-INF
+     */
+    public File getInfDir(){
+        return new File( getDirToScan(), this.type.getInfDir() );
+    }
+
+
+    // hashCode / equals delegated to userProvidedPath.
+    public boolean equals( Object anObject ) {
+        return userProvidedPath.equals( anObject );
+    }
+
+    public int hashCode() {
+        return userProvidedPath.hashCode();
+    }
+    
+    
+    
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getUserProvidedPath() { return userProvidedPath; }
-    public AppConfigUtils.DeploymentType getType() { return type; }
+    public DeploymentConfigUtils.DeploymentType getType() { return type; }
     public File getUnzippedToTmpDirectory() { return unzippedToTmpDirectory; }
     //</editor-fold>
     

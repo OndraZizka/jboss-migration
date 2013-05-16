@@ -4,7 +4,7 @@ package org.jboss.loom.migrators.classloading.beans;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class AppModuleClassloadingConfig {
+public class DeploymentClassloadingConfig {
     
     JBossClassloadingXml jbossClassloading;
     

@@ -123,7 +123,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("app.path=") ) {
-                globalConfig.addAppPath( StringUtils.substringAfter(arg, "="));
+                globalConfig.addDeploymentPath( StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -248,7 +248,7 @@ public class MigratorApp {
         
         
         // App (deployment)
-        Set<String> paths = config.getGlobal().getAppPaths();
+        Set<String> paths = config.getGlobal().getDeploymentsPaths();
         for( String string : paths ) {
             if( null != path && ! new File(path).exists())
                 problems.add("App path was set but does not exist: " + path);

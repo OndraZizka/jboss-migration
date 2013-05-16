@@ -46,12 +46,12 @@ public class GlobalConfiguration {
     }
     //public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
-    public Set<String> getAppPaths() {
+    public Set<String> getDeploymentsPaths() {
         return appPaths;
     }
 
-    public void addAppPath(String appPath) {
-        this.appPaths.add( appPath );
+    public void addDeploymentPath(String deplPath) {
+        this.appPaths.add( deplPath );
     }
 
     public boolean isSkipValidation() {

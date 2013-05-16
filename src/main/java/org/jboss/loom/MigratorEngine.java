@@ -47,7 +47,7 @@ import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.ctx.DeploymentInfo;
-import org.jboss.loom.migrators.AppConfigUtils;
+import org.jboss.loom.migrators.DeploymentConfigUtils;
 
 /**
  *  Controls the core migration processes.
@@ -445,7 +445,7 @@ public class MigratorEngine {
      *  Unzips the apps specified in config to temp dirs, to be deleted at the end.
      */
     private void unzipDeployments() throws MigrationException {
-        Set<String> deplPaths = this.config.getGlobal().getAppPaths();
+        Set<String> deplPaths = this.config.getGlobal().getDeploymentsPaths();
         List<DeploymentInfo> depls = new ArrayList( deplPaths.size() );
 
         for( String path : deplPaths ) {

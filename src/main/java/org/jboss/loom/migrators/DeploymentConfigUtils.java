@@ -12,7 +12,7 @@ import org.jboss.loom.ex.MigrationException;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class AppConfigUtils {
+public class DeploymentConfigUtils {
 
     public static final String UNZIP_DIR_PREFIX = "JBossAS-MigrTmp-";
     public static final String TMP_DIR_SUFFIX = "-unzip1~~";
@@ -29,7 +29,7 @@ public class AppConfigUtils {
         private DeploymentType( String infDir ) {
             this.infDir = infDir;
         }
-        
+
         /**
          *  The same as valueOf(), only case-insensitive, and returns null if no match.
          */
@@ -40,8 +40,15 @@ public class AppConfigUtils {
                 return null;
             }
         }
-    }// enum AppType
 
+        
+        public String getInfDir() { return infDir; }
+       
+    }// enum DeploymentType
+
+    
+    
+    
     
     /**
      *  Unzips given zip to a temp dir.
