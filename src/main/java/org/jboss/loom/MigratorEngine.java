@@ -43,13 +43,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ManualAction;
+import org.jboss.loom.ctx.DeploymentInfo;
+import org.jboss.loom.migrators.AppConfigUtils;
 
 /**
  *  Controls the core migration processes.
@@ -61,10 +59,7 @@ import org.jboss.loom.actions.ManualAction;
  */
 public class MigratorEngine {
     private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
-    
-    public static final String UNZIP_DIR_PREFIX = "JBossAS-MigrTmp-";
-    public static final String TMP_DIR_SUFFIX = "-unzip1~~";
-    
+        
 
     private Configuration config;
 
@@ -451,47 +446,34 @@ public class MigratorEngine {
      */
     private void unzipDeployments() throws MigrationException {
         Set<String> deplPaths = this.config.getGlobal().getAppPaths();
-        List<File> deplDirs = new ArrayList( deplPaths.size() );
+        List<DeploymentInfo> depls = new ArrayList( deplPaths.size() );
 
         for( String path : deplPaths ) {
+            
             File deplZip = new File( path );
             if( !deplZip.exists() ){
                 log.warn( "Application not found: " + path );
                 continue;
             }
+            
+            DeploymentInfo depl = new DeploymentInfo( path );
+            
             // It's a dir - no need to unzip.
             if( deplZip.isDirectory() ){
-                deplDirs.add( deplZip );
+                depls.add( depl );
                 continue;
             }
+            
             // It's a file - try to unzip.
-            deplDirs.add( unzipDeployment( deplZip ) );
+            //AppConfigUtils.unzipDeployment( deplZip )
+            depl.unzipToTmpDir();
+            
+            depls.add( depl );
         }
         
-        ctx.setDeploymentsDirs( deplDirs );
+        ctx.setDeployments( depls );
     }
-    
-    /**
-     *  Unzips given zip to a temp dir.
-     */
-    private static File unzipDeployment( File deplZip ) throws MigrationException {
-        try {
-            Path tmpDir = Files.createTempDirectory( UNZIP_DIR_PREFIX + deplZip.getName() + TMP_DIR_SUFFIX );
-            tmpDir.toFile().deleteOnExit();
-
-            ZipFile zipFile = new ZipFile(deplZip);
-            zipFile.extractAll( tmpDir.toFile().getPath() );
-            
-            return tmpDir.toFile();
-        }
-        catch( ZipException ex ){
-            throw new MigrationException("Failed unzipping the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
-        }
-        catch( IOException ex ){
-            throw new MigrationException("Failed creating a tmp dir for the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
-        }
-    }
-    
+        
 
     // AS 7 management client connection.
     
