@@ -1,8 +1,5 @@
 package org.jboss.loom;
 
-import java.io.File;
-import java.io.IOException;
-import org.apache.commons.io.FileUtils;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.AS7CliUtils;
@@ -23,42 +20,6 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ArqTest {
     
-    private static File getDestServerDistDir(){
-        //return new File("target/jboss-as-7.1.1.Final");
-        //return new File("target/jboss-eap-6.2.0.Beta1");
-        return new File("target/as-dist");
-    }
-    
-    private static Configuration createTestConfig_AS_510_all() throws IOException {
-        Configuration conf = new Configuration();
-        
-        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01_510all");
-        conf.getGlobal().getAS5Config().setProfileName("all");
-        
-        File destServerDir = new File("target/as7configs/01_510all");
-        FileUtils.copyDirectory( getDestServerDistDir(), destServerDir );
-        conf.getGlobal().getAS7Config().setDir( destServerDir.getPath() );
-        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
-                
-        return conf;
-    }
-    
-    private static Configuration createTestConfig_EAP_520_production() throws IOException {
-        Configuration conf = new Configuration();
-        
-        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/02_EAP-520-prod");
-        conf.getGlobal().getAS5Config().setProfileName("production");
-        
-        File destServerDir = new File("target/as7configs/02_EAP-520-prod");
-        FileUtils.copyDirectory( getDestServerDistDir(), destServerDir );
-        conf.getGlobal().getAS7Config().setDir( destServerDir.getPath() );
-        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
-                
-        return conf;
-    }
-    
-
-    
     /**
      * Test of doMigration method, of class MigratorEngine.
      */
@@ -68,7 +29,7 @@ public class ArqTest {
     public void test_AS_510_all( /*@ArquillianResource ManagementClient client*/ ) throws Exception {
         System.out.println( "doMigration" );
                 
-        Configuration conf = createTestConfig_AS_510_all();
+        Configuration conf = TestAppConfig.createTestConfig_AS_510_all();
         AS7Config as7Config = conf.getGlobal().getAS7Config();
         
         // Set the Mgmt host & port from the client;
@@ -91,7 +52,7 @@ public class ArqTest {
         if( as7Dir != null )  // AS 7.1.1 doesn't define it.
             conf.getGlobal().getAS7Config().setDir( as7Dir );
         
-        announceMigration( conf );
+        TestAppConfig.announceMigration( conf );
         
         MigratorApp.validateConfiguration( conf );
         
@@ -110,7 +71,7 @@ public class ArqTest {
     public void test_EAP_520_production( ) throws Exception {
         System.out.println( "doMigration" );
                 
-        Configuration conf = createTestConfig_EAP_520_production();
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
         AS7Config as7Config = conf.getGlobal().getAS7Config();
         
         ModelControllerClient as7client = ModelControllerClient.Factory.create(as7Config.getHost(), as7Config.getManagementPort());
@@ -120,7 +81,7 @@ public class ArqTest {
         if( as7Dir != null )  // AS 7.1.1 doesn't define it.
             conf.getGlobal().getAS7Config().setDir( as7Dir );
         
-        announceMigration( conf );
+        TestAppConfig.announceMigration( conf );
         
         MigratorApp.validateConfiguration( conf );
         
@@ -128,16 +89,5 @@ public class ArqTest {
         migrator.doMigration();
     }
     
-    
-    private static void announceMigration( Configuration conf ){
-        String msg = "\n\n"
-                + "==========================================================="
-                + "  Migrating "
-                + "  " + conf.getGlobal().getAS5Config().getDir() + " | " + conf.getGlobal().getAS5Config().getProfileName()
-                + "  to "
-                + "   " + conf.getGlobal().getAS7Config().getDir() + " | " + conf.getGlobal().getAS7Config().getConfigPath()
-                + "===========================================================\n";
-        System.out.println( msg );
-    }
-    
+        
 }// class
