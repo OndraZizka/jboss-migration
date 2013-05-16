@@ -47,7 +47,7 @@ import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.ctx.DeploymentInfo;
-import org.jboss.loom.migrators.DeploymentConfigUtils;
+import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 
 /**
  *  Controls the core migration processes.
@@ -151,6 +151,8 @@ public class MigratorEngine {
     }// createMigrators()
     
     
+    
+    
     /**
      *  Finds the implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
@@ -163,7 +165,8 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-        migratorClasses.add( DeploymentScannerMigrator.class );
+        migratorClasses.add( DeploymentScannerMigrator.class ); // Not finished yet.
+        migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
         return migratorClasses;
     }
     
@@ -484,7 +487,7 @@ public class MigratorEngine {
             as7Client = ModelControllerClient.Factory.create( as7Config.getHost(), as7Config.getManagementPort() );
         }
         catch( UnknownHostException ex ){
-            throw new MigrationException("Unknown AS 7 host.", ex);
+            throw new MigrationException("Unknown AS 7 host: " + as7Config.getHost(), ex);
         }
         ctx.setAS7ManagementClient( as7Client );
     }
