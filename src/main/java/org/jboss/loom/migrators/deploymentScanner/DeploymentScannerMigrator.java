@@ -9,8 +9,8 @@ package org.jboss.loom.migrators.deploymentScanner;
 
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.conf.AS5Config;
 import org.jboss.loom.conf.GlobalConfiguration;

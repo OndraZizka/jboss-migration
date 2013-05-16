@@ -5,7 +5,7 @@
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
-package org.jboss.loom;
+package org.jboss.loom.ctx;
 
 import java.io.File;
 import org.jboss.loom.actions.IMigrationAction;
@@ -51,7 +51,7 @@ public class MigrationContext {
             
     
 
-    MigrationContext( AS7Config as7Config ) {
+    public MigrationContext( AS7Config as7Config ) {
         this.as7Config = as7Config;
     }
 
@@ -65,7 +65,7 @@ public class MigrationContext {
     public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
     public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
     public Batch getBatch() { return batch; }
-    void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
+    public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
     public ModelControllerClient getAS7Client() { return as7Client; }
 
     public AS7Config getAs7Config() { return as7Config; }

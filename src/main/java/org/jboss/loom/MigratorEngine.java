@@ -7,6 +7,7 @@
  */
 package org.jboss.loom;
 
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.AS7Config;
@@ -59,8 +60,10 @@ import org.jboss.loom.actions.ManualAction;
  *  @author Roman Jakubco
  */
 public class MigratorEngine {
-    
     private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
+    
+    public static final String UNZIP_DIR_PREFIX = "JBossAS-MigrTmp-";
+    public static final String TMP_DIR_SUFFIX = "-unzip1~~";
     
 
     private Configuration config;
@@ -473,7 +476,7 @@ public class MigratorEngine {
      */
     private static File unzipDeployment( File deplZip ) throws MigrationException {
         try {
-            Path tmpDir = Files.createTempDirectory( "JBossAS-MigrTmp-" + deplZip.getName() + "-" );
+            Path tmpDir = Files.createTempDirectory( UNZIP_DIR_PREFIX + deplZip.getName() + TMP_DIR_SUFFIX );
             tmpDir.toFile().deleteOnExit();
 
             ZipFile zipFile = new ZipFile(deplZip);
@@ -488,7 +491,7 @@ public class MigratorEngine {
             throw new MigrationException("Failed creating a tmp dir for the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
         }
     }
-
+    
 
     // AS 7 management client connection.
     

@@ -7,7 +7,7 @@
  */
 package org.jboss.loom.actions;
 
-import org.jboss.loom.MigrationContext;
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 
