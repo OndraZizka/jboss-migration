@@ -27,7 +27,6 @@ public class ArqTest {
     @RunAsClient
     //@Ignore
     public void test_AS_510_all( /*@ArquillianResource ManagementClient client*/ ) throws Exception {
-        System.out.println( "doMigration" );
                 
         Configuration conf = TestAppConfig.createTestConfig_AS_510_all();
         AS7Config as7Config = conf.getGlobal().getAS7Config();
@@ -69,8 +68,7 @@ public class ArqTest {
     @RunAsClient
     @Ignore
     public void test_EAP_520_production( ) throws Exception {
-        System.out.println( "doMigration" );
-                
+
         Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
         AS7Config as7Config = conf.getGlobal().getAS7Config();
         

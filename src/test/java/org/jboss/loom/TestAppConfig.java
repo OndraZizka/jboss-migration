@@ -40,13 +40,13 @@ public class TestAppConfig {
 
     
     public static void announceMigration( Configuration conf ){
-        String msg = "\n\n"
-                + "==========================================================="
-                + "  Migrating "
-                + "   " + conf.getGlobal().getAS5Config().getDir() + " | " + conf.getGlobal().getAS5Config().getProfileName()
-                + "  to "
-                + "   " + conf.getGlobal().getAS7Config().getDir() + " | " + conf.getGlobal().getAS7Config().getConfigPath()
-                + "===========================================================\n";
+        String msg = "\n"
+                + "\n=============================================================================================="
+                + "\n  Migrating "
+                + "\n    " + conf.getGlobal().getAS5Config().getDir() + " | " + conf.getGlobal().getAS5Config().getProfileName()
+                + "\n  to "
+                + "\n    " + conf.getGlobal().getAS7Config().getDir() + " | " + conf.getGlobal().getAS7Config().getConfigPath()
+                + "\n==============================================================================================\n";
         System.out.println( msg );
     }
     

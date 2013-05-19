@@ -33,8 +33,8 @@ public final class DeploymentInfo {
         
         // Validation
         try {
-            this.canonicalFile = new File(this.userProvidedPath).getCanonicalFile();
-        } catch( IOException ex ) {
+            this.canonicalFile = new File(userProvidedPath).getCanonicalFile();
+        } catch( IOException | NullPointerException ex ) {
             throw new MigrationException( "Failed resolving canonical path for the deployment " 
                     + userProvidedPath + ": " + ex.getMessage(), ex );
         }
