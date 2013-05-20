@@ -219,7 +219,7 @@ public class AS7CliUtils {
                 if( String.class != method.getReturnType() )
                     continue;
                 String val = (String) method.invoke(source);
-                builder.addProperty( prop, val );
+                builder.addPropertyIfSet( prop, val );
             }
             catch ( NoSuchMethodException ex ){
                 throw new RuntimeException( ex );

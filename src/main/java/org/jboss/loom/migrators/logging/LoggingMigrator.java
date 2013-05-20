@@ -558,8 +558,8 @@ public class LoggingMigrator extends AbstractMigrator {
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(loggerCmd);
-        builder.addProperty("level", logger.getLoggerLevelName());
-        builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
+        builder.addPropertyIfSet("level", logger.getLoggerLevelName());
+        builder.addPropertyIfSet("use-parent-handlers", logger.getUseParentHandlers());
 
         return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand())
                 .setIfExists( ifExists );
@@ -594,11 +594,11 @@ public class LoggingMigrator extends AbstractMigrator {
         handlerCmd.get("file").set(temp);
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
-        builder.addProperty("suffix", handler.getSuffix());
-        builder.addProperty("level", handler.getLevel());
-        builder.addProperty("formatter", handler.getFormatter());
-        builder.addProperty("autoflush", handler.getAutoflush());
-        builder.addProperty("append", handler.getAppend());
+        builder.addPropertyIfSet("suffix", handler.getSuffix());
+        builder.addPropertyIfSet("level", handler.getLevel());
+        builder.addPropertyIfSet("formatter", handler.getFormatter());
+        builder.addPropertyIfSet("autoflush", handler.getAutoflush());
+        builder.addPropertyIfSet("append", handler.getAppend());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
 
@@ -633,17 +633,17 @@ public class LoggingMigrator extends AbstractMigrator {
         handlerCmd.get("file").set(temp);
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
-        builder.addProperty("level", handler.getLevel());
-        builder.addProperty("filter", handler.getFilter());
-        builder.addProperty("formatter", handler.getFormatter());
-        builder.addProperty("autoflush", handler.getAutoflush());
-        builder.addProperty("append", handler.getAppend());
+        builder.addPropertyIfSet("level", handler.getLevel());
+        builder.addPropertyIfSet("filter", handler.getFilter());
+        builder.addPropertyIfSet("formatter", handler.getFormatter());
+        builder.addPropertyIfSet("autoflush", handler.getAutoflush());
+        builder.addPropertyIfSet("append", handler.getAppend());
         String size = handler.getRotateSize();
         if( size.endsWith("KB") )  size = StringUtils.replace(size, "KB", "K");
         if( size.endsWith("MB") )  size = StringUtils.replace(size, "MB", "M");
         if( size.endsWith("GB") )  size = StringUtils.replace(size, "GB", "G");
-        builder.addProperty("rotate-size", size);
-        builder.addProperty("max-backup-index", handler.getMaxBackupIndex());
+        builder.addPropertyIfSet("rotate-size", size);
+        builder.addPropertyIfSet("max-backup-index", handler.getMaxBackupIndex());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
         return new CliCommandAction( LoggingMigrator.class, createSizeHandlerScript(handler), builder.getCommand());
@@ -693,11 +693,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
 
-        builder.addProperty("queue-length", StringUtils.defaultIfBlank( handler.getQueueLength(), DEFAULT_QUEUE_LENGTH));
-        builder.addProperty("level", handler.getLevel());
-        builder.addProperty("filter", handler.getFilter());
-        builder.addProperty("formatter", handler.getFormatter());
-        builder.addProperty("overflow-action", handler.getOverflowAction());
+        builder.addPropertyIfSet("queue-length", StringUtils.defaultIfBlank( handler.getQueueLength(), DEFAULT_QUEUE_LENGTH));
+        builder.addPropertyIfSet("level", handler.getLevel());
+        builder.addPropertyIfSet("filter", handler.getFilter());
+        builder.addPropertyIfSet("formatter", handler.getFormatter());
+        builder.addPropertyIfSet("overflow-action", handler.getOverflowAction());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "... level filter formatter ...");
 
         return new CliCommandAction( LoggingMigrator.class, createAsyncHandlerScript(handler), builder.getCommand());
@@ -722,11 +722,11 @@ public class LoggingMigrator extends AbstractMigrator {
         handlerCmd.get(ClientConstants.OP_ADDR).add("console-handler", handler.getName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
-        builder.addProperty("level", handler.getLevel());
-        builder.addProperty("filter", handler.getFilter());
-        builder.addProperty("formatter", handler.getFormatter());
-        builder.addProperty("autoflush", handler.getAutoflush());
-        builder.addProperty("target", handler.getTarget());
+        builder.addPropertyIfSet("level", handler.getLevel());
+        builder.addPropertyIfSet("filter", handler.getFilter());
+        builder.addPropertyIfSet("formatter", handler.getFormatter());
+        builder.addPropertyIfSet("autoflush", handler.getAutoflush());
+        builder.addPropertyIfSet("target", handler.getTarget());
         
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush target");
 
@@ -762,11 +762,11 @@ public class LoggingMigrator extends AbstractMigrator {
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
-        builder.addProperty("level", handler.getLevel());
-        builder.addProperty("filter", handler.getFilter());
-        builder.addProperty("formatter", handler.getFormatter());
-        builder.addProperty("class", handler.getClassValue());
-        builder.addProperty("module", handler.getModule());
+        builder.addPropertyIfSet("level", handler.getLevel());
+        builder.addPropertyIfSet("filter", handler.getFilter());
+        builder.addPropertyIfSet("formatter", handler.getFormatter());
+        builder.addPropertyIfSet("class", handler.getClassValue());
+        builder.addPropertyIfSet("module", handler.getModule());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter class module");
 
         return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), builder.getCommand());

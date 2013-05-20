@@ -271,8 +271,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
 
-        builder.addProperty("archive", adapter.getArchive());
-        builder.addProperty("transaction-support", adapter.getTransactionSupport());
+        builder.addPropertyIfSet("archive", adapter.getArchive());
+        builder.addPropertyIfSet("transaction-support", adapter.getTransactionSupport());
 
         actions.add( new CliCommandAction( ResAdapterMigrator.class, createResAdapterScript(adapter), builder.getCommand()));
 
@@ -312,43 +312,43 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
 
-        builder.addProperty("jndi-name", def.getJndiName());
-        builder.addProperty("enabled", def.getEnabled());
-        builder.addProperty("use-java-context", def.getUseJavaCont());
-        builder.addProperty("class-name", def.getClassName());
-        builder.addProperty("use-ccm", def.getUseCcm());
+        builder.addPropertyIfSet("jndi-name", def.getJndiName());
+        builder.addPropertyIfSet("enabled", def.getEnabled());
+        builder.addPropertyIfSet("use-java-context", def.getUseJavaCont());
+        builder.addPropertyIfSet("class-name", def.getClassName());
+        builder.addPropertyIfSet("use-ccm", def.getUseCcm());
 
-        builder.addProperty("flush-strategy", def.getFlushStrategy());
+        builder.addPropertyIfSet("flush-strategy", def.getFlushStrategy());
 
         if(adapter.getTransactionSupport().equalsIgnoreCase("xatransaction")){
-            builder.addProperty("min-pool-size", def.getXaMinPoolSize());
-            builder.addProperty("max-pool-size", def.getXaMaxPoolSize());
-            builder.addProperty("prefill", def.getXaPrefill());
-            builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
-            builder.addProperty("no-tx-separate-pools", def.getXaNoTxSeparatePools());
-            builder.addProperty("use-strict-min",def.getXaUseStrictMin());
+            builder.addPropertyIfSet("min-pool-size", def.getXaMinPoolSize());
+            builder.addPropertyIfSet("max-pool-size", def.getXaMaxPoolSize());
+            builder.addPropertyIfSet("prefill", def.getXaPrefill());
+            builder.addPropertyIfSet("xa-resource-timeout", def.getXaResourceTimeout());
+            builder.addPropertyIfSet("no-tx-separate-pools", def.getXaNoTxSeparatePools());
+            builder.addPropertyIfSet("use-strict-min",def.getXaUseStrictMin());
         } else{
-            builder.addProperty("min-pool-size", def.getMinPoolSize());
-            builder.addProperty("max-pool-size", def.getMaxPoolSize());
-            builder.addProperty("prefill", def.getPrefill());
-            builder.addProperty("use-strict-min", def.getUseStrictMin());
+            builder.addPropertyIfSet("min-pool-size", def.getMinPoolSize());
+            builder.addPropertyIfSet("max-pool-size", def.getMaxPoolSize());
+            builder.addPropertyIfSet("prefill", def.getPrefill());
+            builder.addPropertyIfSet("use-strict-min", def.getUseStrictMin());
         }
 
         if (def.getSecurityDomain() != null) {
-            builder.addProperty("security-domain", def.getSecurityDomain());
+            builder.addPropertyIfSet("security-domain", def.getSecurityDomain());
         } else if (def.getSecDomainAndApp() != null) {
-            builder.addProperty("security-domain-and-application", def.getSecDomainAndApp());
+            builder.addPropertyIfSet("security-domain-and-application", def.getSecDomainAndApp());
         } else if (def.getAppManagedSec() != null) {
-            builder.addProperty("application-managed-security", def.getAppManagedSec());
+            builder.addPropertyIfSet("application-managed-security", def.getAppManagedSec());
         }
 
-        builder.addProperty("background-validation", def.getBackgroundValidation());
-        builder.addProperty("background-validation-millis", def.getBackgroundValiMillis());
-        builder.addProperty("blocking-timeout-millis", def.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", def.getIdleTimeoutMinutes());
-        builder.addProperty("allocation-retry", def.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
-        builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
+        builder.addPropertyIfSet("background-validation", def.getBackgroundValidation());
+        builder.addPropertyIfSet("background-validation-millis", def.getBackgroundValiMillis());
+        builder.addPropertyIfSet("blocking-timeout-millis", def.getBlockingTimeoutMillis());
+        builder.addPropertyIfSet("idle-timeout-minutes", def.getIdleTimeoutMinutes());
+        builder.addPropertyIfSet("allocation-retry", def.getAllocationRetry());
+        builder.addPropertyIfSet("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
+        builder.addPropertyIfSet("xa-resource-timeout", def.getXaResourceTimeout());
 
         actions.add( new CliCommandAction( ResAdapterMigrator.class, createConnDefinitionScript(adapter, def), builder.getCommand()));
 

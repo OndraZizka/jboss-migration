@@ -28,7 +28,7 @@ public class CliApiCommandBuilder {
      * @param property name of the property to set
      * @param value    value for setting
      */
-    public void addProperty(String property, String value) {
+    public void addPropertyIfSet(String property, String value) {
         if( value == null || value.isEmpty() )
             return;
         this.command.get(property).set(value);

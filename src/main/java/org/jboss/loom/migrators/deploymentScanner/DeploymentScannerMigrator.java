@@ -185,9 +185,9 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
 
-        builder.addProperty("path", fragment.getDeployPath());
+        builder.addPropertyIfSet("path", fragment.getDeployPath());
         Integer scanPeriod = new Integer(fragment.getScanPeriod());
-        builder.addProperty("scan-interval", scanPeriod.toString());
+        builder.addPropertyIfSet("scan-interval", scanPeriod.toString());
 
         //System.out.println("connDefCmd: asString:" + connDefCmd.asString());
         //System.out.println("connDefCmd: string:" + connDefCmd.toString());

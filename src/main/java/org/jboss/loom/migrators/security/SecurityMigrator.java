@@ -363,8 +363,8 @@ public class SecurityMigrator extends AbstractMigrator {
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
-        builder.addProperty("flag", module.getLoginModuleFlag());
-        builder.addProperty("code", module.getLoginModuleCode());
+        builder.addPropertyIfSet("flag", module.getLoginModuleFlag());
+        builder.addPropertyIfSet("code", module.getLoginModuleCode());
 
         // Needed for CLI because parameter login-modules requires LIST
         list.add(builder.getCommand());

@@ -349,18 +349,18 @@ public class ServerMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connCmd);
 
-        builder.addProperty("socket-binding", connAS7.getSocketBinding());
-        builder.addProperty("enable-lookups", connAS7.getEnableLookups());
-        builder.addProperty("max-post-size", connAS7.getMaxPostSize());
-        builder.addProperty("max-save-post-size", connAS7.getMaxSavePostSize());
-        builder.addProperty("max-connections", connAS7.getMaxConnections());
-        builder.addProperty("protocol", connAS7.getProtocol());
-        builder.addProperty("proxy-name", connAS7.getProxyName());
-        builder.addProperty("proxy-port", connAS7.getProxyPort());
-        builder.addProperty("redirect-port", connAS7.getRedirectPort());
-        builder.addProperty("scheme", connAS7.getScheme());
-        builder.addProperty("secure", connAS7.getSecure());
-        builder.addProperty("enabled", connAS7.getEnabled());
+        builder.addPropertyIfSet("socket-binding", connAS7.getSocketBinding());
+        builder.addPropertyIfSet("enable-lookups", connAS7.getEnableLookups());
+        builder.addPropertyIfSet("max-post-size", connAS7.getMaxPostSize());
+        builder.addPropertyIfSet("max-save-post-size", connAS7.getMaxSavePostSize());
+        builder.addPropertyIfSet("max-connections", connAS7.getMaxConnections());
+        builder.addPropertyIfSet("protocol", connAS7.getProtocol());
+        builder.addPropertyIfSet("proxy-name", connAS7.getProxyName());
+        builder.addPropertyIfSet("proxy-port", connAS7.getProxyPort());
+        builder.addPropertyIfSet("redirect-port", connAS7.getRedirectPort());
+        builder.addPropertyIfSet("scheme", connAS7.getScheme());
+        builder.addPropertyIfSet("secure", connAS7.getSecure());
+        builder.addPropertyIfSet("enabled", connAS7.getEnabled());
         return builder.getCommand();
     }
     
@@ -373,17 +373,17 @@ public class ServerMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder sslBuilder = new CliApiCommandBuilder(sslConf);
 
-        sslBuilder.addProperty("name", connAS7.getSslName());
-        sslBuilder.addProperty("verify-client", connAS7.getVerifyClient());
-        sslBuilder.addProperty("verify-depth", connAS7.getVerifyDepth());
-        sslBuilder.addProperty("certificate-key-file", connAS7.getCertifKeyFile());
-        sslBuilder.addProperty("password", connAS7.getPassword());
-        sslBuilder.addProperty("protocol", connAS7.getSslProtocol());
-        sslBuilder.addProperty("ciphers", connAS7.getCiphers());
-        sslBuilder.addProperty("key-alias", connAS7.getKeyAlias());
-        sslBuilder.addProperty("ca-certificate-file", connAS7.getCaCertifFile());
-        sslBuilder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
-        sslBuilder.addProperty("session-timeout", connAS7.getSessionTimeout());
+        sslBuilder.addPropertyIfSet("name", connAS7.getSslName());
+        sslBuilder.addPropertyIfSet("verify-client", connAS7.getVerifyClient());
+        sslBuilder.addPropertyIfSet("verify-depth", connAS7.getVerifyDepth());
+        sslBuilder.addPropertyIfSet("certificate-key-file", connAS7.getCertifKeyFile());
+        sslBuilder.addPropertyIfSet("password", connAS7.getPassword());
+        sslBuilder.addPropertyIfSet("protocol", connAS7.getSslProtocol());
+        sslBuilder.addPropertyIfSet("ciphers", connAS7.getCiphers());
+        sslBuilder.addPropertyIfSet("key-alias", connAS7.getKeyAlias());
+        sslBuilder.addPropertyIfSet("ca-certificate-file", connAS7.getCaCertifFile());
+        sslBuilder.addPropertyIfSet("session-cache-size", connAS7.getSessionCacheSize());
+        sslBuilder.addPropertyIfSet("session-timeout", connAS7.getSessionTimeout());
         return sslBuilder.getCommand();
     }
     
@@ -418,8 +418,8 @@ public class ServerMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
 
-        builder.addProperty("enable-welcome-root", server.getEnableWelcomeRoot());
-        builder.addProperty("default-web-module", server.getDefaultWebModule());
+        builder.addPropertyIfSet("enable-welcome-root", server.getEnableWelcomeRoot());
+        builder.addPropertyIfSet("default-web-module", server.getDefaultWebModule());
 
         return new CliCommandAction( ServerMigrator.class, createVirtualServerScript(server), builder.getCommand());
     }
@@ -445,7 +445,7 @@ public class ServerMigrator extends AbstractMigrator {
         serverCmd.get("port").set(socket.getSocketPort());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(serverCmd);
-        builder.addProperty("interface", socket.getSocketInterface());
+        builder.addPropertyIfSet("interface", socket.getSocketInterface());
 
         return new CliCommandAction( ServerMigrator.class, createSocketBindingScript(socket), builder.getCommand());
     }
