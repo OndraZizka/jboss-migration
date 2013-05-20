@@ -142,6 +142,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             File src;
             try {
                 src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
+                //  .../deployments ?
             } catch (CopyException e) {
                 throw new MigrationException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
             }
