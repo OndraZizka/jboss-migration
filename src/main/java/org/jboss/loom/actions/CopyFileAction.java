@@ -75,7 +75,11 @@ public class CopyFileAction extends FileAbstractAction {
         if( dest.exists() && this.ifExists == IfExists.SKIP )
             return;
         try {
-            FileUtils.copyFile( src, dest );
+            if( src.isDirectory() )
+                FileUtils.copyDirectory( src, dest );
+            else //if( src.isFile() )
+                FileUtils.copyFile( src, dest );
+            
             setState(State.DONE);
         } catch (IOException ex) {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
