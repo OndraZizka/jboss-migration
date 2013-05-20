@@ -42,6 +42,8 @@ import java.util.*;
 
 /**
  * Migrator of logging subsystem implementing IMigrator
+ * 
+ * See https://docs.jboss.org/author/display/AS72/Logging+Configuration
  *
  * @author Roman Jakubco
  */
@@ -49,6 +51,7 @@ public class LoggingMigrator extends AbstractMigrator {
     
     private final static String CLI_PROP__LOG_DIR      = "jboss.server.log.dir";
     private final static String AS5_PROP__LOG_TRESHOLD = "jboss.server.log.threshold";
+    private final static String DEFAULT_QUEUE_LENGTH = "50";
 
     
     // Configurables
@@ -635,7 +638,11 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("formatter", handler.getFormatter());
         builder.addProperty("autoflush", handler.getAutoflush());
         builder.addProperty("append", handler.getAppend());
-        builder.addProperty("rotate-size", handler.getRotateSize());
+        String size = handler.getRotateSize();
+        if( size.endsWith("KB") )  size = StringUtils.replace(size, "KB", "K");
+        if( size.endsWith("MB") )  size = StringUtils.replace(size, "MB", "M");
+        if( size.endsWith("GB") )  size = StringUtils.replace(size, "GB", "G");
+        builder.addProperty("rotate-size", size);
         builder.addProperty("max-backup-index", handler.getMaxBackupIndex());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
@@ -650,11 +657,23 @@ public class LoggingMigrator extends AbstractMigrator {
      * @return  created CliCommandAction for adding the Async-Handler
      * @throws CliScriptException if required attributes for a creation of the CLI command of the handler are missing
      *                            or are empty (name, queueLength)
+     * 
+     * Example from EAP 5 production:
+     * 
+        <!-- Buffer events and log them asynchronously -->
+        <appender name="ASYNC" class="org.apache.log4j.AsyncAppender">
+          <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+          <appender-ref ref="FILE"/>
+          <!--
+          <appender-ref ref="CONSOLE"/>
+          <appender-ref ref="SMTP"/>
+          -->
+        </appender>
      */
     static CliCommandAction createAsyncHandleCliAction(AsyncHandlerBean handler) throws CliScriptException{
-        String errMsg = " in async-handler(Appender in AS5) must be set.";
+        String errMsg = " in async-handler (AsyncAppender) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
-        Utils.throwIfBlank(handler.getQueueLength(), errMsg, "Queue length");
+        //Utils.throwIfBlank(handler.getQueueLength(), errMsg, "Queue length"); // It doesn't have to, in AS 5.
 
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -674,7 +693,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
 
-        builder.addProperty("queue-length", handler.getQueueLength());
+        builder.addProperty("queue-length", StringUtils.defaultIfBlank( handler.getQueueLength(), DEFAULT_QUEUE_LENGTH));
         builder.addProperty("level", handler.getLevel());
         builder.addProperty("filter", handler.getFilter());
         builder.addProperty("formatter", handler.getFormatter());
@@ -923,15 +942,16 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler)
             throws CliScriptException {
-        String errMsg = " in async-handler(Appender in AS5) must be set.";
+        String errMsg = " in async-handler (AsyncAppender in AS5) must be set.";
         Utils.throwIfBlank(asyncHandler.getName(), errMsg, "Name");
-        Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length");
+        //Utils.throwIfBlank(asyncHandler.getQueueLength(), errMsg, "Queue length"); // It doesn't have to, in AS 5.
 
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/async-handler=");
         resultScript.append(asyncHandler.getName()).append(":add(");
-        resultScript.append("queue-length=").append(asyncHandler.getQueueLength());
+        //resultScript.append("queue-length=").append( String.defaultIfNull( asyncHandler.getQueueLength(), 100) );
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
+        builder.addProperty("queue-length", StringUtils.defaultIfBlank( asyncHandler.getQueueLength(), DEFAULT_QUEUE_LENGTH) );
         builder.addProperty("level", asyncHandler.getLevel());
         builder.addProperty("filter", asyncHandler.getFilter());
         builder.addProperty("formatter", asyncHandler.getFormatter());
