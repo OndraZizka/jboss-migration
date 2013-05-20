@@ -43,7 +43,7 @@ import java.util.*;
 /**
  * Migrator of logging subsystem implementing IMigrator
  * 
- * See https://docs.jboss.org/author/display/AS72/Logging+Configuration
+ * Conf docs: https://docs.jboss.org/author/display/AS72/Logging+Configuration
  *
  * @author Roman Jakubco
  */
