@@ -32,8 +32,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
+import org.apache.commons.io.DirectoryWalker;
+import org.jboss.loom.ex.MigrationException;
 
 /**
  * Global utils class.
@@ -161,11 +166,43 @@ public class Utils {
     public static Collection<File> searchForFile(String fileName, File dir) throws CopyException {
 
         IOFileFilter nff = new NameFileFilter(fileName);
-        Collection<File> list = FileUtils.listFiles(dir, nff, FileFilterUtils.trueFileFilter());
-        if( list.isEmpty() ) {
+        Collection<File> found = FileUtils.listFiles(dir, nff, FileFilterUtils.trueFileFilter());
+        if( found.isEmpty() ) {
             throw new CopyException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
         }
-        return list;
+        return found;
+    }
+
+    /**
+     *  Searches a file of given name under given directory tree.
+     *  @throws  CopyException if nothing found.
+     */
+    public static List<File> searchForFileOrDir(final String name, final File dir) throws IOException {
+
+        List<File> found = new DirectoryWalker(){
+            @Override protected boolean handleDirectory( File directory, int depth, Collection results ) throws IOException {
+                if( directory.getName().equals( name ))
+                    results.add( directory );
+                return true;
+            }
+            @Override protected void handleFile( File file, int depth, Collection results ) throws IOException {
+                results.add( file );
+            }
+            public List<File> search() throws IOException {
+                List<File> found = new LinkedList();
+                try { 
+                    this.walk( dir, found );
+                } catch( IOException ex ) {
+                    throw new IOException("Failed traversing directory '" + dir.getAbsolutePath() + "' when looking for '" + name + "'");
+                }
+                return found;
+            }
+        }.search();
+        
+        if( found.isEmpty() ) {
+            throw new FileNotFoundException("File '" + name + "' was not found in " + dir.getAbsolutePath());
+        }
+        return found;
     }
 
     /**

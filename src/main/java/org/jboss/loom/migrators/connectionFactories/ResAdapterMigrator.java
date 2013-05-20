@@ -40,6 +40,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -112,23 +113,31 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
-        Set<String> rars = new HashSet<>();
-        for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
+        
+        Set<String> referencedRARs = new HashSet();
+        
+        // Process the config fragments found in AS 5.
+        for( IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments() ) {
 
             String raType = null;
             try {
-                if (fragment instanceof ConnectionFactoryAS5Bean) {
+                if( fragment instanceof ConnectionFactoryAS5Bean ) {
                     raType = "tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, rars )));
+                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, referencedRARs )));
                     continue;
                 }
-                if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
+                if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
                     raType = "no-tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, rars )));
+                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, referencedRARs )));
                     continue;
                 }
                 throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
@@ -138,22 +147,29 @@ public class ResAdapterMigrator extends AbstractMigrator {
             }
         }
 
-        for (String rar : rars) {
-            File src;
+        // Try to find each .rar referenced in the configuration XML.
+        for( String referencedRAR : referencedRARs ) {
+            
+            final File profileDir = getGlobalConfig().getAS5Config().getProfileDir(); //  .../deployments ?
+            Collection<File> foundRARs;
             try {
-                src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
-                //  .../deployments ?
-            } catch (CopyException e) {
-                throw new MigrationException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
+                foundRARs = Utils.searchForFileOrDir(referencedRAR, profileDir);
+            } catch ( IOException ex ) {
+                throw new MigrationException("Can't find " + referencedRAR + ": " + ex.getMessage(), ex);
             }
-
-            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",
-                    src.getName());
-
-            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP));
+            File rarFrom = foundRARs.iterator().next();
+            File rarTo = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments", rarFrom.getName());
+            CopyFileAction action = new CopyFileAction( this.getClass(), rarFrom, rarTo, CopyFileAction.IfExists.SKIP);
+            if( foundRARs.size() > 1 ){
+                String warn = "Found multiple " + referencedRAR + " in " + profileDir + ":\n  " + StringUtils.join( foundRARs, "\n  ");
+                action.addWarning( warn );
+            }
+            ctx.getActions().add( action );
         }
     }
 
+    
+    
     /**
      * Migrates Connection-Factory (both types) from AS5 to Resource-Adapter in AS7
      *
