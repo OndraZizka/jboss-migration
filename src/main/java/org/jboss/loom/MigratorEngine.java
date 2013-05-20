@@ -160,14 +160,11 @@ public class MigratorEngine {
     private static List<Class<? extends IMigrator>> findMigratorClasses() {
         
         LinkedList<Class<? extends IMigrator>> migratorClasses = new LinkedList();
- /**********
         migratorClasses.add( SecurityMigrator.class );
         migratorClasses.add( ServerMigrator.class );
         migratorClasses.add( DatasourceMigrator.class );
-       // migratorClasses.add( ResAdapterMigrator.class );
+        migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-  *******/
-        //TODO: get this working properly
         migratorClasses.add( DeploymentScannerMigrator.class );
         return migratorClasses;
     }
