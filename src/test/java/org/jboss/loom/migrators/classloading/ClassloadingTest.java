@@ -9,6 +9,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.categories.EAP;
+import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -69,7 +70,7 @@ public class ClassloadingTest {
         
         TestAppConfig.announceMigration( conf );
         
-        MigratorApp.validateConfiguration( conf );
+        ConfigurationValidator.validate( conf );
         
         MigratorEngine migrator = new MigratorEngine(conf);
         migrator.doMigration();

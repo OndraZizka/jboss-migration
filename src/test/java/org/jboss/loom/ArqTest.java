@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.categories.AS;
 import org.jboss.loom.categories.EAP;
+import org.jboss.loom.conf.ConfigurationValidator;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -53,7 +54,7 @@ public class ArqTest {
         
         TestAppConfig.announceMigration( conf );
         
-        MigratorApp.validateConfiguration( conf );
+        ConfigurationValidator.validate( conf );
         
         //MigratorApp.migrate( conf );
         MigratorEngine migrator = new MigratorEngine(conf);
@@ -81,7 +82,7 @@ public class ArqTest {
         
         TestAppConfig.announceMigration( conf );
         
-        MigratorApp.validateConfiguration( conf );
+        ConfigurationValidator.validate( conf );
         
         MigratorEngine migrator = new MigratorEngine(conf);
         migrator.doMigration();

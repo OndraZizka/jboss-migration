@@ -4,6 +4,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import static junit.framework.TestCase.fail;
 import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.conf.ConfigurationValidator;
 
 /**
  *
@@ -70,7 +71,7 @@ public class InputParsingTest extends TestCase {
     private void parseAndValidate( String[] args ) {
         
         Configuration conf = MigratorApp.parseArguments( args );
-        List<String> problems = MigratorApp.validateConfiguration( conf );
+        List<String> problems = ConfigurationValidator.validate( conf );
         
         if( !problems.isEmpty() ){
             StringBuilder sb = new StringBuilder("Parsing the arguments resulted in following errors:\n");
