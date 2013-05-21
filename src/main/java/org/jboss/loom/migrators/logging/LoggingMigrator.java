@@ -693,7 +693,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(handlerCmd);
 
-        builder.addPropertyIfSet("queue-length", StringUtils.defaultIfBlank( handler.getQueueLength(), DEFAULT_QUEUE_LENGTH));
+        builder.addPropertyIfSet("queue-length", handler.getQueueLength(), DEFAULT_QUEUE_LENGTH);
         builder.addPropertyIfSet("level", handler.getLevel());
         builder.addPropertyIfSet("filter", handler.getFilter());
         builder.addPropertyIfSet("formatter", handler.getFormatter());
