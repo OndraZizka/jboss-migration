@@ -44,8 +44,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.logging.Level;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ManualAction;
+import org.jboss.loom.actions.review.BeansXmlReview;
+import org.jboss.loom.actions.review.IActionReview;
 import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 
@@ -170,6 +173,11 @@ public class MigratorEngine {
         return migratorClasses;
     }
     
+    private static List<Class<? extends IActionReview>> findActionReviewers(){
+        LinkedList<Class<? extends IActionReview>> reviewers = new LinkedList();
+        reviewers.add( BeansXmlReview.class );
+        return reviewers;
+    }
 
     
     
@@ -183,13 +191,12 @@ public class MigratorEngine {
             3) Let them prepare the actions.
                   An action should include what caused it to be created. IMigrationAction.getOriginMessage()
             ==== From now on, don't use the scanned data, only actions. ===
-            So instead of getDOMElements(), getCLICommand and apply()
-            will be List<IMigrationAction> prepareActions().
-            4) preValidate
-            5) backup
-            6) perform
-            7) postValidate
-            8] rollback
+            4) reviewActions
+            5) preValidate
+            6) backup
+            7) perform
+            8) postValidate
+            9] rollback
      */
     public void doMigration() throws MigrationException {
         
@@ -220,6 +227,8 @@ public class MigratorEngine {
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
             this.prepareActions();
+            message = "Actions review failed.";
+            this.reviewActions();
             message = "Migration actions validation failed.";
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
@@ -287,10 +296,29 @@ public class MigratorEngine {
         // TODO: Additional logic to filter out duplicated file copying etc.
     }
     
-    
+
     /*
-     *  Actions methods.
+     *  ------------ Actions methods. ----------------
      */
+    
+    private void reviewActions() throws MigrationException {
+        log.debug("======== reviewActions() ========");
+        List<IMigrationAction> actions = ctx.getActions();
+        for( Class<? extends IActionReview> arClass : findActionReviewers() ){
+            IActionReview ar;
+            try {
+                ar = arClass.newInstance();
+            } catch( InstantiationException | IllegalAccessException ex ) {
+                throw new MigrationException("Can't instantiate action reviewer " + arClass.getSimpleName() + ": " + ex, ex);
+            }
+            ar.setContext(ctx);
+            ar.setConfig(config);
+            for( IMigrationAction action : actions ) {
+                ar.review( action );
+            }
+        }
+    }
+    
     
     private void preValidateActions() throws MigrationException {
         log.debug("======== preValidateActions() ========");
