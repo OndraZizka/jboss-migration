@@ -24,12 +24,18 @@ public class BeansXmlReview extends ActionReviewBase {
         // Only accept CopyActions with -beans.xml
         if( ! ( action instanceof CopyFileAction ) )  return;
         CopyFileAction ca = (CopyFileAction) action;
-        if( ! ca.getSrc().getName().endsWith("-beans.xml")) return;
+        String fName = ca.getSrc().getName();
+        if( ! fName.endsWith("-beans.xml")) return;
         
         // Check each <bean class="...">. If the class is org.jboss.*, WARN.
         List<Bean> beans = extractBeans( ca.getSrc() );
         for( Bean bean : beans ) {
-            // TODO
+            if( bean.cls.startsWith("org.jboss.")){
+                action.getWarnings().add("A bean in " + fName + " uses org.jboss.* class: " + bean.cls + "\n"
+                        + "Using MBeans is only supported as a legacy technology.\n"
+                        + "Server boot may fail with ClassNotFoundException.\n"
+                        + "Consult server documentation about classloading and modules.");
+            }
         }
     }
     
