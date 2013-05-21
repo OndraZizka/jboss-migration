@@ -36,6 +36,7 @@ public abstract class AbstractMigrator implements IMigrator {
     //<editor-fold defaultstate="collapsed" desc="get/set">
     @Override public GlobalConfiguration getGlobalConfig() { return globalConfig; }
     @Override public void setGlobalConfig(GlobalConfiguration globalConfig) { this.globalConfig = globalConfig; }
+    /** Returns a map of migrator-specific config values, e.g. conf.logging.logger.ifExists. */
     public MultiValueMap getConfig() { return config; }
     public void setConfig(MultiValueMap config) { this.config = config; }
     
