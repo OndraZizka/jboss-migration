@@ -23,8 +23,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelType;
 
@@ -364,6 +362,21 @@ public class AS7CliUtils {
         element = element.replace("=", "\\=");
         element = element.replace(" ", "\\ ");
         return element;
-    }  
+    }
     
+    
+    
+    /**
+     *  Converts "some-property-name" to "getSomePropertyName()".
+     */
+    public static String formatGetterName(String prop){
+        StringBuilder sb = new StringBuilder("get");
+        //String[] parts = StringUtils.split( prop, "-_");
+        boolean capNext = true;
+        for( int i = 0; i < prop.length(); i++ ) {
+            sb.append( capNext ? Character.toUpperCase( prop.charAt(i) ) : prop.charAt(i) );
+        }
+        return sb.toString();
+    }
+        
 }// class

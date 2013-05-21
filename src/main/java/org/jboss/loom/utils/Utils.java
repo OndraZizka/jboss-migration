@@ -36,9 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
 import org.apache.commons.io.DirectoryWalker;
-import org.jboss.loom.ex.MigrationException;
 
 /**
  * Global utils class.
@@ -48,7 +46,7 @@ import org.jboss.loom.ex.MigrationException;
 public class Utils {
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
-
+    
     /**
      * Method for testing if given string is null or empty and if it is then CliScriptException is thrown with given message
      *
