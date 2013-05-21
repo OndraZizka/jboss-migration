@@ -40,6 +40,8 @@ public class Configuration {
                 throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK.");
             }
         }
+        
+        public static final String PARAM_NAME = "ifExists";
     }// enum
 
 
