@@ -6,11 +6,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.IMigrationAction;
-import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 
 /**
@@ -58,8 +57,9 @@ public class BeansXmlReview extends ActionReviewBase {
         </bean>
     </deployment>
  */
-@XmlRootElement(name = "deployment")
+@XmlRootElement(name = "deployment", namespace = "urn:jboss:bean-deployer:2.0")
 class Deployment {
+    @XmlElement(name = "bean", namespace = "urn:jboss:bean-deployer:2.0")
     List<Bean> beans;
 }
 
