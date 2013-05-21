@@ -59,9 +59,13 @@ public class MigrationContext {
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     public List<IMigrationAction> getActions() { return actions; }
+    @Deprecated
     public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
+    @Deprecated
     public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7ConfigXmlDoc = standaloneDoc; }
+    @Deprecated
     public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
+    @Deprecated
     public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
     public Batch getBatch() { return batch; }
     public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
