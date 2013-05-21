@@ -374,7 +374,13 @@ public class AS7CliUtils {
         //String[] parts = StringUtils.split( prop, "-_");
         boolean capNext = true;
         for( int i = 0; i < prop.length(); i++ ) {
-            sb.append( capNext ? Character.toUpperCase( prop.charAt(i) ) : prop.charAt(i) );
+            char ch = prop.charAt(i);
+            if( Character.isLetter( ch )){
+                sb.append( capNext ? Character.toUpperCase( ch ) : ch );
+                capNext = false;
+            }
+            else 
+                capNext = true;
         }
         return sb.toString();
     }
