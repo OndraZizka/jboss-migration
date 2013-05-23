@@ -30,7 +30,8 @@ public class ActionDependencySorter {
                 int b = o2.dependsOn( o1 );
                 if( b != -1 )  return -b;
                 
-                return Integer.compare( o1.hashCode(), o2.hashCode() ); // For deterministic behavior.
+                //return Integer.compare( o1.hashCode(), o2.hashCode() ); // For deterministic behavior.
+                return 0; // All right that was not a good idea - it breaks those from Migrators which don't set dependency yet...
             }
             catch( AbstractStatefulAction.CircularDependencyException ex ){
                 throw new RuntimeException( ex );
