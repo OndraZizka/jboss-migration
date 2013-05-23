@@ -8,13 +8,14 @@ import java.util.List;
 /**
  * Sorts a list of actions so that dependencies go first, and depending actions go after.
  * 
+ * @Jira  MIGR-104
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ActionDependencySorter {
     
-    public List<IMigrationAction> sort( List<IMigrationAction> actions ){
+    public static <T extends IMigrationAction> List<T> sort( List<T> actions ){
         
-        List<IMigrationAction> ret = new ArrayList(actions);
+        List<T> ret = new ArrayList(actions);
         Collections.sort( ret, new DepComparator() );
         return ret;
     }
@@ -27,7 +28,9 @@ public class ActionDependencySorter {
                 if( a != -1 )  return -a;
 
                 int b = o2.dependsOn( o1 );
-                return -b;
+                if( b != -1 )  return -b;
+                
+                return Integer.compare( o1.hashCode(), o2.hashCode() ); // For deterministic behavior.
             }
             catch( AbstractStatefulAction.CircularDependencyException ex ){
                 throw new RuntimeException( ex );
