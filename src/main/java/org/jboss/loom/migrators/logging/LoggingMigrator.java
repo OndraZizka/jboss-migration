@@ -39,6 +39,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.jboss.loom.ex.CliBatchException;
 
 /**
  * Migrator of logging subsystem implementing IMigrator
@@ -211,7 +212,8 @@ public class LoggingMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "org.jboss.logging", null, "org.apache.log4j"};
 
-            ModuleCreationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, fileJar, Configuration.IfExists.OVERWRITE);
+            ModuleCreationAction moduleAction = new ModuleCreationAction( 
+                    this.getClass(), moduleName, deps, fileJar, this.parseIfExistsParam("logger." + Configuration.IfExists.PARAM_NAME)); //Configuration.IfExists.OVERWRITE
             actions.add(moduleAction);
         }catch (CliScriptException e) {
             throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
@@ -526,7 +528,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the logger are missing or
      *                            are empty (loggerCategory)
      */
-    static CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, Configuration.IfExists ifExists) throws CliScriptException {
+    CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, Configuration.IfExists ifExists) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
@@ -536,12 +538,16 @@ public class LoggingMigrator extends AbstractMigrator {
         loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
         
         // First, check if it exists. If so, delete first.
-        // TODO: MIGR-61 Merge resources instead of skipping or replacing
-        /*try {
-            AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
-        } catch( IOException | CliBatchException ex ) {
-            throw new CliScriptException("Failed removing resource: " + ex.getMessage(), ex );
-        }*/
+        switch( ifExists ){
+            case OVERWRITE:
+            case MERGE:
+            // TODO: MIGR-61 Merge resources instead of skipping or replacing
+            try {
+                AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
+            } catch( CliBatchException | IOException ex ) {
+                throw new CliScriptException("Failed removing resource '"+AS7CliUtils.formatCommand( loggerCmd )+"': " + ex.getMessage(), ex );
+            }/**/
+        }
 
         
         // ADD
@@ -670,7 +676,7 @@ public class LoggingMigrator extends AbstractMigrator {
           -->
         </appender>
      */
-    static CliCommandAction createAsyncHandleCliAction(AsyncHandlerBean handler) throws CliScriptException{
+    static CliCommandAction createAsyncHandleCliAction(AsyncHandlerBean handler) throws CliScriptException, MigrationException{
         String errMsg = " in async-handler (AsyncAppender) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         //Utils.throwIfBlank(handler.getQueueLength(), errMsg, "Queue length"); // It doesn't have to, in AS 5.
@@ -698,7 +704,8 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addPropertyIfSet("filter", handler.getFilter());
         builder.addPropertyIfSet("formatter", handler.getFormatter());
         builder.addPropertyIfSet("overflow-action", handler.getOverflowAction());
-        // TODO: AS7CliUtils.copyProperties(handler, builder, "... level filter formatter ...");
+        // TODO:
+        //builder.setPropsFromObject(handler, "level filter formatter overflow-action");
 
         return new CliCommandAction( LoggingMigrator.class, createAsyncHandlerScript(handler), builder.getCommand());
     }

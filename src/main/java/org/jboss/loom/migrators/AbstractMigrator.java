@@ -54,7 +54,7 @@ public abstract class AbstractMigrator implements IMigrator {
         if( ! this.getConfigPropertyModuleName().equals( prop.getModuleId() ) ) return 0;
 
         switch( prop.getPropName() ){
-            case "ifExists":
+            case Configuration.IfExists.PARAM_NAME:
                 this.ifExists = Configuration.IfExists.valueOf_Custom(prop.getValue());
                 break;
             default:
@@ -71,5 +71,12 @@ public abstract class AbstractMigrator implements IMigrator {
      * Used  by #examineConfigProperty() to decide whether to store the property.
      */
     abstract protected String getConfigPropertyModuleName();
+
+    
+    protected Configuration.IfExists parseIfExistsParam( String paramName ){
+        String ifExistsParam = (String) this.getConfig().get( paramName );
+        Configuration.IfExists ifExists_ = Configuration.IfExists.valueOf_Custom( ifExistsParam );
+        return ifExists_;
+    }
 
 }// class
