@@ -100,6 +100,7 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         return this;
     }
     
+    @Override
     public int dependsOn( IMigrationAction other ) throws CircularDependencyException {
         
         Set<IMigrationAction> visited = new HashSet();
