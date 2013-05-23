@@ -54,9 +54,9 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     }
 
     
-    public void checkState(IMigrationAction.State state) throws MigrationException {
+    public void checkState(IMigrationAction.State state) {
         if (this.state != state)
-            throw new MigrationException("Action not in expected state '" + state + ": " + this);
+            throw new RuntimeException("Action not in expected state " + state + ": " + this);
     }
 
 
