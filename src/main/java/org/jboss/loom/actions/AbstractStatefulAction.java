@@ -15,6 +15,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Implements lifecycle methods which manage the state,
+ * and some properties (context, origin message, origin stacktrace, origin migrator, warnings).
+ * 
  * @author Ondrej Zizka, ozizka at redhat.com
  *         <p/>
  *         TODO: Introduce do***(), eg. doBackup(), to manage the states here, not in the impl.
