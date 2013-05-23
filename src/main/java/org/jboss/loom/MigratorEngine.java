@@ -44,8 +44,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.logging.Level;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.actions.ActionDependencySorter;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.actions.review.BeansXmlReview;
 import org.jboss.loom.actions.review.IActionReview;
@@ -343,22 +343,27 @@ public class MigratorEngine {
      * @throws MigrationException 
      */
     private void performActions() throws MigrationException {
+        log.debug("======== performActions() ========");
         
         // Clear CLI commands, should there be any.
         ctx.getBatch().clear();
         
-        // Store CLI actions into an ordered list.
-        List<CliCommandAction> cliActions = new LinkedList();
+        // Sort the actions according to dependencies. MIGR-104
+        List<IMigrationAction> actions = ctx.getActions();
+        List<IMigrationAction> sorted = ActionDependencySorter.sort( actions );
         
+        // Store CLI actions into an ordered list.
+        // In perform(), they are just put into a batch. Using this, we can tell which one failed.
+        List<CliCommandAction> cliActions = new LinkedList();
+
         // Perform the actions.
         log.info("Performing actions:");
-        List<IMigrationAction> actions = ctx.getActions();
-        for( IMigrationAction action : actions ) {
+        for( IMigrationAction action : sorted ) {
             if( action instanceof CliCommandAction )
                 cliActions.add((CliCommandAction) action);
-            
+        
             log.info("    " + action.toDescription());
-            action.setMigrationContext(ctx);
+            action.setMigrationContext(ctx); // Again. To be sure.
             action.perform();
         }
         
@@ -402,6 +407,7 @@ public class MigratorEngine {
     
     
     private void postValidateActions() throws MigrationException {
+        log.debug("======== postValidateActions() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             action.postValidate();
@@ -409,6 +415,7 @@ public class MigratorEngine {
     }
     
     private void cleanBackupsIfAny() throws MigrationException {
+        log.debug("======== cleanBackupsIfAny() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             //if( action.isAfterBackup())  // Checked in cleanBackup() itself.
@@ -417,6 +424,7 @@ public class MigratorEngine {
     }
     
     private void rollbackActionsWhichWerePerformed() throws MigrationException {
+        log.debug("======== rollbackActionsWhichWerePerformed() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             //if( action.isAfterPerform()) // Checked in rollback() itself.
@@ -425,6 +433,7 @@ public class MigratorEngine {
     }
     
     private void announceManualActions(){
+        log.debug("======== announceManualActions() ========");
         boolean bannerShown = false;
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
