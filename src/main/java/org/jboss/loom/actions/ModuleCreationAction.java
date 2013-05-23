@@ -168,13 +168,15 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     @Override
     public void cleanBackup() {
         checkState( State.DONE );
-        try {
-            FileUtils.deleteDirectory( this.backupDir );
-        } catch( IOException ex ) {
-            //throw new ActionException( this, "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage(), ex);
-            String msg = "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage();
-            log.error( msg );
-            this.addWarning( msg );
+        if( this.backupDir != null ){
+            try {
+                FileUtils.deleteDirectory( this.backupDir );
+            } catch( IOException ex ) {
+                //throw new ActionException( this, "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage(), ex);
+                String msg = "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage();
+                log.error( msg );
+                this.addWarning( msg );
+            }
         }
         setState(State.FINISHED);
     }
@@ -183,5 +185,13 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     private File getModuleDir() {
         return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName.replace('.', '/') + "/main" );
     }
+
+
+    @Override
+    public String toString() {
+        return "ModuleCreationAction{ " + moduleName + " ifEx=" + ifExists + ", jar=" + jarFile + ", modDir=" + moduleDir + ", backup=" + backupDir + '}';
+    }
+    
+    
 
 }// class
