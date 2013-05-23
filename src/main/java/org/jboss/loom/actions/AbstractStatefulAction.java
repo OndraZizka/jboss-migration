@@ -15,6 +15,7 @@ import org.jboss.loom.spi.IMigrator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Implements lifecycle methods which manage the state,
@@ -54,9 +55,13 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     }
 
     
-    public void checkState(IMigrationAction.State state) {
-        if (this.state != state)
-            throw new RuntimeException("Action not in expected state " + state + ": " + this);
+    public void checkState(IMigrationAction.State... states) {
+        for( State state : states ) {
+            if (this.state == state)
+                return;
+        }
+        throw new RuntimeException("Action not in expected states " + StringUtils.join( states, " " ) 
+                + ", but in " +this.getState()+ ":\n    " + this.toDescription());
     }
 
 
