@@ -51,6 +51,10 @@ public interface IMigrationAction {
     /** Which migrator created this action. */
     Class<? extends IMigrator> getFromMigrator();
     
+    List<IMigrationAction> getDependencies();
+    IMigrationAction addDependency( IMigrationAction dep );
+    
+    
     /**
      * @returns A description of this action in terms of what exactly would it do.
      */

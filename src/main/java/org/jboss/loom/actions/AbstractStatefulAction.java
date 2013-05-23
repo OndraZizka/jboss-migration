@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Implements lifecycle methods which manage the state,
- * and some properties (context, origin message, origin stacktrace, origin migrator, warnings).
+ * and some properties (context, origin message, origin stacktrace, origin migrator, warnings, dependencies).
  * 
  * @author Ondrej Zizka, ozizka at redhat.com
  *         <p/>
@@ -31,6 +31,8 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     private StackTraceElement originStacktrace;
     private Class<? extends IMigrator> fromMigrator;
     private List<String> warnings = new LinkedList();
+    private List<IMigrationAction> deps = new LinkedList();
+    
 
     public AbstractStatefulAction(){
     }
@@ -76,6 +78,19 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
 
     protected boolean isAfterPerform() {
         return this.state.ordinal() >= State.DONE.ordinal();
+    }
+
+
+    @Override
+    public List<IMigrationAction> getDependencies() {
+        return this.deps;
+    }
+
+
+    @Override
+    public IMigrationAction addDependency( IMigrationAction dep ) {
+        this.deps.add( dep );
+        return this;
     }
 
 }// class
