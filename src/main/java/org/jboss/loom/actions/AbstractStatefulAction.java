@@ -7,12 +7,14 @@
  */
 package org.jboss.loom.actions;
 
+import java.util.HashSet;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implements lifecycle methods which manage the state,
@@ -81,16 +83,53 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     }
 
 
+    /* ----- Dependency stuff ----- */
     @Override
     public List<IMigrationAction> getDependencies() {
         return this.deps;
     }
 
-
     @Override
     public IMigrationAction addDependency( IMigrationAction dep ) {
         this.deps.add( dep );
         return this;
+    }
+    
+    public int dependsOn( IMigrationAction other ) throws CircularDependencyException {
+        
+        Set<IMigrationAction> visited = new HashSet();
+        visited.add( this );
+        visited.add( other );
+        
+        return dependsOn( other, visited );
+    }
+        
+    private int dependsOn( IMigrationAction other, Set<IMigrationAction> visited ) throws CircularDependencyException {
+        
+        if( this.getDependencies().isEmpty() )
+            return -1;
+        if( this.equals( other ) )
+            return 0;
+        if( this.getDependencies().contains( other ) )
+            return 1;
+        
+        int minDist = Integer.MAX_VALUE;
+        for( IMigrationAction dep : this.getDependencies() ){
+            if( visited.contains( dep ) )
+                throw new CircularDependencyException(this, dep);
+            int dist = dep.dependsOn( other );
+            if( dist > 0 )
+                minDist = Math.min( dist, minDist );
+        }
+        if( minDist == Integer.MAX_VALUE )  return -1;
+        else return minDist + 1;
+    }
+    
+    public static class CircularDependencyException extends MigrationException {
+        public CircularDependencyException( IMigrationAction a, IMigrationAction b ) {
+            super("Circular dependency of actions - somewhere between these:\n\n" 
+                    + a.toDescription() + "\n\n" + b.toDescription());
+        }
     }
 
 }// class

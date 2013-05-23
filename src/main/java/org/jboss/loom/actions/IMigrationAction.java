@@ -53,6 +53,10 @@ public interface IMigrationAction {
     
     List<IMigrationAction> getDependencies();
     IMigrationAction addDependency( IMigrationAction dep );
+    /**
+     * @returns -1 if doesn't depend, 0 if equals, 1 if direct dependency, or the distance of transitive dependency.
+     */
+    public int dependsOn( IMigrationAction other ) throws AbstractStatefulAction.CircularDependencyException;
     
     
     /**
