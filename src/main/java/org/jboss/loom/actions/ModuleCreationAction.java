@@ -167,7 +167,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void cleanBackup() {
-        checkState( State.DONE );
+        checkState( State.DONE, State.ROLLED_BACK );
         if( this.backupDir != null ){
             try {
                 FileUtils.deleteDirectory( this.backupDir );
