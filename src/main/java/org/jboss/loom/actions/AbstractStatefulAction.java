@@ -100,6 +100,9 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         return this;
     }
     
+    /**
+     *  {@inheritDoc}
+     */
     @Override
     public int dependsOn( IMigrationAction other ) throws CircularDependencyException {
         
@@ -110,6 +113,9 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         return dependsOn( other, visited );
     }
         
+    /**
+     *  {@inheritDoc}
+     */
     private int dependsOn( IMigrationAction other, Set<IMigrationAction> visited ) throws CircularDependencyException {
         
         if( this.getDependencies().isEmpty() )
@@ -136,6 +142,23 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
             super("Circular dependency of actions - somewhere between these:\n\n" 
                     + a.toDescription() + "\n\n" + b.toDescription());
         }
+    }
+    
+    
+    /**
+     *  Sorting nodes of one action's dependency tree.
+     */
+    public static List<IMigrationAction> sortNodes_LeavesFirst( IMigrationAction action ){
+        List<IMigrationAction> retNodes = new LinkedList();
+        sortNodes_LeavesFirst( action, retNodes );
+        return retNodes;
+    }
+    
+    private static void sortNodes_LeavesFirst( IMigrationAction action, List<IMigrationAction> retNodes ) {
+        for( IMigrationAction dep : action.getDependencies() ){
+            sortNodes_LeavesFirst( dep, retNodes );
+        }
+        retNodes.add( action );
     }
 
 }// class
