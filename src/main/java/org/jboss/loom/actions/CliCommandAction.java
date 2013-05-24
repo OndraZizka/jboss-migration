@@ -52,7 +52,7 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public String toDescription() {
-        return "Perform CLI command: " + this.command.getCommand();
+        return "Perform CLI command: " + this.command.getCommand() + " ; ifExists=" + ifExists + ", todo=" + todo;
     }
     
 
