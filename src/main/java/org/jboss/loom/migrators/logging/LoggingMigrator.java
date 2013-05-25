@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.logging;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
@@ -92,10 +91,11 @@ public class LoggingMigrator extends AbstractMigrator {
     @Override
     public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
         try {
-            File log4jConfFile = Utils.createPath( 
-                    super.getGlobalConfig().getAS5Config().getDir(),  "server",
-                    super.getGlobalConfig().getAS5Config().getProfileName(),
-                    "conf", "jboss-log4j.xml");
+            File log4jConfFile = Utils.createPath(
+                    //super.getGlobalConfig().getAS5Config().getDir(),  "server",
+                    //super.getGlobalConfig().getAS5Config().getProfileName(),
+                    //"conf", "jboss-log4j.xml");
+                    super.getGlobalConfig().getAS5Config().getConfDir(), "jboss-log4j.xml");
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
             xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -595,7 +595,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static CliCommandAction createPerRotHandlerCliAction(PerRotFileHandlerBean handler)
             throws CliScriptException{
-        String errMsg = " in periodic-rotating-file-handler(Appender in AS5) must be set.";
+        String errMsg = " in periodic-rotating-file-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(handler.getPath(), errMsg, "Path");
@@ -635,7 +635,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static CliCommandAction createSizeRotHandlerCliAction(SizeRotFileHandlerBean handler)
             throws CliScriptException{
-        String errMsg = " in size-rotating-file-handler(Appender in AS5) must be set.";
+        String errMsg = " in size-rotating-file-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
         Utils.throwIfBlank(handler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(handler.getPath(), errMsg, "Path");
@@ -733,7 +733,7 @@ public class LoggingMigrator extends AbstractMigrator {
      *                            are empty (name)
      */
     static CliCommandAction createConsoleHandlerCliAction(ConsoleHandlerBean handler) throws CliScriptException{
-        String errMsg = " in console-handler(Appender in AS5) must be set.";
+        String errMsg = " in console-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(handler.getName(), errMsg, "Name");
 
         ModelNode handlerCmd = new ModelNode();
@@ -905,7 +905,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static String createPerHandlerScript(PerRotFileHandlerBean periodic)
             throws CliScriptException {
-        String errMsg = " in periodic-rotating-file-handler(Appender in AS5) must be set.";
+        String errMsg = " in periodic-rotating-file-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(periodic.getName(), errMsg, "Name");
         Utils.throwIfBlank(periodic.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(periodic.getPath(), errMsg, "Path");
@@ -940,7 +940,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {
-        String errMsg = " in size-rotating-file-handler(Appender in AS5) must be set.";
+        String errMsg = " in size-rotating-file-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(sizeHandler.getName(), errMsg, "Name");
         Utils.throwIfBlank(sizeHandler.getRelativeTo(), errMsg, "Relative-to");
         Utils.throwIfBlank(sizeHandler.getPath(), errMsg, "Path");
@@ -1023,7 +1023,7 @@ public class LoggingMigrator extends AbstractMigrator {
      */
     static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler)
             throws CliScriptException {
-        String errMsg = " in console-handler(Appender in AS5) must be set.";
+        String errMsg = " in console-handler (~Appender in source server) must be set.";
         Utils.throwIfBlank(consoleHandler.getName(), errMsg, "Name");
 
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/console-handler=");
