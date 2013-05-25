@@ -36,8 +36,8 @@ public class Configuration {
             try {
                 return valueOf( str.toUpperCase() );
             }
-            catch( IllegalArgumentException ex ){
-                throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK.");
+            catch( IllegalArgumentException | NullPointerException ex ){
+                throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK. Was: " + str);
             }
         }
         
