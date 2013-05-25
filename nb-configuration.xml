@@ -17,6 +17,7 @@ Any value defined here will override the pom.xml file value but is only applicab
     </properties>
     <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
         <word>config</word>
+        <word>marshalling</word>
         <word>Migrators</word>
         <word>param</word>
         <word>plugin</word>
