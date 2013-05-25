@@ -207,6 +207,9 @@ public class Utils {
      * Builds up a File object with path consisting of given components.
      */
     public static File createPath(String parent, String child, String... more) {
+        return createPath( new File(parent), child, more);
+    }
+    public static File createPath(File parent, String child, String... more) {
         File file = new File(parent, child);
         for (String component : more) {
             file = new File(file, component);
