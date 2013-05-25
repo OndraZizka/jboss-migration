@@ -233,11 +233,18 @@ public class MigratorEngine {
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
             this.backupActions();
-            message = "Failed performing the migration actions.";
-            this.performActions();
+            
+            rollback:
+            try {
+                message = "Failed performing the migration actions.";
+                this.performActions();
 
-            message = "Verification of migration actions results failed.";
-            this.postValidateActions();
+                message = "Verification of migration actions results failed.";
+                this.postValidateActions();
+            }
+            finally {
+                this.cleanBackupsIfAny();
+            }
             
             // Close the AS 7 management client connection.
             closeManagementClient();
@@ -269,9 +276,6 @@ public class MigratorEngine {
             throw new MigrationException( message
                   + "\n    " + ex.getMessage() 
                   + description, ex );
-        }
-        finally {
-            this.cleanBackupsIfAny();
         }
 
     }// migrate()
