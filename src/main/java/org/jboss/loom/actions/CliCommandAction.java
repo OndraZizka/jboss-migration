@@ -60,16 +60,16 @@ public class CliCommandAction extends AbstractStatefulAction {
     @Override
     public void preValidate() throws MigrationException {
         if ((this.command.getCommand() == null) || (this.command.getCommand().isEmpty()))
-            throw new ActionException(this, "No CLI script set for CliCommandAction");
+            throw new ActionException(this, "No CLI script set for CliCommandAction.");
         if (this.command.getRequest() == null) {
-            throw new ActionException(this, "ModelNode for CliCommandAction cannot be null");
+            throw new ActionException(this, "ModelNode for CliCommandAction cannot be null.");
         }
         
         // If already exists, 
         boolean exists;
         try {
             exists = AS7CliUtils.exists( this.command.getRequest(), getMigrationContext().getAS7Client() );
-            log.debug( "Exists? " + exists + "  :  " + this.command );
+            //log.debug( "Exists? " + exists + "  :  " + this.command );
         } catch( Exception ex ) {
             throw new ActionException( this, "Failed querying AS 7 for existence of " + this.command.getRequest() + ": " + ex, ex );
         }

@@ -134,7 +134,12 @@ public class LoggingMigrator extends AbstractMigrator {
         
         List<CustomHandlerBean> customHandlers = new LinkedList();
 
+        // Prevent duplicate categories.
+        Map<CategoryBean, IMigrationAction> categoryToAction = new HashMap();
+        
         for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
+            
+            // Appender
             if (fragment instanceof AppenderBean) {
                 AppenderBean appender = (AppenderBean) fragment;
                 CustomHandlerBean customHandler = processAppenderBean( appender, ctx );
@@ -143,18 +148,29 @@ public class LoggingMigrator extends AbstractMigrator {
                 continue;
             }
 
-            if (fragment instanceof CategoryBean) {
+            // Category
+            if( fragment instanceof CategoryBean ) {
+                CategoryBean catBean = (CategoryBean) fragment;
+                        
+                // Skip those which already exist.
+                if( categoryToAction.containsKey( catBean ) ){
+                    categoryToAction.get( catBean ).getWarnings().add("Duplicate category found: " + catBean);
+                    continue;
+                }
+                
                 try {
-                    LoggerBean categoryBean = migrateCategory((CategoryBean) fragment);
+                    LoggerBean categoryBean = migrateCategory( catBean );
                     IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.OVERWRITE);
-                    CliCommandAction action = createLoggerCliAction( ctx, categoryBean, loggerIfExists);
+                    CliCommandAction action = createLoggerCliAction( ctx, categoryBean, loggerIfExists );
                     ctx.getActions().add( action );
+                    categoryToAction.put( catBean, action ); // Prevent duplicates.
                 } catch (CliScriptException e) {
                     throw new MigrationException("Migration of the Category failed: " + e.getMessage(), e);
                 }
                 continue;
             }
 
+            // Root logger
             if (fragment instanceof RootLoggerAS5Bean) {
                 RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
                 ctx.getActions().addAll( createRootLoggerCliAction( migrateRootLogger(root) ) );
@@ -166,7 +182,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         HashMap<File, String> tempModules = new HashMap();
         for (CustomHandlerBean handler : customHandlers) {
-            ctx.getActions().addAll(createCustomHandlerActions(handler, tempModules));
+            ctx.getActions().addAll( createCustomHandlerActions(handler, tempModules) );
         }
     }
 
@@ -864,7 +880,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @deprecated  Generate this out of ModelNode.
      */
     static String createLoggerScript(LoggerBean logger) throws CliScriptException {
-        String errMsg = " in logger(Category in AS5) must be set.";
+        String errMsg = " in logger (Category in source server) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
         StringBuilder resultScript = new StringBuilder("/subsystem=logging/logger=" + logger.getLoggerCategory() + ":add(");

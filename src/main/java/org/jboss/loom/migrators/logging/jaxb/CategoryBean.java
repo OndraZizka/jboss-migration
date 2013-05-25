@@ -13,6 +13,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -36,29 +37,36 @@ public class CategoryBean implements IConfigFragment {
     @XmlPath("priority/@appender-ref")
     private Set<String> appenderRef;
 
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getCategoryValue() {
-        return categoryValue;
-    }
-
-    public void setCategoryValue(String categoryValue) {
-        this.categoryValue = categoryValue;
-    }
-
-    public Set<String> getAppenderRef() {
-        return appenderRef;
-    }
-
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public String getCategoryValue() { return categoryValue; }
+    public void setCategoryValue(String categoryValue) { this.categoryValue = categoryValue; }
+    public Set<String> getAppenderRef() { return appenderRef; }
     public void setAppenderRef(Collection<String> appenderRef) {
         Set<String> temp = new HashSet();
         temp.addAll(appenderRef);
         this.appenderRef = temp;
     }
-}
+
+
+    @Override public String toString() {
+        return "CategoryBean{ name:" + categoryName + " level:" + categoryValue + " appenderRef:" + appenderRef + " }";
+    }
+    
+    
+    @Override public int hashCode() {
+        int hash = 5;
+        hash = 37 * hash + Objects.hashCode( this.categoryName );
+        return hash;
+    }
+
+
+    @Override public boolean equals( Object obj ) {
+        if( obj == null )  return false;
+        if( getClass() != obj.getClass() )  return false;
+        final CategoryBean other = (CategoryBean) obj;
+        if( !Objects.equals( this.categoryName, other.categoryName ) )  return false;
+        return true;
+    }
+    
+}// class
