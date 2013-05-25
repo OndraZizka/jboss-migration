@@ -81,6 +81,8 @@ public abstract class AbstractMigrator implements IMigrator {
      */
     protected Configuration.IfExists parseIfExistsParam( String paramName, Configuration.IfExists default_ ){
         String ifExistsParam = (String) this.getConfig().get( paramName );
+        if( null == ifExistsParam )
+            return default_;
         Configuration.IfExists ifExists_ = Configuration.IfExists.valueOf_Custom( ifExistsParam );
         return ifExists_;
     }
