@@ -768,6 +768,11 @@ public class LoggingMigrator extends AbstractMigrator {
         Utils.throwIfBlank(handler.getModule(), errMsg, "Module");
         Utils.throwIfBlank(handler.getClassValue(), errMsg, "Class-value");
 
+        return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), createCustomHandlerModelNode(handler) );
+    }
+    
+    static ModelNode createCustomHandlerModelNode(CustomHandlerBean handler) throws CliScriptException {
+        
         ModelNode handlerCmd = new ModelNode();
         handlerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
         handlerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
@@ -789,7 +794,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addPropertyIfSet("module", handler.getModule());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter class module");
 
-        return new CliCommandAction( LoggingMigrator.class, createCustomHandlerScript(handler), builder.getCommand());
+        return builder.getCommand();
     }
 
     
@@ -842,14 +847,21 @@ public class LoggingMigrator extends AbstractMigrator {
         }
         return actions;
     }
-
     
+    
+    
+    
+    /*  ============= Script stuff - TODO: Get rid of it. Generate from ModelNode. ============== */
+    
+    
+      
     /**
      * Creates a CLI script for adding a Logger
      *
      * @param logger object of Logger
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createLoggerScript(LoggerBean logger) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
@@ -889,6 +901,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param periodic object of Periodic-Rotating-File-Handler
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createPerHandlerScript(PerRotFileHandlerBean periodic)
             throws CliScriptException {
@@ -923,6 +936,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param sizeHandler object of Size-Rotating-File-Handler
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createSizeHandlerScript(SizeRotFileHandlerBean sizeHandler)
             throws CliScriptException {
@@ -959,6 +973,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param asyncHandler object of Async-Handler
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createAsyncHandlerScript(AsyncHandlerBean asyncHandler)
             throws CliScriptException {
@@ -1004,6 +1019,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param consoleHandler object of Console-Handler
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createConsoleHandlerScript(ConsoleHandlerBean consoleHandler)
             throws CliScriptException {
@@ -1031,6 +1047,7 @@ public class LoggingMigrator extends AbstractMigrator {
      *
      * @return string containing created CLI script
      * @throws CliScriptException if required attributes are missing
+     * @deprecated  Generate this out of ModelNode.
      */
     static String createCustomHandlerScript(CustomHandlerBean customHandler)
             throws CliScriptException {
