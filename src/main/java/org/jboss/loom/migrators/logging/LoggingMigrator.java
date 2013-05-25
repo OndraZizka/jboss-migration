@@ -146,7 +146,7 @@ public class LoggingMigrator extends AbstractMigrator {
             if (fragment instanceof CategoryBean) {
                 try {
                     LoggerBean categoryBean = migrateCategory((CategoryBean) fragment);
-                    IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.WARN);
+                    IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.OVERWRITE);
                     CliCommandAction action = createLoggerCliAction( ctx, categoryBean, loggerIfExists);
                     ctx.getActions().add( action );
                 } catch (CliScriptException e) {
