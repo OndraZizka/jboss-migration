@@ -129,12 +129,12 @@ public class MigratorEngine {
             try {
                 //IMigrator mig = cls.newInstance();
                 //GlobalConfiguration globalConfig, MultiValueMap config
-                Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class, MultiValueMap.class);
+                Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class);
                 IMigrator mig = ctor.newInstance(globalConfig);
                 migs.put(cls, mig);
             }
             catch( NoSuchMethodException ex ){
-                String msg = cls.getName() + " doesn't have constructor ...(GlobalConfiguration globalConfig, MultiValueMap config).";
+                String msg = cls.getName() + " doesn't have constructor ...(GlobalConfiguration globalConfig).";
                 log.error( msg );
                 exs.add( new MigrationException(msg) );
             }
