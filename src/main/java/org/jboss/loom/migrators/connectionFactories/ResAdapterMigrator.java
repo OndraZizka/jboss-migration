@@ -56,8 +56,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return "resourceAdapter";
     }
 
-    public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public ResAdapterMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
 

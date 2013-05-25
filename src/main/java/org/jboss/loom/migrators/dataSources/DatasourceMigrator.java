@@ -63,8 +63,8 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     
 
-    public DatasourceMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public DatasourceMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
 
     }
 

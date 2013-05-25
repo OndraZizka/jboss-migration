@@ -24,8 +24,8 @@ public class TransactionsMigrator extends AbstractMigrator {
     @Override  protected String getConfigPropertyModuleName() { return "transactions"; }
 
 
-    public TransactionsMigrator( GlobalConfiguration globalConfig, MultiValueMap config ) {
-        super( globalConfig, config );
+    public TransactionsMigrator( GlobalConfiguration globalConfig ) {
+        super( globalConfig );
     }
     
     

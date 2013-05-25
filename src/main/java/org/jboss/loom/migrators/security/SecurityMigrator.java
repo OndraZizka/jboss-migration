@@ -73,8 +73,8 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
 
-    public SecurityMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public SecurityMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
     /**

@@ -92,6 +92,7 @@ public class CliCommandAction extends AbstractStatefulAction {
         if( todo == OVERWRITE ){
             // Remove the pre-existing node.
             ModelNode remCmd = AS7CliUtils.createRemoveCommandForResource( this.command.getRequest() );
+            log.debug("\n\n\n=========\nAdding REMOVE operation: " + remCmd);
             getMigrationContext().getBatch().add( new BatchedCommandWithAction( this, remCmd.asString(), remCmd) );
         }
         

@@ -94,7 +94,7 @@ public class MigratorEngine {
 
         // Initialize migrator instances. 
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
-                createMigrators( migratorClasses, config.getGlobal(), null);
+                createMigrators( migratorClasses, config.getGlobal() );
         
         this.migrators = new ArrayList(migratorsMap.values());
         
@@ -119,8 +119,7 @@ public class MigratorEngine {
      */
     private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(
             List<Class<? extends IMigrator>> migratorClasses,
-            GlobalConfiguration globalConfig,
-            MultiValueMap config
+            GlobalConfiguration globalConfig
     ) throws InitMigratorsExceptions {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new LinkedHashMap();
@@ -131,7 +130,7 @@ public class MigratorEngine {
                 //IMigrator mig = cls.newInstance();
                 //GlobalConfiguration globalConfig, MultiValueMap config
                 Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class, MultiValueMap.class);
-                IMigrator mig = ctor.newInstance(globalConfig, config);
+                IMigrator mig = ctor.newInstance(globalConfig);
                 migs.put(cls, mig);
             }
             catch( NoSuchMethodException ex ){

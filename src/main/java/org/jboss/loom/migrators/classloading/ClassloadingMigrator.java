@@ -33,8 +33,8 @@ public class ClassloadingMigrator extends AbstractMigrator implements IMigrator 
     @Override protected String getConfigPropertyModuleName() { return "classloading"; }
 
 
-    public ClassloadingMigrator( GlobalConfiguration globalConfig, MultiValueMap config ) {
-        super( globalConfig, config );
+    public ClassloadingMigrator( GlobalConfiguration globalConfig ) {
+        super( globalConfig );
     }
     
 

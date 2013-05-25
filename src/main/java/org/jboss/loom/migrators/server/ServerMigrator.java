@@ -51,8 +51,8 @@ public class ServerMigrator extends AbstractMigrator {
     private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
     private static final Logger log = LoggerFactory.getLogger(ServerMigrator.class);
 
-    public ServerMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public ServerMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
     @Override

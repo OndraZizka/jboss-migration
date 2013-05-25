@@ -39,7 +39,10 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jboss.loom.ex.CliBatchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.jboss.loom.conf.Configuration.IfExists;
 
 /**
  * Migrator of logging subsystem implementing IMigrator
@@ -49,6 +52,7 @@ import org.jboss.loom.ex.CliBatchException;
  * @author Roman Jakubco
  */
 public class LoggingMigrator extends AbstractMigrator {
+    private static final Logger log = LoggerFactory.getLogger(LoggingMigrator.class);
     
     private final static String CLI_PROP__LOG_DIR      = "jboss.server.log.dir";
     private final static String AS5_PROP__LOG_TRESHOLD = "jboss.server.log.threshold";
@@ -81,8 +85,8 @@ public class LoggingMigrator extends AbstractMigrator {
     
     
 
-    public LoggingMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public LoggingMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
     @Override
@@ -141,7 +145,9 @@ public class LoggingMigrator extends AbstractMigrator {
 
             if (fragment instanceof CategoryBean) {
                 try {
-                    CliCommandAction action = createLoggerCliAction( ctx, migrateCategory((CategoryBean) fragment), this.getIfExists());
+                    LoggerBean categoryBean = migrateCategory((CategoryBean) fragment);
+                    IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.WARN);
+                    CliCommandAction action = createLoggerCliAction( ctx, categoryBean, loggerIfExists);
                     ctx.getActions().add( action );
                 } catch (CliScriptException e) {
                     throw new MigrationException("Migration of the Category failed: " + e.getMessage(), e);
@@ -212,8 +218,9 @@ public class LoggingMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "org.jboss.logging", null, "org.apache.log4j"};
 
-            ModuleCreationAction moduleAction = new ModuleCreationAction( 
-                    this.getClass(), moduleName, deps, fileJar, this.parseIfExistsParam("logger." + Configuration.IfExists.PARAM_NAME)); //Configuration.IfExists.OVERWRITE
+            ModuleCreationAction moduleAction = new ModuleCreationAction(
+                    this.getClass(), moduleName, deps, fileJar, 
+                    this.parseIfExistsParam("logger." + IfExists.PARAM_NAME, IfExists.OVERWRITE));
             actions.add(moduleAction);
         }catch (CliScriptException e) {
             throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
@@ -528,7 +535,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the logger are missing or
      *                            are empty (loggerCategory)
      */
-    CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, Configuration.IfExists ifExists) throws CliScriptException {
+    static CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, IfExists ifExists) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
 
@@ -541,9 +548,15 @@ public class LoggingMigrator extends AbstractMigrator {
         switch( ifExists ){
             case OVERWRITE:
             case MERGE:
+            /* TODO: Actually, this is handled by the CliCommandAction itself - setIfExists().
+             *       Check why it doesn't work.
             // TODO: MIGR-61 Merge resources instead of skipping or replacing
             try {
-                AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
+                //log.debug("Removing resource if exists: " + loggerCmd);
+                //AS7CliUtils.removeResourceIfExists( loggerCmd, ctx.getAS7Client() );
+                if( AS7CliUtils.exists( loggerCmd, ctx.getAS7Client() ) ){
+                    new CliCommandAction( LoggingMigrator.class, AS7CliUtils.formatCommand( loggerCmd ), loggerCmd );
+                }
             } catch( CliBatchException | IOException ex ) {
                 throw new CliScriptException("Failed removing resource '"+AS7CliUtils.formatCommand( loggerCmd )+"': " + ex.getMessage(), ex );
             }/**/

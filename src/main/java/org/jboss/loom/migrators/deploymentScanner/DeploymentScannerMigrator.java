@@ -17,7 +17,6 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.slf4j.Logger;
@@ -36,11 +35,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.ListType;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.PropertyType;
@@ -58,9 +56,8 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         DeploymentScannerMigrator.class);
 
 
-    public DeploymentScannerMigrator(GlobalConfiguration globalConfig,
-                                     MultiValueMap config) {
-        super(globalConfig, config);
+    public DeploymentScannerMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
 
     }
 
@@ -76,8 +73,9 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         AS5Config as5Config = super.getGlobalConfig().getAS5Config();
         int scanPeriod = getScanPeriod(as5Config);
 
-        File f = Utils.createPath(as5Config.getDir(), "server",
-            as5Config.getProfileName(), "conf/bootstrap", "profile.xml");
+        //File f = Utils.createPath(as5Config.getDir(), "server",
+        //    as5Config.getProfileName(), "conf/bootstrap", "profile.xml");
+        File f = Utils.createPath( as5Config.getConfDir().getPath(), "bootstrap/profile.xml");
 
         if (f.exists() && f.canRead()) {
             List<ValueType> valueList = getDeploymentDirs(f);
@@ -89,8 +87,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 v.setScanPeriod(scanPeriod);
             }
         } else {
-            throw new LoadMigrationException("Cannot find/open file: " +
-                f.getAbsolutePath(), new FileNotFoundException());
+            throw new LoadMigrationException("Cannot find/open file: " + f.getAbsolutePath());
         }
     }
 
@@ -150,17 +147,13 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 }
             }
 
-        } catch (JAXBException e) {
-            System.out.println(e);
-        } catch(XPathExpressionException xee) {
-            System.out.println(xee);
+        } catch (JAXBException | XPathExpressionException ex) {
+            System.out.println(ex);
         }
     }
 
     /**
      *
-     * @param fragment
-     * @return
      */
     private ModelNode createModelNode(ValueType fragment, MigrationContext ctx){
 
@@ -209,8 +202,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
         //deployment-scanner subsystem does not exist.  Create it.
         String exp = "/server/profile";
-        NodeList pList = (NodeList) xpath.evaluate(exp, destDoc,
-            XPathConstants.NODESET);
+        NodeList pList = (NodeList) xpath.evaluate(exp, destDoc, XPathConstants.NODESET);
         Subsystem subsystem = null;
 
         if (pList.getLength() > 0) {
@@ -219,7 +211,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             for (IConfigFragment fragment : ctx.getMigrationData().get(
                 DeploymentScannerMigrator.class).getConfigFragments()) {
 
-                // transfer data from prev to current version
+                // Transfer data from prev to current version.
                 StandaloneDeploymentScannerType destDScanner =
                     new StandaloneDeploymentScannerType((ValueType) fragment);
                 subsystem.getDeploymentScanner().add(destDScanner);
@@ -230,12 +222,10 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
     /**
      *  getDeploymentDirs
-     * @param f
-     * @return
      */
     private List<ValueType> getDeploymentDirs(File f) throws LoadMigrationException {
 
-        List<ValueType> resultList = new ArrayList<ValueType>();
+        List<ValueType> resultList = new LinkedList();
 
         try {
 
@@ -246,26 +236,17 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             String exp = "/deployment/bean[@name='BootstrapProfileFactory']/property[@name='applicationURIs']//list[@elementClass='java.net.URI']";
             Node  n = (Node) xpath.evaluate(exp, doc, XPathConstants.NODE);
 
-            Unmarshaller unmarshaller = JAXBContext.newInstance(
-                ListType.class).createUnmarshaller();
+            Unmarshaller unmarshaller = JAXBContext.newInstance( ListType.class ).createUnmarshaller();
             ListType l = (ListType) unmarshaller.unmarshal(n);
 
-
             for (ValueType v : l.getValue()) {
-
                 if (v.isExternalDir()) {
                     resultList.add(v);
                 }
             }
 
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
-        } catch (SAXException saxe) {
-            throw new LoadMigrationException(saxe);
-        } catch (IOException ioe) {
-            throw new LoadMigrationException(ioe);
-        } catch (XPathExpressionException xee) {
-            throw new LoadMigrationException(xee);
+        } catch (JAXBException | SAXException | IOException | XPathExpressionException ex) {
+            throw new LoadMigrationException(ex);
         }
         return resultList;
     }
@@ -308,16 +289,10 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 }
             }
 
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
-        } catch (SAXException saxe) {
-            throw new LoadMigrationException(saxe);
-        } catch (IOException ioe) {
-            throw new LoadMigrationException(ioe);
-        } catch (XPathExpressionException xee) {
-            throw new LoadMigrationException(xee);
+        } catch (JAXBException | SAXException | IOException | XPathExpressionException ex) {
+            throw new LoadMigrationException(ex);
         }
         return result;
     }
 
-}
+}// class
