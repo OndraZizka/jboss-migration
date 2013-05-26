@@ -130,21 +130,20 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                 for(int i =0; i < cnt; i++){
                     Element node = (Element) nodeList.item(i);
                     String tmpPath = node.getAttribute("path");
+                    //System.out.println("tmpPath: " + tmpPath);
 
-                    ArrayList<ValueType> rmItList = new ArrayList<ValueType>();
                     for (ValueType v: valueList){
+                        //System.out.println("v: deploy: " + v.getDeployPath() + "   value: " + v.getValue());
                         if (tmpPath.equals(v.getDeployPath())){
-                            rmItList.add(v);
+                            // do not process duplication paths.
+                            valueList.remove(v);
                         }
-                    }
-
-                    // remove the duplicates
-                    for (ValueType v: rmItList){
-                        valueList.remove(v);
                     }
 
                 }
 
+           // } catch (JAXBException e) {
+           //     throw new LoadMigrationException(e);
             } catch (SAXException saxe) {
                 throw new LoadMigrationException(saxe);
             } catch (IOException ioe) {
@@ -159,17 +158,13 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
 
     private List<ValueType> checkSourcePath(List<ValueType> valueList) {
 
-        ArrayList<ValueType> notFoundList = new ArrayList<ValueType>();
-        for (ValueType v : valueList) {
+        for (ValueType v: valueList){
             File f = new File(v.getDeployPath());
-            if (!f.exists()) {
-                notFoundList.add(v);
+            if (!f.exists()){
+                valueList.remove(v);
             }
         }
 
-        for (ValueType v : notFoundList) {
-            valueList.remove(v);
-        }
         return valueList;
     }
 
@@ -216,8 +211,13 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                     sAction.addStandaloneDeploymentScannerType(destDScanner);
 
                     //- create CLI cmds
-                    String cliCmdStr = createCliCmdStr((ValueType)fragment);
-                    sAction.addWarning(cliCmdStr);
+                    ModelNode mNode = createModelNode((ValueType)fragment, ctx);
+                    //ctx.getActions().add(new CliCommandAction(
+                    //    DeploymentScannerMigrator.class, "create deployment-scanner", mNode));
+
+                    //- workaround .. force tools not to fail with null exception.
+                    ctx.getBatch().add(
+                        new org.jboss.as.cli.batch.impl.DefaultBatchedCommand("create deployment-scanner",  mNode));
                 }
 
                 if (!sAction.getStandaloneDeploymentScannerTypeList().isEmpty()){
@@ -226,13 +226,18 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             }
 
         } catch (JAXBException e) {
-            log.error(e.toString());
+            System.out.println(e);
         } catch(XPathExpressionException xee) {
-            log.error(xee.toString());
+            System.out.println(xee);
         }
     }
 
-    private String createCliCmdStr(ValueType fragment){
+    /**
+     *
+     * @param fragment
+     * @return
+     */
+    private ModelNode createModelNode(ValueType fragment, MigrationContext ctx){
 
         StringBuilder sb = new StringBuilder();
         sb.append("/subsystem=deployment-scanner/scanner=");
@@ -243,7 +248,29 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         sb.append(fragment.getScanPeriod());
         sb.append(")");
 
-        return sb.toString();
+        ModelNode mNode = new ModelNode();
+        mNode.set(sb.toString());
+        //System.out.println("ModelNode: " + mNode.asString());  // debug
+
+        //-------
+        ModelNode connDefCmd = new ModelNode();
+        connDefCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
+        connDefCmd.get(ClientConstants.OP_ADDR).add("subsystem", "deployment-scanner");
+        connDefCmd.get(ClientConstants.OP_ADDR).add("scanner", Long.toString((new Date()).getTime()));
+
+        CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
+
+        builder.addProperty("path", fragment.getDeployPath());
+        Integer scanPeriod = new Integer(fragment.getScanPeriod());
+        builder.addProperty("scan-interval", scanPeriod.toString());
+
+        //System.out.println("connDefCmd: asString:" + connDefCmd.asString());
+        //System.out.println("connDefCmd: string:" + connDefCmd.toString());
+
+        ctx.getActions().add(new CliCommandAction(DeploymentScannerMigrator.class,
+            mNode.asString(), builder.getCommand()));
+
+        return mNode;
     }
 
 
@@ -351,7 +378,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
                     Serializable s = contentList.get(0);
                     if (s instanceof String){
                         result = Integer.parseInt((String)s);
-                        log.debug("scanPeriod: " + result);
+                        System.out.println("scanPeriod: " + result);
                     }
                 }
             }
