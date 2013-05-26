@@ -167,7 +167,7 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-        migratorClasses.add( DeploymentScannerMigrator.class ); // Not finished yet.
+        migratorClasses.add( DeploymentScannerMigrator.class );
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
         return migratorClasses;
     }
