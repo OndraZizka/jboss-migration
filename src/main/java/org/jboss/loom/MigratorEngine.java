@@ -160,15 +160,12 @@ public class MigratorEngine {
     private static List<Class<? extends IMigrator>> findMigratorClasses() {
         
         LinkedList<Class<? extends IMigrator>> migratorClasses = new LinkedList();
- /**********
         migratorClasses.add( SecurityMigrator.class );
         migratorClasses.add( ServerMigrator.class );
         migratorClasses.add( DatasourceMigrator.class );
-       // migratorClasses.add( ResAdapterMigrator.class );
+        migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-  *******/
-        //TODO: get this working properly
-        migratorClasses.add( DeploymentScannerMigrator.class );
+        //TODO: get this working properly migratorClasses.add( DeploymentScannerMigrator.class );
         return migratorClasses;
     }
     
@@ -346,11 +343,7 @@ public class MigratorEngine {
         // Execution
         log.debug("Executing CLI batch:");
         try {
-            if (ctx.getBatch().size() > 0) {
-                AS7CliUtils.executeRequest(ctx.getBatch().toRequest(), config.getGlobal().getAS7Config());
-            } else {
-                log.debug("No CLI batch command found to execute.");
-            }
+            AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
         }
         catch( CliBatchException ex ){
             //Integer index = AS7CliUtils.parseFailedOperationIndex( ex.getResponseNode() );
