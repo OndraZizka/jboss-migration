@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -130,8 +129,8 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         if( this.backupDir != null ){
             try {
                 FileUtils.moveDirectory( this.backupDir, this.moduleDir );
-            } catch( IOException ex ) {
-                throw new ActionException( this, "Can't move " + backupDir + " to " + moduleDir );
+            } catch( Exception ex ) {
+                throw new ActionException( this, "Can't move " + backupDir + " to " + moduleDir + ": " + ex );
             }
         }
         setState(State.ROLLED_BACK);
@@ -145,26 +144,39 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void backup() throws MigrationException {
-        Path tmpDir;
-        try {
-            tmpDir = Files.createTempDirectory( "JBossAS-migr-backup-"+moduleName );
-        } catch( IOException ex ) {
-            throw new ActionException( this, "Failed creating a backup dir. " + ex.getMessage(), ex);
-        }
         if( getModuleDir().exists() ){
+            Path tmpDir;
+            this.moduleDir = getModuleDir();
             try {
-                FileUtils.copyDirectory( getModuleDir(), tmpDir.toFile() );
+                tmpDir = Files.createTempDirectory( "JBossAS-migr-backup-"+moduleName );
+                this.backupDir = tmpDir.toFile();
+            } catch( IOException ex ) {
+                throw new ActionException( this, "Failed creating a backup dir. " + ex.getMessage(), ex);
+            }
+            
+            try {
+                FileUtils.copyDirectory(getModuleDir(), tmpDir.toFile() ); // Writes into.
             } catch( IOException ex ) {
                 throw new ActionException( this, "Failed copying to the backup dir " + tmpDir + " : " + ex.getMessage(), ex);
             }
         }
-        this.backupDir = tmpDir.toFile();
         setState(State.BACKED_UP);
     }
 
 
     @Override
     public void cleanBackup() {
+        checkState( State.DONE, State.ROLLED_BACK );
+        if( this.backupDir != null ){
+            try {
+                FileUtils.deleteDirectory( this.backupDir );
+            } catch( IOException ex ) {
+                //throw new ActionException( this, "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage(), ex);
+                String msg = "Failed deleting the backup dir " + backupDir + " : " + ex.getMessage();
+                log.error( msg );
+                this.addWarning( msg );
+            }
+        }
         setState(State.FINISHED);
     }
 
@@ -172,5 +184,13 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     private File getModuleDir() {
         return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName.replace('.', '/') + "/main" );
     }
+
+
+    @Override
+    public String toString() {
+        return "ModuleCreationAction{ " + moduleName + " ifEx=" + ifExists + ", jar=" + jarFile + ", modDir=" + moduleDir + ", backup=" + backupDir + '}';
+    }
+    
+    
 
 }// class

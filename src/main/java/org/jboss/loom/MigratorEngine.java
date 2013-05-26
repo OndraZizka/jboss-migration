@@ -7,6 +7,7 @@
  */
 package org.jboss.loom;
 
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.AS7Config;
@@ -48,7 +49,16 @@ import java.util.*;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.jboss.as.controller.client.ModelControllerClient;
+<<<<<<< HEAD
 import org.jboss.loom.actions.ManualAction;
+=======
+import org.jboss.loom.actions.ActionDependencySorter;
+import org.jboss.loom.actions.ManualAction;
+import org.jboss.loom.actions.review.BeansXmlReview;
+import org.jboss.loom.actions.review.IActionReview;
+import org.jboss.loom.ctx.DeploymentInfo;
+import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
+>>>>>>> upstream/master
 
 /**
  *  Controls the core migration processes.
@@ -59,9 +69,8 @@ import org.jboss.loom.actions.ManualAction;
  *  @author Roman Jakubco
  */
 public class MigratorEngine {
-    
     private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
-    
+        
 
     private Configuration config;
 
@@ -93,7 +102,7 @@ public class MigratorEngine {
 
         // Initialize migrator instances. 
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
-                createMigrators( migratorClasses, config.getGlobal(), null);
+                createMigrators( migratorClasses, config.getGlobal() );
         
         this.migrators = new ArrayList(migratorsMap.values());
         
@@ -118,8 +127,7 @@ public class MigratorEngine {
      */
     private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(
             List<Class<? extends IMigrator>> migratorClasses,
-            GlobalConfiguration globalConfig,
-            MultiValueMap config
+            GlobalConfiguration globalConfig
     ) throws InitMigratorsExceptions {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new LinkedHashMap();
@@ -129,12 +137,12 @@ public class MigratorEngine {
             try {
                 //IMigrator mig = cls.newInstance();
                 //GlobalConfiguration globalConfig, MultiValueMap config
-                Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class, MultiValueMap.class);
-                IMigrator mig = ctor.newInstance(globalConfig, config);
+                Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class);
+                IMigrator mig = ctor.newInstance(globalConfig);
                 migs.put(cls, mig);
             }
             catch( NoSuchMethodException ex ){
-                String msg = cls.getName() + " doesn't have constructor ...(GlobalConfiguration globalConfig, MultiValueMap config).";
+                String msg = cls.getName() + " doesn't have constructor ...(GlobalConfiguration globalConfig).";
                 log.error( msg );
                 exs.add( new MigrationException(msg) );
             }
@@ -153,6 +161,8 @@ public class MigratorEngine {
     }// createMigrators()
     
     
+    
+    
     /**
      *  Finds the implementations of the IMigrator.
      *  TODO: Implement scanning for classes.
@@ -165,10 +175,20 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
+<<<<<<< HEAD
         //TODO: get this working properly migratorClasses.add( DeploymentScannerMigrator.class );
+=======
+        migratorClasses.add( DeploymentScannerMigrator.class ); // Not finished yet.
+        migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
+>>>>>>> upstream/master
         return migratorClasses;
     }
     
+    private static List<Class<? extends IActionReview>> findActionReviewers(){
+        LinkedList<Class<? extends IActionReview>> reviewers = new LinkedList();
+        reviewers.add( BeansXmlReview.class );
+        return reviewers;
+    }
 
     
     
@@ -182,13 +202,12 @@ public class MigratorEngine {
             3) Let them prepare the actions.
                   An action should include what caused it to be created. IMigrationAction.getOriginMessage()
             ==== From now on, don't use the scanned data, only actions. ===
-            So instead of getDOMElements(), getCLICommand and apply()
-            will be List<IMigrationAction> prepareActions().
-            4) preValidate
-            5) backup
-            6) perform
-            7) postValidate
-            8] rollback
+            4) reviewActions
+            5) preValidate
+            6) backup
+            7) perform
+            8) postValidate
+            9] rollback
      */
     public void doMigration() throws MigrationException {
         
@@ -219,15 +238,24 @@ public class MigratorEngine {
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
             this.prepareActions();
+            message = "Actions review failed.";
+            this.reviewActions();
             message = "Migration actions validation failed.";
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
             this.backupActions();
-            message = "Failed performing the migration actions.";
-            this.performActions();
+            
+            rollback:
+            try {
+                message = "Failed performing the migration actions.";
+                this.performActions();
 
-            message = "Verification of migration actions results failed.";
-            this.postValidateActions();
+                message = "Verification of migration actions results failed.";
+                this.postValidateActions();
+            }
+            finally {
+                this.cleanBackupsIfAny();
+            }
             
             // Close the AS 7 management client connection.
             closeManagementClient();
@@ -260,9 +288,6 @@ public class MigratorEngine {
                   + "\n    " + ex.getMessage() 
                   + description, ex );
         }
-        finally {
-            this.cleanBackupsIfAny();
-        }
 
     }// migrate()
 
@@ -286,10 +311,29 @@ public class MigratorEngine {
         // TODO: Additional logic to filter out duplicated file copying etc.
     }
     
-    
+
     /*
-     *  Actions methods.
+     *  ------------ Actions methods. ----------------
      */
+    
+    private void reviewActions() throws MigrationException {
+        log.debug("======== reviewActions() ========");
+        List<IMigrationAction> actions = ctx.getActions();
+        for( Class<? extends IActionReview> arClass : findActionReviewers() ){
+            IActionReview ar;
+            try {
+                ar = arClass.newInstance();
+            } catch( InstantiationException | IllegalAccessException ex ) {
+                throw new MigrationException("Can't instantiate action reviewer " + arClass.getSimpleName() + ": " + ex, ex);
+            }
+            ar.setContext(ctx);
+            ar.setConfig(config);
+            for( IMigrationAction action : actions ) {
+                ar.review( action );
+            }
+        }
+    }
+    
     
     private void preValidateActions() throws MigrationException {
         log.debug("======== preValidateActions() ========");
@@ -314,22 +358,27 @@ public class MigratorEngine {
      * @throws MigrationException 
      */
     private void performActions() throws MigrationException {
+        log.debug("======== performActions() ========");
         
         // Clear CLI commands, should there be any.
         ctx.getBatch().clear();
         
-        // Store CLI actions into an ordered list.
-        List<CliCommandAction> cliActions = new LinkedList();
+        // Sort the actions according to dependencies. MIGR-104
+        List<IMigrationAction> actions = ctx.getActions();
+        List<IMigrationAction> sorted = ActionDependencySorter.sort( actions );
         
+        // Store CLI actions into an ordered list.
+        // In perform(), they are just put into a batch. Using this, we can tell which one failed.
+        List<CliCommandAction> cliActions = new LinkedList();
+
         // Perform the actions.
         log.info("Performing actions:");
-        List<IMigrationAction> actions = ctx.getActions();
-        for( IMigrationAction action : actions ) {
+        for( IMigrationAction action : sorted ) {
             if( action instanceof CliCommandAction )
                 cliActions.add((CliCommandAction) action);
-            
+        
             log.info("    " + action.toDescription());
-            action.setMigrationContext(ctx);
+            action.setMigrationContext(ctx); // Again. To be sure.
             action.perform();
         }
         
@@ -373,6 +422,7 @@ public class MigratorEngine {
     
     
     private void postValidateActions() throws MigrationException {
+        log.debug("======== postValidateActions() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             action.postValidate();
@@ -380,6 +430,7 @@ public class MigratorEngine {
     }
     
     private void cleanBackupsIfAny() throws MigrationException {
+        log.debug("======== cleanBackupsIfAny() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             //if( action.isAfterBackup())  // Checked in cleanBackup() itself.
@@ -388,6 +439,7 @@ public class MigratorEngine {
     }
     
     private void rollbackActionsWhichWerePerformed() throws MigrationException {
+        log.debug("======== rollbackActionsWhichWerePerformed() ========");
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             //if( action.isAfterPerform()) // Checked in rollback() itself.
@@ -396,6 +448,10 @@ public class MigratorEngine {
     }
     
     private void announceManualActions(){
+<<<<<<< HEAD
+=======
+        log.debug("======== announceManualActions() ========");
+>>>>>>> upstream/master
         boolean bannerShown = false;
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
@@ -447,6 +503,7 @@ public class MigratorEngine {
      *  Unzips the apps specified in config to temp dirs, to be deleted at the end.
      */
     private void unzipDeployments() throws MigrationException {
+<<<<<<< HEAD
         Set<String> deplPaths = this.config.getGlobal().getAppPaths();
         List<File> deplDirs = new ArrayList( deplPaths.size() );
 
@@ -488,7 +545,37 @@ public class MigratorEngine {
             throw new MigrationException("Failed creating a tmp dir for the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
         }
     }
+=======
+        Set<String> deplPaths = this.config.getGlobal().getDeploymentsPaths();
+        List<DeploymentInfo> depls = new ArrayList( deplPaths.size() );
+>>>>>>> upstream/master
 
+        for( String path : deplPaths ) {
+            
+            File deplZip = new File( path );
+            if( !deplZip.exists() ){
+                log.warn( "Application not found: " + path );
+                continue;
+            }
+            
+            DeploymentInfo depl = new DeploymentInfo( path );
+            
+            // It's a dir - no need to unzip.
+            if( deplZip.isDirectory() ){
+                depls.add( depl );
+                continue;
+            }
+            
+            // It's a file - try to unzip.
+            //AppConfigUtils.unzipDeployment( deplZip )
+            depl.unzipToTmpDir();
+            
+            depls.add( depl );
+        }
+        
+        ctx.setDeployments( depls );
+    }
+        
 
     // AS 7 management client connection.
     
@@ -499,7 +586,7 @@ public class MigratorEngine {
             as7Client = ModelControllerClient.Factory.create( as7Config.getHost(), as7Config.getManagementPort() );
         }
         catch( UnknownHostException ex ){
-            throw new MigrationException("Unknown AS 7 host.", ex);
+            throw new MigrationException("Unknown AS 7 host: " + as7Config.getHost(), ex);
         }
         ctx.setAS7ManagementClient( as7Client );
     }

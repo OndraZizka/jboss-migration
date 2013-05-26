@@ -18,13 +18,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.conf.ConfigurationValidator;
 
 
 /**
@@ -53,7 +49,7 @@ public class MigratorApp {
         applyDefaults( configuration );
         
         // Validate config.
-        List<String> problems = validateConfiguration( configuration );
+        List<String> problems = ConfigurationValidator.validate( configuration );
         if( !problems.isEmpty() ){
             for( String problem : problems )
                 log.error(problem);
@@ -123,7 +119,7 @@ public class MigratorApp {
             }
 
             if( arg.startsWith("app.path=") ) {
-                globalConfig.addAppPath( StringUtils.substringAfter(arg, "="));
+                globalConfig.addDeploymentPath( StringUtils.substringAfter(arg, "="));
                 continue;
             }
 
@@ -182,6 +178,7 @@ public class MigratorApp {
     
     
     /**
+<<<<<<< HEAD
      *  Validates the config - checks if the paths exist, contain the expected files etc.
      * 
      *  @returns  True if everything is OK.
@@ -261,6 +258,8 @@ public class MigratorApp {
 
     
     /**
+=======
+>>>>>>> upstream/master
      *  Performs the migration.
      */
     public static void migrate( Configuration conf ) throws MigrationException {

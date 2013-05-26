@@ -23,8 +23,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelType;
 
@@ -219,7 +217,7 @@ public class AS7CliUtils {
                 if( String.class != method.getReturnType() )
                     continue;
                 String val = (String) method.invoke(source);
-                builder.addProperty( prop, val );
+                builder.addPropertyIfSet( prop, val );
             }
             catch ( NoSuchMethodException ex ){
                 throw new RuntimeException( ex );
@@ -364,6 +362,27 @@ public class AS7CliUtils {
         element = element.replace("=", "\\=");
         element = element.replace(" ", "\\ ");
         return element;
-    }  
+    }
     
+    
+    
+    /**
+     *  Converts "some-property-name" to "getSomePropertyName()".
+     */
+    public static String formatGetterName(String prop){
+        StringBuilder sb = new StringBuilder("get");
+        //String[] parts = StringUtils.split( prop, "-_");
+        boolean capNext = true;
+        for( int i = 0; i < prop.length(); i++ ) {
+            char ch = prop.charAt(i);
+            if( Character.isLetter( ch )){
+                sb.append( capNext ? Character.toUpperCase( ch ) : ch );
+                capNext = false;
+            }
+            else 
+                capNext = true;
+        }
+        return sb.toString();
+    }
+        
 }// class

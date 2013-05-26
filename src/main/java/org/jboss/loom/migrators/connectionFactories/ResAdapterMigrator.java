@@ -15,8 +15,8 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.CliAddScriptBuilder;
 import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -40,6 +40,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -55,8 +56,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
         return "resourceAdapter";
     }
 
-    public ResAdapterMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public ResAdapterMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
 
@@ -112,23 +113,31 @@ public class ResAdapterMigrator extends AbstractMigrator {
         }
     }
 
+    
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
-        Set<String> rars = new HashSet<>();
-        for (IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments()) {
+        
+        Set<String> referencedRARs = new HashSet();
+        
+        // Process the config fragments found in AS 5.
+        for( IConfigFragment fragment : ctx.getMigrationData().get(ResAdapterMigrator.class).getConfigFragments() ) {
 
             String raType = null;
             try {
-                if (fragment instanceof ConnectionFactoryAS5Bean) {
+                if( fragment instanceof ConnectionFactoryAS5Bean ) {
                     raType = "tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, rars )));
+                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, referencedRARs )));
                     continue;
                 }
-                if (fragment instanceof NoTxConnectionFactoryAS5Bean) {
+                if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
                     raType = "no-tx-connection-factory";
                     ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, rars )));
+                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, referencedRARs )));
                     continue;
                 }
                 throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
@@ -138,21 +147,29 @@ public class ResAdapterMigrator extends AbstractMigrator {
             }
         }
 
-        for (String rar : rars) {
-            File src;
+        // Try to find each .rar referenced in the configuration XML.
+        for( String referencedRAR : referencedRARs ) {
+            
+            final File profileDir = getGlobalConfig().getAS5Config().getProfileDir(); //  .../deployments ?
+            Collection<File> foundRARs;
             try {
-                src = Utils.searchForFile(rar, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
-            } catch (CopyException e) {
-                throw new MigrationException("Copying of archive from resource-adapter failed: " + e.getMessage(), e);
+                foundRARs = Utils.searchForFileOrDir(referencedRAR, profileDir);
+            } catch ( IOException ex ) {
+                throw new MigrationException("Can't find " + referencedRAR + ": " + ex.getMessage(), ex);
             }
-
-            File target = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments",
-                    src.getName());
-
-            ctx.getActions().add( new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.SKIP));
+            File rarFrom = foundRARs.iterator().next();
+            File rarTo = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments", rarFrom.getName());
+            CopyFileAction action = new CopyFileAction( this.getClass(), rarFrom, rarTo, CopyFileAction.IfExists.SKIP);
+            if( foundRARs.size() > 1 ){
+                String warn = "Found multiple " + referencedRAR + " in " + profileDir + ":\n  " + StringUtils.join( foundRARs, "\n  ");
+                action.addWarning( warn );
+            }
+            ctx.getActions().add( action );
         }
     }
 
+    
+    
     /**
      * Migrates Connection-Factory (both types) from AS5 to Resource-Adapter in AS7
      *
@@ -254,8 +271,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(adapterCmd);
 
-        builder.addProperty("archive", adapter.getArchive());
-        builder.addProperty("transaction-support", adapter.getTransactionSupport());
+        builder.addPropertyIfSet("archive", adapter.getArchive());
+        builder.addPropertyIfSet("transaction-support", adapter.getTransactionSupport());
 
         actions.add( new CliCommandAction( ResAdapterMigrator.class, createResAdapterScript(adapter), builder.getCommand()));
 
@@ -295,43 +312,43 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(connDefCmd);
 
-        builder.addProperty("jndi-name", def.getJndiName());
-        builder.addProperty("enabled", def.getEnabled());
-        builder.addProperty("use-java-context", def.getUseJavaCont());
-        builder.addProperty("class-name", def.getClassName());
-        builder.addProperty("use-ccm", def.getUseCcm());
+        builder.addPropertyIfSet("jndi-name", def.getJndiName());
+        builder.addPropertyIfSet("enabled", def.getEnabled());
+        builder.addPropertyIfSet("use-java-context", def.getUseJavaCont());
+        builder.addPropertyIfSet("class-name", def.getClassName());
+        builder.addPropertyIfSet("use-ccm", def.getUseCcm());
 
-        builder.addProperty("flush-strategy", def.getFlushStrategy());
+        builder.addPropertyIfSet("flush-strategy", def.getFlushStrategy());
 
         if(adapter.getTransactionSupport().equalsIgnoreCase("xatransaction")){
-            builder.addProperty("min-pool-size", def.getXaMinPoolSize());
-            builder.addProperty("max-pool-size", def.getXaMaxPoolSize());
-            builder.addProperty("prefill", def.getXaPrefill());
-            builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
-            builder.addProperty("no-tx-separate-pools", def.getXaNoTxSeparatePools());
-            builder.addProperty("use-strict-min",def.getXaUseStrictMin());
+            builder.addPropertyIfSet("min-pool-size", def.getXaMinPoolSize());
+            builder.addPropertyIfSet("max-pool-size", def.getXaMaxPoolSize());
+            builder.addPropertyIfSet("prefill", def.getXaPrefill());
+            builder.addPropertyIfSet("xa-resource-timeout", def.getXaResourceTimeout());
+            builder.addPropertyIfSet("no-tx-separate-pools", def.getXaNoTxSeparatePools());
+            builder.addPropertyIfSet("use-strict-min",def.getXaUseStrictMin());
         } else{
-            builder.addProperty("min-pool-size", def.getMinPoolSize());
-            builder.addProperty("max-pool-size", def.getMaxPoolSize());
-            builder.addProperty("prefill", def.getPrefill());
-            builder.addProperty("use-strict-min", def.getUseStrictMin());
+            builder.addPropertyIfSet("min-pool-size", def.getMinPoolSize());
+            builder.addPropertyIfSet("max-pool-size", def.getMaxPoolSize());
+            builder.addPropertyIfSet("prefill", def.getPrefill());
+            builder.addPropertyIfSet("use-strict-min", def.getUseStrictMin());
         }
 
         if (def.getSecurityDomain() != null) {
-            builder.addProperty("security-domain", def.getSecurityDomain());
+            builder.addPropertyIfSet("security-domain", def.getSecurityDomain());
         } else if (def.getSecDomainAndApp() != null) {
-            builder.addProperty("security-domain-and-application", def.getSecDomainAndApp());
+            builder.addPropertyIfSet("security-domain-and-application", def.getSecDomainAndApp());
         } else if (def.getAppManagedSec() != null) {
-            builder.addProperty("application-managed-security", def.getAppManagedSec());
+            builder.addPropertyIfSet("application-managed-security", def.getAppManagedSec());
         }
 
-        builder.addProperty("background-validation", def.getBackgroundValidation());
-        builder.addProperty("background-validation-millis", def.getBackgroundValiMillis());
-        builder.addProperty("blocking-timeout-millis", def.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", def.getIdleTimeoutMinutes());
-        builder.addProperty("allocation-retry", def.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
-        builder.addProperty("xa-resource-timeout", def.getXaResourceTimeout());
+        builder.addPropertyIfSet("background-validation", def.getBackgroundValidation());
+        builder.addPropertyIfSet("background-validation-millis", def.getBackgroundValiMillis());
+        builder.addPropertyIfSet("blocking-timeout-millis", def.getBlockingTimeoutMillis());
+        builder.addPropertyIfSet("idle-timeout-minutes", def.getIdleTimeoutMinutes());
+        builder.addPropertyIfSet("allocation-retry", def.getAllocationRetry());
+        builder.addPropertyIfSet("allocation-retry-wait-millis", def.getAllocRetryWaitMillis());
+        builder.addPropertyIfSet("xa-resource-timeout", def.getXaResourceTimeout());
 
         actions.add( new CliCommandAction( ResAdapterMigrator.class, createConnDefinitionScript(adapter, def), builder.getCommand()));
 

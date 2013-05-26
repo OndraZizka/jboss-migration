@@ -27,15 +27,17 @@ public abstract class AbstractMigrator implements IMigrator {
     private MultiValueMap config; // Catch-all map.
 
 
-    public AbstractMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
+    public AbstractMigrator(GlobalConfiguration globalConfig) {
         this.globalConfig = globalConfig;
-        this.config = config;
+        this.config = new MultiValueMap();
     }
 
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
     @Override public GlobalConfiguration getGlobalConfig() { return globalConfig; }
     @Override public void setGlobalConfig(GlobalConfiguration globalConfig) { this.globalConfig = globalConfig; }
+    
+    /** Returns a map of migrator-specific config values, e.g. conf.logging.logger.ifExists. */
     public MultiValueMap getConfig() { return config; }
     public void setConfig(MultiValueMap config) { this.config = config; }
     
@@ -53,7 +55,7 @@ public abstract class AbstractMigrator implements IMigrator {
         if( ! this.getConfigPropertyModuleName().equals( prop.getModuleId() ) ) return 0;
 
         switch( prop.getPropName() ){
-            case "ifExists":
+            case Configuration.IfExists.PARAM_NAME:
                 this.ifExists = Configuration.IfExists.valueOf_Custom(prop.getValue());
                 break;
             default:
@@ -70,5 +72,19 @@ public abstract class AbstractMigrator implements IMigrator {
      * Used  by #examineConfigProperty() to decide whether to store the property.
      */
     abstract protected String getConfigPropertyModuleName();
+
+    
+    /**
+     *  Parses the IfExists param of given name set for this migrator.
+     *  For example, in a "logging" migrator, querying for "logger.ifExists" 
+     *  would give what user set using "conf.logging.logger.ifExists".
+     */
+    protected Configuration.IfExists parseIfExistsParam( String paramName, Configuration.IfExists default_ ){
+        String ifExistsParam = (String) this.getConfig().get( paramName );
+        if( null == ifExistsParam )
+            return default_;
+        Configuration.IfExists ifExists_ = Configuration.IfExists.valueOf_Custom( ifExistsParam );
+        return ifExists_;
+    }
 
 }// class

@@ -8,7 +8,6 @@
 package org.jboss.loom.migrators.logging.jaxb;
 
 import org.eclipse.persistence.oxm.annotations.XmlPath;
-
 import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,15 +18,10 @@ import java.util.Set;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "async-handler")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "async-handler")
-
-public class AsyncHandlerBean {
-
-    @XmlAttribute(name = "name")
-    private String name;
+public class AsyncHandlerBean extends HandlerBeanBase {
 
     @XmlPath("level/@name")
     private String level;
@@ -47,61 +41,21 @@ public class AsyncHandlerBean {
     @XmlPath("subhandlers/handler/@name")
     private Set<String> subhandlers;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public String getFormatter() {
-        return formatter;
-    }
-
-    public void setFormatter(String formatter) {
-        this.formatter = formatter;
-    }
-
-    public String getQueueLength() {
-        return queueLength;
-    }
-
-    public void setQueueLength(String queueLength) {
-        this.queueLength = queueLength;
-    }
-
-    public String getOverflowAction() {
-        return overflowAction;
-    }
-
-    public void setOverflowAction(String overflowAction) {
-        this.overflowAction = overflowAction;
-    }
-
-    public Set<String> getSubhandlers() {
-        return subhandlers;
-    }
-
+    public String getLevel() { return level; }
+    public void setLevel(String level) { this.level = level; }
+    public String getFilter() { return filter; }
+    public void setFilter(String filter) { this.filter = filter; }
+    public String getFormatter() { return formatter; }
+    public void setFormatter(String formatter) { this.formatter = formatter; }
+    public String getQueueLength() { return queueLength; }
+    public void setQueueLength(String queueLength) { this.queueLength = queueLength; }
+    public String getOverflowAction() { return overflowAction; }
+    public void setOverflowAction(String overflowAction) { this.overflowAction = overflowAction; }
+    public Set<String> getSubhandlers() { return subhandlers; }
     public void setSubhandlers(Collection<String> subhandlers) {
         Set<String> temp = new HashSet();
         temp.addAll(subhandlers);
         this.subhandlers = temp;
     }
-}
+    
+}// class

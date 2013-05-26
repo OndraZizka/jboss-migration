@@ -5,7 +5,7 @@
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
-package org.jboss.loom;
+package org.jboss.loom.ctx;
 
 import java.io.File;
 import org.jboss.loom.actions.IMigrationAction;
@@ -47,11 +47,15 @@ public class MigrationContext {
 
     private final AS7Config as7Config;
     
+<<<<<<< HEAD:src/main/java/org/jboss/loom/MigrationContext.java
     private List<File> deploymentsDirs = new LinkedList();
+=======
+    private List<DeploymentInfo> deploymentInfos = new LinkedList();
+>>>>>>> upstream/master:src/main/java/org/jboss/loom/ctx/MigrationContext.java
             
     
 
-    MigrationContext( AS7Config as7Config ) {
+    public MigrationContext( AS7Config as7Config ) {
         this.as7Config = as7Config;
     }
 
@@ -60,18 +64,27 @@ public class MigrationContext {
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     public List<IMigrationAction> getActions() { return actions; }
+    @Deprecated
     public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
+    @Deprecated
     public void setAS7ConfigXmlDoc(Document standaloneDoc) { this.as7ConfigXmlDoc = standaloneDoc; }
+    @Deprecated
     public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
+    @Deprecated
     public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
     public Batch getBatch() { return batch; }
-    void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
+    public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
     public ModelControllerClient getAS7Client() { return as7Client; }
 
     public AS7Config getAs7Config() { return as7Config; }
 
+<<<<<<< HEAD:src/main/java/org/jboss/loom/MigrationContext.java
     public List<File> getDeploymentsDirs() { return deploymentsDirs; }
     public void setDeploymentsDirs( List<File> deploymentsDirs ) { this.deploymentsDirs = deploymentsDirs; }
+=======
+    public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
+    public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
+>>>>>>> upstream/master:src/main/java/org/jboss/loom/ctx/MigrationContext.java
 
     //</editor-fold>
     

@@ -8,7 +8,7 @@
 package org.jboss.loom.migrators.transactions;
 
 import org.apache.commons.collections.map.MultiValueMap;
-import org.jboss.loom.MigrationContext;
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
@@ -24,8 +24,8 @@ public class TransactionsMigrator extends AbstractMigrator {
     @Override  protected String getConfigPropertyModuleName() { return "transactions"; }
 
 
-    public TransactionsMigrator( GlobalConfiguration globalConfig, MultiValueMap config ) {
-        super( globalConfig, config );
+    public TransactionsMigrator( GlobalConfiguration globalConfig ) {
+        super( globalConfig );
     }
     
     

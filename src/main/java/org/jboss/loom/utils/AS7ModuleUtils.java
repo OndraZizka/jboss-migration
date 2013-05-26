@@ -41,14 +41,14 @@ public class AS7ModuleUtils {
         /**
          * Example of module xml,
          * <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
-         * <resources>
-         * <resource-root path="h2-1.3.168.jar"/>
-         * </resources>
-         * <dependencies>
-         * <module name="javax.api"/>
-         * <module name="javax.transaction.api"/>
-         * <module name="javax.servlet.api" optional="true"/>
-         * </dependencies>
+         *     <resources>
+         *         <resource-root path="h2-1.3.168.jar"/>
+         *     </resources>
+         *     <dependencies>
+         *         <module name="javax.api"/>
+         *         <module name="javax.transaction.api"/>
+         *         <module name="javax.servlet.api" optional="true"/>
+         *     </dependencies>
          * </module>
          */
         Document doc = createDoc();

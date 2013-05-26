@@ -7,7 +7,13 @@
  */
 package org.jboss.loom;
 
+import java.lang.reflect.InvocationTargetException;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.jboss.dmr.ModelNode;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.utils.AS7CliUtils;
 
 /**
  * Class for building CLI command for CLI API. Use for checking if value is null or empty.
@@ -28,13 +34,41 @@ public class CliApiCommandBuilder {
      * @param property name of the property to set
      * @param value    value for setting
      */
-    public void addProperty(String property, String value) {
+    public void addPropertyIfSet(String property, String value) {
         if( value == null || value.isEmpty() )
             return;
+        this.command.get(property).set(value);
+    }
+
+    public void addPropertyIfSet(String property, String value, String default_) {
+        if( value == null || value.isEmpty() )
+            value = default_;
         this.command.get(property).set(value);
     }
 
     public ModelNode getCommand() {
         return command;
     }
-}
+    
+    
+    
+    public CliApiCommandBuilder setPropsFromObject(Object obj, String props) throws MigrationException{
+        for( String prop : StringUtils.split(props) ){
+            try {
+                Object val = obj.getClass().getMethod( AS7CliUtils.formatGetterName(prop) ).invoke(obj);
+                if( val instanceof Number )
+                    val = val.toString();
+                if( ! (val instanceof String) )
+                    throw new MigrationException("Property " + prop + " is not a string, but " + val.getClass().getName());
+                
+                this.addPropertyIfSet( prop, (String) val);
+            }
+            catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+                throw new MigrationException("Failed calling getter: " + ex, ex);
+            }
+        }
+        return this;
+    }
+    
+    
+}// class

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * @deprecated  Use ModuleCreationAction.
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ModuleCreationOldAction extends AbstractStatefulAction {

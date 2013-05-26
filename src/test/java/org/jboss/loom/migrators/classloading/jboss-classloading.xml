@@ -1,0 +1,70 @@
+<!--
+    Example classloading XML.
+    See MIGR-56
+    See https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Web_Platform/5/html/JBoss_Microcontainer_User_Guide/sect-JBoss_Microcontainer_User_Guide-The_ClassLoading_Layer-ClassLoading.html
+-->
+<classloading xmlns="urn:jboss:classloading:1.0"
+              domain="IsolatedWithParentDomain"
+              parent-domain="DefaultDomain"
+              export-all="NON_EMPTY"
+              import-all="true">
+</classloading>
+
+<!--
+Example 9.7. Adding ClassLoadingMetaData Using jboss-classloading.xml
+
+<classloading xmlns="urn:jboss:classloading:1.0"
+              domain="DefaultDomain"
+              top-level-classloader="true"
+              export-all="NON_EMPTY"
+              import-all="true">
+</classloading>
+
+The DefaultDomain is shared among all the applications that do not define their own domains.
+
+Example 9.8. Typical Domain-Level Isolation
+
+<classloading xmlns="urn:jboss:classloading:1.0"
+              domain="IsolatedDomain"
+              export-all="NON_EMPTY"
+              import-all="true">
+</classloading>
+
+
+Example 9.9. Isolation with a Specific Parent
+
+<classloading xmlns="urn:jboss:classloading:1.0"
+              domain="IsolatedWithParentDomain"
+              parent-domain="DefaultDomain"
+              export-all="NON_EMPTY"
+              import-all="true">
+</classloading>
+
+			
+			
+			
+
+
+Example 9.10. Non-Compliance with j2seClassLoadingCompliance
+
+<classloading xmlns="urn:jboss:classloading:1.0"
+              parent-first="false">
+</classloading>
+			
+			
+			
+
+.war deployments use this method by default. Instead of doing default parent-first lookups, you first check your own resources.
+
+Example 9.11. Typical OSGi Implementation
+
+<classloading xmlns="urn:jboss:classloading:1.0">
+    <requirements>
+        <package name="org.jboss.dependency.spi"/>
+    </requirements>
+    <capabilities>
+        <package name="org.jboss.cache.api"/>
+        <package name="org.jboss.kernel.spi"/>
+    </capabilities>
+</classloading>
+-->

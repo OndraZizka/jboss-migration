@@ -1,14 +1,29 @@
 package org.jboss.loom.actions;
 
-import org.jboss.loom.MigrationContext;
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 
 import java.util.List;
 
 /**
- * Ammunition for MIGR-31 and MIGR-23.
- *
+ * Actions of which the migration consists.
+ * 
+ * An action must implement lifecycle callbacks:
+ * preValidate(), backup(), perform(), postValidate(), cleanBackup(), rollback().
+ * 
+ * It should contain information about where it why created - 
+ * what config piece of the source server it carries.
+ * 
+ * Also it should be able to tell by which Migrator it was created 
+ * and ideally, at what place in the code (for exceptions).
+ * 
+ * It may contain warnings if some validation failed 
+ * but doesn't prevent successful run (also see {@link IfExists}).
+ * 
+ * It keeps a reference to MigrationContext which is needed in perform().
+ * 
+ * @Jira MIGR-31 and MIGR-23.
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public interface IMigrationAction {
@@ -35,6 +50,14 @@ public interface IMigrationAction {
     
     /** Which migrator created this action. */
     Class<? extends IMigrator> getFromMigrator();
+    
+    List<IMigrationAction> getDependencies();
+    IMigrationAction addDependency( IMigrationAction dep );
+    /**
+     * @returns -1 if doesn't depend, 0 if equals, 1 if direct dependency, or the distance of transitive dependency.
+     */
+    public int dependsOn( IMigrationAction other ) throws AbstractStatefulAction.CircularDependencyException;
+    
     
     /**
      * @returns A description of this action in terms of what exactly would it do.

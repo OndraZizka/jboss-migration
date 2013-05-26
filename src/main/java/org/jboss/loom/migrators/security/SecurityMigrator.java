@@ -13,8 +13,8 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.CliAddScriptBuilder;
 import org.jboss.loom.CliApiCommandBuilder;
-import org.jboss.loom.MigrationContext;
-import org.jboss.loom.MigrationData;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.ModuleCreationAction;
@@ -73,8 +73,8 @@ public class SecurityMigrator extends AbstractMigrator {
     }
 
 
-    public SecurityMigrator(GlobalConfiguration globalConfig, MultiValueMap config) {
-        super(globalConfig, config);
+    public SecurityMigrator(GlobalConfiguration globalConfig) {
+        super(globalConfig);
     }
 
     /**
@@ -363,8 +363,8 @@ public class SecurityMigrator extends AbstractMigrator {
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
-        builder.addProperty("flag", module.getLoginModuleFlag());
-        builder.addProperty("code", module.getLoginModuleCode());
+        builder.addPropertyIfSet("flag", module.getLoginModuleFlag());
+        builder.addPropertyIfSet("code", module.getLoginModuleCode());
 
         // Needed for CLI because parameter login-modules requires LIST
         list.add(builder.getCommand());

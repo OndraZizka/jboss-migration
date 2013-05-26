@@ -29,16 +29,19 @@ public class Configuration {
      *  MERGE (ModelNode into current model) and ASK (interactive) are not supported yet.
      */
     public enum IfExists {
-        FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK;
+        FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK, GUI;
         
+        /** The same as valueOf(), only case-insensitive. */
         public static IfExists valueOf_Custom(String str) throws IllegalArgumentException {
             try {
                 return valueOf( str.toUpperCase() );
             }
-            catch( IllegalArgumentException ex ){
-                throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK.");
+            catch( IllegalArgumentException | NullPointerException ex ){
+                throw new IllegalArgumentException("ifExists must be one of FAIL, WARN, SKIP, MERGE, OVERWRITE, ASK. Was: " + str);
             }
         }
+        
+        public static final String PARAM_NAME = "ifExists";
     }// enum
 
 

@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import org.jboss.loom.conf.ConfigurationValidator;
 
 /**
  *
@@ -66,7 +67,7 @@ public class MigratorEngineTest {
         System.out.println( "doMigration" );
         
         Configuration conf = createTestConfig01();
-        MigratorApp.validateConfiguration( conf );
+        ConfigurationValidator.validate( conf );
         
         //MigratorApp.migrate( conf );
         MigratorEngine migrator = new MigratorEngine(conf);

@@ -52,7 +52,7 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public String toDescription() {
-        return "Perform CLI command: " + this.command.getCommand();
+        return "Perform CLI command: " + this.command.getCommand() + " ; ifExists=" + ifExists + ", todo=" + todo;
     }
     
 
@@ -60,15 +60,16 @@ public class CliCommandAction extends AbstractStatefulAction {
     @Override
     public void preValidate() throws MigrationException {
         if ((this.command.getCommand() == null) || (this.command.getCommand().isEmpty()))
-            throw new ActionException(this, "No CLI script set for CliCommandAction");
+            throw new ActionException(this, "No CLI script set for CliCommandAction.");
         if (this.command.getRequest() == null) {
-            throw new ActionException(this, "ModelNode for CliCommandAction cannot be null");
+            throw new ActionException(this, "ModelNode for CliCommandAction cannot be null.");
         }
         
         // If already exists, 
         boolean exists;
         try {
             exists = AS7CliUtils.exists( this.command.getRequest(), getMigrationContext().getAS7Client() );
+            //log.debug( "Exists? " + exists + "  :  " + this.command );
         } catch( Exception ex ) {
             throw new ActionException( this, "Failed querying AS 7 for existence of " + this.command.getRequest() + ": " + ex, ex );
         }
@@ -76,11 +77,11 @@ public class CliCommandAction extends AbstractStatefulAction {
         
         // ... act as per configuration.
         switch( this.ifExists ){
-            case OVERWRITE: todo = OVERWRITE; break;                    
+            case OVERWRITE: this.todo = OVERWRITE; break;                    
             case FAIL:  throw new ActionException(this, "ModelNode already exists in AS 7 config: " + this.command.getCommand() );
             case MERGE: throw new UnsupportedOperationException("ModelNode merging not supported yet. MIGR-61");
-            case WARN:  todo = SKIP; log.warn("ModelNode already exists in AS 7 config: " + this.command.getCommand() ); return;
-            case SKIP:  todo = SKIP; return;
+            case WARN:  this.todo = SKIP; log.warn("ModelNode already exists in AS 7 config: " + this.command.getCommand() ); return;
+            case SKIP:  this.todo = SKIP; return;
             case ASK:   throw new UnsupportedOperationException("Interactive duplicity handling not supported yet. MIGR-62");
         }
     }// preValidate()
@@ -88,10 +89,11 @@ public class CliCommandAction extends AbstractStatefulAction {
 
     @Override
     public void perform() throws MigrationException {
-        if( todo == SKIP )  return;
-        if( todo == OVERWRITE ){
+        if( this.todo == SKIP )  return;
+        if( this.todo == OVERWRITE ){
             // Remove the pre-existing node.
             ModelNode remCmd = AS7CliUtils.createRemoveCommandForResource( this.command.getRequest() );
+            //log.debug("\n    Adding REMOVE operation: " + remCmd);
             getMigrationContext().getBatch().add( new BatchedCommandWithAction( this, remCmd.asString(), remCmd) );
         }
         
