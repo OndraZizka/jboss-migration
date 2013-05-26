@@ -21,6 +21,45 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ArqTest {
     
+<<<<<<< HEAD
+    private static File getDestServerDistDir(){
+        //return new File("target/jboss-as-7.1.1.Final");
+        //return new File("target/jboss-eap-6.2.0.Beta1");
+        return new File("target/as-dist");
+    }
+    
+    private static Configuration createTestConfig_AS_510_all() throws IOException {
+        Configuration conf = new Configuration();
+        
+        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/01_510all");
+        conf.getGlobal().getAS5Config().setProfileName("all");
+        
+        File destServerDir = new File("target/as7configs/01_510all");
+        FileUtils.copyDirectory( getDestServerDistDir(), destServerDir );
+        conf.getGlobal().getAS7Config().setDir( destServerDir.getPath() );
+        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
+                
+        return conf;
+    }
+    
+    private static Configuration createTestConfig_EAP_520_production() throws IOException {
+        Configuration conf = new Configuration();
+        
+        conf.getGlobal().getAS5Config().setDir("testdata/as5configs/02_EAP-520-prod");
+        conf.getGlobal().getAS5Config().setProfileName("production");
+        
+        File destServerDir = new File("target/as7configs/02_EAP-520-prod");
+        FileUtils.copyDirectory( getDestServerDistDir(), destServerDir );
+        conf.getGlobal().getAS7Config().setDir( destServerDir.getPath() );
+        conf.getGlobal().getAS7Config().setConfigPath("standalone/configuration/standalone.xml");
+                
+        return conf;
+    }
+    
+
+    
+=======
+>>>>>>> upstream/master
     /**
      * Test of doMigration method, of class MigratorEngine.
      */

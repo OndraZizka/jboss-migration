@@ -7,6 +7,7 @@
  */
 package org.jboss.loom.ctx;
 
+import java.io.File;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.spi.IMigrator;
@@ -46,7 +47,11 @@ public class MigrationContext {
 
     private final AS7Config as7Config;
     
+<<<<<<< HEAD:src/main/java/org/jboss/loom/MigrationContext.java
+    private List<File> deploymentsDirs = new LinkedList();
+=======
     private List<DeploymentInfo> deploymentInfos = new LinkedList();
+>>>>>>> upstream/master:src/main/java/org/jboss/loom/ctx/MigrationContext.java
             
     
 
@@ -73,8 +78,13 @@ public class MigrationContext {
 
     public AS7Config getAs7Config() { return as7Config; }
 
+<<<<<<< HEAD:src/main/java/org/jboss/loom/MigrationContext.java
+    public List<File> getDeploymentsDirs() { return deploymentsDirs; }
+    public void setDeploymentsDirs( List<File> deploymentsDirs ) { this.deploymentsDirs = deploymentsDirs; }
+=======
     public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
     public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
+>>>>>>> upstream/master:src/main/java/org/jboss/loom/ctx/MigrationContext.java
 
     //</editor-fold>
     

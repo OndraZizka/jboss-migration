@@ -43,14 +43,22 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import org.jboss.as.controller.client.ModelControllerClient;
+<<<<<<< HEAD
+import org.jboss.loom.actions.ManualAction;
+=======
 import org.jboss.loom.actions.ActionDependencySorter;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.actions.review.BeansXmlReview;
 import org.jboss.loom.actions.review.IActionReview;
 import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
+>>>>>>> upstream/master
 
 /**
  *  Controls the core migration processes.
@@ -167,8 +175,12 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
+<<<<<<< HEAD
+        //TODO: get this working properly migratorClasses.add( DeploymentScannerMigrator.class );
+=======
         migratorClasses.add( DeploymentScannerMigrator.class ); // Not finished yet.
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
+>>>>>>> upstream/master
         return migratorClasses;
     }
     
@@ -436,7 +448,10 @@ public class MigratorEngine {
     }
     
     private void announceManualActions(){
+<<<<<<< HEAD
+=======
         log.debug("======== announceManualActions() ========");
+>>>>>>> upstream/master
         boolean bannerShown = false;
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
@@ -488,8 +503,52 @@ public class MigratorEngine {
      *  Unzips the apps specified in config to temp dirs, to be deleted at the end.
      */
     private void unzipDeployments() throws MigrationException {
+<<<<<<< HEAD
+        Set<String> deplPaths = this.config.getGlobal().getAppPaths();
+        List<File> deplDirs = new ArrayList( deplPaths.size() );
+
+        for( String path : deplPaths ) {
+            File deplZip = new File( path );
+            if( !deplZip.exists() ){
+                log.warn( "Application not found: " + path );
+                continue;
+            }
+            // It's a dir - no need to unzip.
+            if( deplZip.isDirectory() ){
+                deplDirs.add( deplZip );
+                continue;
+            }
+            // It's a file - try to unzip.
+            deplDirs.add( unzipDeployment( deplZip ) );
+        }
+        
+        ctx.setDeploymentsDirs( deplDirs );
+    }
+    
+    /**
+     *  Unzips given zip to a temp dir.
+     */
+    private static File unzipDeployment( File deplZip ) throws MigrationException {
+        try {
+            Path tmpDir = Files.createTempDirectory( "JBossAS-MigrTmp-" + deplZip.getName() + "-" );
+            tmpDir.toFile().deleteOnExit();
+
+            ZipFile zipFile = new ZipFile(deplZip);
+            zipFile.extractAll( tmpDir.toFile().getPath() );
+            
+            return tmpDir.toFile();
+        }
+        catch( ZipException ex ){
+            throw new MigrationException("Failed unzipping the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
+        }
+        catch( IOException ex ){
+            throw new MigrationException("Failed creating a tmp dir for the app " + deplZip.getPath() + ": " + ex.getMessage(), ex);
+        }
+    }
+=======
         Set<String> deplPaths = this.config.getGlobal().getDeploymentsPaths();
         List<DeploymentInfo> depls = new ArrayList( deplPaths.size() );
+>>>>>>> upstream/master
 
         for( String path : deplPaths ) {
             
