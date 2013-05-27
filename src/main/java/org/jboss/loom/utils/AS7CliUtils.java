@@ -283,12 +283,12 @@ public class AS7CliUtils {
         
         // Address
         ModelNode addr = command.get(ClientConstants.OP_ADDR);
-        StringBuilder sb = new StringBuilder("/");
+        StringBuilder sb = new StringBuilder();
         for( int i = 0; ; i++ ) {
             if( ! addr.has(i) )  break;
             ModelNode segment = addr.get( i );
             String key = segment.keys().iterator().next();
-            sb.append(key).append('=').append(segment.get(key).asString()).append('/');
+            sb.append('/').append(key).append('=').append(segment.get(key).asString());
         }
         sb.append(':').append(op);
         
