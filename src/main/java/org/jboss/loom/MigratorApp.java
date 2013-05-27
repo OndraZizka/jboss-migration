@@ -48,6 +48,9 @@ public class MigratorApp {
         // Apply defaults.
         applyDefaults( configuration );
         
+        // MIGR-84
+        System.clearProperty("JBOSS_HOME");
+        
         // Validate config.
         List<String> problems = ConfigurationValidator.validate( configuration );
         if( !problems.isEmpty() ){
