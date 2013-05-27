@@ -16,6 +16,8 @@ import org.w3c.dom.Document;
 
 import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.conf.GlobalConfiguration;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.
@@ -36,6 +38,14 @@ public class MigrationContext {
     // TBC: Roman said there are cases when the same file is suggested for copying by multiple migrators?
 
 
+    // Global conf
+    private final Configuration conf;
+    
+    private List<DeploymentInfo> deploymentInfos = new LinkedList();
+    
+    
+    // AS 7 related
+    
     private Document as7ConfigXmlDoc;
     private Document as7ConfigXmlDocOriginal;
 
@@ -44,14 +54,13 @@ public class MigrationContext {
     
     private ModelControllerClient as7Client;
 
-    private final AS7Config as7Config;
+    //private final AS7Config as7Config;
     
-    private List<DeploymentInfo> deploymentInfos = new LinkedList();
             
     
 
-    public MigrationContext( AS7Config as7Config ) {
-        this.as7Config = as7Config;
+    public MigrationContext( Configuration conf ) {
+        this.conf = conf;
     }
 
 
@@ -71,11 +80,16 @@ public class MigrationContext {
     public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
     public ModelControllerClient getAS7Client() { return as7Client; }
 
-    public AS7Config getAs7Config() { return as7Config; }
+    public AS7Config getAs7Config() { return conf.getGlobal().getAS7Config(); }
 
     public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
     public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
 
     //</editor-fold>
+
+
+    public Configuration getConf() {
+        return this.conf;
+    }
     
 }// class

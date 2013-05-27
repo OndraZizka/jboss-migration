@@ -74,12 +74,12 @@ public class MigratorEngine {
     public MigratorEngine( Configuration config ) throws InitMigratorsExceptions {
         this.config = config;
         this.init();
-        this.resetContext( config.getGlobal().getAS7Config() );
+        this.resetContext( config );
     }
     
     /**  Creates a brand new fresh clear context. */
-    private void resetContext( AS7Config as7Config ) {
-        this.ctx = new MigrationContext( as7Config );
+    private void resetContext( Configuration config ) {
+        this.ctx = new MigrationContext( config );
     }
 
     
@@ -200,10 +200,9 @@ public class MigratorEngine {
         
         log.info("Commencing migration.");
         
-        AS7Config as7Config = config.getGlobal().getAS7Config();
         boolean dryRun = config.getGlobal().isDryRun();
 
-        this.resetContext( as7Config );
+        this.resetContext( config );
         
 
         // Parse AS 7 config. Not needed anymore - we use CLI.
