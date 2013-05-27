@@ -201,6 +201,7 @@ public class MigratorEngine {
         log.info("Commencing migration.");
         
         AS7Config as7Config = config.getGlobal().getAS7Config();
+        boolean dryRun = config.getGlobal().isDryRun();
 
         this.resetContext( as7Config );
         
@@ -237,10 +238,13 @@ public class MigratorEngine {
                 message = "Failed performing the migration actions.";
                 this.performActions();
 
-                message = "Verification of migration actions results failed.";
-                this.postValidateActions();
+                if( ! dryRun ){
+                    message = "Verification of migration actions results failed.";
+                    this.postValidateActions();
+                }
             }
             finally {
+                message = "Cleaning backups of migration actions failed.";
                 this.cleanBackupsIfAny();
             }
             
