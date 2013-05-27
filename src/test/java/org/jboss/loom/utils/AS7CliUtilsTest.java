@@ -24,7 +24,7 @@ public class AS7CliUtilsTest {
         
         String str = AS7CliUtils.formatCommand( cmd );
         
-        Assert.assertEquals( "/foo=a/bar=b/:do-something(param1=\"val1\",param2=\"val2\")", str);
+        Assert.assertEquals( "/foo=a/bar=b:do-something(param1=\"val1\",param2=\"val2\")", str);
         
     }
     
