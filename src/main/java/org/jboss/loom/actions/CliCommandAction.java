@@ -94,7 +94,8 @@ public class CliCommandAction extends AbstractStatefulAction {
             // Remove the pre-existing node.
             ModelNode remCmd = AS7CliUtils.createRemoveCommandForResource( this.command.getRequest() );
             //log.debug("\n    Adding REMOVE operation: " + remCmd);
-            getMigrationContext().getBatch().add( new BatchedCommandWithAction( this, remCmd.asString(), remCmd) );
+            String desc = AS7CliUtils.formatCommand( remCmd ); //remCmd.asString();
+            getMigrationContext().getBatch().add( new BatchedCommandWithAction( this, desc, remCmd) );
         }
         
         // Perform.
