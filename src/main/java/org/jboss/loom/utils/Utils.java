@@ -127,7 +127,7 @@ public class Utils {
     }
 
     private static File lookForJarWithAClass(File dir, String classFilePath) throws IOException {
-        log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath);
+        log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath.replace('/', '.'));
         if( ! dir.isDirectory() ){
             log.trace("    Not a directory: " +  dir.getPath());
             return null;
