@@ -33,12 +33,13 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import org.jboss.loom.actions.ManualAction;
 
 /**
  * User: rsearls
  * Date: 4/18/13
  */
-public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
+public class StandaloneDeploymentScannerAction extends ManualAction {
 
     List<StandaloneDeploymentScannerType> dList =
         new ArrayList<StandaloneDeploymentScannerType>();
@@ -93,101 +94,25 @@ public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
 
     @Override
     public void perform() throws MigrationException {
-        try {
 
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            String exp = "/server/profile/subsystem/deployment-scanner";
-            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
-                XPathConstants.NODESET);
-
-            if (nList.getLength() > 0) {
-
-                JAXBContext jaxbCtx = JAXBContext.newInstance(
-                    StandaloneDeploymentScannerType.class);
-                Marshaller marshaller = jaxbCtx.createMarshaller();
-
-                for (StandaloneDeploymentScannerType sType : dList) {
-
-                    // transform data into DOM obj for insertion
-                    Document tmpDoc = docBuilder.newDocument();
-                    marshaller.marshal(sType, tmpDoc);
-
-                    Node newChild = destDoc.adoptNode(
-                        tmpDoc.getDocumentElement().cloneNode(true));
-                    nList.item(0).appendChild(newChild);
-                }
-
-            } else {
-                throw new MigrationException(
-                    "deployment-scanner subsystem  element not found in file: "
-                    + destDoc.getBaseURI());
-            }
-
-            setState(State.DONE);
-
-        } catch (JAXBException e) {
-            throw new MigrationException(e);
-        } catch(XPathExpressionException xee) {
-            throw new MigrationException(xee);
-        }
+        setState(State.DONE);
     }
 
 
     @Override
     public void rollback() throws MigrationException {
-
-        if (rootNodeBackup == null) {
-            throw new MigrationException("No backup data to rollback to.");
-        } else {
-            destDoc = rootNodeBackup;
-        }
-
         setState(State.ROLLED_BACK);
     }
 
 
     @Override
     public void postValidate() throws MigrationException {
-
-        try {
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            String exp = "/server/profile/subsystem/deployment-scanner";
-            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
-                XPathConstants.NODESET);
-
-            if (!(nList.getLength() >= dList.size())){
-                throw new MigrationException(
-                    "new deployment-scanner elements not successfully added to the subsystem.");
-            }
-
-        } catch (XPathExpressionException xee) {
-            throw new MigrationException(xee);
-        }
     }
 
 
     @Override
     public void backup() throws MigrationException {
-
-        // make a backup copy of the doc
-        try {
-
-            TransformerFactory tFactory = TransformerFactory.newInstance();
-            Transformer transformer = tFactory.newTransformer();
-            DOMSource xmlDomSource = new DOMSource(destDoc);
-            DOMResult domResult = new DOMResult();
-            transformer.transform(xmlDomSource, domResult);
-
-            rootNodeBackup = (Document)domResult.getNode();
-
-            setState(State.BACKED_UP);
-        } catch (TransformerConfigurationException e) {
-            System.out.println(e);
-        } catch (TransformerException te) {
-            System.out.println(te);
-        }
+        setState(State.BACKED_UP);
     }
 
 
@@ -196,8 +121,4 @@ public class StandaloneDeploymentScannerAction extends AbstractStatefulAction{
         setState(State.FINISHED);
     }
 
-    @Override
-    public String toDescription() {
-        return "";
-    }
 }
