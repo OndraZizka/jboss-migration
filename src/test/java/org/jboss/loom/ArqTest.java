@@ -28,7 +28,7 @@ public class ArqTest {
      */
     @Test @Category( AS.class )
     @RunAsClient
-    //@Ignore
+    @Ignore
     public void test_AS_510_all( /*@ArquillianResource ManagementClient client*/ ) throws Exception {
                 
         Configuration conf = TestAppConfig.createTestConfig_AS_510_all();
@@ -62,7 +62,6 @@ public class ArqTest {
      */
     @Test @Category( EAP.class )
     @RunAsClient
-    @Ignore
     public void test_EAP_520_production( ) throws Exception {
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
@@ -79,11 +78,28 @@ public class ArqTest {
      */
     @Test @Category( EAP.class )
     @RunAsClient
-    @Ignore
     public void testDryRun_EAP_520_production( ) throws Exception {
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
         conf.getGlobal().setDryRun( true );
+        updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
+        
+        TestAppConfig.announceMigration( conf );
+        ConfigurationValidator.validate( conf );
+        MigratorEngine migrator = new MigratorEngine(conf);
+        migrator.doMigration();
+    }
+    
+    /**
+     *   EAP 5.2.0, with JBOSS_HOME (which should be ignored) set.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    //@Ignore
+    public void testJBOSS_HOME() throws Exception {
+
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+        System.setProperty("JBOSS_HOME", "/foo/bar");
         updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
         TestAppConfig.announceMigration( conf );
