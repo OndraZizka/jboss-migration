@@ -128,6 +128,11 @@ public class MigratorApp {
                 continue;
             }
 
+            if( arg.equals("dry") || arg.equals("dryRun") || arg.equals("dry-run") ) {
+                globalConfig.setDryRun(true);
+                continue;
+            }
+
             // Module-specific configurations.
             // TODO: Process by calling IMigrator instances' callback.
             if (arg.startsWith("conf.")) {

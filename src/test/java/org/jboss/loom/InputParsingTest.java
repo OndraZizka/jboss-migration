@@ -39,6 +39,18 @@ public class InputParsingTest extends TestCase {
         doTest( args );
     }
 
+    public void testParseWithDryRun(){
+        String[] args = new String[]{
+            "src.dir=testdata/as5configs/01_510all",
+            "src.profile=all",
+            "dest.dir=testdata/as7mock",
+            "dest.conf.file=standalone/configuration/standalone-foo.xml",
+            "dryRun",
+        };
+        Configuration conf = doTest( args );
+        assertTrue( conf.getGlobal().isDryRun() );
+    }
+
     public void testParseNegative(){
         String[] args = new String[]{
             "src.dir=BAAAAAAH!",
@@ -54,8 +66,8 @@ public class InputParsingTest extends TestCase {
     }
     
 
-    private void doTest( String[] args ) {
-        parseAndValidate( args );
+    private Configuration doTest( String[] args ) {
+        return parseAndValidate( args );
     }
     
     private void doNegativeTest( String[] args ) {
@@ -68,7 +80,7 @@ public class InputParsingTest extends TestCase {
         }
     }
 
-    private void parseAndValidate( String[] args ) {
+    private Configuration parseAndValidate( String[] args ) {
         
         Configuration conf = MigratorApp.parseArguments( args );
         List<String> problems = ConfigurationValidator.validate( conf );
@@ -79,6 +91,8 @@ public class InputParsingTest extends TestCase {
                 sb.append( problem ).append("\n");
             throw new IllegalArgumentException( sb.toString() );
         }
+        
+        return conf;
     }
 
 

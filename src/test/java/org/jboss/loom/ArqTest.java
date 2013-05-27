@@ -88,5 +88,33 @@ public class ArqTest {
         migrator.doMigration();
     }
     
+    /**
+     *   EAP 5.2.0, dry run.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    @Ignore
+    public void testDryRun_EAP_520_production( ) throws Exception {
+
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+        conf.getGlobal().setDryRun( true );
+        
+        AS7Config as7Config = conf.getGlobal().getAS7Config();
+        
+        ModelControllerClient as7client = ModelControllerClient.Factory.create(as7Config.getHost(), as7Config.getManagementPort());
+        
+        // Query for the server path.
+        String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
+        if( as7Dir != null )  // AS 7.1.1 doesn't define it.
+            conf.getGlobal().getAS7Config().setDir( as7Dir );
+        
+        TestAppConfig.announceMigration( conf );
+        
+        ConfigurationValidator.validate( conf );
+        
+        MigratorEngine migrator = new MigratorEngine(conf);
+        migrator.doMigration();
+    }
+    
         
 }// class

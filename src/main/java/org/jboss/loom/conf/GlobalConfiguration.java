@@ -32,36 +32,26 @@ public class GlobalConfiguration {
     // Non-server stuff
     private Set<String> appPaths = new HashSet();
 
-    private boolean skipValidation;
+    private boolean skipValidation = false;
+    
+    private boolean dryRun = false;
 
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public AS7Config getAS7Config() {
-        return as7Config;
-    }
+    public AS7Config getAS7Config() { return as7Config; }
     //public void setAS7Config(AS7Config as7Config) { this.as7Config = as7Config; }
 
-    public AS5Config getAS5Config() {
-        return as5config;
-    }
+    public AS5Config getAS5Config() { return as5config; }
     //public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
-    public Set<String> getDeploymentsPaths() {
-        return appPaths;
-    }
-
-    public void addDeploymentPath(String deplPath) {
-        this.appPaths.add( deplPath );
-    }
-
-    public boolean isSkipValidation() {
-        return skipValidation;
-    }
-
-    public void setSkipValidation(boolean skipValidation) {
-        this.skipValidation = skipValidation;
-    }
+    public Set<String> getDeploymentsPaths() { return appPaths; }
+    public void addDeploymentPath(String deplPath) { this.appPaths.add( deplPath ); }
+    public boolean isSkipValidation() { return skipValidation; }
+    public void setSkipValidation(boolean skipValidation) { this.skipValidation = skipValidation; }
+    public boolean isDryRun() { return dryRun; }
+    public void setDryRun( boolean dryRun ) { this.dryRun = dryRun; }
     //</editor-fold>
+
 
 
 }// class

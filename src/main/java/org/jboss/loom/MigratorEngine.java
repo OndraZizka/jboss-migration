@@ -29,7 +29,6 @@ import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.as7.BatchFailure;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;
 import org.jboss.loom.migrators.deploymentScanner.DeploymentScannerMigrator;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.eclipse.persistence.exceptions.JAXBException;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.slf4j.Logger;
@@ -348,6 +347,11 @@ public class MigratorEngine {
     private void performActions() throws MigrationException {
         log.debug("======== performActions() ========");
         
+        boolean dryRun = config.getGlobal().isDryRun();
+        if(dryRun)
+            log.info("\n** This is a DRY RUN, operations are not really performed, only prepared and listed. **\n");
+        String dryPrefix = dryRun ? "(DRY RUN) " : "";
+        
         // Clear CLI commands, should there be any.
         ctx.getBatch().clear();
         
@@ -360,27 +364,31 @@ public class MigratorEngine {
         List<CliCommandAction> cliActions = new LinkedList();
 
         // Perform the actions.
-        log.info("Performing actions:");
+        log.info(dryPrefix + "Performing actions:");
         for( IMigrationAction action : sorted ) {
             if( action instanceof CliCommandAction )
                 cliActions.add((CliCommandAction) action);
         
             log.info("    " + action.toDescription());
             action.setMigrationContext(ctx); // Again. To be sure.
-            action.perform();
+            
+            // On dry run, CliCommandActions can still be performed as they only add to the batch.
+            if( (action instanceof CliCommandAction) ||  ! dryRun )
+                action.perform();
         }
         
-        /// DEBUG: Dump created CLI scripts
-        log.debug("CLI scripts in batch:");
+        /// DEBUG: Dump created CLI operations
+        log.debug(dryPrefix + "Management operations in batch:");
         int i = 1;
         for( BatchedCommand command : ctx.getBatch().getCommands() ){
             log.debug("    " + i++ + ": " + command.getCommand());
         }
 
         // Execution
-        log.debug("Executing CLI batch:");
+        log.debug(dryPrefix + "Executing CLI batch:");
         try {
-            AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
+            if( ! dryRun )
+                AS7CliUtils.executeRequest( ctx.getBatch().toRequest(), config.getGlobal().getAS7Config() );
         }
         catch( CliBatchException ex ){
             //Integer index = AS7CliUtils.parseFailedOperationIndex( ex.getResponseNode() );
