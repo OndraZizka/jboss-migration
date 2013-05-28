@@ -49,7 +49,8 @@ public class MigratorApp {
         applyDefaults( configuration );
         
         // MIGR-84
-        System.clearProperty("JBOSS_HOME");
+        if( null != System.getenv("JBOSS_HOME") );
+            log.warn("JBOSS_HOME is set, might cause the migration to fail. Unset if you run in trouble.");
         
         // Validate config.
         List<String> problems = ConfigurationValidator.validate( configuration );
