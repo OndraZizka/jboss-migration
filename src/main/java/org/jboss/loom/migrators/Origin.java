@@ -21,14 +21,20 @@ public class Origin {
         this.file = file;
     }
 
+
+    public Origin( File docFile, String part ) {
+        this.file = file;
+        this.part = part;
+    }
+
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getServer() { return server; }
-    public void setServer( String server ) { this.server = server; }
+    public Origin setServer( String server ) { this.server = server; return this; }
     public File getFile() { return file; }
-    public void setFile( File file ) { this.file = file; }
+    public Origin setFile( File file ) { this.file = file; return this; }
     public String getPart() { return part; }
-    public void setPart( String part ) { this.part = part; }
+    public Origin setPart( String part ) { this.part = part; return this; }
     //</editor-fold>
     
     
@@ -36,9 +42,8 @@ public class Origin {
      *  For config data beans which know where did they come from.
      */
     public interface Wise {
-        
         Origin getOrigin();
-        
+        Object setOrigin( Origin origin );
     }    
     
     

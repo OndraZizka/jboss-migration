@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
+import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 
 /**
@@ -48,7 +49,7 @@ import org.jboss.loom.spi.IConfigFragment;
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "mbean")
-public final class JaxrConfigBean implements IConfigFragment {
+public final class JaxrConfigBean implements IConfigFragment, Origin.Wise {
     
     @XmlAttribute(name = "name") 
     private String mbeanName;
@@ -87,18 +88,6 @@ public final class JaxrConfigBean implements IConfigFragment {
     @XmlPath("attribute[@name='DropDB']/@value")
     private boolean DropDB = false; 
 
-    
-    
-    /**
-     * Wrapper for the List.
-     */
-    @XmlRootElement(name = "server")
-    public static final class Wrap {
-        
-        @XmlElement(name = "mbean")
-        List<JaxrConfigBean> mailBeans = Collections.EMPTY_LIST;
-        
-    }
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -122,5 +111,11 @@ public final class JaxrConfigBean implements IConfigFragment {
     public boolean isDropDB() { return DropDB; }
     public void setDropDB( boolean DropDB ) { this.DropDB = DropDB; }
     //</editor-fold>
+
+    
+    // Origin
+    private Origin origin;
+    @Override public Origin getOrigin() { if( origin == null ) origin = new Origin( null ); return origin; }
+    public JaxrConfigBean setOrigin( Origin origin ) { this.origin = origin; return this; }
     
 }// class
