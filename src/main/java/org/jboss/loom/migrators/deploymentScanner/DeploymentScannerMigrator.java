@@ -283,39 +283,37 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
      * @param as5Config
      * @return
      */
-    private int getScanPeriod(AS5Config  as5Config) throws LoadMigrationException {
+    private int getScanPeriod(AS5Config as5Config) throws LoadMigrationException {
 
         int result = 5000;  // AS5 default value
 
         try {
-
-            File f = Utils.createPath(as5Config.getDir(), "server",
-                as5Config.getProfileName(), "deploy", "hdscanner-jboss-beans.xml");
+            File f = Utils.createPath(as5Config.getDeployDir(), "hdscanner-jboss-beans.xml");
 
             DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
             Document doc = docBuilder.parse(f);
 
-
+            // Get the data into a JAXB bean.
             XPath xpath = XPathFactory.newInstance().newXPath();
             String exp = "/deployment/bean/property[@name='scanPeriod']";
             Node node = (Node) xpath.evaluate(exp, doc, XPathConstants.NODE);
-
-            if (node != null) {
-                JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyType.class);
-                Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-
-                PropertyType pType = (PropertyType) unmarshaller.unmarshal(node);
-                List<Serializable> contentList = pType.getContent();
-                if (contentList.size() > 0) {
-                    Serializable s = contentList.get(0);
-                    if (s instanceof String){
-                        result = Integer.parseInt((String)s);
-                        log.trace("scanPeriod: " + result);
-                    }
-                }
+            if( node == null )
+                return result;
+            JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyType.class);
+            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+            PropertyType pType = (PropertyType) unmarshaller.unmarshal(node);
+            
+            List<Serializable> contentList = pType.getContent();
+            if( contentList.isEmpty() ) 
+                return result;
+            
+            Serializable s = contentList.get(0);
+            if( s instanceof String ){
+                result = Integer.parseInt((String)s);
+                log.trace("scanPeriod: " + result);
             }
-
-        } catch (JAXBException | SAXException | IOException | XPathExpressionException e) {
+        }
+        catch (JAXBException | SAXException | IOException | XPathExpressionException e) {
             throw new LoadMigrationException(e);
         }
         return result;
