@@ -50,8 +50,9 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         // Could be better, e.g. first non-constructor after 2.
     }
 
-    public void addWarning(String text) {
+    public AbstractStatefulAction addWarning(String text) {
         warnings.add(text);
+        return this;
     }
 
     
