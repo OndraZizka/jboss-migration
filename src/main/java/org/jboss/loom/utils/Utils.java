@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 import org.apache.commons.io.DirectoryWalker;
 
 /**
@@ -226,6 +227,12 @@ public class Utils {
     public static DocumentBuilder createXmlDocumentBuilder() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
+        String feat = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+        try {
+            dbf.setFeature(feat, false);
+        } catch( ParserConfigurationException ex ) {
+            log.warn("Couldn't set "+feat+" to false. The parser may attempt to load DTD.");
+        }
         try {
             return dbf.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
