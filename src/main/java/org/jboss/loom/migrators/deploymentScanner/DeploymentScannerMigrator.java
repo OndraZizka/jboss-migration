@@ -8,7 +8,7 @@
 package org.jboss.loom.migrators.deploymentScanner;
 
 import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.actions.CliCommandAction;

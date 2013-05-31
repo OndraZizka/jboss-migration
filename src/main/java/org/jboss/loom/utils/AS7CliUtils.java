@@ -7,7 +7,7 @@
  */
 package org.jboss.loom.utils;
 
-import org.jboss.loom.CliApiCommandBuilder;
+import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ex.CliBatchException;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.ex.MigrationException;
