@@ -50,6 +50,7 @@ import org.jboss.loom.actions.review.BeansXmlReview;
 import org.jboss.loom.actions.review.IActionReview;
 import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
+import org.jboss.loom.migrators.mail.MailMigrator;
 
 /**
  *  Controls the core migration processes.
@@ -168,6 +169,7 @@ public class MigratorEngine {
         migratorClasses.add( LoggingMigrator.class );
         migratorClasses.add( DeploymentScannerMigrator.class );
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
+        migratorClasses.add( MailMigrator.class );  // Warn-only impl.
         return migratorClasses;
     }
     
