@@ -51,6 +51,7 @@ import org.jboss.loom.actions.review.IActionReview;
 import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
+import org.jboss.loom.migrators.jaxr.JaxrMigrator;
 
 /**
  *  Controls the core migration processes.
@@ -170,6 +171,7 @@ public class MigratorEngine {
         migratorClasses.add( DeploymentScannerMigrator.class );
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
         migratorClasses.add( MailMigrator.class );  // Warn-only impl.
+        migratorClasses.add( JaxrMigrator.class );  // Warn-only impl.
         return migratorClasses;
     }
     
