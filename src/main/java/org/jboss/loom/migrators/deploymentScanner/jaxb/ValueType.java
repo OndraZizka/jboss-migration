@@ -9,11 +9,9 @@ package org.jboss.loom.migrators.deploymentScanner.jaxb;
 
 import org.jboss.loom.spi.IConfigFragment;
 
-import java.io.File;
 import javax.xml.bind.annotation.*;
 
 /**
- * User: rsearls
  * Date: 4/17/13
  */
 
