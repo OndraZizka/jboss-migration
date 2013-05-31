@@ -24,14 +24,17 @@ public class AS5Config {
     public static final String AS5_DEPLOY_DIR = "deploy";
     public static final String AS5_CONF_DIR = "conf";
 
+    /**  Server directory of AS 5 - "$AS5dir/server". This dir contains profiles. */
     public File getProfileDir() {
         return Utils.createPath(as5dir, AS5_PROFILES_DIR, as5profileName);
     }
 
+    /**  Deploy directory of AS 5 - "$AS5dir/server/$profile/deploy". */
     public File getDeployDir() {
         return Utils.createPath(as5dir, AS5_PROFILES_DIR, as5profileName, AS5_DEPLOY_DIR);
     }
 
+    /**  Conf directory of AS 5 - "$AS5dir/server/$profile/conf". */
     public File getConfDir() {
         return Utils.createPath(as5dir, AS5_PROFILES_DIR, as5profileName, AS5_CONF_DIR);
     }
