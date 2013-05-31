@@ -52,7 +52,7 @@ public class TestAppConfig {
         System.out.println( msg );
     }
     
-    private static String getCallingMethodName( int skipLevels ){
+    public static String getCallingMethodName( int skipLevels ){
         StackTraceElement ste = Thread.currentThread().getStackTrace()[2+skipLevels];
         return StringUtils.substringAfterLast(ste.getClassName(),".") + "." + ste.getMethodName();
     }
