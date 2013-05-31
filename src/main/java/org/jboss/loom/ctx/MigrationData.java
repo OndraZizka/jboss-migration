@@ -19,7 +19,17 @@ import java.util.List;
  */
 public class MigrationData {
 
-    private List<IConfigFragment> configFragments = new LinkedList();
+    private List<? extends IConfigFragment> configFragments;
+
+
+    public MigrationData() {
+        this.configFragments = new LinkedList();
+    }
+
+    public MigrationData( List<? extends IConfigFragment> configFragments ) {
+        this.configFragments = configFragments;
+    }
+    
 
 
     @Override
@@ -30,7 +40,7 @@ public class MigrationData {
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public List<IConfigFragment> getConfigFragments() {
-        return configFragments;
+        return (List<IConfigFragment>) configFragments;
     }
     //public void setConfigFragments(List<IConfigFragment> configFragment) { this.configFragments = configFragment; }
     //</editor-fold>
