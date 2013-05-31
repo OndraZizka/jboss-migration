@@ -121,10 +121,7 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
     public String getConnectionUrl() { return connectionUrl; }
     public void setConnectionUrl(String connectionUrl) { this.connectionUrl = connectionUrl; }
     public List<ConnectionPropertyBean> getConnectionProperties() { return connectionProperties; }
-    public void setConnectionProperties(List<ConnectionPropertyBean> connectionProperties) {
-        this.connectionProperties = connectionProperties;
-    }
-
+    public void setConnectionProperties(List<ConnectionPropertyBean> connectionProperties) { this.connectionProperties = connectionProperties; }
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getJndiName() { return jndiName; }
