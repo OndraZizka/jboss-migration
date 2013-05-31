@@ -44,7 +44,28 @@ import org.slf4j.LoggerFactory;
 import static org.jboss.loom.conf.Configuration.IfExists;
 
 /**
- * Migrator of logging subsystem implementing IMigrator
+ * Migrator of logging subsystem implementing IMigrator.
+ * 
+    <appender name="CLUSTER" class="org.jboss.logging.appender.RollingFileAppender">
+        <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+        <param name="File" value="${jboss.server.log.dir}/cluster.log"/>
+        <param name="Append" value="false"/>
+        <param name="MaxFileSize" value="500KB"/>
+        <param name="MaxBackupIndex" value="1"/>
+
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %-5p [%c] %m%n"/>
+        </layout>
+    </appender>
+    <category name="org.jgroups">
+        <priority value="WARN" />
+        <appender-ref ref="CLUSTER"/>
+    </category>
+    <category name="org.jboss.ha">
+        <priority value="INFO" />
+        <appender-ref ref="CLUSTER"/>
+    </category>
+ 
  * 
  * Conf docs: https://docs.jboss.org/author/display/AS72/Logging+Configuration
  *
@@ -129,63 +150,94 @@ public class LoggingMigrator extends AbstractMigrator {
     
     
     
+    /**
+     *  TODO: customHandlers are transformed at the end into actions.
+     *        Use a map and action dependencies instead.
+     */
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
         
-        List<CustomHandlerBean> customHandlers = new LinkedList();
+        List<AppenderBean>      appenders   = new LinkedList();
+        List<CategoryBean>      categs      = new LinkedList();
+        List<RootLoggerAS5Bean> rootLoggers = new LinkedList();
+        
+        // Sort out the fragments.
+        for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
+                 if( fragment instanceof AppenderBean )      appenders.  add( (AppenderBean) fragment);
+            else if( fragment instanceof CategoryBean )      categs.     add( (CategoryBean) fragment);
+            else if( fragment instanceof RootLoggerAS5Bean ) rootLoggers.add( (RootLoggerAS5Bean) fragment);
+            else throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+        }
+        
+        // For categories with appender-ref - use Action dependencies.
+        Map<String, IMigrationAction> appenderNamesToActions = new HashMap();
 
         // Prevent duplicate categories.
         Map<CategoryBean, IMigrationAction> categoryToAction = new HashMap();
-        
-        for( IConfigFragment fragment : ctx.getMigrationData().get(LoggingMigrator.class).getConfigFragments() ){
-            
-            // Appender
-            if (fragment instanceof AppenderBean) {
-                AppenderBean appender = (AppenderBean) fragment;
-                CustomHandlerBean customHandler = processAppenderBean( appender, ctx );
-                if( null != customHandler )
-                    customHandlers.add( customHandler );
+
+        // Appenders.
+        HashMap<File, String> tempModules = new HashMap();
+        for( AppenderBean appender : appenders) {
+                List<IMigrationAction> actions = createAppenderAction( appender, tempModules );
+                for( IMigrationAction action : actions ) {
+                    ctx.getActions().add( action );
+                    appenderNamesToActions.put( appender.getAppenderName(), action );
+                }
+        }
+
+        // Categories
+        IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.OVERWRITE);
+        for( CategoryBean catBean : categs ) {
+
+            // Skip those which already exist.
+            if( categoryToAction.containsKey( catBean ) ){
+                categoryToAction.get( catBean ).getWarnings().add("Duplicate category found: " + catBean);
                 continue;
             }
 
-            // Category
-            if( fragment instanceof CategoryBean ) {
-                CategoryBean catBean = (CategoryBean) fragment;
-                        
-                // Skip those which already exist.
-                if( categoryToAction.containsKey( catBean ) ){
-                    categoryToAction.get( catBean ).getWarnings().add("Duplicate category found: " + catBean);
-                    continue;
+            try {
+                LoggerBean categoryBean = migrateCategory( catBean );
+                CliCommandAction action = createLoggerCliAction( categoryBean, loggerIfExists );
+
+                // category/appender-ref/@ref
+                for( String appenRef : catBean.getAppenderRefs() ) {
+                    IMigrationAction appenAction = appenderNamesToActions.get( appenRef );
+                    if( null == appenAction ){
+                        action.addWarning("Unknown appender referenced in category " + catBean.getCategoryName() + ": " + appenRef);
+                        continue;
+                    }
+                    action.addDependency( appenAction );
                 }
                 
-                try {
-                    LoggerBean categoryBean = migrateCategory( catBean );
-                    IfExists loggerIfExists = parseIfExistsParam("logger."+IfExists.PARAM_NAME, IfExists.OVERWRITE);
-                    CliCommandAction action = createLoggerCliAction( ctx, categoryBean, loggerIfExists );
-                    ctx.getActions().add( action );
-                    categoryToAction.put( catBean, action ); // Prevent duplicates.
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of the Category failed: " + e.getMessage(), e);
+                ctx.getActions().add( action );
+                categoryToAction.put( catBean, action ); // Prevent duplicates.
+            }
+            catch( CliScriptException ex ) {
+                throw new MigrationException("Migration of the Category failed: " + ex.getMessage(), ex);
+            }
+        }
+
+        // Root logger
+        for( RootLoggerAS5Bean rootLogger : rootLoggers) {
+            List<CliCommandAction> actions = createRootLoggerCliAction( migrateRootLogger(rootLogger) );
+            
+            // appender-ref/@ref
+            for( String appenRef : rootLogger.getRootAppenderRefs() ) {
+                IMigrationAction appenAction = appenderNamesToActions.get( appenRef );
+                if( null == appenAction ){
+                    actions.get(0).addWarning("Unknown appender referenced in root logger: " + appenRef);
+                    continue;
                 }
-                continue;
+                actions.get(0).addDependency( appenAction );
             }
-
-            // Root logger
-            if (fragment instanceof RootLoggerAS5Bean) {
-                RootLoggerAS5Bean root = (RootLoggerAS5Bean) fragment;
-                ctx.getActions().addAll( createRootLoggerCliAction( migrateRootLogger(root) ) );
-                continue;
-            }
-
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+            ctx.getActions().addAll( actions );           
         }
+        
+    }// createActions()
 
-        HashMap<File, String> tempModules = new HashMap();
-        for (CustomHandlerBean handler : customHandlers) {
-            ctx.getActions().addAll( createCustomHandlerActions(handler, tempModules) );
-        }
-    }
-
+    
+    
+    
     /**
      * Creates Custom-Handler CliCommandAction along with ModuleCreationAction if needed
      *
@@ -195,9 +247,9 @@ public class LoggingMigrator extends AbstractMigrator {
      *          needed
      * @throws MigrationException if class cannot be found in jars in AS5 structure
      */
-    private List<IMigrationAction> createCustomHandlerActions(CustomHandlerBean handler,
-                                                              HashMap<File, String> tempModules)
+    private List<IMigrationAction> createCustomHandlerActions(CustomHandlerBean handler, HashMap<File, String> tempModules)
             throws MigrationException {
+        
         File fileJar;
         try {
             fileJar = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
@@ -248,18 +300,19 @@ public class LoggingMigrator extends AbstractMigrator {
     
 
     /**
-     *  Processes AppenderBean. Only used above.
+     *  Processes AppenderBean. Adds actions to context!
+     *  TODO: Refactor to return the action.
      */
-    private CustomHandlerBean processAppenderBean( AppenderBean appenderBean, MigrationContext ctx ) throws MigrationException {
+    private List<IMigrationAction> createAppenderAction( AppenderBean appenderBean, HashMap<File, String> tempModules ) throws MigrationException {
         
         // Selection of classes which are stored in log4j or jboss logging jars.
         String cls = appenderBean.getAppenderClass();
         if( ! (cls.startsWith("org.apache.log4j") || cls.startsWith("org.jboss.logging.appender")) ){
-            
             // Selection of classes which are created by the user
             // In situation that the user creates own class with same name as classes in log4j or jboss logging => CustomHandler
             // Module for these handlers must be set with creation of ModuleCreationAction
-            return createCustomHandler(appenderBean, true);
+            CustomHandlerBean handler = createCustomHandler(appenderBean, true);
+            return createCustomHandlerActions(handler, tempModules);
         }
             
 
@@ -269,11 +322,11 @@ public class LoggingMigrator extends AbstractMigrator {
 
             switch( appenderType ) {
                 case "DailyRollingFileAppender":{
-                    PerRotFileHandlerBean handler = createPerRotFileHandler(appenderBean, ctx);
+                    PerRotFileHandlerBean handler = createPerRotFileHandler(appenderBean);
                     action = createPerRotHandlerCliAction(handler);
                 } break;
                 case "RollingFileAppender":{
-                    SizeRotFileHandlerBean handler = createSizeRotFileHandler(appenderBean, ctx);
+                    SizeRotFileHandlerBean handler = createSizeRotFileHandler(appenderBean);
                     action = createSizeRotHandlerCliAction(handler);
                 } break;
                 case "ConsoleAppender":{
@@ -293,14 +346,15 @@ public class LoggingMigrator extends AbstractMigrator {
                 }
             }
 
-            ctx.getActions().add( action );
-        } catch (CliScriptException e) {
+            return (List) Collections.singletonList( action );
+        }
+        catch (CliScriptException e) {
             throw new MigrationException("Migration of the appender " + appenderBean.getAppenderName() + " failed: " + e.getMessage(), e);
         }
-        return null;
 
     }// processAppenderBean()
 
+    
     /**
      * Migrates a Category from AS5 into Logger in AS7
      *
@@ -312,7 +366,7 @@ public class LoggingMigrator extends AbstractMigrator {
 
         logger.setLoggerCategory(category.getCategoryName());
         logger.setLoggerLevelName(category.getCategoryValue());
-        logger.setHandlers(category.getAppenderRef());
+        logger.setHandlers(category.getAppenderRefs());
 
         return logger;
     }
@@ -345,7 +399,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param ctx      migration context
      * @return migrated Periodic-Rotating-File-Handler object
      */
-    static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+    static PerRotFileHandlerBean createPerRotFileHandler(AppenderBean appender) {
         
         PerRotFileHandlerBean handler = new PerRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
@@ -386,7 +440,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param ctx      migration context
      * @return migrated Size-Rotating-File-Handler object
      */
-    static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender, MigrationContext ctx) {
+    static SizeRotFileHandlerBean createSizeRotFileHandler(AppenderBean appender) {
         
         SizeRotFileHandlerBean handler = new SizeRotFileHandlerBean();
         handler.setName(appender.getAppenderName());
@@ -498,7 +552,7 @@ public class LoggingMigrator extends AbstractMigrator {
      * @param custom  true if appender class is created by user, false if it is declared in log4j or jboss logging
      * @return migrated Custom-Handler object
      */
-    static CustomHandlerBean createCustomHandler(AppenderBean appender, Boolean custom) {
+    static CustomHandlerBean createCustomHandler( AppenderBean appender, boolean custom ) {
         
         CustomHandlerBean handler = new CustomHandlerBean();
         handler.setName(appender.getAppenderName());
@@ -551,14 +605,9 @@ public class LoggingMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the logger are missing or
      *                            are empty (loggerCategory)
      */
-    static CliCommandAction createLoggerCliAction( MigrationContext ctx, LoggerBean logger, IfExists ifExists) throws CliScriptException {
+    static CliCommandAction createLoggerCliAction( LoggerBean logger, IfExists ifExists) throws CliScriptException {
         String errMsg = " in logger(Category in AS5) must be set.";
         Utils.throwIfBlank(logger.getLoggerCategory(), errMsg, "Logger name");
-
-        // ModelNode
-        ModelNode loggerCmd = new ModelNode();
-        loggerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
-        loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
         
         // First, check if it exists. If so, delete first.
         switch( ifExists ){
@@ -577,7 +626,16 @@ public class LoggingMigrator extends AbstractMigrator {
                 throw new CliScriptException("Failed removing resource '"+AS7CliUtils.formatCommand( loggerCmd )+"': " + ex.getMessage(), ex );
             }/**/
         }
-
+        
+        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), createLoggerCommand(logger, ifExists))
+                .setIfExists( ifExists );
+    }
+    
+    private static ModelNode createLoggerCommand( LoggerBean logger, IfExists ifExists ){
+        // ModelNode
+        ModelNode loggerCmd = new ModelNode();
+        loggerCmd.get(ClientConstants.OP_ADDR).add("subsystem","logging");
+        loggerCmd.get(ClientConstants.OP_ADDR).add("logger", logger.getLoggerCategory());
         
         // ADD
         loggerCmd.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -595,10 +653,10 @@ public class LoggingMigrator extends AbstractMigrator {
         CliApiCommandBuilder builder = new CliApiCommandBuilder(loggerCmd);
         builder.addPropertyIfSet("level", logger.getLoggerLevelName());
         builder.addPropertyIfSet("use-parent-handlers", logger.getUseParentHandlers());
-
-        return new CliCommandAction( LoggingMigrator.class, createLoggerScript(logger), builder.getCommand())
-                .setIfExists( ifExists );
+        
+        return builder.getCommand();
     }
+
 
     
     /**

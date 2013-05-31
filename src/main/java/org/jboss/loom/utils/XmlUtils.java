@@ -13,6 +13,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.mail.MailServiceBean;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -51,6 +52,15 @@ public class XmlUtils {
             throw new MigrationException("Failed parsing bean from a XML file " + docFile.getPath() + ": " + ex.getMessage(), ex);
         }
         return beans;
+    }
+    
+    public static void main( String[] args ) throws MigrationException {
+        List<MailServiceBean> beans = unmarshallBeans( 
+            new File("/home/ondra/work/AS/Migration/git-repo/testdata/as5configs/01_510all/server/all/deploy/mail-service.xml"), 
+            "/server/mbean[@code='org.jboss.mail.MailService']", MailServiceBean.class);
+        for( MailServiceBean ms : beans) {
+            System.out.println( ms.getJndiName() );
+        }
     }
     
 }// class
