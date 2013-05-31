@@ -7,42 +7,27 @@
  */
 package org.jboss.loom.migrators.deploymentScanner;
 
-import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.StandaloneDeploymentScannerType;
-import org.jboss.loom.utils.Utils;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 import org.jboss.loom.actions.ManualAction;
 
 /**
- * User: rsearls
- * Date: 4/18/13
+ * @author: rsearls
  */
 public class StandaloneDeploymentScannerAction extends ManualAction {
 
-    List<StandaloneDeploymentScannerType> dList =
-        new ArrayList<StandaloneDeploymentScannerType>();
+    List<StandaloneDeploymentScannerType> dList = new LinkedList();
     File destFile;
     Document destDoc;
     Document rootNodeBackup = null;
@@ -65,28 +50,23 @@ public class StandaloneDeploymentScannerAction extends ManualAction {
     public void preValidate() throws MigrationException {
 
         if (destFile == null || !destFile.exists()){
-            throw new MigrationException(
-                "Destination configuration file " +
+            throw new MigrationException( "Destination configuration file " +
                     ((destFile == null)? "name is NULL." : destFile.getAbsolutePath() + " is not found."));
-        } else if (!destFile.canWrite()){
-            throw new MigrationException("No write permissions for file "
-                + destFile.getAbsolutePath());
+        }
+        else if (!destFile.canWrite()){
+            throw new MigrationException("No write permissions for file " + destFile.getAbsolutePath());
         }
 
         // confirm required xml element
         try {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String exp = "/server/profile/subsystem/deployment-scanner";
-            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc,
-                XPathConstants.NODESET);
+            NodeList nList = (NodeList) xpath.evaluate(exp, destDoc, XPathConstants.NODESET);
 
-            if (nList.getLength() == 0) {
-                throw new MigrationException(
-                    "deployment-scanner subsystem not found in file: "
-                    + destDoc.getBaseURI());
-            }
-
-        } catch (XPathExpressionException e) {
+            if( nList.getLength() == 0 )
+                throw new MigrationException("deployment-scanner subsystem not found in file: " + destDoc.getBaseURI());
+        }
+        catch( XPathExpressionException e ) {
             throw new MigrationException(e);
         }
     }
@@ -94,7 +74,6 @@ public class StandaloneDeploymentScannerAction extends ManualAction {
 
     @Override
     public void perform() throws MigrationException {
-
         setState(State.DONE);
     }
 
@@ -120,5 +99,4 @@ public class StandaloneDeploymentScannerAction extends ManualAction {
     public void cleanBackup() {
         setState(State.FINISHED);
     }
-
 }
