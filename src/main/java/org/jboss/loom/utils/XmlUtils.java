@@ -29,7 +29,10 @@ public class XmlUtils {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger( XmlUtils.class );
     
     public static <T> T unmarshallBean( File docFile, String xpath, Class<T> cls ) throws MigrationException{
-        return unmarshallBeans( docFile, xpath, cls ).get(0);
+        List<T> beans = unmarshallBeans( docFile, xpath, cls );
+        if( beans.isEmpty() )
+            throw new MigrationException("XPath "+xpath+" returned no nodes from " + docFile);
+        return beans.get(0);
     }
     
     /**
