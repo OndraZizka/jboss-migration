@@ -39,8 +39,8 @@ public class MigrationData {
 
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public List<IConfigFragment> getConfigFragments() {
-        return (List<IConfigFragment>) configFragments;
+    public <T extends IConfigFragment> List<T> getConfigFragments() {
+        return (List<T>) configFragments;
     }
     //public void setConfigFragments(List<IConfigFragment> configFragment) { this.configFragments = configFragment; }
     //</editor-fold>
