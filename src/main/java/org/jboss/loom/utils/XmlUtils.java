@@ -73,6 +73,11 @@ public class XmlUtils {
     }
     
     
+    /**
+     *  Reads given XML file, finds the first node matching given XPath, and reads them using given JAXB class.
+     * @param confAreaDesc  Used for exception message.
+     * @throws MigrationException wrapping any Exception.
+     */
     public static <T> T readXmlConfigFile( File file, String xpath, Class<T> cls, String confAreaDesc) throws MigrationException{
         T bean;
         try {
