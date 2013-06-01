@@ -1,5 +1,6 @@
 package org.jboss.loom.migrators.remoting;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 /**
@@ -77,6 +78,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlRootElement(name = "bean")
 public class RemotingConfigPojoBean extends RemotingConfigBean {
     
     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='marshaller']]/value/text()")
