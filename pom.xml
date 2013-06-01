@@ -126,10 +126,6 @@
     
     <repositories>
         <repository>
-            <id>EclipseLink</id>
-            <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
-        </repository>
-        <repository>
             <id>JBoss</id>
             <url>http://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
