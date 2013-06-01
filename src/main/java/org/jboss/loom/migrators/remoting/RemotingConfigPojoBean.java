@@ -40,6 +40,8 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
             <!-- Selected optional parameters: -->
 
             <!-- Parameters for connecting from outside of a firewall. -->
+     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
+     @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
             <!--entry><key>clientConnectAddress</key> <value>a.b.c.d</value></entry-->
             <!--entry><key>clientConnectPort</key>    <value>7777</value></entry-->
 
@@ -82,17 +84,17 @@ public class RemotingConfigPojoBean extends RemotingConfigBean {
      @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='marshaller']]/value/text()")
      @Override public String getMarshaller() { return super.getMarshaller(); }
      
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='unmarshaller']]/value/text()")
+     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='unmarshaller']]/value/text()")
      @Override public String getUnmarshaller() { return super.getUnmarshaller(); }
 
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/constructor/parameter/text()")
+     @XmlPath("constructor/parameter/text()")
      @Override public String getProtocol() { return super.getProtocol(); }
      
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
+     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
      @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
      // ${host} ;  calls ServiceBindingManager.getStringBinding()
      
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
+     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
      @Override public String getServerBindPort() { return super.getServerBindPort(); }
      // ${port}   ;  calls ServiceBindingManager.getStringBinding()
      
