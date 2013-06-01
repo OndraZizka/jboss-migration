@@ -52,6 +52,7 @@ import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
 import org.jboss.loom.migrators.jaxr.JaxrMigrator;
+import org.jboss.loom.migrators.remoting.RemotingMigrator;
 
 /**
  *  Controls the core migration processes.
@@ -172,6 +173,7 @@ public class MigratorEngine {
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
         migratorClasses.add( MailMigrator.class );  // Warn-only impl.
         migratorClasses.add( JaxrMigrator.class );  // Warn-only impl.
+        migratorClasses.add( RemotingMigrator.class );  // Warn-only impl.
         return migratorClasses;
     }
     
@@ -486,7 +488,7 @@ public class MigratorEngine {
      *
      * @throws LoadMigrationException
      */
-    private void loadAS5Data() throws LoadMigrationException {
+    private void loadAS5Data() throws MigrationException {
         log.debug("======== loadAS5Data() ========");
         try {
             for (IMigrator mig : this.migrators) {

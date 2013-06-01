@@ -69,6 +69,19 @@ public class XmlUtils {
         return beans;
     }
     
+    
+    public static <T> T readXmlConfigFile( File file, String xpath, Class<T> cls, String confAreaDesc) throws MigrationException{
+        T bean;
+        try {
+            bean = XmlUtils.unmarshallBean( file, xpath, cls);
+        } catch( Exception ex ) {
+            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+": " + ex.getMessage(), ex);
+        }
+        return bean;
+    }
+
+    
+    
     public static void main( String[] args ) throws MigrationException {
         List<MailServiceBean> beans = unmarshallBeans( 
             new File("/home/ondra/work/AS/Migration/git-repo/testdata/as5configs/01_510all/server/all/deploy/mail-service.xml"), 

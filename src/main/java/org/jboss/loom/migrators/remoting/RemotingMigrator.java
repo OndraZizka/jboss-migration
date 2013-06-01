@@ -33,45 +33,30 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadAS5Data( MigrationContext ctx ) throws MigrationException {
         
         RemotingConfigBean megs;
         RemotingConfigPojoBean ejb2;
         RemotingConfigPojoBean ejb3;
         
-        {
-            // Messaging - MBean.
-            File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "messaging/remoting-bisocket-service.xml");
-            try {
-                megs = XmlUtils.unmarshallBean( confFile, "/server/mbean[@code='org.jboss.remoting.transport.Connector']", RemotingConfigBean.class);
-            } catch( Exception ex ) {
-                throw new LoadMigrationException("Failed loading Messaging remoting config from "+confFile.getPath()+": " + ex.getMessage(), ex);
-            }
-        }
-        {
-            // EJB2 - POJO.
-            File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "remoting-jboss-beans.xml");
-            try {
-                ejb2 = XmlUtils.unmarshallBean( confFile, "bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class);
-            } catch( Exception ex ) {
-                throw new LoadMigrationException("Failed loading EJB2 remoting config from "+confFile.getPath()+": " + ex.getMessage(), ex);
-            }
-        }
-        {
-            // EJB3 - POJO.
-            File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "ejb3-connectors-jboss-beans.xml");
-            try {
-                ejb3 = XmlUtils.unmarshallBean( confFile, "bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class);
-            } catch( Exception ex ) {
-                throw new LoadMigrationException("Failed loading EJB3 remoting config from "+confFile.getPath()+": " + ex.getMessage(), ex);
-            }
-        }
+        // Messaging - MBean.
+        File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "messaging/remoting-bisocket-service.xml");
+        megs = XmlUtils.readXmlConfigFile( confFile, "/server/mbean[@code='org.jboss.remoting.transport.Connector']", RemotingConfigBean.class, "Messaging remoting");
+
+        // EJB2 - POJO.
+        confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "remoting-jboss-beans.xml");
+        ejb2 = XmlUtils.readXmlConfigFile( confFile, "bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB2 remoting");
+
+        // EJB3 - POJO.
+        confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "ejb3-connectors-jboss-beans.xml");
+        ejb3 = XmlUtils.readXmlConfigFile( confFile, "bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB3 remoting");
+
         // Store to context
         ctx.getMigrationData().put( this.getClass(), new Data(megs, ejb2, ejb3) );
         
     }// loadAS5Data()
-
     
+        
     /**
      * Actions.
      */
