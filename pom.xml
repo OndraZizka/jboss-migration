@@ -6,7 +6,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
 
     <parent>
         <groupId>org.jboss</groupId>
