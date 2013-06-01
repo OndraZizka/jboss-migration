@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
+import org.jboss.loom.migrators.MBeanJaxbBase;
+import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 
 /**
@@ -41,13 +43,12 @@ import org.jboss.loom.spi.IConfigFragment;
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "mbean")
-public final class MailServiceBean implements IConfigFragment {
+public final class MailServiceBean extends MBeanJaxbBase<MailServiceBean> implements IConfigFragment, Origin.Wise {
     
-    @XmlAttribute(name = "name") 
-    private String mbeanName;
     @XmlPath("attribute[@name='JNDIName']/text()")
     @XmlElement(name = "attribute")
     private String jndiName;
+    
     @XmlPath("attribute[@name='User']")
     private String userAttr;
     @XmlPath("attribute[@name='Password']")
@@ -96,8 +97,6 @@ public final class MailServiceBean implements IConfigFragment {
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public String getMbeanName() { return mbeanName; }
-    public void setMbeanName( String mbeanName ) { this.mbeanName = mbeanName; }
     public String getJndiName() { return jndiName; }
     public void setJndiName( String jndiName ) { this.jndiName = jndiName; }
     public String getUser() { return user; }
