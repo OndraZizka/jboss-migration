@@ -219,16 +219,7 @@ public class AS7CliUtils {
                 String val = (String) method.invoke(source);
                 builder.addPropertyIfSet( prop, val );
             }
-            catch ( NoSuchMethodException ex ){
-                throw new RuntimeException( ex );
-            }
-            catch ( InvocationTargetException ex ){
-                throw new RuntimeException( ex );
-            }
-            catch ( IllegalAccessException ex ){
-                throw new RuntimeException( ex );
-            }
-            catch ( IllegalArgumentException ex ){
+            catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException | IllegalArgumentException ex ){
                 throw new RuntimeException( ex );
             }
         }
