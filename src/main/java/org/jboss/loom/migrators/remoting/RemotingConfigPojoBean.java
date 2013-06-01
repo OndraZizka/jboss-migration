@@ -77,36 +77,24 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class RemotingConfigPojoBean {
+public class RemotingConfigPojoBean extends RemotingConfigBean {
     
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/constructor/parameter/text()")
-     private String protocol; // socket, sslsocket, bisocket, sslbisocket, http, https, rmi, sslrmi, servlet, sslservlet
-     
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
-     private String serverBindAddress; // ${host} ;  calls ServiceBindingManager.getStringBinding()
-     
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
-     private String serverBindPort;  // ${port}   ;  calls ServiceBindingManager.getStringBinding()
-     
      @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='marshaller']]/value/text()")
-     private String marshaller;    // org.jboss.jms.wireformat.JMSWireFormat
+     @Override public String getMarshaller() { return super.getMarshaller(); }
      
      @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='unmarshaller']]/value/text()")
-     private String unmarshaller;  // org.jboss.jms.wireformat.JMSWireFormat
+     @Override public String getUnmarshaller() { return super.getUnmarshaller(); }
 
-
-     //<editor-fold defaultstate="collapsed" desc="get/set">
-     public String getMarshaller() { return marshaller; }
-     public void setMarshaller( String marshaller ) { this.marshaller = marshaller; }
-     public String getUnmarshaller() { return unmarshaller; }
-     public void setUnmarshaller( String unmarshaller ) { this.unmarshaller = unmarshaller; }
-     public String getServerBindAddress() { return serverBindAddress; }
-     public void setServerBindAddress( String serverBindAddress ) { this.serverBindAddress = serverBindAddress; }
-     public String getServerBindPort() { return serverBindPort; }
-     public void setServerBindPort( String serverBindPort ) { this.serverBindPort = serverBindPort; }
-
-     public String getProtocol() { return protocol; }
-     public void setProtocol( String protocol ) { this.protocol = protocol; }
-     //</editor-fold>
+     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/constructor/parameter/text()")
+     @Override public String getProtocol() { return super.getProtocol(); }
+     
+     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
+     @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
+     // ${host} ;  calls ServiceBindingManager.getStringBinding()
+     
+     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
+     @Override public String getServerBindPort() { return super.getServerBindPort(); }
+     // ${port}   ;  calls ServiceBindingManager.getStringBinding()
+     
      
 }// class
