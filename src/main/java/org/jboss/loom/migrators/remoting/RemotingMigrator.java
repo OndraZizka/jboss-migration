@@ -34,21 +34,24 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
     @Override
     public void loadAS5Data( MigrationContext ctx ) throws MigrationException {
         
-        RemotingConfigBean megs;
-        RemotingConfigPojoBean ejb2;
-        RemotingConfigPojoBean ejb3;
+        RemotingConfigBean megs = null;
+        RemotingConfigPojoBean ejb2 = null;
+        RemotingConfigPojoBean ejb3 = null;
         
         // Messaging - MBean.
         File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "messaging/remoting-bisocket-service.xml");
-        megs = XmlUtils.readXmlConfigFile( confFile, "/server/mbean[@code='org.jboss.remoting.transport.Connector']", RemotingConfigBean.class, "Messaging remoting");
+        if( confFile.exists() )
+            megs = XmlUtils.readXmlConfigFile( confFile, "/server/mbean[@code='org.jboss.remoting.transport.Connector']", RemotingConfigBean.class, "Messaging remoting");
 
         // EJB2 - POJO.  xmlns="urn:jboss:bean-deployer:2.0"
         confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "remoting-jboss-beans.xml");
-        ejb2 = XmlUtils.readXmlConfigFile( confFile, "/deployment/bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB2 remoting");
+        if( confFile.exists() )
+            ejb2 = XmlUtils.readXmlConfigFile( confFile, "/deployment/bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB2 remoting");
 
         // EJB3 - POJO.
         confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "ejb3-connectors-jboss-beans.xml");
-        ejb3 = XmlUtils.readXmlConfigFile( confFile, "/deployment/bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB3 remoting");
+        if( confFile.exists() )
+            ejb3 = XmlUtils.readXmlConfigFile( confFile, "/deployment/bean[@class='org.jboss.remoting.ServerConfiguration']", RemotingConfigPojoBean.class, "EJB3 remoting");
 
         // Store to context
         ctx.getMigrationData().put( this.getClass(), new Data(megs, ejb2, ejb3) );
@@ -61,8 +64,8 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
-        MigrationData data = ctx.getMigrationData().get(this.getClass());
-        if( data.getConfigFragments().isEmpty() )
+        Data data = (Data) ctx.getMigrationData().get(this.getClass());
+        if( data.isEmpty() )
             return;
         
         // ManualAction.
@@ -89,6 +92,10 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
             this.ejb2Conf = ejb2Conf;
             this.ejb3Conf = ejb3Conf;
         }
+        
+        public boolean isEmpty(){
+            return mesgConf == null && ejb2Conf == null && ejb3Conf == null;
+        };
     }
         
 }// class
