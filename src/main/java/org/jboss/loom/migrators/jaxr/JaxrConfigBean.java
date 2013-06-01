@@ -1,14 +1,11 @@
 package org.jboss.loom.migrators.jaxr;
 
-import java.util.Collections;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
+import org.jboss.loom.migrators.MBeanJaxbBase;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 
@@ -49,12 +46,8 @@ import org.jboss.loom.spi.IConfigFragment;
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "mbean")
-public final class JaxrConfigBean implements IConfigFragment, Origin.Wise {
-    
-    @XmlAttribute(name = "name") 
-    private String mbeanName;
-
-    
+public final class JaxrConfigBean extends MBeanJaxbBase<JaxrConfigBean> implements IConfigFragment, Origin.Wise {
+       
     // Whether we want to run the db initialization scripts
     // Should all tables be created on Start
     @XmlPath("attribute[@name='CreateOnStart']/@value")
@@ -91,9 +84,6 @@ public final class JaxrConfigBean implements IConfigFragment, Origin.Wise {
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public String getMbeanName() { return mbeanName; }
-    public void setMbeanName( String mbeanName ) { this.mbeanName = mbeanName; }
-    
     public boolean isCreateOnStart() { return CreateOnStart; }
     public void setCreateOnStart( boolean CreateOnStart ) { this.CreateOnStart = CreateOnStart; }
     public boolean isDropOnStop() { return DropOnStop; }
@@ -111,11 +101,5 @@ public final class JaxrConfigBean implements IConfigFragment, Origin.Wise {
     public boolean isDropDB() { return DropDB; }
     public void setDropDB( boolean DropDB ) { this.DropDB = DropDB; }
     //</editor-fold>
-
-    
-    // Origin
-    private Origin origin;
-    @Override public Origin getOrigin() { if( origin == null ) origin = new Origin( null ); return origin; }
-    public JaxrConfigBean setOrigin( Origin origin ) { this.origin = origin; return this; }
     
 }// class
