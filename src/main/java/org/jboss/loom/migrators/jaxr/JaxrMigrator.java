@@ -68,6 +68,11 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
             throw new LoadMigrationException("Failed loading JAXR config from "+confFile.getPath()+": " + ex.getMessage());
         }
         
+        // DDL - data from SQL scripts
+        // TBC: We could parse this using HSQL db.
+        //File ddlSchema = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "juddi-service.sar/META-INF/ddl/juddi_create_db.ddl");
+        //File ddlData   = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "juddi-service.sar/META-INF/ddl/juddi_data.ddl");
+        
         // Store to context
         ctx.getMigrationData().put( this.getClass(), new MigrationData(beans) );
     }
