@@ -1,6 +1,7 @@
 package org.jboss.loom.migrators;
 
 import java.io.File;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *  Information about where the given piece of config data came from.
@@ -9,6 +10,7 @@ import java.io.File;
  *  @Jira:  MIGR-109  Config (JAXB) beans to remember where did they come from.
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlTransient
 public class Origin {
     
     private String server;
@@ -23,7 +25,7 @@ public class Origin {
 
 
     public Origin( File docFile, String part ) {
-        this.file = file;
+        this.file = docFile;
         this.part = part;
     }
 

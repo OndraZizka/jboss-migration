@@ -64,7 +64,7 @@ public class MailMigrator extends AbstractMigrator implements IMigrator {
         try {
             beans = XmlUtils.unmarshallBeans( mailConfFile, "/server/mbean[@code='org.jboss.mail.MailService']", MailServiceBean.class);
         } catch( MigrationException ex ) {
-            throw new LoadMigrationException("Failed loading Mail Service config from "+mailConfFile.getPath()+": " + ex.getMessage());
+            throw new LoadMigrationException("Failed loading Mail Service config from "+mailConfFile.getPath()+": " + ex.getMessage(), ex);
         }
         
         // Store to context

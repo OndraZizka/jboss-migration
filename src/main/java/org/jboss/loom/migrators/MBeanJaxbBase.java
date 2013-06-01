@@ -1,10 +1,7 @@
 package org.jboss.loom.migrators;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlTransient;
 import org.jboss.loom.spi.IConfigFragment;
 
 /**
@@ -12,11 +9,10 @@ import org.jboss.loom.spi.IConfigFragment;
  * 
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-@XmlRootElement(name = "mbean")
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "mbean")
+//@XmlRootElement(name = "mbean")
+//@XmlAccessorType(XmlAccessType.NONE)
 public abstract class MBeanJaxbBase<T extends MBeanJaxbBase> implements IConfigFragment, Origin.Wise {
-    
+ 
     @XmlAttribute(name = "name") 
     private String mbeanName;
     
@@ -28,6 +24,7 @@ public abstract class MBeanJaxbBase<T extends MBeanJaxbBase> implements IConfigF
     
     
     // Origin
+    @XmlTransient
     private Origin origin;
     @Override public Origin getOrigin() { if( origin == null ) origin = new Origin( null ); return origin; }
     @Override public T setOrigin( Origin origin ) { this.origin = origin; return (T) this; }

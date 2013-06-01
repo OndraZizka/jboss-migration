@@ -42,8 +42,11 @@ import org.jboss.loom.spi.IConfigFragment;
  */
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "mbean")
 public final class MailServiceBean extends MBeanJaxbBase<MailServiceBean> implements IConfigFragment, Origin.Wise {
+
+
+    public MailServiceBean() {
+    }
     
     @XmlPath("attribute[@name='JNDIName']/text()")
     @XmlElement(name = "attribute")
