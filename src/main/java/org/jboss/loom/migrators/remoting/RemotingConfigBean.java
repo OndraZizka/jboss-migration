@@ -39,22 +39,22 @@ import org.jboss.loom.spi.IConfigFragment;
 @XmlType(name = "mbean")
 public class RemotingConfigBean extends MBeanJaxbBase<RemotingConfigBean> implements IConfigFragment, Origin.Wise {
     
-    @XmlPath("attribute[@name='Configuration']/config/invoker[@transport='bisocket']/attribute[@name='marshaller']/text()")
+    @XmlPath("attribute[@name='Configuration']/config/invoker/attribute[@name='marshaller']/text()")
     public String getMarshaller() { return marshaller; }
     public void setMarshaller( String marshaller ) { this.marshaller = marshaller; }
     private String marshaller;        // org.jboss.jms.wireformat.JMSWireFormat
 
-    @XmlPath("attribute[@name='Configuration']/config/invoker[@transport='bisocket']/attribute[@name='unmarshaller']/text()")
+    @XmlPath("attribute[@name='Configuration']/config/invoker/attribute[@name='unmarshaller']/text()")
     public String getUnmarshaller() { return unmarshaller; }
     public void setUnmarshaller( String unmarshaller ) { this.unmarshaller = unmarshaller; }
     private String unmarshaller;      // org.jboss.jms.wireformat.JMSWireFormat
     
-    @XmlPath("attribute[@name='Configuration']/config/invoker[@transport='bisocket']/attribute[@name='serverBindAddress']/text()")
+    @XmlPath("attribute[@name='Configuration']/config/invoker/attribute[@name='serverBindAddress']/text()")
     public String getServerBindAddress() { return serverBindAddress; }
     public void setServerBindAddress( String serverBindAddress ) { this.serverBindAddress = serverBindAddress; }
     private String serverBindAddress; // ${jboss.bind.address}
 
-    @XmlPath("attribute[@name='Configuration']/config/invoker[@transport='bisocket']/attribute[@name='serverBindPort']/text()")
+    @XmlPath("attribute[@name='Configuration']/config/invoker/attribute[@name='serverBindPort']/text()")
     public String getServerBindPort() { return serverBindPort; }
     public void setServerBindPort( String serverBindPort ) { this.serverBindPort = serverBindPort; }
     private String serverBindPort;    // 4457
@@ -64,7 +64,7 @@ public class RemotingConfigBean extends MBeanJaxbBase<RemotingConfigBean> implem
     public void setProtocol( String protocol ) { this.protocol = protocol; }
     private String protocol; // socket, sslsocket, bisocket, sslbisocket, http, https, rmi, sslrmi, servlet, sslservlet
 
-    @XmlPath("attribute[@name='Configuration']/config/invoker[@transport='bisocket']/attribute[@name='callbackTimeout']/text()")
+    @XmlPath("attribute[@name='Configuration']/config/invoker/attribute[@name='callbackTimeout']/text()")
     public String getCallbackTimeout() { return callbackTimeout; }
     public void setCallbackTimeout( String callbackTimeout ) { this.callbackTimeout = callbackTimeout; }
     private String callbackTimeout;   // 10000
