@@ -40,8 +40,6 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
             <!-- Selected optional parameters: -->
 
             <!-- Parameters for connecting from outside of a firewall. -->
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
-     @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
             <!--entry><key>clientConnectAddress</key> <value>a.b.c.d</value></entry-->
             <!--entry><key>clientConnectPort</key>    <value>7777</value></entry-->
 
@@ -81,22 +79,75 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
  */
 public class RemotingConfigPojoBean extends RemotingConfigBean {
     
-     @XmlPath("bean[@class='org.jboss.remoting.ServerConfiguration']/property[@name='invokerLocatorParameters']/map/entry[key[text()='marshaller']]/value/text()")
-     @Override public String getMarshaller() { return super.getMarshaller(); }
-     
-     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='unmarshaller']]/value/text()")
-     @Override public String getUnmarshaller() { return super.getUnmarshaller(); }
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='marshaller']]/value/text()")
+    @Override public String getMarshaller() { return super.getMarshaller(); }
 
-     @XmlPath("constructor/parameter/text()")
-     @Override public String getProtocol() { return super.getProtocol(); }
-     
-     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
-     @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
-     // ${host} ;  calls ServiceBindingManager.getStringBinding()
-     
-     @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
-     @Override public String getServerBindPort() { return super.getServerBindPort(); }
-     // ${port}   ;  calls ServiceBindingManager.getStringBinding()
-     
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='unmarshaller']]/value/text()")
+    @Override public String getUnmarshaller() { return super.getUnmarshaller(); }
+
+    @XmlPath("constructor/parameter/text()")
+    @Override public String getProtocol() { return super.getProtocol(); }
+
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindAddress']]/value/value-factory/parameter[2]/text()")
+    @Override public String getServerBindAddress() { return super.getServerBindAddress(); }
+    // ${host} ;  calls ServiceBindingManager.getStringBinding()
+
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='serverBindPort']]/value/value-factory/parameter[2]/text()")
+    @Override public String getServerBindPort() { return super.getServerBindPort(); }
+    // ${port}   ;  calls ServiceBindingManager.getStringBinding()
+
+    @XmlPath("property[@name='serverParameters']/map/entry[key[text()='callbackTimeout']]/value/text()")
+    @Override public String getCallbackTimeout() { return super.getCallbackTimeout(); }
+    
+
+    
+    // ---- POJO-beans specific. I think they are actually not specific, but there's no docs. ----
+    
+    
+    /* Parameters visible only to server. */
+
+    /* A socket transport parameter. */
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='enableTcpNoDelay']]/value/text()")
+    public String getEnableTcpNoDelay() { return enableTcpNoDelay; }
+    private String enableTcpNoDelay; // true
+
+    /* Selected optional parameters: */
+
+    /* Parameters for connecting from outside of a firewall. */
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='clientConnectAddress']]/value/text()")
+    public String getClientConnectAddress() { return clientConnectAddress; }
+    private String clientConnectAddress; // a.b.c.d
+    
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='clientConnectPort']]/value/text()")
+    public String getClientConnectPort() { return clientConnectPort; }
+    private String clientConnectPort;    // 7777
+
+
+    /* Socket read timeout.  Defaults to 60000 ms (1 minute) */
+    /* on the server, 1800000 ms (30 minutes) on the client. */
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='timeout']]/value/text()")
+    public String getTimeout() { return timeout; }
+    private String timeout; // 120000
+
+    /* Maximum number of connections in client invoker's  */
+    /* connection pool (socket transport).  Defaults to 50. */
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='clientMaxPoolSize']]/value/text()")
+    public String getClientMaxPoolSize() { return clientMaxPoolSize; }
+    private String clientMaxPoolSize; // 20
+
+    /* Configures traffic class on underlying sockets (socket transport). */
+    /* Default value determined by socket implementation. */
+    @XmlPath("property[@name='invokerLocatorParameters']/map/entry[key[text()='trafficClass']]/value/text()")
+    public String getTrafficClass() { return trafficClass; }
+    private String trafficClass; // 2
+
+    
+
+    public void setEnableTcpNoDelay( String enableTcpNoDelay ) { this.enableTcpNoDelay = enableTcpNoDelay; }
+    public void setClientConnectAddress( String clientConnectAddress ) { this.clientConnectAddress = clientConnectAddress; }
+    public void setClientConnectPort( String clientConnectPort ) { this.clientConnectPort = clientConnectPort; }
+    public void setTimeout( String timeout ) { this.timeout = timeout; }
+    public void setClientMaxPoolSize( String clientMaxPoolSize ) { this.clientMaxPoolSize = clientMaxPoolSize; }
+    public void setTrafficClass( String trafficClass ) { this.trafficClass = trafficClass; }
      
 }// class
