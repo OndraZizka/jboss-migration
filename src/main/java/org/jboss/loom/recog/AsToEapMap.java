@@ -8,9 +8,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  *  Relation between AS and EAP versions.
+ *  
+ *  TODO: Split into IProjectAnd... impls in .as5 and .as7.
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class AsToEapMap {
+public class AsToEapMap implements IProjectAndProductVersionBidiMapper {
     private static final Logger log = LoggerFactory.getLogger( AsToEapMap.class );
 
     private static final BidiMap map = new DualHashBidiMap();
@@ -33,11 +36,11 @@ public class AsToEapMap {
         // Source: https://access.redhat.com/site/articles/112673
     }
     
-    public static String getAsToEap(String ver){
+    @Override public String getProjectToProductVersion(String ver){
         return (String) map.getKey( ver );
     }
 
-    public static String getEapToAs(String ver){
+    @Override public String getProductToProjectVersion(String ver){
         return (String) map.inverseBidiMap().getKey( ver );
     }
 

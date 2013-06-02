@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.jboss.loom.recog.AsToEapMap;
 import org.jboss.loom.recog.IServerType;
 import org.jboss.loom.recog.VersionRange;
 import org.jboss.loom.utils.compar.FileHashComparer;
@@ -46,10 +47,11 @@ public class JBossAS5ServerType implements IServerType {
         // Check jar-versions.xml.
         File jvx = new File( homeDir, JAR_VERSIONS_XML );
         try {
+            // Check if we know that file's CRC32; if so, use that version.
             long jarVerCrc = FileHashComparer.computeCrc32(jvx);
             String ver = getJarVersionsXmlCrcToVersionsMap().get( jarVerCrc );
             if( ver != null )
-                return new VersionRange( ver, ver );
+                return VersionRange.forProduct( ver, ver, new AsToEapMap() );
         } catch ( IOException ex ){
             log.error("Failed computing CRC32 of " + jvx.getPath() + ": " + ex.getMessage(), ex);
         }
@@ -82,8 +84,9 @@ public class JBossAS5ServerType implements IServerType {
         
         // If there's some almost certain match, return that as recognized version.
         if( minMisHF != null )
-            return new VersionRange( minMisHF.version, minMisHF.version );
+            return VersionRange.forProduct( minMisHF.version, minMisHF.version, new AsToEapMap() );
         
+        // Default range - all we know - AS 5 to AS 6.
         return new VersionRange( "5.0.0", "6" );
     }
 

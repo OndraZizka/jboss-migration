@@ -24,4 +24,11 @@ public class VersionRange {
         this.to = to;
     }
     
+    public static VersionRange forProduct( String from, String to, IProjectAndProductVersionBidiMapper mapper ){
+        return new VersionRange(
+            new Version( mapper.getProductToProjectVersion( from ), from ),
+            new Version( mapper.getProductToProjectVersion( to ),   to )
+        );
+    }
+    
 }// class
