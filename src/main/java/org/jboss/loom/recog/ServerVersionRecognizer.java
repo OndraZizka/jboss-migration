@@ -18,7 +18,13 @@ public class ServerVersionRecognizer {
     
     //public enum ServerType { JBOSS_AS, TOMCAT, WEBSPHERE, WEBLOGIC, GLASSFISH }; // Should rather be classes, to make it pluginable.
     
-    public Class<? extends IServerType> recognizeType( File serverRootDir ) throws MigrationException{
+    
+    /**
+     *  Ask all known implementations of IServerType whether their server is in the directory.
+     * 
+     *  TODO: Return an instance?
+     */
+    public static Class<? extends IServerType> recognizeType( File serverRootDir ) throws MigrationException{
         for( Class<? extends IServerType> typeClass : findServerTypes() ){
             IServerType type = instantiate(typeClass);
             if( type.isPresentInDir(serverRootDir) )
@@ -27,7 +33,11 @@ public class ServerVersionRecognizer {
         return null;
     }
     
-    public VersionRange recognizeVersion( Class<? extends IServerType> typeClass, File serverRootDir ) throws MigrationException{
+    /**
+     *  Asks given IServerType what version is in the given directory.
+     *  TODO: Make method of IServerType?
+     */
+    public static VersionRange recognizeVersion( Class<? extends IServerType> typeClass, File serverRootDir ) throws MigrationException{
         IServerType type = instantiate( typeClass );
         return type.recognizeVersion( serverRootDir );
         // TODO: Could be called statically?
@@ -46,7 +56,7 @@ public class ServerVersionRecognizer {
     /**
      *  Just wraps the potential exception.
      */
-    private IServerType instantiate( Class<? extends IServerType> typeClass ) throws MigrationException {
+    private static IServerType instantiate( Class<? extends IServerType> typeClass ) throws MigrationException {
         try {
             return typeClass.newInstance();
         } catch( InstantiationException | IllegalAccessException ex ) {
