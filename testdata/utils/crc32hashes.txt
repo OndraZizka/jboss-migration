@@ -1,0 +1,3 @@
+f735fe81    ./oracle-ds.xml
+10000000    ./datasources.xml
+20000000    ./non-existent.foo

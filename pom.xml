@@ -283,6 +283,13 @@
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.8</version>
+        </dependency>
+        -->
 
         <!-- Logging -->
         <dependency>
@@ -319,6 +326,12 @@
             <artifactId>jboss-as-arquillian-container-managed</artifactId>
             <version>${arq.asContainer.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jbosgi-spi</artifactId>
+                    <groupId>org.jboss.osgi.spi</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--
