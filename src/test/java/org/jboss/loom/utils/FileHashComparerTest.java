@@ -34,16 +34,16 @@ public class FileHashComparerTest {
         File hashes = new File("testdata/utils/crc32hashes.txt");
         File dir = new File("./testdata/singleFiles/");
         
-        Map<File, FileHashComparer.Result> expResult = new HashMap();
-        expResult.put(hashes, FileHashComparer.Result.MATCH);
+        Map<File, FileHashComparer.MatchResult> expResult = new HashMap();
+        expResult.put(hashes, FileHashComparer.MatchResult.MATCH);
         
         //long crc32 = FileHashComparer.computeCrc32(new File("testdata/singleFiles/oracle-ds.xml"));
         
-        Map<Path, FileHashComparer.Result> results = FileHashComparer.compareHashesAndDir( hashes, dir );
+        Map<Path, FileHashComparer.MatchResult> results = FileHashComparer.compareHashesAndDir( hashes, dir );
         
-        assertEquals( FileHashComparer.Result.MATCH,    results.get(PATH_ORACLE_DS) );
-        assertEquals( FileHashComparer.Result.MISMATCH, results.get(PATH_DATASOURCES) );
-        assertEquals( FileHashComparer.Result.MISSING,  results.get(PATH_NON_EXISTENT) );
+        assertEquals( FileHashComparer.MatchResult.MATCH,    results.get(PATH_ORACLE_DS) );
+        assertEquals( FileHashComparer.MatchResult.MISMATCH, results.get(PATH_DATASOURCES) );
+        assertEquals( FileHashComparer.MatchResult.MISSING,  results.get(PATH_NON_EXISTENT) );
     }
 
 

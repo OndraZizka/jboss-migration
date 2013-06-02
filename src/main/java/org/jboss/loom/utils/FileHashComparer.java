@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.util.CRCUtil;
+import org.jboss.loom.utils.compar.ComparisonResult;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -22,7 +23,7 @@ public class FileHashComparer {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger( FileHashComparer.class );
 
 
-    public enum Result { MATCH, MISMATCH, MISSING };
+    public static enum MatchResult { MATCH, MISMATCH, MISSING };
     
     
     /**
@@ -30,12 +31,14 @@ public class FileHashComparer {
      *  Hashes file format is:
      *       92ae740a ./bin/twiddle.bat
      */
-    public static Map<Path, Result> compareHashesAndDir( File hashes, File dir ) throws FileNotFoundException, IOException{
-        return compareHashesAndDir( readHashFile(hashes), dir );
+    public static ComparisonResult compareHashesAndDir( File hashes, File dir ) throws FileNotFoundException, IOException{
+        Map<Path, MatchResult> results = compareHashesAndDir( readHashFile(hashes), dir );
+        return new ComparisonResult( hashes, dir ).setMatches( results );
+        
     }
     
-    private static Map<Path, Result> compareHashesAndDir( Map<String, Long> hashes, File dir ) throws IOException {
-        Map<Path, Result> results = new HashMap();
+    private static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir ) throws IOException {
+        Map<Path, MatchResult> matches = new HashMap();
         
         // Iterate through hashes and compare with files.
         for( Map.Entry<String, Long> entry : hashes.entrySet() ) {
@@ -46,13 +49,13 @@ public class FileHashComparer {
             Path pathNorm = file.toPath().normalize();
             
             if( ! file.exists() ){
-                results.put( pathNorm, Result.MISSING );
+                matches.put( pathNorm, MatchResult.MISSING );
                 continue;
             }
             long hashReal = computeCrc32(file);
-            results.put( pathNorm, hash == hashReal ? Result.MATCH : Result.MISMATCH );
+            matches.put( pathNorm, hash == hashReal ? MatchResult.MATCH : MatchResult.MISMATCH );
         }
-        return results;
+        return matches;
     }
 
     
