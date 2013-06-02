@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.jboss.loom.recog.IServerType;
@@ -28,15 +28,34 @@ public class JBossAS5ServerType implements IServerType {
     @Override public String getDescription() { return "JBoss AS 5.x or 6.x, or JBoss EAP 5.x"; }
 
     
+    private static final String JAR_VERSIONS_XML = "jar-versions.xml";
     private static final String HASH_FILES_PATH = "/fileHashes/as5/";
     
     
 
+    /**
+     *  First checks jar-versions.xml. If that's not present, then compares checksums of all jars.
+     * @param homeDir
+     * @return 
+     */
     @Override
     public VersionRange recognizeVersion( File homeDir ) {
         if( ! isPresentInDir( homeDir ) )
             return new VersionRange();
         
+        // Check jar-versions.xml.
+        File jvx = new File( homeDir, JAR_VERSIONS_XML );
+        try {
+            long jarVerCrc = FileHashComparer.computeCrc32(jvx);
+            String ver = getJarVersionsXmlCrcToVersionsMap().get( jarVerCrc );
+            if( ver != null )
+                return new VersionRange( ver, ver );
+        } catch ( IOException ex ){
+            log.error("Failed computing CRC32 of " + jvx.getPath() + ": " + ex.getMessage(), ex);
+        }
+        
+        
+        // No match - check .jars.
         IOFileFilter filter = FileFilterUtils.suffixFileFilter(".jar");
         
         int minMismatches = Integer.MAX_VALUE;
@@ -71,11 +90,11 @@ public class JBossAS5ServerType implements IServerType {
 
     @Override
     public boolean isPresentInDir( File homeDir ) {
-        if( ! new File(homeDir, "jboss-modules.jar").exists() )
+        if( ! new File(homeDir, JAR_VERSIONS_XML).exists() )
             return false;
-        if( ! new File(homeDir, "standalone/configuration").exists() )
+        if( ! new File(homeDir, "bin/run.sh").exists() )
             return false;
-        if( ! new File(homeDir, "bin/standalone.sh").exists() )
+        if( ! new File(homeDir, "lib/jboss-main.jar").exists() )
             return false;
         
         return true;
@@ -85,10 +104,20 @@ public class JBossAS5ServerType implements IServerType {
     private static List<HashFile> getHashFiles(){
         return Arrays.asList(
             new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.0.1"),
-            new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.1.2"),
-            new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.2.0")
+            new HashFile( "jboss-eap-5.1.2-crc32.txt", "5.1.2"),
+            new HashFile( "jboss-eap-5.2.0-crc32.txt", "5.2.0")
         );
     }
+    
+    private static Map<Long, String> getJarVersionsXmlCrcToVersionsMap(){
+        Map<Long, String> map = new HashMap();
+        map.put( 0x9e98373eL, "5.0.1");
+        map.put( 0x10c95871L, "5.1.2");
+        map.put( 0xb7414c39L, "5.2.0");
+        return map;
+    }
+    
+    
     
     // --- Structs ---
     
