@@ -72,7 +72,7 @@ public class ClassloadingTest {
         
         ConfigurationValidator.validate( conf );
         
-        MigratorEngine migrator = new MigratorEngine(conf);
+        MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
     }
     

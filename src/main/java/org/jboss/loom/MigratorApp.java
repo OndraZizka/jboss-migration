@@ -193,7 +193,7 @@ public class MigratorApp {
         
         log.info("Commencing migration.");
         
-        MigratorEngine migrator = new MigratorEngine(conf);
+        MigrationEngine migrator = new MigrationEngine(conf);
 
         try {
             migrator.doMigration();

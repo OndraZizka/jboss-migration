@@ -52,7 +52,6 @@ import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
 import org.jboss.loom.migrators.jaxr.JaxrMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
-import org.jboss.loom.recog.IServerType;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
 
@@ -64,8 +63,8 @@ import org.jboss.loom.recog.ServerRecognizer;
  *
  *  @author Roman Jakubco
  */
-public class MigratorEngine {
-    private static final Logger log = LoggerFactory.getLogger(MigratorEngine.class);
+public class MigrationEngine {
+    private static final Logger log = LoggerFactory.getLogger(MigrationEngine.class);
         
 
     private Configuration config;
@@ -76,7 +75,7 @@ public class MigratorEngine {
     
     
 
-    public MigratorEngine( Configuration config ) throws InitMigratorsExceptions {
+    public MigrationEngine( Configuration config ) throws InitMigratorsExceptions {
         this.config = config;
         this.init();
         this.resetContext( config );
@@ -229,7 +228,7 @@ public class MigratorEngine {
         try {
             // Load the source server config.
             message = "Failed loading AS 5 config.";
-            this.loadAS5Data();
+            this.loadASourceServerConfig();
 
             // Open an AS 7 management client connection.
             openManagementClient();
@@ -494,8 +493,8 @@ public class MigratorEngine {
      *
      * @throws LoadMigrationException
      */
-    private void loadAS5Data() throws MigrationException {
-        log.debug("======== loadAS5Data() ========");
+    private void loadASourceServerConfig() throws MigrationException {
+        log.debug("======== loadASourceServerConfig() ========");
         try {
             for (IMigrator mig : this.migrators) {
                 log.debug("    Scanning with " + mig.getClass().getSimpleName());
