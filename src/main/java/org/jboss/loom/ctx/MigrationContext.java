@@ -17,7 +17,7 @@ import org.w3c.dom.Document;
 import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.recog.ServerInfo;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.
@@ -44,10 +44,15 @@ public class MigrationContext {
     private List<DeploymentInfo> deploymentInfos = new LinkedList();
     
     
+    // Source server related
+    private ServerInfo sourceServer;
+
+    
+    
     // AS 7 related
     
-    private Document as7ConfigXmlDoc;
-    private Document as7ConfigXmlDocOriginal;
+    @Deprecated private Document as7ConfigXmlDoc;
+    @Deprecated private Document as7ConfigXmlDocOriginal;
 
     // New batch holding all scripts from CliCommandAction
     private Batch batch = new DefaultBatch();
@@ -55,6 +60,7 @@ public class MigrationContext {
     private ModelControllerClient as7Client;
 
     //private final AS7Config as7Config;
+    
     
             
     
@@ -85,6 +91,8 @@ public class MigrationContext {
     public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
     public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
 
+    public ServerInfo getSourceServer() { return sourceServer; }
+    public void setSourceServer( ServerInfo sourceServer ) { this.sourceServer = sourceServer; }
     //</editor-fold>
 
 

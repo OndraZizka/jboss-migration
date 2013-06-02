@@ -28,7 +28,6 @@ import org.jboss.loom.utils.AS7CliUtils;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.as7.BatchFailure;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;
-import org.jboss.loom.migrators.deploymentScanner.DeploymentScannerMigrator;
 import org.eclipse.persistence.exceptions.JAXBException;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.slf4j.Logger;
@@ -53,6 +52,9 @@ import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
 import org.jboss.loom.migrators.jaxr.JaxrMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
+import org.jboss.loom.recog.IServerType;
+import org.jboss.loom.recog.ServerInfo;
+import org.jboss.loom.recog.ServerRecognizer;
 
 /**
  *  Controls the core migration processes.
@@ -209,6 +211,10 @@ public class MigratorEngine {
         boolean dryRun = config.getGlobal().isDryRun();
 
         this.resetContext( config );
+        
+        
+        // Recognize version of the source server.
+        this.recognizeSourceServer();
         
 
         // Parse AS 7 config. Not needed anymore - we use CLI.
@@ -500,6 +506,20 @@ public class MigratorEngine {
         }
     }
     
+    
+    /**
+     *  Recognize the source server version (and type, in the future).
+     */
+    private void recognizeSourceServer() throws MigrationException {
+        File serverDir = new File(config.getGlobal().getAS5Config().getDir());
+        try {
+            ServerInfo serverInfo = ServerRecognizer.recognize( serverDir );
+            this.ctx.setSourceServer( serverInfo );
+        } catch( MigrationException ex ) {
+            throw new MigrationException("Failed recognizing the source server in " + serverDir + ": " + ex.getMessage(), ex);
+        }
+    }
+
     
     /**
      *  Unzips the apps specified in config to temp dirs, to be deleted at the end.

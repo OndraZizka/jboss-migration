@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class ServerVersionRecognizer {
-    private static final Logger log = LoggerFactory.getLogger( ServerVersionRecognizer.class );
+public class ServerRecognizer {
+    private static final Logger log = LoggerFactory.getLogger( ServerRecognizer.class );
     
     //public enum ServerType { JBOSS_AS, TOMCAT, WEBSPHERE, WEBLOGIC, GLASSFISH }; // Should rather be classes, to make it pluginable.
     
@@ -24,11 +24,11 @@ public class ServerVersionRecognizer {
      * 
      *  TODO: Return an instance?
      */
-    public static Class<? extends IServerType> recognizeType( File serverRootDir ) throws MigrationException{
+    public static IServerType recognizeType( File serverRootDir ) throws MigrationException{
         for( Class<? extends IServerType> typeClass : findServerTypes() ){
             IServerType type = instantiate(typeClass);
             if( type.isPresentInDir(serverRootDir) )
-                return typeClass;
+                return type;
         }
         return null;
     }
@@ -36,11 +36,20 @@ public class ServerVersionRecognizer {
     /**
      *  Asks given IServerType what version is in the given directory.
      *  TODO: Make method of IServerType?
+     *  @deprecated  Use IServerType.recognizeVersion();
      */
-    public static VersionRange recognizeVersion( Class<? extends IServerType> typeClass, File serverRootDir ) throws MigrationException{
+    private VersionRange recognizeVersion( Class<? extends IServerType> typeClass, File serverRootDir ) throws MigrationException{
         IServerType type = instantiate( typeClass );
         return type.recognizeVersion( serverRootDir );
         // TODO: Could be called statically?
+    }
+    
+    /**
+     *  All-in-one.
+     */
+    public static ServerInfo recognize( File serverRootDir ) throws MigrationException{
+        IServerType type = recognizeType( serverRootDir );
+        return new ServerInfo().setType( type ).setVersionRange( type.recognizeVersion( serverRootDir ) );
     }
 
 
