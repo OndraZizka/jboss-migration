@@ -169,7 +169,7 @@ public class MigratorEngine {
         migratorClasses.add( DatasourceMigrator.class );
         migratorClasses.add( ResAdapterMigrator.class );
         migratorClasses.add( LoggingMigrator.class );
-        migratorClasses.add( DeploymentScannerMigrator.class );
+        //migratorClasses.add( DeploymentScannerMigrator.class );
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
         migratorClasses.add( MailMigrator.class );  // Warn-only impl.
         migratorClasses.add( JaxrMigrator.class );  // Warn-only impl.
