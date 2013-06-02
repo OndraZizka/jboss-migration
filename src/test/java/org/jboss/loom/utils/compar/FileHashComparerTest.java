@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -39,7 +41,7 @@ public class FileHashComparerTest {
         
         //long crc32 = FileHashComparer.computeCrc32(new File("testdata/singleFiles/oracle-ds.xml"));
         
-        ComparisonResult results = FileHashComparer.compareHashesAndDir( hashes, dir );
+        ComparisonResult results = FileHashComparer.compareHashesAndDir( hashes, dir, FileFilterUtils.fileFileFilter() );
         
         assertEquals( FileHashComparer.MatchResult.MATCH,    results.getMatches().get(PATH_ORACLE_DS) );
         assertEquals( FileHashComparer.MatchResult.MISMATCH, results.getMatches().get(PATH_DATASOURCES) );
