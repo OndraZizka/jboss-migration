@@ -14,8 +14,8 @@ import static org.jboss.loom.utils.compar.FileHashComparer.MatchResult.MISSING;
  */
 public class ComparisonResult {
     
-    public final File hashes;
     public final File dir;
+    public File hashesFile;
     Map<Path, FileHashComparer.MatchResult> matches;
 
     // Counts
@@ -25,8 +25,7 @@ public class ComparisonResult {
     private boolean recount = true;
 
 
-    public ComparisonResult( File hashes, File dir ) {
-        this.hashes = hashes;
+    public ComparisonResult( File dir ) {
         this.dir = dir;
     }
 
@@ -34,6 +33,12 @@ public class ComparisonResult {
     public ComparisonResult setMatches( Map<Path, FileHashComparer.MatchResult> matches ) {
         this.matches = matches; recount = true; return this; 
     }
+
+    public File getHashesFile() { return hashesFile; }
+    public ComparisonResult setHashes( File hashes ) {
+        this.hashesFile = hashes; return this; 
+    }
+    
 
 
     public int getCountTotal() {

@@ -1,8 +1,10 @@
 package org.jboss.loom.utils.compar;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -11,7 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.util.CRCUtil;
-import org.jboss.loom.utils.compar.ComparisonResult;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -31,19 +33,26 @@ public class FileHashComparer {
      *  Hashes file format is:
      *       92ae740a ./bin/twiddle.bat
      */
-    public static ComparisonResult compareHashesAndDir( File hashes, File dir ) throws FileNotFoundException, IOException{
-        Map<Path, MatchResult> results = compareHashesAndDir( readHashFile(hashes), dir );
-        return new ComparisonResult( hashes, dir ).setMatches( results );
-        
+    public static ComparisonResult compareHashesAndDir( File hashes, File dir, IOFileFilter filter ) throws FileNotFoundException, IOException{
+        Map<Path, MatchResult> results = compareHashesAndDir( readHashes(hashes), dir, filter );
+        return new ComparisonResult( dir ).setMatches( results ).setHashes( hashes );
     }
     
-    private static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir ) throws IOException {
+    public static ComparisonResult compareHashesAndDir( InputStream hashesIS, File dir, IOFileFilter filter ) throws FileNotFoundException, IOException{
+        Map<Path, MatchResult> results = compareHashesAndDir( readHashes(hashesIS), dir, filter );
+        return new ComparisonResult( dir ).setMatches( results );
+    }
+    
+    private static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir, IOFileFilter filter ) throws IOException {
         Map<Path, MatchResult> matches = new HashMap();
         
         // Iterate through hashes and compare with files.
         for( Map.Entry<String, Long> entry : hashes.entrySet() ) {
             String path = entry.getKey();
-            Long hash = entry.getValue();
+            
+            // Apply the filter.
+            if( ! filter.accept( new File(path) ) )
+                continue;
             
             File file = new File(dir, path);
             Path pathNorm = file.toPath().normalize();
@@ -53,6 +62,7 @@ public class FileHashComparer {
                 continue;
             }
             long hashReal = computeCrc32(file);
+            Long hash     = entry.getValue();
             matches.put( pathNorm, hash == hashReal ? MatchResult.MATCH : MatchResult.MISMATCH );
         }
         return matches;
@@ -65,19 +75,17 @@ public class FileHashComparer {
      *  and returns a map of paths -> hashes.
      *  The paths are normalized, while kept relative. I.e. ./foo/../bar/a results in bar/a .
      */
-    static Map<String, Long> readHashFile( File file ) throws FileNotFoundException {
-        //FileReader fr = new FileReader( file );
-        //FileInputStream is = new FileInputStream( file );
-        Scanner sc = new Scanner( file );
+    static Map<String, Long> readHashes( File file ) throws FileNotFoundException {
+        return readHashes( new FileInputStream(file) );
+    }
+    
+    static Map<String, Long> readHashes( InputStream hashesIS ) throws FileNotFoundException {
         
+        Scanner sc = new Scanner( hashesIS );
         Map<String, Long> hashes = new HashMap();
         
         //  92ae740a ./bin/twiddle.bat
         while( sc.hasNextLine() ){
-            //String line = sc.nextLine();
-            //String hash = line.substring(0,8);
-            //String hash = line.substring(9);
-            
             try {
                 long hash = sc.nextLong(16);
                 String path = sc.nextLine();
@@ -86,7 +94,7 @@ public class FileHashComparer {
                 hashes.put( path, hash );
             }
             catch( NoSuchElementException ex ){
-                log.warn("Failed parsing line in " + file.getPath() + ": " + sc.nextLine(), ex);
+                log.warn("Failed parsing line: " + sc.nextLine(), ex);
                 sc.nextLine();
             }
         }
@@ -94,6 +102,10 @@ public class FileHashComparer {
     }
 
     
+    /**
+     *  Computes CRC32 checksum of given file.
+     *  Uses net.lingala.zip4j.util and wraps their exception.
+     */
     public static long computeCrc32( File file ) throws IOException {
         try {
             return CRCUtil.computeFileCRC(file.getPath());

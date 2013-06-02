@@ -55,7 +55,7 @@ public class FileHashComparerTest {
         System.out.println( "readHashFile" );
         
         File hashes = new File("testdata/utils/crc32hashes.txt");
-        Map<String, Long> result = FileHashComparer.readHashFile( hashes );
+        Map<String, Long> result = FileHashComparer.readHashes( hashes );
         
         assertEquals( new Long(0xf735fe81L), result.get(STR_ORACLE_DS) );
         assertEquals( new Long(0x10000000L), result.get(STR_DATASOURCES) );
