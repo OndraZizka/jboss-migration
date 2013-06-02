@@ -1,4 +1,4 @@
-package org.jboss.loom.utils;
+package org.jboss.loom.utils.compar;
 
 import java.io.File;
 import java.io.FileNotFoundException;

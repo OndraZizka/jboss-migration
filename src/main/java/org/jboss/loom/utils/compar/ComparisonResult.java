@@ -4,10 +4,9 @@ package org.jboss.loom.utils.compar;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
-import org.jboss.loom.utils.FileHashComparer;
-import static org.jboss.loom.utils.FileHashComparer.MatchResult.MATCH;
-import static org.jboss.loom.utils.FileHashComparer.MatchResult.MISMATCH;
-import static org.jboss.loom.utils.FileHashComparer.MatchResult.MISSING;
+import static org.jboss.loom.utils.compar.FileHashComparer.MatchResult.MATCH;
+import static org.jboss.loom.utils.compar.FileHashComparer.MatchResult.MISMATCH;
+import static org.jboss.loom.utils.compar.FileHashComparer.MatchResult.MISSING;
 
 /**
  *

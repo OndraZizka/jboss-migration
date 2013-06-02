@@ -1,4 +1,4 @@
-package org.jboss.loom.utils;
+package org.jboss.loom.utils.compar;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -39,11 +39,11 @@ public class FileHashComparerTest {
         
         //long crc32 = FileHashComparer.computeCrc32(new File("testdata/singleFiles/oracle-ds.xml"));
         
-        Map<Path, FileHashComparer.MatchResult> results = FileHashComparer.compareHashesAndDir( hashes, dir );
+        ComparisonResult results = FileHashComparer.compareHashesAndDir( hashes, dir );
         
-        assertEquals( FileHashComparer.MatchResult.MATCH,    results.get(PATH_ORACLE_DS) );
-        assertEquals( FileHashComparer.MatchResult.MISMATCH, results.get(PATH_DATASOURCES) );
-        assertEquals( FileHashComparer.MatchResult.MISSING,  results.get(PATH_NON_EXISTENT) );
+        assertEquals( FileHashComparer.MatchResult.MATCH,    results.getMatches().get(PATH_ORACLE_DS) );
+        assertEquals( FileHashComparer.MatchResult.MISMATCH, results.getMatches().get(PATH_DATASOURCES) );
+        assertEquals( FileHashComparer.MatchResult.MISSING,  results.getMatches().get(PATH_NON_EXISTENT) );
     }
 
 
