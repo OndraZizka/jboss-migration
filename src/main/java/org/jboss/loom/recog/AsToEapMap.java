@@ -18,17 +18,17 @@ public class AsToEapMap {
     static {
         
         // EAP 6
-        map.put("7.2.0.Final", "6.1.0.GA");
-        map.put("7.1.3.Final", "6.0.1.GA");
-        map.put("7.1.2.Final", "6.0.0.GA");
+        map.put("7.2.0.Final", "6.1.0");
+        map.put("7.1.3.Final", "6.0.1");
+        map.put("7.1.2.Final", "6.0.0");
         
         // EAP 5
-        map.put("5.2.0.GA", "5.2.0.GA");
-        map.put("5.1.0.GA", "5.1.2.GA");
-        map.put("5.1.0.GA", "5.1.1.GA");
-        map.put("5.1.0.GA", "5.1.0.GA");
-        map.put("5.1.0.GA", "5.0.1.GA");
-        map.put("5.1.0.GA", "5.0.0.GA");
+        map.put("5.2.0.GA", "5.2.0");
+        map.put("5.1.0.GA", "5.1.2");
+        map.put("5.1.0.GA", "5.1.1");
+        map.put("5.1.0.GA", "5.1.0");
+        map.put("5.1.0.GA", "5.0.1");
+        map.put("5.1.0.GA", "5.0.0");
         
         // Source: https://access.redhat.com/site/articles/112673
     }
