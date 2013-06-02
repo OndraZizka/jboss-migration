@@ -51,7 +51,7 @@ public class FileHashComparer {
             String path = entry.getKey();
             
             // Apply the filter.
-            if( ! filter.accept( new File(path) ) )
+            if( filter != null && ! filter.accept( new File(path) ) )
                 continue;
             
             File file = new File(dir, path);
