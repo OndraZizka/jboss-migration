@@ -50,8 +50,6 @@ The application is meant to be run on a fresh installation of the target server.
 Currently, **the target server must be running** during the migration.
 The future versions of the app will be able to start the server for you.
 
-Currently, the **JBOSS_HOME** system property **must NOT be set**. [MIGR-84](https://issues.jboss.org/browse/MIGR-84)
-
 To run the app, use the distribution jar as follows:
 
 
