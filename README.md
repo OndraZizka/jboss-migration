@@ -2,15 +2,15 @@
 
 A program for migrating configuration of JBoss AS 5-based servers to JBoss AS 7-based servers.
 
-##### Supported source servers
+##### Works with source servers:
 
  * JBoss AS 5.1+
  * JBoss EAP 5.x
 
-##### Supported target servers:
+##### Works with target servers:
 
  * JBoss AS 7.1.1+
- * JBoss EAP 6.x
+ * JBoss EAP 6.x (6.1+ is supported)
  * Wildfly 8.x
 
 
