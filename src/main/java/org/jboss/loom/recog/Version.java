@@ -1,5 +1,7 @@
 package org.jboss.loom.recog;
 
+import java.util.Objects;
+
 /**
  *  Some versions represent products.
  *  Products have own versioning scheme, but are mappable to project versions.
@@ -34,5 +36,29 @@ public class Version {
     public int compare( Version other ) {
         return VersionComparer.compareVersions( this.verProject, other.verProject );
     }
+
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 61 * hash + Objects.hashCode( this.verProject );
+        hash = 61 * hash + Objects.hashCode( this.verProduct );
+        return hash;
+    }
+
+
+    @Override
+    public boolean equals( Object obj ) {
+        if( obj == null )  return false;
+        if( getClass() != obj.getClass() )  return false;
+        
+        final Version other = (Version) obj;
+        if( ! Objects.equals( this.verProject, other.verProject ) )  return false;
+        if( ! Objects.equals( this.verProduct, other.verProduct ) )  return false;
+        
+        return true;
+    }
+    
+    
 
 }// class

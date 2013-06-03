@@ -38,5 +38,10 @@ public class VersionRange {
             new Version( mapper.getProductToProjectVersion( to ),   to )
         );
     }
+
+
+    public boolean isExactVersion() {
+        return to == null || from.equals( to );
+    }
     
 }// class

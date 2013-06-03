@@ -143,7 +143,7 @@ public class JBossAS5ServerType implements IServerType {
         sb.append( versionRange.getFrom_preferProduct() );
         
         // Range?
-        if( versionRange.to == null )
+        if( versionRange.isExactVersion() )
             return sb.toString();
         
         sb.append(" - ").append( versionRange.getTo_preferProduct() );
