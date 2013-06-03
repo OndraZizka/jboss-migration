@@ -78,14 +78,20 @@ public class XmlUtils {
      * @param confAreaDesc  Used for exception message.
      * @throws MigrationException wrapping any Exception.
      */
-    public static <T> T readXmlConfigFile( File file, String xpath, Class<T> cls, String confAreaDesc) throws MigrationException{
-        T bean;
+    public static <T> T readXmlConfigFile( File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
         try {
-            bean = XmlUtils.unmarshallBean( file, xpath, cls);
+            return XmlUtils.unmarshallBean( file, xpath, cls );
         } catch( Exception ex ) {
             throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+": " + ex.getMessage(), ex);
         }
-        return bean;
+    }
+
+    public static <T> List<T> readXmlConfigFileMulti( File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        try {
+            return XmlUtils.unmarshallBeans( file, xpath, cls );
+        } catch( Exception ex ) {
+            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+": " + ex.getMessage(), ex);
+        }
     }
 
     
