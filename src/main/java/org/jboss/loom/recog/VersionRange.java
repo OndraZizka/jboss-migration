@@ -24,6 +24,14 @@ public class VersionRange {
         this.to = to;
     }
     
+    public String getFrom_preferProduct(){
+        return this.from.verProduct != null ? this.from.verProduct : this.from.verProject;
+    }
+    
+    public String getTo_preferProduct(){
+        return this.to.verProduct != null ? this.to.verProduct : this.to.verProject;
+    }
+    
     public static VersionRange forProduct( String from, String to, IProjectAndProductVersionBidiMapper mapper ){
         return new VersionRange(
             new Version( mapper.getProductToProjectVersion( from ), from ),

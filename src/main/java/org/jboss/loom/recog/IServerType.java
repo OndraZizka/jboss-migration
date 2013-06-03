@@ -22,4 +22,10 @@ public interface IServerType {
      */
     public boolean isPresentInDir( File serverRootDir );
 
+
+    /**
+     *  Formats a string like "JBoss AS 5.1.0" or "JBoss EAP 5.2.0+" etc.
+     */
+    public String format( VersionRange versionRange );
+
 }// class

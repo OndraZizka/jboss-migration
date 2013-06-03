@@ -215,6 +215,7 @@ public class MigrationEngine {
         // Recognize version of the source server.
         this.recognizeSourceServer();
         
+        
 
         // Parse AS 7 config. Not needed anymore - we use CLI.
         this.parseAS7Config();
@@ -515,6 +516,7 @@ public class MigrationEngine {
         try {
             ServerInfo serverInfo = ServerRecognizer.recognize( serverDir );
             this.ctx.setSourceServer( serverInfo );
+            log.info("Source server recognized as " + serverInfo.format());
         } catch( Exception ex ) {
             throw new MigrationException("Failed recognizing the source server in " + serverDir + ": " + ex.getMessage(), ex);
         }

@@ -12,6 +12,12 @@ public class ServerInfo {
     private VersionRange versionRange;
 
 
+    public String format() {
+        return type.format( versionRange );
+    }
+
+    
+
     public IServerType getType() { return type; }
     public ServerInfo setType( IServerType type ) { this.type = type; return this; }
     public VersionRange getVersionRange() { return versionRange; }

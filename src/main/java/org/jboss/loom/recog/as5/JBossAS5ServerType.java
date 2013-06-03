@@ -119,6 +119,27 @@ public class JBossAS5ServerType implements IServerType {
         map.put( 0xb7414c39L, "5.2.0");
         return map;
     }
+
+
+    @Override
+    public String format( VersionRange versionRange ) {
+        StringBuilder sb = new StringBuilder("JBoss ");
+        
+        // Version unknown
+        if( versionRange == null )
+            return sb.append("AS or EAP 5").toString();
+        
+        // AS or EAP?
+        sb.append( versionRange.from.verProduct == null ? "AS " : "EAP ");
+        sb.append( versionRange.getFrom_preferProduct() );
+        
+        // Range?
+        if( versionRange.to == null )
+            return sb.toString();
+        
+        sb.append(" - ").append( versionRange.getTo_preferProduct() );
+        return sb.toString();
+    }
     
     
     

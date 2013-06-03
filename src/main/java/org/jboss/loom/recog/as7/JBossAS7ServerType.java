@@ -37,4 +37,25 @@ public class JBossAS7ServerType implements IServerType {
         return true;
     }
 
+
+    @Override
+    public String format( VersionRange versionRange ) {
+        StringBuilder sb = new StringBuilder("JBoss ");
+        
+        // Version unknown
+        if( versionRange == null || versionRange.from == null )
+            return sb.append("AS 7 or EAP 6, or WildFly 8").toString();
+        
+        // AS or EAP?
+        sb.append( versionRange.from.verProduct == null ? "AS " : "EAP ");
+        sb.append( versionRange.getFrom_preferProduct() );
+        
+        // Range?
+        if( versionRange.to == null )
+            return sb.toString();
+        
+        sb.append(" - ").append( versionRange.getTo_preferProduct() );
+        return sb.toString();
+    }
+
 }// class
