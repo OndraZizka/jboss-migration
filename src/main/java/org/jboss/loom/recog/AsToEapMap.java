@@ -20,12 +20,12 @@ public class AsToEapMap implements IProjectAndProductVersionBidiMapper {
     
     static {
         
-        // EAP 6
+        // AS 7 <-> EAP 6
         map.put("7.2.0.Final", "6.1.0");
         map.put("7.1.3.Final", "6.0.1");
         map.put("7.1.2.Final", "6.0.0");
         
-        // EAP 5
+        // AS 5 <-> EAP 5
         map.put("5.2.0.GA", "5.2.0");
         map.put("5.1.0.GA", "5.1.2");
         map.put("5.1.0.GA", "5.1.1");
@@ -37,11 +37,11 @@ public class AsToEapMap implements IProjectAndProductVersionBidiMapper {
     }
     
     @Override public String getProjectToProductVersion(String ver){
-        return (String) map.getKey( ver );
+        return (String) map.get( ver );
     }
 
     @Override public String getProductToProjectVersion(String ver){
-        return (String) map.inverseBidiMap().getKey( ver );
+        return (String) map.getKey( ver );
     }
 
 }// class
