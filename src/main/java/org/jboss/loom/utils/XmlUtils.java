@@ -67,7 +67,7 @@ public class XmlUtils {
             }
         }
         catch( SAXException | IOException | XPathExpressionException | JAXBException ex ) {
-            throw new MigrationException("Failed parsing bean from a XML file " + docFile.getPath() + ": " + ex.getMessage(), ex);
+            throw new MigrationException("Failed parsing bean from a XML file " + docFile.getPath() + ":\n    " + ex.getMessage(), ex);
         }
         return beans;
     }
@@ -82,7 +82,7 @@ public class XmlUtils {
         try {
             return XmlUtils.unmarshallBean( file, xpath, cls );
         } catch( Exception ex ) {
-            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+": " + ex.getMessage(), ex);
+            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
         }
     }
 
@@ -90,7 +90,7 @@ public class XmlUtils {
         try {
             return XmlUtils.unmarshallBeans( file, xpath, cls );
         } catch( Exception ex ) {
-            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+": " + ex.getMessage(), ex);
+            throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
         }
     }
 

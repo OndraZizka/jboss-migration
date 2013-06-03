@@ -2,8 +2,8 @@ package org.jboss.loom.migrators.ejb3;
 
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.collections.list.UnmodifiableList;
 import org.jboss.loom.actions.AbstractStatefulAction;
@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *  $JBOSS_HOME/server/$PROFILE/conf/standardjboss.xml
+ *  $JBOSS_HOME/server/$PROFILE/deploy/ejb-deployer.xml
  * 
  *  Docs: https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#EJBs_on_JBoss
  * 
@@ -42,8 +43,22 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
     @Override
     public void loadAS5Data( MigrationContext ctx ) throws MigrationException 
     {
+        // EJB 2 Timer - EAP 5.0.0
+        Ejb2TimerConfigBean timerBean;
+        File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "ejb-deployer.xml");
+        if( confFile.exists() ){
+            timerBean = XmlUtils.readXmlConfigFile( confFile,
+                "/server/mbean[@code='org.jboss.ejb.txtimer.EJBTimerServiceImpl']", Ejb2TimerConfigBean.class, "EJB2 Timer config");
+        }
+        // EJB 2 Timer - EAP 5.2.0
+        else {
+            confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "ejb2-timer-service.xml");
+            timerBean = XmlUtils.readXmlConfigFile( confFile,
+                "/server/mbean[@code='org.jboss.ejb.txtimer.EJBTimerServiceImpl']", Ejb2TimerNewConfigBean.class, "EJB2 Timer config");
+        }
+        
         // InvokerProxyBindingBean
-        File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getConfDir(), "standardjboss.xml");
+        confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getConfDir(), "standardjboss.xml");
         List<InvokerProxyBindingBean> invoBeans = XmlUtils.readXmlConfigFileMulti( confFile,
                 "/jboss/invoker-proxy-bindings/invoker-proxy-binding", InvokerProxyBindingBean.class, "EJB3 invoker proxy binding config");
         
@@ -55,7 +70,7 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
         // TODO: EJB jar's META-INF/
         
         // Store to context
-        ctx.getMigrationData().put( this.getClass(), new Data(invoBeans, contBeans) );
+        ctx.getMigrationData().put( this.getClass(), new Data( timerBean, invoBeans, contBeans) );
     }
 
 
@@ -83,17 +98,20 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
      *  Conf data class for this migrator.
      */
     public static class Data extends MigrationData {
+        
+        Ejb2TimerConfigBean ejbTimer = null;
         List<InvokerProxyBindingBean> invokers = Collections.EMPTY_LIST;
         List<ContainerConfigBean> containters = Collections.EMPTY_LIST;
 
 
-        public Data( List<InvokerProxyBindingBean> invokers, List<ContainerConfigBean> containters ) {
+        public Data( Ejb2TimerConfigBean ejbTimer, List<InvokerProxyBindingBean> invokers, List<ContainerConfigBean> containters ) {
+            this.ejbTimer = ejbTimer;
             this.invokers = invokers;
             this.containters = containters;
         }
         
         public boolean isEmpty(){
-            return (invokers == null || invokers.isEmpty()) && (containters == null || invokers.isEmpty());
+            return ( ejbTimer == null && invokers == null || invokers.isEmpty()) && (containters == null || invokers.isEmpty());
         };
 
 
@@ -101,7 +119,11 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
         public List<RemotingConfigBean> getConfigFragments() {
             if( isEmpty() ) 
                 return Collections.EMPTY_LIST;
-            List ret = new ArrayList( invokers.size() + containters.size() );
+            
+            List ret = new LinkedList();
+            ret.add( this.ejbTimer );
+            ret.addAll( this.invokers );
+            ret.addAll( this.containters );
             return UnmodifiableList.decorate( ret );
         }
         
