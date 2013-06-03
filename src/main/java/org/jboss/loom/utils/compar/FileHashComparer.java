@@ -32,6 +32,9 @@ public class FileHashComparer {
      *  Reads the hashes from file and compares each entry to the respective file in given base $dir.
      *  Hashes file format is:
      *       92ae740a ./bin/twiddle.bat
+     * 
+     *  The filter is applied to the path from the hash file, so it must only work with name, not the actual file -
+     *  so e.g. fileFileFilter() can't be used.
      */
     public static ComparisonResult compareHashesAndDir( File hashes, File dir, IOFileFilter filter ) throws FileNotFoundException, IOException{
         Map<Path, MatchResult> results = compareHashesAndDir( readHashes(hashes), dir, filter );

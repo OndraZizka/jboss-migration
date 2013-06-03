@@ -40,7 +40,7 @@ public class FileHashComparerTest {
         
         //long crc32 = FileHashComparer.computeCrc32(new File("testdata/singleFiles/oracle-ds.xml"));
         
-        ComparisonResult results = FileHashComparer.compareHashesAndDir( hashes, dir, FileFilterUtils.fileFileFilter() );
+        ComparisonResult results = FileHashComparer.compareHashesAndDir( hashes, dir, FileFilterUtils.trueFileFilter());
         
         assertEquals( FileHashComparer.MatchResult.MATCH,    results.getMatches().get(PATH_ORACLE_DS) );
         assertEquals( FileHashComparer.MatchResult.MISMATCH, results.getMatches().get(PATH_DATASOURCES) );
