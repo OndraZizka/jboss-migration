@@ -2,6 +2,7 @@ package org.jboss.loom.migrators.remoting;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.actions.ManualAction;
@@ -102,6 +103,8 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
 
         @Override
         public List<RemotingConfigBean> getConfigFragments() {
+            if( isEmpty() ) 
+                return Collections.EMPTY_LIST;
             return Arrays.asList( this.mesgConf, this.ejb2Conf, this.ejb3Conf);
         }
         
