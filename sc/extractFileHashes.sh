@@ -1,6 +1,9 @@
 echo $1
 if [ "" == "$1" ]; then echo "Needs a param - EAP zip."; exit; fi
 
+ZIP_NAME=$1
+ZIP_NAME=${ZIP_NAME%.zip}
+
 set -e
 
 rm -rf tmp
@@ -18,4 +21,4 @@ find . -name admin-console.war -prune -o -name console-mgr.sar -prune -o -name j
 mv crc32.txt $ROOT
 cd $ROOT # Back to original
 rm -rf tmp
-mv crc32.txt $NAME-crc32.txt
+mv crc32.txt $ZIP_NAME-crc32.txt

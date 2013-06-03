@@ -106,7 +106,13 @@ public class JBossAS5ServerType implements IServerType {
     
     private static List<HashFile> getHashFiles(){
         return Arrays.asList(
+            new HashFile( "jboss-eap-5.0.0-crc32.txt", "5.0.0"),
+            new HashFile( "jboss-eap-5.0.0-unsigned-crc32.txt", "5.0.0"),
             new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.0.1"),
+            new HashFile( "jboss-eap-5.1.0-crc32.txt", "5.1.0"),
+            new HashFile( "jboss-eap-5.1.0-unsigned-crc32.txt", "5.1.0"),
+            new HashFile( "jboss-eap-5.1.1-crc32.txt", "5.1.1"),
+            new HashFile( "jboss-eap-5.1.1-unsigned-crc32.txt", "5.1.1"),
             new HashFile( "jboss-eap-5.1.2-crc32.txt", "5.1.2"),
             new HashFile( "jboss-eap-5.2.0-crc32.txt", "5.2.0")
         );
@@ -114,7 +120,10 @@ public class JBossAS5ServerType implements IServerType {
     
     private static Map<Long, String> getJarVersionsXmlCrcToVersionsMap(){
         Map<Long, String> map = new HashMap();
+        map.put( 0x9f12a476L, "5.0.0");
         map.put( 0x9e98373eL, "5.0.1");
+        map.put( 0x2b9c02cbL, "5.1.0");
+        map.put( 0x52e957e7L, "5.1.1");
         map.put( 0x10c95871L, "5.1.2");
         map.put( 0xb7414c39L, "5.2.0");
         return map;
