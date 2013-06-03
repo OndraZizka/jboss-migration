@@ -510,11 +510,12 @@ public class MigrationEngine {
      *  Recognize the source server version (and type, in the future).
      */
     private void recognizeSourceServer() throws MigrationException {
+        log.debug("======== recognizeSourceServer() ========");
         File serverDir = new File(config.getGlobal().getAS5Config().getDir());
         try {
             ServerInfo serverInfo = ServerRecognizer.recognize( serverDir );
             this.ctx.setSourceServer( serverInfo );
-        } catch( MigrationException ex ) {
+        } catch( Exception ex ) {
             throw new MigrationException("Failed recognizing the source server in " + serverDir + ": " + ex.getMessage(), ex);
         }
     }

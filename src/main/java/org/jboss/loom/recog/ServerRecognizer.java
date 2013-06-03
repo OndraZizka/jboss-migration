@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.recog.as5.JBossAS5ServerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ public class ServerRecognizer {
      */
     public static IServerType recognizeType( File serverRootDir ) throws MigrationException{
         for( Class<? extends IServerType> typeClass : findServerTypes() ){
+            log.debug("    Trying " + typeClass.getSimpleName());
             IServerType type = instantiate(typeClass);
             if( type.isPresentInDir(serverRootDir) )
                 return type;
@@ -49,6 +51,7 @@ public class ServerRecognizer {
      */
     public static ServerInfo recognize( File serverRootDir ) throws MigrationException{
         IServerType type = recognizeType( serverRootDir );
+        if( type == null )  return null;
         return new ServerInfo().setType( type ).setVersionRange( type.recognizeVersion( serverRootDir ) );
     }
 
@@ -58,7 +61,10 @@ public class ServerRecognizer {
      *  Currently static.
      */
     private static Collection<Class<? extends IServerType>> findServerTypes() {
-        return (List) Arrays.asList(JBossAS7ServerType.class);
+        return (List) Arrays.asList(
+                JBossAS5ServerType.class,
+                JBossAS7ServerType.class
+        );
     }
 
 
