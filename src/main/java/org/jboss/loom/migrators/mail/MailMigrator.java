@@ -58,7 +58,7 @@ public class MailMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
         File mailConfFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "mail-service.xml");
         List<MailServiceBean> beans;
         try {

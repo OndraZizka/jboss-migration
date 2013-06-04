@@ -32,7 +32,7 @@ public interface IMigrator {
      * @param ctx context of migration with necessary object and information
      * @throws LoadMigrationException if loading of AS5 configuration fails (missing files / cannot read / wrong content)
      */
-    public void loadAS5Data(MigrationContext ctx) throws MigrationException;
+    public void loadSourceServerConfig(MigrationContext ctx) throws MigrationException;
 
     /**
      * Creates the actions, based on what data is in the context (e.g. previously obtained from the source server).

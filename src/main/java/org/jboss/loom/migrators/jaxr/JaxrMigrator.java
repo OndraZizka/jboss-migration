@@ -58,7 +58,7 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
         // Only in "all" profile (out of those distributed).
         File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "juddi-service.sar/META-INF/jboss-service.xml");
         List<JaxrConfigBean> beans;

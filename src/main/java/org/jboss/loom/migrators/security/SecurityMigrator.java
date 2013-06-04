@@ -81,7 +81,7 @@ public class SecurityMigrator extends AbstractMigrator {
      *  Loads the AS 5 data.
      */
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
         try {
             File file = new File(getGlobalConfig().getAS5Config().getConfDir(), "login-config.xml");
             if (!file.canRead()) {

@@ -69,7 +69,7 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
         try {
 
             // Get a list of -ds.xml files.

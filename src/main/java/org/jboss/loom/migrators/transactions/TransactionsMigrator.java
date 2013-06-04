@@ -33,7 +33,7 @@ public class TransactionsMigrator extends AbstractMigrator {
 
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
         throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 

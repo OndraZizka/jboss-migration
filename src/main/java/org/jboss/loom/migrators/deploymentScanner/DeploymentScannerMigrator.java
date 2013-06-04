@@ -61,7 +61,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
     
     // step 1
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
 
         AS5Config as5Config = super.getGlobalConfig().getAS5Config();
         int scanPeriod = getScanPeriod(as5Config);

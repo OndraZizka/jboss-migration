@@ -56,7 +56,7 @@ public class ServerMigrator extends AbstractMigrator {
     }
 
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
 
         // TBC: Maybe use FileUtils and list all files with that name?
         File file = Utils.createPath(

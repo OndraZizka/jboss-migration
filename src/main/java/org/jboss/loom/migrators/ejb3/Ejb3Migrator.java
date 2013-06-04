@@ -41,7 +41,7 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
 
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws MigrationException 
+    public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException 
     {
         // EJB 2 Timer - EAP 5.0.0
         Ejb2TimerConfigBean timerBean;

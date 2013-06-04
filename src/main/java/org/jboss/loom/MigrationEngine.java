@@ -501,7 +501,7 @@ public class MigrationEngine {
         try {
             for (IMigrator mig : this.migrators) {
                 log.debug("    Scanning with " + mig.getClass().getSimpleName());
-                mig.loadAS5Data(this.ctx);
+                mig.loadSourceServerConfig(this.ctx);
             }
         } catch (JAXBException e) {
             throw new LoadMigrationException(e);

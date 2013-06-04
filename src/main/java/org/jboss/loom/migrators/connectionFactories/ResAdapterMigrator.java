@@ -65,7 +65,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * {@inheritDoc}
      */
     @Override
-    public void loadAS5Data(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
         try {
 
             // Deployments AS 5 dir.

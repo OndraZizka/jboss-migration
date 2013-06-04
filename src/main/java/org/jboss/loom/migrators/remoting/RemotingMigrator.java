@@ -35,7 +35,7 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws MigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
         
         RemotingConfigBean megs = null;
         RemotingConfigPojoBean ejb2 = null;
@@ -59,7 +59,7 @@ public class RemotingMigrator extends AbstractMigrator implements IMigrator {
         // Store to context
         ctx.getMigrationData().put( this.getClass(), new Data(megs, ejb2, ejb3) );
         
-    }// loadAS5Data()
+    }// loadSourceServerConfig()
     
         
     /**

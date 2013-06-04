@@ -40,7 +40,7 @@ public class ClassloadingMigrator extends AbstractMigrator implements IMigrator 
 
 
     @Override
-    public void loadAS5Data( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
         
         ClassloadingConfData classloadingConfData = new ClassloadingConfData();
         
