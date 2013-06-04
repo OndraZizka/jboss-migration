@@ -52,6 +52,7 @@ import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.ejb3.Ejb3Migrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
 import org.jboss.loom.migrators.jaxr.JaxrMigrator;
+import org.jboss.loom.migrators.messaging.MessagingMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
@@ -173,10 +174,11 @@ public class MigrationEngine {
         migratorClasses.add( LoggingMigrator.class );
         //migratorClasses.add( DeploymentScannerMigrator.class );
         migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
-        migratorClasses.add( MailMigrator.class );      // Warn-only impl.
-        migratorClasses.add( JaxrMigrator.class );      // Warn-only impl.
-        migratorClasses.add( RemotingMigrator.class );  // Warn-only impl.
-        migratorClasses.add( Ejb3Migrator.class );      // Warn-only impl.
+        migratorClasses.add( MailMigrator.class );          // Warn-only impl.
+        migratorClasses.add( JaxrMigrator.class );          // Warn-only impl.
+        migratorClasses.add( RemotingMigrator.class );      // Warn-only impl.
+        migratorClasses.add( Ejb3Migrator.class );          // Warn-only impl.
+        migratorClasses.add( MessagingMigrator.class );     // Warn-only impl.
         return migratorClasses;
     }
     

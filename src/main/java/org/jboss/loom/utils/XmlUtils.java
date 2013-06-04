@@ -2,8 +2,13 @@ package org.jboss.loom.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -15,6 +20,7 @@ import javax.xml.xpath.XPathFactory;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.migrators.mail.MailServiceBean;
+import org.jboss.loom.migrators.messaging.jaxb.PersistenceServiceBean;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -92,6 +98,25 @@ public class XmlUtils {
         } catch( Exception ex ) {
             throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
         }
+    }
+
+    public static <T> List<T> readXmlConfigFiles( File baseDir, String filesPattern, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        List<File> files;
+        try {
+            files = new PatternDirWalker( filesPattern ).list( baseDir );
+        } catch( IOException ex ) {
+            throw new MigrationException("Failed finding files matching '"+filesPattern+"' in " + baseDir + ":\n  " + ex.getMessage(), ex);
+        }
+        
+        List<T> res = new LinkedList();
+        for( File file : files ) {
+            try {
+                res.addAll( XmlUtils.unmarshallBeans( file, xpath, cls ) );
+            } catch( Exception ex ) {
+                throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
+            }
+        }
+        return res;
     }
 
     
