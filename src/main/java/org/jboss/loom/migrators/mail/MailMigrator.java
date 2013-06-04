@@ -7,7 +7,6 @@ import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ctx.MigrationData;
-import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
@@ -58,14 +57,11 @@ public class MailMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
-        File mailConfFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "mail-service.xml");
-        List<MailServiceBean> beans;
-        try {
-            beans = XmlUtils.unmarshallBeans( mailConfFile, "/server/mbean[@code='org.jboss.mail.MailService']", MailServiceBean.class);
-        } catch( MigrationException ex ) {
-            throw new LoadMigrationException("Failed loading Mail Service config from "+mailConfFile.getPath()+": " + ex.getMessage(), ex);
-        }
+    public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
+        
+        File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "mail-service.xml");
+        List<MailServiceBean> beans = 
+            XmlUtils.readXmlConfigFileMulti( confFile, "/server/mbean[@code='org.jboss.mail.MailService']", MailServiceBean.class, "Mail Service config");
         
         // Store to context
         ctx.getMigrationData().put( this.getClass(), new Data(beans) );
