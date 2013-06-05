@@ -107,7 +107,7 @@ public class XmlUtils {
         List<T> res = new LinkedList();
         for( File file : files ) {
             try {
-                res.addAll( XmlUtils.unmarshallBeans( file, xpath, cls ) );
+                res.addAll( XmlUtils.unmarshallBeans( new File(baseDir, file.getPath()), xpath, cls ) );
             } catch( Exception ex ) {
                 throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
             }
