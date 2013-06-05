@@ -19,6 +19,7 @@ public class TestAppConfig {
     
     public static Configuration createTestConfig( String as5config, String as5profile, String as7confPath) throws IOException {
         Configuration conf = new Configuration();
+        conf.getGlobal().setTestRun( true );
         
         conf.getGlobal().getAS5Config().setDir("testdata/as5configs/" + as5config);
         conf.getGlobal().getAS5Config().setProfileName( as5profile );

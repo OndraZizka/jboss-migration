@@ -136,6 +136,11 @@ public class MigratorApp {
                 globalConfig.setDryRun(true);
                 continue;
             }
+            
+            if( arg.equals("test") || arg.equals("testRun") || arg.equals("test-run") ) {
+                globalConfig.setTestRun(true);
+                continue;
+            }
 
             // Module-specific configurations.
             // TODO: Process by calling IMigrator instances' callback.

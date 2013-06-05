@@ -36,7 +36,9 @@ public class GlobalConfiguration {
     
     private boolean dryRun = false;
 
+    private boolean isTestRun = false;
 
+    
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public AS7Config getAS7Config() { return as7Config; }
     //public void setAS7Config(AS7Config as7Config) { this.as7Config = as7Config; }
@@ -46,10 +48,15 @@ public class GlobalConfiguration {
 
     public Set<String> getDeploymentsPaths() { return appPaths; }
     public void addDeploymentPath(String deplPath) { this.appPaths.add( deplPath ); }
+    
     public boolean isSkipValidation() { return skipValidation; }
     public void setSkipValidation(boolean skipValidation) { this.skipValidation = skipValidation; }
+    
     public boolean isDryRun() { return dryRun; }
     public void setDryRun( boolean dryRun ) { this.dryRun = dryRun; }
+    
+    public boolean isTestRun() { return isTestRun; }
+    public void setTestRun( boolean isTestRun ) { this.isTestRun = isTestRun; }
     //</editor-fold>
 
 
