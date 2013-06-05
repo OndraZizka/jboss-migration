@@ -2,8 +2,6 @@ package org.jboss.loom.recog;
 
 
 import java.io.File;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.utils.compar.ComparisonResult;
 
 /**
  *

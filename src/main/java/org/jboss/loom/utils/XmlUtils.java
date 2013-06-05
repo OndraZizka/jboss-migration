@@ -12,7 +12,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.apache.tools.ant.DirectoryScanner;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.migrators.mail.MailServiceBean;
