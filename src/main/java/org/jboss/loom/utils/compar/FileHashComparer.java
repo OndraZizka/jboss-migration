@@ -26,7 +26,12 @@ public class FileHashComparer {
     private static final Logger log = LoggerFactory.getLogger( FileHashComparer.class );
 
 
-    public static enum MatchResult { MATCH, MISMATCH, MISSING };
+    public static enum MatchResult {
+        MATCH("MATCH   "), MISMATCH("MISMATCH"), MISSING("MISSING ");
+        final String padded;
+        private MatchResult( String padded ) { this.padded = padded; }
+        String rightPad(){ return this.padded; }
+    };
     
     
     /**
