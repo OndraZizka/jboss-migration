@@ -27,7 +27,7 @@ public class FileHashComparer {
 
 
     public static enum MatchResult {
-        MATCH("MATCH   "), MISMATCH("MISMATCH"), MISSING("MISSING ");
+        MATCH("MATCH   "), MISMATCH("MISMATCH"), MISSING("MISSING "), EMPTY("EMPTY   ");
         final String padded;
         private MatchResult( String padded ) { this.padded = padded; }
         public final String rightPad(){ return this.padded; }
@@ -68,6 +68,10 @@ public class FileHashComparer {
             
             if( ! file.exists() ){
                 matches.put( pathNorm, MatchResult.MISSING );
+                continue;
+            }
+            if( file.length() == 0 ){
+                matches.put( pathNorm, MatchResult.EMPTY );
                 continue;
             }
             long hashReal = computeCrc32(file);

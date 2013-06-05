@@ -542,14 +542,15 @@ public class MigrationEngine {
     }
 
     // Helper for the above method.
-    private static void announceHashComparisonResults( ServerInfo serverInfo, boolean noMiss ) {
+    private static void announceHashComparisonResults( ServerInfo serverInfo, boolean noMissOrEmpty ) {
         Map<Path, FileHashComparer.MatchResult> matches = serverInfo.getHashesComparisonResult().getMatches();
         for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
             if( entry.getValue() == FileHashComparer.MatchResult.MATCH )  continue;
-            if( entry.getValue() == FileHashComparer.MatchResult.MISSING && noMiss )  continue;
+            if( entry.getValue() == FileHashComparer.MatchResult.MISSING && noMissOrEmpty )  continue;
+            if( entry.getValue() == FileHashComparer.MatchResult.EMPTY   && noMissOrEmpty )  continue;
             log.info("    " + entry.getValue().rightPad() + ": " + entry.getKey());
         }
-        if( noMiss )  log.info("This is a test run, MISSING files aren't printed.");
+        if( noMissOrEmpty )  log.info("This is a test run, MISSING and EMPTY files aren't printed.");
     }
 
     

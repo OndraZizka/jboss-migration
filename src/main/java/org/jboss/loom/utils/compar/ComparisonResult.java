@@ -22,6 +22,7 @@ public class ComparisonResult {
     private int countMatches;
     private int countMismatches;
     private int countMisses;
+    private int countEmpty;
     private boolean recount = true;
 
 
@@ -72,6 +73,7 @@ public class ComparisonResult {
                 case MATCH:    this.countMatches++; break;
                 case MISMATCH: this.countMismatches++; break;
                 case MISSING:  this.countMisses++; break;
+                case EMPTY:    this.countEmpty++; break;
             }
         }
     }
@@ -94,7 +96,8 @@ public class ComparisonResult {
         return sb
             .append(this.countMatches).append(" match, ")
             .append(this.countMismatches).append(" mism, ")
-            .append(this.countMisses).append(" miss")
+            .append(this.countMisses).append(" miss, ")
+            .append(this.countEmpty).append(" empty")
             .toString();
     }
 
