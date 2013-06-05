@@ -232,7 +232,7 @@ public class MigrationEngine {
         String message = null;
         try {
             // Load the source server config.
-            message = "Failed loading AS 5 config.";
+            message = "Failed loading source server config.";
             this.loadASourceServerConfig();
 
             // Open an AS 7 management client connection.
@@ -518,11 +518,18 @@ public class MigrationEngine {
         log.debug("======== recognizeSourceServer() ========");
         File serverDir = new File(config.getGlobal().getAS5Config().getDir());
         try {
+            // Recognize
             ServerInfo serverInfo = ServerRecognizer.recognize( serverDir );
-            this.ctx.setSourceServer( serverInfo );
             log.info("Source server recognized as " + serverInfo.format());
-        } catch( Exception ex ) {
-            throw new MigrationException("Failed recognizing the source server in " + serverDir + ": " + ex.getMessage(), ex);
+            
+            // Compute files hashes
+            serverInfo.compareHashes();
+            log.info("" + serverInfo.getComparisonResult().formatStats());
+            
+            this.ctx.setSourceServer( serverInfo );
+        }
+        catch( Exception ex ) {
+            throw new MigrationException("Failed recognizing the source server in " + serverDir + ":\n    " + ex.getMessage(), ex);
         }
     }
 

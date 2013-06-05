@@ -52,7 +52,7 @@ public class ServerRecognizer {
     public static ServerInfo recognize( File serverRootDir ) throws MigrationException{
         IServerType type = recognizeType( serverRootDir );
         if( type == null )  return null;
-        return new ServerInfo().setType( type ).setVersionRange( type.recognizeVersion( serverRootDir ) );
+        return new ServerInfo(serverRootDir).setType( type ).setVersionRange( type.recognizeVersion( serverRootDir ) );
     }
 
 

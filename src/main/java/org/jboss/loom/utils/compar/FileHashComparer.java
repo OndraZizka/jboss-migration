@@ -14,6 +14,7 @@ import java.util.Scanner;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.util.CRCUtil;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -22,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 public class FileHashComparer {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger( FileHashComparer.class );
+    private static final Logger log = LoggerFactory.getLogger( FileHashComparer.class );
 
 
     public static enum MatchResult { MATCH, MISMATCH, MISSING };
@@ -46,7 +47,7 @@ public class FileHashComparer {
         return new ComparisonResult( dir ).setMatches( results );
     }
     
-    private static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir, IOFileFilter filter ) throws IOException {
+    public static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir, IOFileFilter filter ) throws IOException {
         Map<Path, MatchResult> matches = new HashMap();
         
         // Iterate through hashes and compare with files.
@@ -78,11 +79,11 @@ public class FileHashComparer {
      *  and returns a map of paths -> hashes.
      *  The paths are normalized, while kept relative. I.e. ./foo/../bar/a results in bar/a .
      */
-    static Map<String, Long> readHashes( File file ) throws FileNotFoundException {
+    public static Map<String, Long> readHashes( File file ) throws FileNotFoundException {
         return readHashes( new FileInputStream(file) );
     }
     
-    static Map<String, Long> readHashes( InputStream hashesIS ) throws FileNotFoundException {
+    public static Map<String, Long> readHashes( InputStream hashesIS ) throws FileNotFoundException {
         
         Scanner sc = new Scanner( hashesIS );
         Map<String, Long> hashes = new HashMap();

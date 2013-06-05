@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.recog.AsToEapMap;
+import org.jboss.loom.recog.HasHashes;
 import org.jboss.loom.recog.IServerType;
+import org.jboss.loom.recog.Version;
 import org.jboss.loom.recog.VersionRange;
 import org.jboss.loom.utils.compar.FileHashComparer;
 import org.jboss.loom.utils.compar.ComparisonResult;
@@ -23,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class JBossAS5ServerType implements IServerType {
+public class JBossAS5ServerType implements IServerType, HasHashes {
     private static final Logger log = LoggerFactory.getLogger( JBossAS5ServerType.class );
     
     @Override public String getDescription() { return "JBoss AS 5.x or 6.x, or JBoss EAP 5.x"; }
@@ -103,33 +106,68 @@ public class JBossAS5ServerType implements IServerType {
         return true;
     }
 
+
+    // Hash files.
+    private static List<HashFile> getHashFiles(){ return HASH_FILES; }
+    private static final List<HashFile>  HASH_FILES = Arrays.asList(
+        new HashFile( "jboss-eap-5.0.0-crc32.txt", "5.0.0"),
+        new HashFile( "jboss-eap-5.0.0-unsigned-crc32.txt", "5.0.0"),
+        new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.0.1"),
+        new HashFile( "jboss-eap-5.1.0-crc32.txt", "5.1.0"),
+        new HashFile( "jboss-eap-5.1.0-unsigned-crc32.txt", "5.1.0"),
+        new HashFile( "jboss-eap-5.1.1-crc32.txt", "5.1.1"),
+        new HashFile( "jboss-eap-5.1.1-unsigned-crc32.txt", "5.1.1"),
+        new HashFile( "jboss-eap-5.1.2-crc32.txt", "5.1.2"),
+        new HashFile( "jboss-eap-5.2.0-crc32.txt", "5.2.0")
+    );
     
-    private static List<HashFile> getHashFiles(){
-        return Arrays.asList(
-            new HashFile( "jboss-eap-5.0.0-crc32.txt", "5.0.0"),
-            new HashFile( "jboss-eap-5.0.0-unsigned-crc32.txt", "5.0.0"),
-            new HashFile( "jboss-eap-5.0.1-crc32.txt", "5.0.1"),
-            new HashFile( "jboss-eap-5.1.0-crc32.txt", "5.1.0"),
-            new HashFile( "jboss-eap-5.1.0-unsigned-crc32.txt", "5.1.0"),
-            new HashFile( "jboss-eap-5.1.1-crc32.txt", "5.1.1"),
-            new HashFile( "jboss-eap-5.1.1-unsigned-crc32.txt", "5.1.1"),
-            new HashFile( "jboss-eap-5.1.2-crc32.txt", "5.1.2"),
-            new HashFile( "jboss-eap-5.2.0-crc32.txt", "5.2.0")
-        );
+    private InputStream getHashFileForVersion( String ver ){
+        for( HashFile hashFile : HASH_FILES ) {
+            if( hashFile.version.equals(ver) ){
+                String path = HASH_FILES_PATH + hashFile.fName;
+                InputStream is = this.getClass().getResourceAsStream(path);
+                if( is != null ) return is;
+                throw new IllegalStateException("Hash file not found on classpath: " + path);
+            }
+        }
+        return null;
     }
     
-    private static Map<Long, String> getJarVersionsXmlCrcToVersionsMap(){
-        Map<Long, String> map = new HashMap();
+    // jar-versions.xml CRC32 -> versions.
+    private static Map<Long, String> getJarVersionsXmlCrcToVersionsMap(){ return JAR_VERSIONS_XML_CRC_TO_VERSION_MAP; }
+    private static final Map<Long, String> JAR_VERSIONS_XML_CRC_TO_VERSION_MAP = new HashMap();
+    static {
+        Map<Long, String> map = JAR_VERSIONS_XML_CRC_TO_VERSION_MAP;
         map.put( 0x9f12a476L, "5.0.0");
         map.put( 0x9e98373eL, "5.0.1");
         map.put( 0x2b9c02cbL, "5.1.0");
         map.put( 0x52e957e7L, "5.1.1");
         map.put( 0x10c95871L, "5.1.2");
         map.put( 0xb7414c39L, "5.2.0");
-        return map;
+    }
+    
+    @Override
+    public ComparisonResult compareHashes( Version version, File serverRootDir ) throws MigrationException {
+        if( version.verProduct == null )
+            throw new MigrationException("Comparing file hashes is only supported for EAP, not AS. Supplied version was: " + version.verProject);
+        
+        InputStream hashFile = getHashFileForVersion(version.verProduct);
+        if( null == hashFile )
+            throw new MigrationException("No hash files for EAP version: " + version.verProduct);
+            
+        try {
+            return FileHashComparer.compareHashesAndDir( hashFile, serverRootDir, null );
+        } catch( Exception ex ) {
+            String msg = String.format("Failed comparing hashes of %s against dir %s:\n    ",  this.format(version), serverRootDir);
+            throw new MigrationException( msg + ex.getMessage(), ex);
+        }
     }
 
 
+            
+    /**
+     *  Formats a string like "JBoss AS 5.1.0" or "JBoss EAP 5.2.0+" etc.
+     */
     @Override
     public String format( VersionRange versionRange ) {
         StringBuilder sb = new StringBuilder("JBoss ");
@@ -140,13 +178,25 @@ public class JBossAS5ServerType implements IServerType {
         
         // AS or EAP?
         sb.append( versionRange.from.verProduct == null ? "AS " : "EAP ");
-        sb.append( versionRange.getFrom_preferProduct() );
+        sb.append( versionRange.from.toString_preferProduct() );
         
         // Range?
         if( versionRange.isExactVersion() )
             return sb.toString();
         
         sb.append(" - ").append( versionRange.getTo_preferProduct() );
+        return sb.toString();
+    }
+    
+    public String format( Version version ) {
+        StringBuilder sb = new StringBuilder("JBoss ");
+        
+        // Version unknown
+        if( version == null )
+            return sb.append("AS or EAP 5").toString();
+        
+        // AS or EAP?
+        sb.append( version.verProduct == null ? "AS " + version.verProject : "EAP " + version.verProduct);
         return sb.toString();
     }
     

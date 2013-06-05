@@ -24,6 +24,7 @@ public class VersionRange {
         this.to = to;
     }
     
+    @Deprecated
     public String getFrom_preferProduct(){
         return this.from.verProduct != null ? this.from.verProduct : this.from.verProject;
     }

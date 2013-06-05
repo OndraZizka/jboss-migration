@@ -39,6 +39,17 @@ public class Version {
 
 
     @Override
+    public String toString() {
+        if( verProduct == null )  return verProject;
+        return verProject + '(' + verProduct + ')';
+    }
+    
+    public Object toString_preferProduct() {
+        return this.verProduct != null ? this.verProduct : this.verProject;
+    }
+    
+
+    @Override
     public int hashCode() {
         int hash = 3;
         hash = 61 * hash + Objects.hashCode( this.verProject );
