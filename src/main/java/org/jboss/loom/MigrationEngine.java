@@ -57,6 +57,7 @@ import org.jboss.loom.migrators.messaging.MessagingMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
+import org.jboss.loom.tools.report.Reporter;
 import org.jboss.loom.utils.compar.FileHashComparer;
 
 /**
@@ -296,6 +297,8 @@ public class MigrationEngine {
                   + "\n    " + ex.getMessage() 
                   + description, ex );
         }
+        
+        this.createReport();
 
     }// migrate()
 
@@ -627,6 +630,14 @@ public class MigrationEngine {
         catch ( SAXException | IOException ex ) {
             throw new MigrationException("Failed loading AS 7 config from " + as7configFile, ex );
         }
+    }
+
+
+    /**
+     *  Creates a migration report.
+     */
+    private void createReport() throws MigrationException {
+        Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
     }
 
 }// class

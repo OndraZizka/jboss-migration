@@ -9,6 +9,7 @@ package org.jboss.loom.conf;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**
@@ -19,6 +20,7 @@ import java.util.Set;
  *
  * @author Roman Jakubco
  */
+@XmlRootElement(name="global")
 public class GlobalConfiguration {
 
 
@@ -37,6 +39,8 @@ public class GlobalConfiguration {
     private boolean dryRun = false;
 
     private boolean isTestRun = false;
+    
+    private String reportDir = "MigrationReport";
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -57,8 +61,10 @@ public class GlobalConfiguration {
     
     public boolean isTestRun() { return isTestRun; }
     public void setTestRun( boolean isTestRun ) { this.isTestRun = isTestRun; }
+    
+    public String getReportDir() { return reportDir; }
+    public void setReportDir( String reportDir ) { this.reportDir = reportDir; }
     //</editor-fold>
-
 
 
 }// class

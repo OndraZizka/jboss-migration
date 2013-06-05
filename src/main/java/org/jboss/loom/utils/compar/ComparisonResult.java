@@ -3,18 +3,35 @@ package org.jboss.loom.utils.compar;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
+import org.jboss.loom.tools.report.ComparisonResultsMapAdapter;
 
 /**
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlRootElement(name="comparisonResult")
+@XmlAccessorType( XmlAccessType.NONE )
 public class ComparisonResult {
     
     public final File dir;
     public File hashesFile;
+    
+    //@XmlElementWrapper(name = "matches")
+    //@XmlJavaTypeAdapter(ComparisonResultsMapAdapter.class)
     Map<Path, FileHashComparer.MatchResult> matches;
-
+    
     // Counts
     private int countMatches;
     private int countMismatches;
@@ -23,6 +40,10 @@ public class ComparisonResult {
     private boolean recount = true;
 
 
+    // Const
+    
+    ComparisonResult(){ dir = null; } // For JAXB.
+    
     public ComparisonResult( File dir ) {
         this.dir = dir;
     }
@@ -32,6 +53,7 @@ public class ComparisonResult {
         this.matches = matches; recount = true; return this; 
     }
 
+    @XmlAttribute(name = "hashesFile")
     public File getHashesFile() { return hashesFile; }
     public ComparisonResult setHashes( File hashes ) {
         this.hashesFile = hashes; return this; 
@@ -98,5 +120,32 @@ public class ComparisonResult {
             .toString();
     }
 
+    
+    
+
+    // ========== JAXB ==========
+    
+    @XmlAttribute(name="serverDir")  @XmlReadOnly private String getServerDir(){ return dir.getPath(); }
+    @XmlAttribute(name="hashesFile") @XmlReadOnly private String getHashesPath(){ return hashesFile == null ? "" : hashesFile.getPath(); }
+    
+    @XmlElementWrapper(name = "matches")
+    @XmlElement(name="match")
+    private List<Match> getMatchesAsList(){
+        final LinkedList<Match> matchesList = new LinkedList();
+        for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
+            matchesList.add( new Match( entry.getKey().toString(),  entry.getValue().name() ) );
+        }
+        return matchesList;
+    }
+    @XmlType(propOrder = {"result", "path"})
+    public static class Match {
+        @XmlAttribute String path; 
+        @XmlAttribute String result;
+        public Match() { }
+        public Match( String path, String match ) {
+            this.path = path;
+            this.result = match;
+        }
+    }
     
 }// class

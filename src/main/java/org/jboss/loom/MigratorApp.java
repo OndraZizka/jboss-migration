@@ -141,6 +141,13 @@ public class MigratorApp {
                 globalConfig.setTestRun(true);
                 continue;
             }
+            
+            if( arg.startsWith("report.dir=") ) {
+                globalConfig.setReportDir( StringUtils.substringAfter(arg, "="));
+                continue;
+            }
+
+            
 
             // Module-specific configurations.
             // TODO: Process by calling IMigrator instances' callback.
