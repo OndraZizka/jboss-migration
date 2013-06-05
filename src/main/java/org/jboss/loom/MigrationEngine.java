@@ -529,14 +529,7 @@ public class MigrationEngine {
             try {
                 serverInfo.compareHashes();
                 log.info("Hash comparison against distribution files: " + serverInfo.getHashesComparisonResult().formatStats());
-                Map<Path, FileHashComparer.MatchResult> matches = serverInfo.getHashesComparisonResult().getMatches();
-                boolean noMiss = config.getGlobal().isTestRun();
-                for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
-                    if( entry.getValue() == FileHashComparer.MatchResult.MATCH )  continue;
-                    if( entry.getValue() == FileHashComparer.MatchResult.MISSING && noMiss )  continue;
-                    log.info("    " + entry.getValue().rightPad() + ": " + entry.getKey());
-                }
-                if( noMiss )  log.info("This is a test run, MISSING files aren't printed.");
+                announceHashComparisonResults( serverInfo, config.getGlobal().isTestRun() );
             } catch( Exception ex ){
                 log.error("Failed comparing files hashes for " + serverInfo.format() + ":\n    " + ex.getMessage(), ex);
             }
@@ -548,6 +541,18 @@ public class MigrationEngine {
         }
     }
 
+    // Helper for the above method.
+    private static void announceHashComparisonResults( ServerInfo serverInfo, boolean noMiss ) {
+        Map<Path, FileHashComparer.MatchResult> matches = serverInfo.getHashesComparisonResult().getMatches();
+        for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
+            if( entry.getValue() == FileHashComparer.MatchResult.MATCH )  continue;
+            if( entry.getValue() == FileHashComparer.MatchResult.MISSING && noMiss )  continue;
+            log.info("    " + entry.getValue().rightPad() + ": " + entry.getKey());
+        }
+        if( noMiss )  log.info("This is a test run, MISSING files aren't printed.");
+    }
+
+    
     
     /**
      *  Unzips the apps specified in config to temp dirs, to be deleted at the end.
