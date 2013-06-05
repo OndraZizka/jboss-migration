@@ -25,7 +25,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.logging.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.utils.AS7CliUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.loom.utils.Utils;
 
 import javax.xml.bind.JAXBContext;

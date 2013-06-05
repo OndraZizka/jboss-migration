@@ -4,7 +4,7 @@ import java.io.File;
 import org.jboss.loom.*;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.utils.AS7CliUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.controller.client.ModelControllerClient;

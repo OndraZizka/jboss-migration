@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.utils.AS7CliUtils;
 
 /**
  * Class for building CLI command for CLI API. Use for checking if value is null or empty.

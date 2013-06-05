@@ -17,7 +17,7 @@ import static org.jboss.loom.conf.Configuration.IfExists.WARN;
 import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
-import org.jboss.loom.utils.AS7CliUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.jboss.dmr.ModelNode;

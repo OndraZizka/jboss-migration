@@ -24,7 +24,7 @@ import org.jboss.loom.migrators.logging.LoggingMigrator;
 import org.jboss.loom.migrators.security.SecurityMigrator;
 import org.jboss.loom.migrators.server.ServerMigrator;
 import org.jboss.loom.spi.IMigrator;
-import org.jboss.loom.utils.AS7CliUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.as7.BatchFailure;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;

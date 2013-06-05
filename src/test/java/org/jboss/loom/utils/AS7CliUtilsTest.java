@@ -1,5 +1,6 @@
 package org.jboss.loom.utils;
 
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;

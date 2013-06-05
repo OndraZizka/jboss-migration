@@ -11,7 +11,7 @@ import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
-import org.jboss.loom.utils.AS7ModuleUtils;
+import org.jboss.loom.utils.as7.AS7ModuleUtils;
 import org.jboss.loom.utils.Utils;
 import org.apache.commons.io.FileUtils;
 
