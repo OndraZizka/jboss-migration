@@ -41,7 +41,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.util.*;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ActionDependencySorter;
 import org.jboss.loom.actions.ManualAction;
@@ -56,6 +58,7 @@ import org.jboss.loom.migrators.messaging.MessagingMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
+import org.jboss.loom.utils.compar.FileHashComparer;
 
 /**
  *  Controls the core migration processes.
@@ -523,8 +526,19 @@ public class MigrationEngine {
             log.info("Source server recognized as " + serverInfo.format());
             
             // Compute files hashes
-            serverInfo.compareHashes();
-            log.info("" + serverInfo.getComparisonResult().formatStats());
+            try {
+                serverInfo.compareHashes();
+                log.info("Hash comparison against distribution files: " + serverInfo.getHashesComparisonResult().formatStats());
+                Map<Path, FileHashComparer.MatchResult> matches = serverInfo.getHashesComparisonResult().getMatches();
+                boolean noMiss = false; //config.getGlobal().isTestRun();
+                for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
+                    if( entry.getValue() == FileHashComparer.MatchResult.MATCH )  continue;
+                    if( entry.getValue() == FileHashComparer.MatchResult.MISSING && noMiss )  continue;
+                    log.info("    " + entry.getValue().rightPad() + ": " + entry.getKey());
+                }
+            } catch( Exception ex ){
+                log.error("Failed comparing files hashes for " + serverInfo.format() + ":\n    " + ex.getMessage(), ex);
+            }
             
             this.ctx.setSourceServer( serverInfo );
         }

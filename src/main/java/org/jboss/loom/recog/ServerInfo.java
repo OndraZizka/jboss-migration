@@ -24,9 +24,11 @@ public class ServerInfo {
         this.serverRootDir = serverRootDir;
     }
     
-    
+    /**
+     *  Formats a string describing this server.
+     */
     public String format() {
-        return type.format( versionRange );
+        return type.format( versionRange ) + " in " + this.serverRootDir;
     }
 
     public void compareHashes() throws MigrationException {
@@ -46,6 +48,6 @@ public class ServerInfo {
     public VersionRange getVersionRange() { return versionRange; }
     public ServerInfo setVersionRange( VersionRange versionRange ) { this.versionRange = versionRange; return this; }
 
-    public ComparisonResult getComparisonResult() { return comparisonResult; }
+    public ComparisonResult getHashesComparisonResult() { return comparisonResult; }
 
 }// class

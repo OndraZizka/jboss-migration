@@ -30,7 +30,7 @@ public class FileHashComparer {
         MATCH("MATCH   "), MISMATCH("MISMATCH"), MISSING("MISSING ");
         final String padded;
         private MatchResult( String padded ) { this.padded = padded; }
-        String rightPad(){ return this.padded; }
+        public final String rightPad(){ return this.padded; }
     };
     
     
