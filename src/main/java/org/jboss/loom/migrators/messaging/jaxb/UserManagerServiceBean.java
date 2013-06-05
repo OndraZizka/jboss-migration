@@ -29,8 +29,8 @@ import org.jboss.loom.spi.IConfigFragment;
 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-//@XmlRootElement(name = "mbean")
-//@XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name = "mbean")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class UserManagerServiceBean extends DatasourceBasedBean<UserManagerServiceBean> implements IConfigFragment, Origin.Wise {
 
     public UserManagerServiceBean() {

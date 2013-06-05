@@ -2,6 +2,7 @@ package org.jboss.loom.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
@@ -28,7 +29,23 @@ import org.xml.sax.SAXException;
 public class XmlUtils {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger( XmlUtils.class );
     
+    /**
+     *  Convenience - calls the override with must = true.
+     */
     public static <T> T unmarshallBean( File docFile, String xpath, Class<T> cls ) throws MigrationException{
+        return unmarshallBean( true, docFile, xpath, cls );
+    }
+    
+    /**
+     *  Read XML from the File, look for nodes by XPath, and unmarshall them into given Class.
+     *  If Class is Origin.Wise, the origin is stored.
+     */
+    public static <T> T unmarshallBean( boolean must, File docFile, String xpath, Class<T> cls ) throws MigrationException{
+        if( ! docFile.exists() ){
+            if( must )  throw new MigrationException("File to unmarshall not found: " + docFile);
+            else        return null;
+        }
+            
         List<T> beans = unmarshallBeans( docFile, xpath, cls );
         if( beans.isEmpty() )
             throw new MigrationException("XPath "+xpath+" returned no nodes from " + docFile);
@@ -74,19 +91,45 @@ public class XmlUtils {
     
     
     /**
-     *  Reads given XML file, finds the first node matching given XPath, and reads them using given JAXB class.
-     * @param confAreaDesc  Used for exception message.
-     * @throws MigrationException wrapping any Exception.
+     *  Convenience - calls the override with must = true.
      */
     public static <T> T readXmlConfigFile( File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        return readXmlConfigFile( true, file, xpath, cls, confAreaDesc );
+    }
+    
+    /**
+     *  Reads given XML file, finds the first node matching given XPath, and reads it using given JAXB class.
+     *  @param confAreaDesc  Used for exception message.
+     *  @throws MigrationException wrapping any Exception.
+     */
+    public static <T> T readXmlConfigFile( boolean must, File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        if( ! file.exists() ){
+            if( must )  throw new MigrationException("File to unmarshall not found: " + file);
+            else        return null;
+        }
+            
         try {
-            return XmlUtils.unmarshallBean( file, xpath, cls );
+            return XmlUtils.unmarshallBean( must, file, xpath, cls );
         } catch( Exception ex ) {
             throw new MigrationException("Failed loading "+confAreaDesc+" config from "+file.getPath()+":\n    " + ex.getMessage(), ex);
         }
     }
 
     public static <T> List<T> readXmlConfigFileMulti( File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        return readXmlConfigFileMulti( true, file, xpath, cls, confAreaDesc );
+    }
+    
+    /**
+     *  Reads given XML file, finds all nodes matching given XPath, and reads them into a list using given JAXB class.
+     *  @param confAreaDesc  Used for exception message.
+     *  @throws MigrationException wrapping any Exception.
+     */
+    public static <T> List<T> readXmlConfigFileMulti( boolean must, File file, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        if( ! file.exists() ){
+            if( must )  throw new MigrationException("File to unmarshall not found: " + file);
+            else        return null;
+        }
+            
         try {
             return XmlUtils.unmarshallBeans( file, xpath, cls );
         } catch( Exception ex ) {
@@ -95,6 +138,9 @@ public class XmlUtils {
     }
 
     public static <T> List<T> readXmlConfigFiles( File baseDir, String filesPattern, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+        if( ! baseDir.exists() )
+            return Collections.EMPTY_LIST;
+            
         List<File> files;
         try {
             //files = new PatternDirWalker( filesPattern ).list( baseDir );

@@ -1,5 +1,8 @@
 package org.jboss.loom.migrators.messaging.jaxb;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
@@ -47,8 +50,8 @@ import org.jboss.loom.spi.IConfigFragment;
 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-//@XmlRootElement(name = "mbean")
-//@XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name = "mbean")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class PostOfficeServiceBean extends DatasourceBasedBean<PostOfficeServiceBean> implements IConfigFragment, Origin.Wise {
 
     public PostOfficeServiceBean() {
