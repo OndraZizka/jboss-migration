@@ -77,13 +77,19 @@ public class ComparisonResult {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder("Hash file ")
+        return new StringBuilder("Hash file ")
                 .append(this.hashesFile)
-                .append(" against dir ").append(this.dir).append(": ");
-                
+                .append(" against dir ").append(this.dir).append(": ")
+                .append(this.formatStats())
+                .toString();
+    }
+
+
+    public String formatStats() {
+        StringBuilder sb = new StringBuilder();
         if( this.matches == null )
-            return sb.append("Matches were not set yet.").toString()
-                    ;
+            return sb.append("Matches were not set yet.").toString();
+        
         this.doCountIfNeeded();
         return sb
             .append(this.countMatches).append(" match, ")
