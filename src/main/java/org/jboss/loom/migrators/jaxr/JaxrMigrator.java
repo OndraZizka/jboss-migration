@@ -58,15 +58,15 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
     }
 
     @Override
-    public void loadSourceServerConfig( MigrationContext ctx ) throws LoadMigrationException {
+    public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
         // Only in "all" profile (out of those distributed).
         File confFile = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "juddi-service.sar/META-INF/jboss-service.xml");
-        List<JaxrConfigBean> beans;
-        try {
-            beans = XmlUtils.unmarshallBeans( confFile, "/server/mbean[@code='org.jboss.jaxr.juddi.JUDDIService']", JaxrConfigBean.class);
-        } catch( MigrationException ex ) {
-            throw new LoadMigrationException("Failed loading JAXR config from "+confFile.getPath()+": " + ex.getMessage());
-        }
+        
+        // Optional.
+        if( ! confFile.exists() )  return;
+        
+        List<JaxrConfigBean> beans = XmlUtils.readXmlConfigFileMulti( confFile, 
+                "/server/mbean[@code='org.jboss.jaxr.juddi.JUDDIService']", JaxrConfigBean.class, "JAXR config");
         
         // DDL - data from SQL scripts
         // TBC: We could parse this using HSQL db.
@@ -84,7 +84,7 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
         MigrationData data = ctx.getMigrationData().get(this.getClass());
-        if( data.getConfigFragments().isEmpty() )
+        if( data == null || data.getConfigFragments().isEmpty() )
             return;
         
         // ManualAction.
