@@ -11,8 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *  Not finished, I used Ant's org.apache.tools.ant.DirectoryScanner instead.
@@ -20,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class PatternDirWalker {
-    private static final Logger log = LoggerFactory.getLogger( PatternDirWalker.class );
+    //private static final Logger log = LoggerFactory.getLogger( PatternDirWalker.class );
     
     private String pattern;
     private List segments;

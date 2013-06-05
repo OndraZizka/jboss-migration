@@ -2,13 +2,8 @@ package org.jboss.loom.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.PathMatcher;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -17,10 +12,10 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.apache.tools.ant.DirectoryScanner;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.migrators.mail.MailServiceBean;
-import org.jboss.loom.migrators.messaging.jaxb.PersistenceServiceBean;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -103,7 +98,8 @@ public class XmlUtils {
     public static <T> List<T> readXmlConfigFiles( File baseDir, String filesPattern, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
         List<File> files;
         try {
-            files = new PatternDirWalker( filesPattern ).list( baseDir );
+            //files = new PatternDirWalker( filesPattern ).list( baseDir );
+            files = new DirScanner( filesPattern ).list( baseDir );
         } catch( IOException ex ) {
             throw new MigrationException("Failed finding files matching '"+filesPattern+"' in " + baseDir + ":\n  " + ex.getMessage(), ex);
         }
