@@ -16,7 +16,6 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -56,7 +55,7 @@ public class ClassloadingTest {
     @RunAsClient
     public void testClassloadingMigrator( ) throws Exception {
                 
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         conf.getGlobal().addDeploymentPath( createDeploymentJar().getPath() );
         conf.getGlobal().addDeploymentPath( createDeploymentWar().getPath() );
         AS7Config as7Config = conf.getGlobal().getAS7Config();

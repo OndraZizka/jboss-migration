@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment xmlns="urn:jboss:bean-deployer:2.0">
+
+    <!--  We don't want the AOPDependencyBuilder  -->
+    <annotation>@org.jboss.aop.microcontainer.annotations.DisableAOP</annotation>
+    
+    <!-- EJB3 ProcessorChain Deployer -->
+    <bean name="Ejb3MetadataProcessingDeployer"    class="org.jboss.ejb3.deployers.Ejb3MetadataProcessingDeployer">        
+        <!-- A validator chain for validating the processed metadata -->
+        <property name="validatorChain"><inject bean="EJBMetadataValidatorChain"/></property>
+
+        <!-- Allow for addition/removal of processor factories -->
+        <incallback method="addProcessorFactory"/>
+        <uncallback method="removeProcessorFactory" />
+    </bean>
+    
+    <!-- Validator chain for validating EJB3 metadata (right now uses default validators which
+    are not configured here -->
+    <bean name="EJBMetadataValidatorChain" class="org.jboss.metadata.validation.chain.ejb.jboss.JBossMetaDataValidatorChain"/>
+    
+    <!--  EJBsDeployer -->
+    <bean name="EJBsDeployer" class="org.jboss.ejb3.deployers.EJBsDeployer"/>
+    
+    <!-- Processor factory for setting the implicit default business local interface(JBMETA-122) -->
+    <bean name="SetDefaultLocalBusinessInterfaceProcessorFactory" 
+    class="org.jboss.ejb3.deployers.metadata.processor.SetDefaultLocalBusinessInterfaceProcessorFactory"/>
+
+    <!-- Processor factory for setting default ClusterConfig (JBMETA-133, EJBTHREE-1539)-->
+    <bean name="ClusterConfigDefaultValueProcessorFactory" 
+    class="org.jboss.ejb3.deployers.metadata.processor.ClusterConfigDefaultValueProcessorFactory"/>
+    
+    <!-- Processor factory for setting  explicit local JNDI name from @LocalBinding.jndiBinding (JBMETA-143) -->
+    <bean name="SetExplicitLocalJNDINameProcessorFactory" 
+    class="org.jboss.ejb3.deployers.metadata.processor.SetExplicitLocalJNDINameProcessorFactory"/>
+    
+    <!-- Processor factory for setting  the jndibinding policy for all beans in a deployment (JBMETA-232) -->
+    <bean name="JNDIBindingPolicyProcessorFactory" 
+    class="org.jboss.ejb3.deployers.metadata.processor.JNDIBindingPolicyProcessorFactory"/>
+    
+        <bean name="ContainerNameMetaDataProcessorFactory" 
+    class="org.jboss.ejb3.deployers.metadata.processor.ContainerNameMetaDataProcessorFactory"/>
+    
+    
+</deployment>

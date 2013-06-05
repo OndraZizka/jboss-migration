@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+     Standard bisocket-based Remoting service deployment descriptor.
+
+     $Id: remoting-bisocket-service.xml 3981 2008-03-28 18:00:41Z timfox $
+ -->
+
+<server>
+
+   <!-- Standard bisocket connector - the bisocket transport only opens connection from client->server
+        so can be used with firewalls where only outgoing connections are allowed.
+        For examples of HTTP and SSL transports see docs/examples -->
+   <mbean code="org.jboss.remoting.transport.Connector"
+          name="jboss.messaging:service=Connector,transport=bisocket"
+          display-name="Bisocket Transport Connector">
+      <attribute name="Configuration">
+         <config>
+            <invoker transport="bisocket">
+            
+               <!-- There should be no reason to change these parameters - warning!
+                    Changing them may stop JBoss Messaging working correctly 
+               -->            
+               <attribute name="marshaller" isParam="true">org.jboss.jms.wireformat.JMSWireFormat</attribute>
+               <attribute name="unmarshaller" isParam="true">org.jboss.jms.wireformat.JMSWireFormat</attribute>
+               <attribute name="dataType" isParam="true">jms</attribute>
+               <attribute name="serverBindAddress">${jboss.bind.address}</attribute>
+               <attribute name="serverBindPort">${jboss.messaging.connector.bisocket.port:4457}</attribute>
+               <attribute name="clientSocketClass" isParam="true">org.jboss.jms.client.remoting.ClientSocketWrapper</attribute>
+               <attribute name="serverSocketClass">org.jboss.jms.server.remoting.ServerSocketWrapper</attribute>
+               <attribute name="onewayThreadPool">org.jboss.jms.server.remoting.DirectThreadPool</attribute>
+
+               <!-- End immutable parameters -->
+
+               <!--  
+                   These ping parameters are used to keep the control channel open.
+                    
+                    numberOfCallRetries: Perhaps better named "numberOfCallTrys" as the first contact attempt is counted.  So
+                    a value of 2 is the first attempt and one retry.  Note that in most environments, if the first retry does not 
+                    succeed, further retrying will also likely fail.
+                    
+                    pingFrequency: how often to ping in milliseconds.
+                    
+                    pingWindowFactor: the server waits pingFrequency * pingWindowFactor for a ping reply
+               -->                              
+               <attribute name="numberOfCallRetries" isParam="true">2</attribute>
+               <attribute name="pingFrequency" isParam="true">30000</attribute>
+               <attribute name="pingWindowFactor" isParam="true">10</attribute>
+               <attribute name="generalizeSocketException" isParam="true">true</attribute>
+
+               <!-- If this attribute is set to "true" then remoting will attempt to round-trip a single
+                    byte in order to test the networking connection on every request.  While this is a 
+                    heavy/expensive operation, it works around a bug in the JDK SSL implementation that
+                    can cause a deadlock when both a read and close operation are present.   
+                -->
+               <attribute name="socket.check_connection" isParam="true">false</attribute>               
+               
+               <attribute name="stopLeaseOnFailure" isParam="true">true</attribute>
+               
+               <!-- Periodicity of client pings  in milliseconds. Server window by default is twice this figure.  
+                    Note that these values configure the mechanism by which remoting declares a client 
+                    connection invalid.  Care must be taken not to lower these values below the time taken by
+                    full garbage collection events and other system stalls.
+               -->                               
+               <attribute name="clientLeasePeriod" isParam="true">10000</attribute>
+               <attribute name="validatorPingPeriod" isParam="true">10000</attribute>
+               <attribute name="validatorPingTimeout" isParam="true">5000</attribute>
+
+               <attribute name="failureDisconnectTimeout" isParam="true">0</attribute>
+               <attribute name="callbackErrorsAllowed">1</attribute>
+               <attribute name="registerCallbackListener">false</attribute>
+               <attribute name="useClientConnectionIdentity" isParam="true">true</attribute>
+
+               <!-- Socket read and write timeouts in milliseconds.  These default to 30 seconds.  While
+                    lower values can detect networking and client failures quicker, lowering these values
+                    risks not waiting long enough in some scenarios.  
+               -->	       	       
+               <attribute name="timeout" isParam="true">30000</attribute>
+               <attribute name="writeTimeout" isParam="true">30000</attribute>
+
+               <!-- Max Number of connections in client pool. This should be significantly higher than
+                    the max number of sessions/consumers you expect 
+               -->
+               <attribute name="JBM_clientMaxPoolSize" isParam="true">200</attribute>
+               
+               <!-- The maximum time to wait before timing out on trying to write a message to socket for delivery -->
+               <attribute name="callbackTimeout">10000</attribute> 
+               
+               <!-- Use these parameters to specify values for binding and connecting control connections to 
+                    work with your firewall/NAT configuration.
+                    
+                    secondaryBindPort: specifies the secondary listening port.  Normally this is a ephemeral or
+                    random system assigned port.  It is often desirable to assign this port as 4458.
+                    
+                    secondaryConnectPort: JBoss remoting provides the client a configuration.  The client needs to
+                    know how to find the secondary bind port.  In a NAT environment with port forwarding, this 
+                    should be set to the the external port that the clients will contact.
+               -->
+			   <!--
+               <attribute name="secondaryBindPort">xyz</attribute>                           
+               <attribute name="secondaryConnectPort">abc</attribute>               
+               -->
+                      
+               <!-- See JBREM-1277.  When the server has many clients and is processing many connection attempts, 
+                    raising the priority of the accept threads is needed.
+               -->
+               <attribute name="acceptThreadPriorityIncrement">1</attribute>
+                      
+               <!-- Disable the Nagle algorithm.  Nagle can have bad interactions with the TCP delayed ack
+                    mechanism.  See http://en.wikipedia.org/wiki/Nagle's_algorithm
+               -->
+               <attribute name="enableTcpNoDelay" isParam="true">true</attribute>
+                                               
+            </invoker>
+            <handlers>
+               <handler subsystem="JMS">org.jboss.jms.server.remoting.JMSServerInvocationHandler</handler>
+            </handlers>
+         </config>
+      </attribute>
+   </mbean>
+
+</server>

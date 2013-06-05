@@ -36,8 +36,8 @@ public class TestAppConfig {
         return createTestConfig("01_510all", "all", "standalone/configuration/standalone.xml");
     }
     
-    public static Configuration createTestConfig_EAP_520_production() throws IOException {
-        return createTestConfig("02_EAP-520-prod", "production", "standalone/configuration/standalone.xml");
+    public static Configuration createTestConfig_EAP_520( String profile ) throws IOException {
+        return createTestConfig("02_EAP-520", profile, "standalone/configuration/standalone.xml");
     }
 
     

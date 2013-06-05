@@ -1,5 +1,6 @@
 package org.jboss.loom;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
@@ -57,14 +58,8 @@ public class ArqTest {
     }
     
     
-    /**
-     *   With EAP 5.2.0. config.
-     */
-    @Test @Category( EAP.class )
-    @RunAsClient
-    public void test_EAP_520_production( ) throws Exception {
-
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+    private void runEap520( String profile ) throws Exception {
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520(profile);
         updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
         TestAppConfig.announceMigration( conf );
@@ -74,13 +69,60 @@ public class ArqTest {
     }
     
     /**
+     *   EAP 5.2.0 production.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    public void test_EAP_520_production( ) throws Exception {
+        runEap520("production");
+    }
+    
+    /**
+     *   EAP 5.2.0 all.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    public void test_EAP_520_all( ) throws Exception {
+        runEap520("all");
+    }
+
+    /**
+     *   EAP 5.2.0 default.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    public void test_EAP_520_default( ) throws Exception {
+        runEap520("default");
+    }
+
+    /**
+     *   EAP 5.2.0 standard.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    public void test_EAP_520_standard( ) throws Exception {
+        runEap520("standard");
+    }
+
+    /**
+     *   EAP 5.2.0 web.
+     */
+    @Test @Category( EAP.class )
+    @RunAsClient
+    public void test_EAP_520_web( ) throws Exception {
+        runEap520("web");
+    }
+
+    
+    
+    /**
      *   EAP 5.2.0, dry run.
      */
     @Test @Category( EAP.class )
     @RunAsClient
     public void testDryRun_EAP_520_production( ) throws Exception {
 
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         conf.getGlobal().setDryRun( true );
         updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
@@ -95,10 +137,10 @@ public class ArqTest {
      */
     @Test @Category( EAP.class )
     @RunAsClient
-    //@Ignore
+    @Ignore("JBOSS_HOME is an env var, not sys prop.")
     public void testJBOSS_HOME() throws Exception {
 
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520_production();
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         System.setProperty("JBOSS_HOME", "/foo/bar");
         updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
