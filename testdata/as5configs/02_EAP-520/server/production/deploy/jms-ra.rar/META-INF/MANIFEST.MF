@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 20.0-b12 (Sun Microsystems Inc.)
+Specification-Title: JBoss
+Specification-Version: 5.2.0
+Specification-Vendor: JBoss (http://www.jboss.org/)
+Implementation-Title: JBoss [EAP]
+Implementation-URL: http://www.jboss.org/
+Implementation-Version: 5.2.0 (build: SVNTag=JBPAPP_5_2_0 date=2012112
+ 32041)
+Implementation-Vendor: JBoss Inc.
+Implementation-Vendor-Id: http://www.jboss.org/
+
