@@ -8,10 +8,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ctx.MigrationData;
-import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.tools.report.adapters.ToActionBeanAdapter;
 import org.jboss.loom.utils.compar.ComparisonResult;
 
 /**
@@ -34,6 +35,7 @@ public class MigrationReportJaxbBean {
 
     @XmlElementWrapper(name = "actions")
     @XmlElement(name = "action")
+    @XmlJavaTypeAdapter( ToActionBeanAdapter.class )
     private List<IMigrationAction> actions;
 
 

@@ -1,4 +1,4 @@
-package org.jboss.loom.tools.report;
+package org.jboss.loom.tools.report.adapters;
 
 
 import java.nio.file.Path;
@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
-import org.jboss.loom.tools.report.ComparisonResultsMapAdapter.MapElement;
+import org.jboss.loom.tools.report.adapters.ComparisonResultsMapAdapter.MapElement;
 import org.jboss.loom.utils.compar.FileHashComparer;
 
 /**

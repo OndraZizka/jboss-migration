@@ -76,9 +76,10 @@ public interface IMigrationAction {
     /**
      * @returns A description of this action in terms of what exactly would it do.
      */
-    @XmlElement(name = "desc")
+    @XmlElement(name = "desc") // Doesn't work - JAXB needs a getter.
     String toDescription();
 
+    
     @XmlElementWrapper(name="warnings")
     @XmlElement(name="warning")
     List<String> getWarnings();

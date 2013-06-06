@@ -162,5 +162,5 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         }
         retNodes.add( action );
     }
-
+    
 }// class
