@@ -38,6 +38,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import org.apache.commons.io.DirectoryWalker;
+import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.tools.report.Reporter;
 
 /**
  * Global utils class.
@@ -283,5 +285,34 @@ public class Utils {
         return file;
     }
 
-
+    
+    /**
+     *  Finds a subclass of given class in current stacktrace.
+     *  Returns null if not found.
+     */
+    public static <T> Class<? extends T> findSubclassInStackTrace(Class<T> parentClass) {
+        // 0 - Thread.getStackTrace().
+        // 1 - This method.
+        // 2 - Whatever called this method.
+        return findSubclassInStackTrace( parentClass, Thread.currentThread().getStackTrace(), 2 );
+    }
+    /**
+     *  Finds a subclass of given $parentClass in given $stackTrace, skipping $skip levels.
+     *  Returns null if not found.
+     */
+    public static <T> Class<? extends T> findSubclassInStackTrace(Class<T> parentClass, StackTraceElement[] stackTrace, int skip) {
+        //for( StackTraceElement call : stackTrace) {
+        for( int i = skip; i < stackTrace.length; i++ ) {
+            StackTraceElement call = stackTrace[i];
+            try {
+                Class<?> callClass = Class.forName( call.getClassName() );
+                if( parentClass.isAssignableFrom( callClass ) )
+                    return (Class<? extends T>)  callClass;
+            } catch( ClassNotFoundException ex ) {
+                Reporter.log.error("Can't load class " + call.getClassName() + ":\n    " + ex.getMessage());
+            }
+        }
+        return null;
+    }
+    
 }// class
