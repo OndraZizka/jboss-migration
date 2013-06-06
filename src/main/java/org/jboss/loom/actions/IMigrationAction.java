@@ -5,6 +5,10 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import org.eclipse.persistence.oxm.annotations.XmlWriteOnly;
 
 /**
  * Actions of which the migration consists.
@@ -26,6 +30,8 @@ import java.util.List;
  * @Jira MIGR-31 and MIGR-23.
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlRootElement(name="action")
+@XmlAccessorType( XmlAccessType.NONE )
 public interface IMigrationAction {
 
     /**
