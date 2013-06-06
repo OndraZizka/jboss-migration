@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * Class for unmarshalling and representing application-policy (AS5)
@@ -24,7 +25,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "application-policy")
 
-public class ApplicationPolicyBean implements IConfigFragment {
+public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String applicationPolicyName;

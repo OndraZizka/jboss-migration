@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * Class for unmarshalling and representing category (AS5)
@@ -29,7 +30,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "category")
 
-public class CategoryBean implements IConfigFragment {
+public class CategoryBean extends OriginWiseJaxbBase<CategoryBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String categoryName;

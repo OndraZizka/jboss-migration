@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * @author Roman Jakubco
@@ -23,7 +24,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Engine")
 
-public class EngineBean implements IConfigFragment {
+public class EngineBean extends OriginWiseJaxbBase<EngineBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
     private String engineName;

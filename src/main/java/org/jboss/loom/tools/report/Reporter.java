@@ -27,7 +27,7 @@ import org.w3c.dom.Document;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class Reporter {
-    private static final Logger log = LoggerFactory.getLogger( Reporter.class );
+    public static final Logger log = LoggerFactory.getLogger( Reporter.class );
 
     
     public static void createReport( MigrationContext ctx, File reportDir ) throws MigrationException {

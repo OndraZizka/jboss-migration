@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * Class for unmarshalling and representing logging configuration (AS5)
@@ -25,7 +26,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "configuration")
 
-public class LoggingAS5Bean implements IConfigFragment {
+public class LoggingAS5Bean extends OriginWiseJaxbBase<LoggingAS5Bean> implements IConfigFragment {
 
     @XmlElements(@XmlElement(name = "appender", type = AppenderBean.class))
     Set<AppenderBean> appenders;

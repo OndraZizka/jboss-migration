@@ -10,6 +10,7 @@ package org.jboss.loom.migrators.server.jaxb;
 import org.jboss.loom.spi.IConfigFragment;
 
 import javax.xml.bind.annotation.*;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * Class for unmarshalling and representing connector in AS5 (AS5)
@@ -21,7 +22,7 @@ import javax.xml.bind.annotation.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connector")
 
-public class ConnectorAS5Bean implements IConfigFragment {
+public class ConnectorAS5Bean extends OriginWiseJaxbBase<ConnectorAS5Bean> implements IConfigFragment {
     // Only attributes which can be migrated to AS7
     // AJP+ HTTP ... similar attributes
 

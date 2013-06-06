@@ -15,6 +15,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.Set;
+import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
  * @author Roman Jakubco
@@ -24,7 +25,7 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "root")
 
-public class RootLoggerAS5Bean implements IConfigFragment {
+public class RootLoggerAS5Bean extends OriginWiseJaxbBase<RootLoggerAS5Bean> implements IConfigFragment {
 
     @XmlPath("priority/@value")
     private String rootPriorityValue;
