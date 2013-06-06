@@ -12,6 +12,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -78,7 +86,7 @@ public class XmlUtils {
     public static <T> List<T> unmarshallBeans( File docFile, String xpath, Class<T> cls ) throws MigrationException{
         
         List<T> beans = new LinkedList();
-        DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+        DocumentBuilder docBuilder = createXmlDocumentBuilder();
         try {
             // Parse
             Document doc = docBuilder.parse(docFile);
@@ -188,6 +196,66 @@ public class XmlUtils {
         for( MailServiceBean ms : beans) {
             System.out.println( ms.getJndiName() );
         }
+    }
+
+
+    /**
+     * Creates a new default document builder.
+     *
+     *
+     */
+    public static DocumentBuilder createXmlDocumentBuilder() {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware( false );
+        String feat = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+        try {
+            dbf.setFeature( feat, false );
+        } catch( ParserConfigurationException ex ) {
+            log.warn( "Couldn't set " + feat + " to false. The parser may attempt to load DTD." );
+        }
+        try {
+            return dbf.newDocumentBuilder();
+        } catch( ParserConfigurationException ex ) {
+            throw new RuntimeException( ex );
+        }
+    }
+
+
+    /**
+     * Transforms given Document into given File
+     */
+    public static File transformDocToFile( Document doc, File file ) throws TransformerException {
+        final TransformerFactory tf = TransformerFactory.newInstance();
+        final Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+        transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "3" );
+        transformer.transform( new DOMSource( doc ), new StreamResult( file ) );
+        return file;
+    }
+
+
+    /**
+     * Creates clean Document used in other classes for working with XML
+     *
+     * @return clean Document
+     * @throws ParserConfigurationException if creation of document fails
+     */
+    public static Document createDoc() throws ParserConfigurationException {
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setIgnoringComments( true );
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+        Document doc = builder.getDOMImplementation().createDocument( null, null, null );
+        return doc;
+    }
+
+
+    /**
+     * @deprecated TODO: useless?
+     */
+    public static Document parseFileToXmlDoc( File file ) throws SAXException, IOException {
+        DocumentBuilder db = XmlUtils.createXmlDocumentBuilder();
+        Document doc = db.parse( file );
+        return doc;
     }
     
 }// class

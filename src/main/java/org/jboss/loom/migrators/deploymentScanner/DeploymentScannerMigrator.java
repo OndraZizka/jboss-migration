@@ -43,6 +43,7 @@ import org.jboss.loom.migrators.deploymentScanner.jaxb.PropertyType;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.StandaloneDeploymentScannerType;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.Subsystem;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.ValueType;
+import org.jboss.loom.utils.XmlUtils;
 
 /**
  * User: rsearls
@@ -105,7 +106,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             return valueList;
         
         try {
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            DocumentBuilder docBuilder = XmlUtils.createXmlDocumentBuilder();
             Document doc = docBuilder.parse(f);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
@@ -257,7 +258,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         List<ValueType> resultList = new LinkedList();
 
         try {
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            DocumentBuilder docBuilder = XmlUtils.createXmlDocumentBuilder();
             Document doc = docBuilder.parse(f);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
@@ -290,7 +291,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
         try {
             File f = Utils.createPath(as5Config.getDeployDir(), "hdscanner-jboss-beans.xml");
 
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            DocumentBuilder docBuilder = XmlUtils.createXmlDocumentBuilder();
             Document doc = docBuilder.parse(f);
 
             // Get the data into a JAXB bean.

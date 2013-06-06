@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import org.jboss.loom.utils.XmlUtils;
 
 /**
  * User: rsearls
@@ -73,7 +74,7 @@ public class SubsystemAction extends AbstractStatefulAction {
     public void perform() throws MigrationException {
 
         try {
-            DocumentBuilder docBuilder = Utils.createXmlDocumentBuilder();
+            DocumentBuilder docBuilder = XmlUtils.createXmlDocumentBuilder();
             XPath xpath = XPathFactory.newInstance().newXPath();
             String exp = "/server/profile";
             NodeList pList = (NodeList) xpath.evaluate(exp, destDoc, XPathConstants.NODESET);

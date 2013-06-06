@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -102,7 +103,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
                 throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXmlFile.getPath() );
             
             Document doc = AS7ModuleUtils.createModuleXML( moduleName, jarFile.getName(), deps );
-            Utils.transformDocToFile( doc, moduleXmlFile );
+            XmlUtils.transformDocToFile( doc, moduleXmlFile );
 
             // Backup
             this.moduleDir = dir;
@@ -110,10 +111,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         catch( IOException ex ) {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
-        catch( TransformerException ex ) {
-            throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + ex.getMessage(), ex);
-        }
-        catch( ParserConfigurationException ex ) {
+        catch( TransformerException | ParserConfigurationException ex ) {
             throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + ex.getMessage(), ex);
         }
 

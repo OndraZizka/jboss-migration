@@ -43,6 +43,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.jboss.loom.utils.XmlUtils;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
@@ -87,7 +88,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             Unmarshaller dataUnmarshaller = JAXBContext.newInstance(DatasourcesBean.class).createUnmarshaller();
             
             for( File dsXml : dsXmls ) {
-                Document doc = Utils.parseFileToXmlDoc( dsXml );
+                Document doc = XmlUtils.parseFileToXmlDoc( dsXml );
                 Element element = doc.getDocumentElement();
                 if( DATASOURCES_ROOT_ELEMENT_NAME.equals( element.getTagName() )){
                     DatasourcesBean dataSources = (DatasourcesBean) dataUnmarshaller.unmarshal(dsXml);

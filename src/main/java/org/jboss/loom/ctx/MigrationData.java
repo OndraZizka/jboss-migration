@@ -11,38 +11,62 @@ import org.jboss.loom.spi.IConfigFragment;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.tools.report.Reporter;
+import org.jboss.loom.utils.Utils;
 
 /**
  * Source server config data to be migrated.
  *
  * @author Roman Jakubco
  */
+@XmlRootElement
+@XmlAccessorType( XmlAccessType.NONE )
 public class MigrationData {
 
     private List<? extends IConfigFragment> configFragments;
-
+    
+    @XmlAttribute(name = "fromMigrator")
+    private Class<? extends IMigrator> fromMigrator;
+    
 
     public MigrationData() {
-        this.configFragments = new LinkedList();
+        this(new LinkedList());
+        
     }
 
     public MigrationData( List<? extends IConfigFragment> configFragments ) {
         this.configFragments = configFragments;
+        this.fromMigrator = Utils.findSubclassInStackTrace( IMigrator.class );
     }
     
 
-
     @Override
     public String toString() {
-        return "MigrationData{" + "configFragment=" + configFragments + '}';
+        return this.getClass().getSimpleName() + " with " + (configFragments == null ? "no" : configFragments.size()) + " config fragments";
     }
 
+    // for JAXB
+    @XmlAttribute(name = "desc")
+    public String getDescription(){ return toString(); }
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
+    @XmlElementWrapper(name = "configFragments")
+    @XmlElement(name = "configFragment")
     public <T extends IConfigFragment> List<T> getConfigFragments() {
         return (List<T>) configFragments;
     }
     //public void setConfigFragments(List<IConfigFragment> configFragment) { this.configFragments = configFragment; }
     //</editor-fold>
+
+
 
 }// class

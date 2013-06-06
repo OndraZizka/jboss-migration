@@ -17,6 +17,7 @@ import org.w3c.dom.Document;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
+import org.jboss.loom.utils.XmlUtils;
 
 /**
  * @deprecated  Use ModuleCreationAction.
@@ -68,7 +69,7 @@ public class ModuleCreationOldAction extends AbstractStatefulAction {
             if( moduleXml.exists() && ! this.overwrite )
                 throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXml.getPath() );
 
-            Utils.transformDocToFile(this.moduleDoc, moduleXml);
+            XmlUtils.transformDocToFile(this.moduleDoc, moduleXml);
             this.moduleXml = moduleXml;
         }
         catch (IOException ex) {

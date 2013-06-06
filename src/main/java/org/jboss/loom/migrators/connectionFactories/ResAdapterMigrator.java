@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.utils.XmlUtils;
 
 /**
  * Migrator of Resource Adapter(Connection Factories in AS5) subsystem implementing IMigrator
@@ -86,7 +87,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
             // For each -ds.xml
             for (File dsXml : dsXmls) {
-                Document doc = Utils.parseFileToXmlDoc(dsXml);
+                Document doc = XmlUtils.parseFileToXmlDoc(dsXml);
 
                 Element element = doc.getDocumentElement();
                 if ("connection-factories".equals(element.getTagName())) {

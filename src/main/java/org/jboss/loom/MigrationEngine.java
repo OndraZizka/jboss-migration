@@ -58,6 +58,7 @@ import org.jboss.loom.migrators.remoting.RemotingMigrator;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
 import org.jboss.loom.tools.report.Reporter;
+import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.compar.FileHashComparer;
 
 /**
@@ -618,7 +619,7 @@ public class MigrationEngine {
     private void parseAS7Config() throws MigrationException {
         File as7configFile = new File( this.config.getGlobal().getAS7Config().getConfigFilePath() );
         try {
-            DocumentBuilder db = Utils.createXmlDocumentBuilder();
+            DocumentBuilder db = XmlUtils.createXmlDocumentBuilder();
             Document doc = db.parse(as7configFile);
             ctx.setAS7ConfigXmlDoc(doc);
             
