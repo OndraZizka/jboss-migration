@@ -7,8 +7,12 @@ import org.jboss.loom.spi.IMigrator;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.eclipse.persistence.oxm.annotations.XmlWriteOnly;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
+import org.jboss.loom.tools.report.adapters.ToHashCodeAdapterList;
 
 /**
  * Actions of which the migration consists.
@@ -49,6 +53,7 @@ public interface IMigrationAction {
     // Data
     
     /**  Why was this action created. I.e. what AS 5 config piece is it's counterpart? */
+    @XmlElement(name = "originMsg")
     String getOriginMessage();
     
     /** Where was this action created. (Debug purposes) */
@@ -57,6 +62,9 @@ public interface IMigrationAction {
     /** Which migrator created this action. */
     Class<? extends IMigrator> getFromMigrator();
     
+    @XmlElementWrapper(name = "dependencies")
+    @XmlElement(name = "dep")
+    @XmlJavaTypeAdapter( ToHashCodeAdapter.class )
     List<IMigrationAction> getDependencies();
     IMigrationAction addDependency( IMigrationAction dep );
     /**
@@ -68,8 +76,11 @@ public interface IMigrationAction {
     /**
      * @returns A description of this action in terms of what exactly would it do.
      */
+    @XmlElement(name = "desc")
     String toDescription();
 
+    @XmlElementWrapper(name="warnings")
+    @XmlElement(name="warning")
     List<String> getWarnings();
 
 
