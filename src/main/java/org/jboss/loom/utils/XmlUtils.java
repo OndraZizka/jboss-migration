@@ -15,6 +15,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -227,13 +229,21 @@ public class XmlUtils {
     public static File transformDocToFile( Document doc, File file ) throws TransformerException {
         final TransformerFactory tf = TransformerFactory.newInstance();
         final Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-        transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "3" );
-        transformer.transform( new DOMSource( doc ), new StreamResult( file ) );
+        transformer.setOutputProperty( OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.transform( new DOMSource(doc), new StreamResult(file) );
         return file;
     }
+    
+    public static void saveXmlToFile( Document doc, File file ) throws MigrationException {
+        try {
+            transformDocToFile( doc, file );
+        } catch( TransformerException ex ) {
+            throw new MigrationException("Failed saving XML document to " + file.getPath()+":\n    " + ex.getMessage(), ex);
+        }
+    }
 
-
+    
     /**
      * Creates clean Document used in other classes for working with XML
      *

@@ -57,7 +57,7 @@ public class Reporter {
             
             // Write node to a file.
             log.debug("Storing the report to " + reportFile.getPath());
-            saveXmlToFile( doc, reportFile );
+            XmlUtils.saveXmlToFile( doc, reportFile );
         }
         catch( Exception ex ) {
             log.error("AAAA!", ex);
@@ -66,15 +66,4 @@ public class Reporter {
     }
     
     
-    public static void saveXmlToFile( Document doc, File file ) throws MigrationException {
-        try {
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            Result output = new StreamResult( file );
-            Source input = new DOMSource(doc);
-            transformer.transform(input, output);
-        } catch( TransformerException ex ) {
-            throw new MigrationException("Failed saving XML document to " + file.getPath()+":\n    " + ex.getMessage(), ex);
-        }
-    }
-
 }// class
