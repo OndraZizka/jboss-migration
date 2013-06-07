@@ -2,6 +2,7 @@ package org.jboss.loom.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,13 +16,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -224,17 +224,28 @@ public class XmlUtils {
 
 
     /**
-     * Transforms given Document into given File
+     * Saves given XML Document into given File.
      */
     public static File transformDocToFile( Document doc, File file ) throws TransformerException {
+        return transformDocToFile( doc, file, null );
+    }
+    
+    /**
+     * Transforms given Document into given File, using given XSLT.
+     * @param xsltIS may be null -> just saves.
+     */
+    public static File transformDocToFile( Document doc, File file, InputStream xsltIS ) throws TransformerException {
         final TransformerFactory tf = TransformerFactory.newInstance();
-        final Transformer transformer = tf.newTransformer();
+        final Transformer transformer = xsltIS == null ? tf.newTransformer() : tf.newTransformer( new StreamSource( xsltIS ) );
         transformer.setOutputProperty( OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.transform( new DOMSource(doc), new StreamResult(file) );
         return file;
     }
     
+    /**
+     *  Calls transformDocToFile(), wraps exception to MigrationException.
+     */
     public static void saveXmlToFile( Document doc, File file ) throws MigrationException {
         try {
             transformDocToFile( doc, file );
@@ -242,6 +253,8 @@ public class XmlUtils {
             throw new MigrationException("Failed saving XML document to " + file.getPath()+":\n    " + ex.getMessage(), ex);
         }
     }
+    
+    
 
     
     /**
@@ -267,5 +280,5 @@ public class XmlUtils {
         Document doc = db.parse( file );
         return doc;
     }
-    
+
 }// class
