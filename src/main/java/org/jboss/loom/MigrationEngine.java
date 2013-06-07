@@ -294,12 +294,15 @@ public class MigrationEngine {
                 if( action.getOriginMessage() != null )
                     description += "\n    Purpose of the action: " + action.getOriginMessage();
             }
-            throw new MigrationException( message
+            this.ctx.setFinalException( new MigrationException( message
                   + "\n    " + ex.getMessage() 
-                  + description, ex );
+                  + description, ex ) );
         }
         
         this.createReport();
+        
+        if( this.ctx.getFinalException() != null)
+            throw this.ctx.getFinalException();
 
     }// migrate()
 
@@ -636,9 +639,15 @@ public class MigrationEngine {
 
     /**
      *  Creates a migration report.
+     *  Can't throw.
      */
-    private void createReport() throws MigrationException {
-        Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
+    private void createReport() {
+        try {
+            Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
+        }
+        catch( Throwable ex ){
+            log.error("Failed creating migration report:\n    " + ex.getMessage(), ex);
+        }
     }
 
 }// class

@@ -17,6 +17,7 @@ import org.w3c.dom.Document;
 import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.recog.ServerInfo;
 
 /**
@@ -37,6 +38,9 @@ public class MigrationContext {
     private final List<IMigrationAction> actions = new LinkedList();
     // TBC: Roman said there are cases when the same file is suggested for copying by multiple migrators?
 
+    private MigrationException finalException = null;
+    
+    
 
     // Global conf
     private final Configuration conf;
@@ -60,7 +64,7 @@ public class MigrationContext {
     private ModelControllerClient as7Client;
 
     //private final AS7Config as7Config;
-    
+
     
             
     
@@ -71,9 +75,28 @@ public class MigrationContext {
 
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
+    public Configuration getConf() { return this.conf; }
+
+    public ServerInfo getSourceServer() { return sourceServer; }
+    public void setSourceServer( ServerInfo sourceServer ) { this.sourceServer = sourceServer; }
+
+    public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
+    public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
+
+    public List<DeploymentInfo> getDeploymentInfos() { return deploymentInfos; }
+    public void setDeploymentInfos( List<DeploymentInfo> deploymentInfos ) { this.deploymentInfos = deploymentInfos; }
+    
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
     public List<IMigrationAction> getActions() { return actions; }
+
+    public Batch getBatch() { return batch; }
+    public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
+    public ModelControllerClient getAS7Client() { return as7Client; }
+
+    public MigrationException getFinalException() { return finalException; }
+    public void setFinalException( MigrationException finalException ) { this.finalException = finalException; }
+    
     @Deprecated
     public Document getAS7ConfigXmlDoc() { return as7ConfigXmlDoc; }
     @Deprecated
@@ -82,22 +105,11 @@ public class MigrationContext {
     public Document getAs7ConfigXmlDocOriginal() { return as7ConfigXmlDocOriginal; }
     @Deprecated
     public void setAs7ConfigXmlDocOriginal(Document as7XmlDocOriginal) { this.as7ConfigXmlDocOriginal = as7XmlDocOriginal; }
-    public Batch getBatch() { return batch; }
-    public void setAS7ManagementClient( ModelControllerClient as7Client ) { this.as7Client = as7Client; }
-    public ModelControllerClient getAS7Client() { return as7Client; }
+
 
     public AS7Config getAs7Config() { return conf.getGlobal().getAS7Config(); }
 
-    public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
-    public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
-
-    public ServerInfo getSourceServer() { return sourceServer; }
-    public void setSourceServer( ServerInfo sourceServer ) { this.sourceServer = sourceServer; }
     //</editor-fold>
 
 
-    public Configuration getConf() {
-        return this.conf;
-    }
-    
 }// class

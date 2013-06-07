@@ -30,7 +30,8 @@ public class Reporter {
                 ctx.getConf(),
                 ctx.getSourceServer().getHashesComparisonResult(),
                 ctx.getMigrationData().values(),
-                ctx.getActions()
+                ctx.getActions(),
+                ctx.getFinalException()
             );
             
             Marshaller mar = XmlUtils.createMarshaller( MigrationReportJaxbBean.class );
