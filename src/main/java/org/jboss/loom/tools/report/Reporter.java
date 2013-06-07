@@ -70,6 +70,10 @@ public class Reporter {
             FileUtils.copyInputStreamToFile( is, new File(reportDir, CSS_FILE) );
             is = Reporter.class.getResourceAsStream(RESOURCES_PATH + JQUERY_FILE);
             FileUtils.copyInputStreamToFile( is, new File(reportDir, "jQuery.js") );
+            is = Reporter.class.getResourceAsStream(RESOURCES_PATH + "jive-icon-sprites-big.png");
+            FileUtils.copyInputStreamToFile( is, new File(reportDir, "iconsBig.png") );
+            is = Reporter.class.getResourceAsStream(RESOURCES_PATH + "jive-icon-sprites-med.png");
+            FileUtils.copyInputStreamToFile( is, new File(reportDir, "iconsMed.png") );
         }
         catch( Exception ex ) {
             log.error("AAAA!", ex);

@@ -21,17 +21,17 @@
     </div>
 
     <div id="container">
-        <h2>Summary</h2>
+        <h2><div class="icon"/><span>Summary</span></h2>
         <xsl:call-template name="MigrationSummary"/>
 
-        <h2>Source server</h2>
+        <h2><div class="icon"/><span>Source server</span></h2>
         <h3>Files comparison against distribution archive</h3>
         <xsl:call-template name="ComparisonResult"/>
 
-        <h2>Source server configuration</h2>
+        <h2><div class="icon"/><span>Source server configuration</span></h2>
         <xsl:call-template name="MigrationData"/>
 
-        <h2>Actions to migrate to the target server</h2>
+        <h2><div class="icon"/><span>Actions to migrate to the target server</span></h2>
         <xsl:call-template name="Actions"/>
 
         <xsl:if test="finalException">
@@ -71,10 +71,11 @@
         <div class="box comparison">
             <a href="#" onclick="$('#comparison').slideToggle(100)">show/hide</a>
             <table class="flat data vertBorder fs90" id="comparison">
-                <tr> <th>Result</th> <th>File</th> </tr>
+                <tr> <th colspan="2">Result</th> <th>File</th> </tr>
                 <xsl:for-each select="/migrationReport/comparisonResult/matches/match">
-                    <tr>
-                        <td class="match {@result}"> <xsl:value-of select="@result"/> </td>
+                    <tr class="match {@result}">
+                        <td class="icon"><div/></td>
+                        <td class="result"> <xsl:value-of select="@result"/> </td>
                         <td><xsl:value-of select="@path"/></td>
                     </tr>
                 </xsl:for-each>
@@ -86,12 +87,12 @@
     <xsl:template name="MigrationData">
         <xsl:for-each select="/migrationReport/configsData/configData">
             <div class="box migrationData">
-                <h4><xsl:value-of select="@fromMigrator"/></h4>
+                <h4><div class="icon"/><xsl:value-of select="@fromMigrator"/></h4>
                 <div class="padding">
                     <table class="fragments flat vertBorder" style="border-collapse: collapse;">
                         <xsl:for-each select="configFragments/configFragment">
                             <tr>
-                                <td><xsl:value-of select="text()"/></td>
+                                <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
                             </tr>
                         </xsl:for-each>
                     </table>
@@ -105,14 +106,14 @@
         <xsl:for-each select="/migrationReport/actions/action">
             <div class="box action {@fromMigrator}" id="{@id}">
 
-                <h4>From migrator <xsl:value-of select="@fromMigrator"/></h4>
+                <h4><div class="icon"/>From migrator <xsl:value-of select="@fromMigrator"/></h4>
                 <xsl:if test="warnings/*">
                     <div class="padding">
                         <!--<h4>Warnings</h4>-->
                         <table class="warnings wid100p flat vertBorder">
                         <xsl:for-each select="warnings/warning">
                             <tr>
-                                <td><xsl:value-of select="text()"/></td>
+                                <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
                             </tr>
                         </xsl:for-each>
                         </table>
