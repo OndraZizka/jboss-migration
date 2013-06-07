@@ -2,6 +2,7 @@ package org.jboss.loom.tools.report;
 
 
 import java.io.File;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.xml.bind.Marshaller;
@@ -21,18 +22,20 @@ import org.w3c.dom.Document;
  */
 public class Reporter {
     public static final Logger log = LoggerFactory.getLogger( Reporter.class );
+    
+    private static final String XSLT_PATH = "/org/jboss/loom/tools/report/xslt/MigrationReportJaxbBean.xsl";
 
     
     public static void createReport( MigrationContext ctx, File reportDir ) throws MigrationException {
         try {
             // Create the reporting content.
-            MigrationReportJaxbBean report = new MigrationReportJaxbBean(
-                ctx.getConf(),
-                ctx.getSourceServer().getHashesComparisonResult(),
-                ctx.getMigrationData().values(),
-                ctx.getActions(),
-                ctx.getFinalException()
-            );
+            MigrationReportJaxbBean report = new MigrationReportJaxbBean();
+            report.config = ctx.getConf();
+            report.comparisonResult = ctx.getSourceServer().getHashesComparisonResult();
+            report.configData = ctx.getMigrationData().values();
+            report.actions = ctx.getActions();
+            report.finalException = ctx.getFinalException();
+            report.sourceServer = ctx.getSourceServer();
             
             Marshaller mar = XmlUtils.createMarshaller( MigrationReportJaxbBean.class );
             
@@ -50,8 +53,14 @@ public class Reporter {
             mar.marshal( report, doc );
             
             // Write node to a file.
-            log.debug("Storing the report to " + reportFile.getPath());
+            log.debug("Storing the XML report to " + reportFile.getPath());
             XmlUtils.saveXmlToFile( doc, reportFile );
+            
+            // Use XSLT to produce HTML report.
+            File htmlFile = new File( reportFile.getPath() + ".html");
+            log.debug("Storing the HTML report to " + htmlFile.getPath());
+            InputStream xsltIS = Reporter.class.getResourceAsStream(XSLT_PATH);
+            XmlUtils.transformDocToFile( doc, htmlFile, xsltIS );
         }
         catch( Exception ex ) {
             log.error("AAAA!", ex);
