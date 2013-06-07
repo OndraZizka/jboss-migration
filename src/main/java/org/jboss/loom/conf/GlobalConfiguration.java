@@ -19,6 +19,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * split to AS 7 config class, and then 1 class per server (AS 5, WebLogic, ...).
  *
  * @author Roman Jakubco
+ * 
+ * TODO: Move source and dest dir, and other general info, to this class.
  */
 @XmlRootElement(name="global")
 public class GlobalConfiguration {
@@ -66,5 +68,13 @@ public class GlobalConfiguration {
     public void setReportDir( String reportDir ) { this.reportDir = reportDir; }
     //</editor-fold>
 
+    // JAXB
+    public String getSourceServerDir(){
+        return as5config.getDir();
+    }
+
+    public String getTargetServerDir(){
+        return as7Config.getDir();
+    }
 
 }// class

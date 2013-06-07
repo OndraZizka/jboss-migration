@@ -71,5 +71,6 @@ public class Version {
     }
     
     
+    private Version() { } // JAXB
 
 }// class

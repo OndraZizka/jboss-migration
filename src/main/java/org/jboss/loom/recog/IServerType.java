@@ -25,6 +25,7 @@ public interface IServerType {
 
     /**
      *  Formats a string like "JBoss AS 5.1.0" or "JBoss EAP 5.2.0+" etc.
+     *  "STATIC".
      */
     public String format( VersionRange versionRange );
 

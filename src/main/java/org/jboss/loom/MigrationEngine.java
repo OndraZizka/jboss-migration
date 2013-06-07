@@ -647,6 +647,10 @@ public class MigrationEngine {
         }
         catch( Throwable ex ){
             log.error("Failed creating migration report:\n    " + ex.getMessage(), ex);
+            
+            // Only throw if it's a test run; Only log on normal run.
+            if( config.getGlobal().isTestRun() )
+                throw new RuntimeException(ex);
         }
     }
 

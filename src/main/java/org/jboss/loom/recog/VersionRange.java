@@ -1,12 +1,19 @@
 package org.jboss.loom.recog;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlRootElement
 public class VersionRange {
 
+    @XmlAttribute
     public final Version from;
+    
+    @XmlAttribute
     public final Version to;
 
 

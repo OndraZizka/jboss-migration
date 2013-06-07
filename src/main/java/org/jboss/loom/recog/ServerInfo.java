@@ -1,7 +1,15 @@
 package org.jboss.loom.recog;
 
 import java.io.File;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.eclipse.persistence.oxm.annotations.XmlWriteOnly;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.tools.report.adapters.IServerTypeAdapter;
 import org.jboss.loom.utils.compar.ComparisonResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,18 +19,29 @@ import org.slf4j.LoggerFactory;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlRootElement
+@XmlAccessorType( XmlAccessType.NONE)
 public class ServerInfo {
     private static final Logger log = LoggerFactory.getLogger( ServerInfo.class );
 
-    
+    @XmlAttribute //@XmlJavaTypeAdapter(FileToPathAdapter.class)
     private final File serverRootDir;
+    
+    //@XmlAttribute @XmlJavaTypeAdapter( IServerTypeAdapter.class )
     private IServerType type = null;
+    
+    //@XmlElement
     private VersionRange versionRange = null;
+    
     private ComparisonResult comparisonResult = null;
 
+
+    private ServerInfo(){ this.serverRootDir = null; } // for JAXB
+    
     public ServerInfo( File serverRootDir ) {
         this.serverRootDir = serverRootDir;
     }
+    
     
     /**
      *  Formats a string describing this server.
@@ -50,4 +69,10 @@ public class ServerInfo {
 
     public ComparisonResult getHashesComparisonResult() { return comparisonResult; }
 
+    // JAXB
+    @XmlAttribute @XmlWriteOnly
+    private String getFormatted(){
+        return this.format();
+    }
+    
 }// class

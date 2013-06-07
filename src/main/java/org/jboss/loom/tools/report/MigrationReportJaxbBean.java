@@ -13,6 +13,7 @@ import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.tools.report.adapters.ToActionBeanAdapter;
 import org.jboss.loom.tools.report.adapters.ToStringAdapter;
 import org.jboss.loom.utils.compar.ComparisonResult;
@@ -26,35 +27,25 @@ import org.jboss.loom.utils.compar.ComparisonResult;
 public class MigrationReportJaxbBean {
 
     @XmlElement
-    private Configuration config;
+    public Configuration config;
+    
+    @XmlElement(name = "sourceServer", required = true)
+    public ServerInfo sourceServer;
     
     @XmlElement
-    private ComparisonResult comparisonResult;
+    public ComparisonResult comparisonResult;
     
     @XmlElementWrapper(name = "configData")
     @XmlElement(name = "configData")
-    private Collection<MigrationData> configData;
+    public Collection<MigrationData> configData;
 
     @XmlElementWrapper(name = "actions")
     @XmlElement(name = "action")
     @XmlJavaTypeAdapter( ToActionBeanAdapter.class )
-    private List<IMigrationAction> actions;
+    public List<IMigrationAction> actions;
     
     @XmlElement(name="finalException")
     @XmlJavaTypeAdapter( ToStringAdapter.class )
-    private MigrationException finalException;
+    public MigrationException finalException;
 
-
-    public MigrationReportJaxbBean() { }
-    public MigrationReportJaxbBean( Configuration conf, ComparisonResult compRes, 
-            Collection<MigrationData> configData, List<IMigrationAction> actions,
-            MigrationException ex
-    ) {
-        this.config = conf;
-        this.comparisonResult = compRes;
-        this.configData = configData;
-        this.actions = actions;
-        this.finalException = ex;
-    }
-    
 }// class
