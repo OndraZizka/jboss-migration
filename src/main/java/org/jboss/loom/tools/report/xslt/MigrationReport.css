@@ -1,5 +1,5 @@
 /* 
-    Author     : Ondrej Zizka, ozizka at redhat.com
+    Author: Ondrej Zizka, ozizka at redhat.com
 */
 
 * { font-family: Verdana, sans-serif; }
@@ -10,26 +10,57 @@ table th { text-align: left; padding-right: 2em; font-weight: normal; }
 table tr.head th { font-weight: bold; }
 
 table.flat    { border-collapse: collapse; }
-table.flat td { border: 1px solid green; }
+table.flat td { border: 1px solid; }
 
 table.data th,
-table.data td { border: 1px solid gray; }
+table.data td { border: 1px solid silver; padding: 0.2ex 0.5ex; }
 
 table.vertBorder th,
-table.vertBorder td { border-top-style: solid; border-bottom-style: solid; border-left: none; border-right: none; }
+table.vertBorder td { border: 1px solid silver; border-style: solid none solid none; }
 
-div.error { border: 1px solid red; }
+div.box.error { border: 1px solid red; }
 .match.MATCH    { color: green; }
 .match.MISMATCH { color: blue; }
 .match.MISSING  { color: red; }
 .match.EMPTY    { color: gray; }
 
-div.migratorData {
-    border: 1px solid blue;
+div.header { background-color: #3B4D64; border-bottom: 1ex solid #243446; }
+div.header h1 { padding: 1ex; color: white; margin: 0; font-family: Verdana; }
+
+body { background-color: #F0F0F0; padding: 0; margin: 0; }
+div#container {
+    margin: 1ex;
+    border: 1px solid #BFBFBF;
+    border-radius: 0.4ex;
+    padding: 0 1em;
+    background-color: white;
+}
+
+h2  {
+    font-family: Helvetica; color: #243446; 
+    border-bottom: 1px solid #BBBBBB; /* Gray line */
+}
+h2 span {
+    position: relative;
+    top: 0.3ex;
+}
+h3, h4, h5 { font-family: "Trebuchet MS"; font-weight: normal; color: #336699; }
+
+div.box {
+    border: 1px solid #3971a8;
     margin-bottom: 1ex;
 }
 
-div.action {
-    border: 1px solid blue;
-    margin-bottom: 1ex;
+div.box padding { padding: 1ex 1ex; }
+
+div.box h4 {
+    border: none;
+    background-color: #cde6ff;
+    margin: 0;
+    padding: 1ex;
 }
+
+div.box.comparison { border: none; }
+div.box.migrationData {}
+div.box.action { }
+

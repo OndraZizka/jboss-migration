@@ -7,99 +7,95 @@
 
     <!-- Syntax at http://www.w3.org/TR/xslt -->
     <xsl:template match="/">
-        <html>
-            <head>
-                <title>Migration report</title>
-                <style type="text/css">
-                </style>
-                <link rel="stylesheet" type="text/css" href="MigrationReport.css"/>
-                <script src="jQuery.js"/>
-            </head>
-            <body>
-                <h1>Migration report</h1>
-                
-                <h2>Summary</h2>
-                <xsl:call-template name="MigrationSummary"/>
-                
-                <h2>Source server</h2>
-                <h3>Files comparison against distribution archive</h3>
-                <xsl:call-template name="ComparisonResult"/>
-                
-                <h2>Source server configuration</h2>
-                <xsl:call-template name="MigrationData"/>
-                
-                <h2>Actions to migrate to the target server</h2>
-                <xsl:call-template name="Actions"/>
-                
-                <xsl:if test="finalException">
-                    <div class="finalException">
-                        <h2>Error</h2>
-                        <p><xsl:value-of select="finalException/text()"/></p>
-                    </div>
-                </xsl:if>
-                
-            </body>
-        </html>
+<html>
+<head>
+    <title>Migration report</title>
+    <style type="text/css">
+    </style>
+    <link rel="stylesheet" type="text/css" href="MigrationReport.css"/>
+    <script src="jQuery.js"/>
+</head>
+<body>
+    <div class="header" style="background-color: #3B4D64; border-bottom: 1ex solid #243446;">
+        <h1 style="padding: 1ex; color: white; margin: 0; ">Migration report</h1>
+    </div>
+
+    <div id="container">
+        <h2>Summary</h2>
+        <xsl:call-template name="MigrationSummary"/>
+
+        <h2>Source server</h2>
+        <h3>Files comparison against distribution archive</h3>
+        <xsl:call-template name="ComparisonResult"/>
+
+        <h2>Source server configuration</h2>
+        <xsl:call-template name="MigrationData"/>
+
+        <h2>Actions to migrate to the target server</h2>
+        <xsl:call-template name="Actions"/>
+
+        <xsl:if test="finalException">
+            <div class="finalException">
+                <h2>Error</h2>
+                <p><xsl:value-of select="finalException/text()"/></p>
+            </div>
+        </xsl:if>
+    </div>
+</body>
+</html>
     </xsl:template>
     
     <!-- Summary -->
     <xsl:template name="MigrationSummary">
         <!--<xsl:value-of select="concat(name(), ' | ', position(), ' | ', count(child::*))"/>-->
         
-        <table class="flat">
+        <table class="" style="margin: 2ex 0;">
             <tr>
-                <td>Source server:</td>
+                <th>Source server:</th>
                 <td><xsl:value-of select="/migrationReport/sourceServer/@formatted"/></td>
                 <td><xsl:value-of select="/migrationReport/sourceServer/@dir"/></td>
             </tr>
             <tr>
-                <td>Target server:</td>
+                <th>Target server:</th>
                 <td>JBoss EAP 6.1</td>
             </tr>            
+            <tr> <th>Dry run:</th>         <td><xsl:value-of select="/migrationReport/config/globalConfig/dryRun"/></td> </tr>
+            <tr> <th>Skip validation:</th> <td><xsl:value-of select="/migrationReport/config/globalConfig/skipValidation"/></td> </tr>
+            <tr> <th>Test run:</th>        <td><xsl:value-of select="/migrationReport/config/globalConfig/testRun"/></td> </tr>
         </table>
-        <xsl:call-template name="Config"/>
-    </xsl:template>
-
-    <!-- Config -->
-    <xsl:template name="Config">
-        <table class="flat vertBorder">
-            <tr> <th>Dry run</th>         <td><xsl:value-of select="/migrationReport/config/globalConfig/dryRun"/></td> </tr>
-            <tr> <th>Skip validation</th> <td><xsl:value-of select="/migrationReport/config/globalConfig/skipValidation"/></td> </tr>
-            <tr> <th>Test run</th>        <td><xsl:value-of select="/migrationReport/config/globalConfig/testRun"/></td> </tr>
-        </table>
+        
     </xsl:template>
 
     <!-- Comparison result -->
     <xsl:template name="ComparisonResult">
-        <a href="#" onclick="$('#comparison').slideToggle(1200)">show/hide</a>
-        <table class="flat data vertBorder fs90" id="comparison">
-            <tr>
-                <th>Result</th>
-                <th>File</th>
-            </tr>
-            <xsl:for-each select="/migrationReport/comparisonResult/matches/match">
-                <tr>
-                    <td class="match {@result}">
-                        <xsl:value-of select="@result"/>
-                    </td>
-                    <td><xsl:value-of select="@path"/></td>
-                </tr>
-            </xsl:for-each>
-        </table>
+        <div class="box comparison">
+            <a href="#" onclick="$('#comparison').slideToggle(100)">show/hide</a>
+            <table class="flat data vertBorder fs90" id="comparison">
+                <tr> <th>Result</th> <th>File</th> </tr>
+                <xsl:for-each select="/migrationReport/comparisonResult/matches/match">
+                    <tr>
+                        <td class="match {@result}"> <xsl:value-of select="@result"/> </td>
+                        <td><xsl:value-of select="@path"/></td>
+                    </tr>
+                </xsl:for-each>
+            </table>
+        </div>
     </xsl:template>
 
-    <!-- Config data (MigrationData) -->
+    <!-- Source server config data (MigrationData) -->
     <xsl:template name="MigrationData">
         <xsl:for-each select="/migrationReport/configsData/configData">
-            <div class="migratorData">
+            <div class="box migrationData">
                 <h4><xsl:value-of select="@fromMigrator"/></h4>
-                <table class="fragments flat vertBorder" style="border-collapse: collapse;">
-                    <xsl:for-each select="configFragments/configFragment">
-                        <tr>
-                            <td><xsl:value-of select="text()"/></td>
-                        </tr>
-                    </xsl:for-each>
-                </table>
+                <div class="padding">
+                    <table class="fragments flat vertBorder" style="border-collapse: collapse;">
+                        <xsl:for-each select="configFragments/configFragment">
+                            <tr>
+                                <td><xsl:value-of select="text()"/></td>
+                            </tr>
+                        </xsl:for-each>
+                    </table>
+                </div>
             </div>
         </xsl:for-each>
     </xsl:template>
@@ -107,21 +103,20 @@
     <!-- Actions -->
     <xsl:template name="Actions">
         <xsl:for-each select="/migrationReport/actions/action">
-            <div class="action {@fromMigrator}" id="{@id}">
+            <div class="box action {@fromMigrator}" id="{@id}">
 
-                <div>
-                    From migrator <xsl:value-of select="@fromMigrator"/>
-                </div>
-                
+                <h4>From migrator <xsl:value-of select="@fromMigrator"/></h4>
                 <xsl:if test="warnings/*">
-                    <h4>Warnings</h4>
-                    <table class="warnings wid100p flat vertBorder">
-                    <xsl:for-each select="warnings/warning">
-                        <tr>
-                            <td><xsl:value-of select="text()"/></td>
-                        </tr>
-                    </xsl:for-each>
-                    </table>
+                    <div class="padding">
+                        <!--<h4>Warnings</h4>-->
+                        <table class="warnings wid100p flat vertBorder">
+                        <xsl:for-each select="warnings/warning">
+                            <tr>
+                                <td><xsl:value-of select="text()"/></td>
+                            </tr>
+                        </xsl:for-each>
+                        </table>
+                    </div>
                 </xsl:if>
             </div>
         </xsl:for-each>
