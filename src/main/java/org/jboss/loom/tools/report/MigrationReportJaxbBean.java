@@ -35,7 +35,7 @@ public class MigrationReportJaxbBean {
     @XmlElement
     public ComparisonResult comparisonResult;
     
-    @XmlElementWrapper(name = "configData")
+    @XmlElementWrapper(name = "configsData")
     @XmlElement(name = "configData")
     public Collection<MigrationData> configData;
 

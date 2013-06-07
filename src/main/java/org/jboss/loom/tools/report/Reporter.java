@@ -23,7 +23,10 @@ import org.w3c.dom.Document;
 public class Reporter {
     public static final Logger log = LoggerFactory.getLogger( Reporter.class );
     
-    private static final String XSLT_PATH = "/org/jboss/loom/tools/report/xslt/MigrationReportJaxbBean.xsl";
+    private static final String RESOURCES_PATH = "/org/jboss/loom/tools/report/xslt/";
+    private static final String XSLT_FILE = "MigrationReportJaxbBean.xsl";
+    private static final String CSS_FILE = "MigrationReport.css";
+    private static final String JQUERY_FILE = "jquery-1.10.1.min.js";
 
     
     public static void createReport( MigrationContext ctx, File reportDir ) throws MigrationException {
@@ -59,8 +62,14 @@ public class Reporter {
             // Use XSLT to produce HTML report.
             File htmlFile = new File( reportFile.getPath() + ".html");
             log.debug("Storing the HTML report to " + htmlFile.getPath());
-            InputStream xsltIS = Reporter.class.getResourceAsStream(XSLT_PATH);
-            XmlUtils.transformDocToFile( doc, htmlFile, xsltIS );
+            InputStream is = Reporter.class.getResourceAsStream(RESOURCES_PATH + XSLT_FILE);
+            XmlUtils.transformDocToFile( doc, htmlFile, is );
+            
+            // Copy CSS and jQuery.
+            is = Reporter.class.getResourceAsStream(RESOURCES_PATH + CSS_FILE);
+            FileUtils.copyInputStreamToFile( is, new File(reportDir, CSS_FILE) );
+            is = Reporter.class.getResourceAsStream(RESOURCES_PATH + JQUERY_FILE);
+            FileUtils.copyInputStreamToFile( is, new File(reportDir, "jQuery.js") );
         }
         catch( Exception ex ) {
             log.error("AAAA!", ex);

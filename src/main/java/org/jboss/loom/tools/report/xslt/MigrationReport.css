@@ -1,0 +1,35 @@
+/* 
+    Author     : Ondrej Zizka, ozizka at redhat.com
+*/
+
+* { font-family: Verdana, sans-serif; }
+.wid100p { width: 100%; }
+.fs90 { font-size: 90%; }
+
+table th { text-align: left; padding-right: 2em; font-weight: normal; }
+table tr.head th { font-weight: bold; }
+
+table.flat    { border-collapse: collapse; }
+table.flat td { border: 1px solid green; }
+
+table.data th,
+table.data td { border: 1px solid gray; }
+
+table.vertBorder th,
+table.vertBorder td { border-top-style: solid; border-bottom-style: solid; border-left: none; border-right: none; }
+
+div.error { border: 1px solid red; }
+.match.MATCH    { color: green; }
+.match.MISMATCH { color: blue; }
+.match.MISSING  { color: red; }
+.match.EMPTY    { color: gray; }
+
+div.migratorData {
+    border: 1px solid blue;
+    margin-bottom: 1ex;
+}
+
+div.action {
+    border: 1px solid blue;
+    margin-bottom: 1ex;
+}
