@@ -1,0 +1,103 @@
+/* 
+    Author: Ondrej Zizka, ozizka at redhat.com
+*/
+
+* { font-family: Verdana, sans-serif; }
+.wid100p { width: 100%; }
+.fs90 { font-size: 90%; }
+
+table th { text-align: left; padding-right: 2em; font-weight: normal; }
+table tr.head th { font-weight: bold; }
+
+table.flat    { border-collapse: collapse; }
+table.flat td { border: 1px solid; }
+
+table.data th,
+table.data td { border: 1px solid silver; padding: 0.2ex 0.5ex; }
+
+table.vertBorder th,
+table.vertBorder td { border: 1px solid silver; border-style: solid none solid none; }
+
+div.box.error { border: 1px solid red; }
+.match.MATCH    .result { color: green; }
+.match.MISMATCH .result { color: blue; }
+.match.MISSING  .result { color: red; }
+.match.EMPTY    .result { color: gray; }
+
+div.header { background-color: #3B4D64; border-bottom: 1ex solid #243446; }
+div.header h1 { padding: 1ex; color: white; margin: 0; font-family: Verdana; }
+
+body { background-color: #F0F0F0; padding: 0; margin: 0; }
+div#container {
+    margin: 1ex;
+    border: 1px solid #BFBFBF;
+    border-radius: 0.4ex;
+    padding: 0 1em;
+    background-color: white;
+}
+
+h2  {
+    font-family: Helvetica; color: #243446; 
+    border-bottom: 1px solid #BBBBBB; /* Gray line */
+}
+h2 div.icon  {
+    height: 28px; width: 28px; float: left;
+    /*  background: color position size repeat origin clip attachment image; */
+    background:  transparent url("iconsBig.png") no-repeat;
+    background-position: -10px -396px;
+    margin-right: 0.7ex;
+}
+h2 span {  /* Make the borderline go through. */
+    position: relative;
+    top: 0.2ex;
+}
+h3, h4, h5 { font-family: "Trebuchet MS"; font-weight: normal; color: #336699; }
+
+div.box {
+    border: 1px solid #3971a8;
+    margin-bottom: 1ex;
+}
+
+div.box div.padding { padding: 1ex 1ex; }
+
+div.box h4 {
+    border: none;
+    background-color: #ddeaaf; /*#cde67f, #ddeaaf - nazelenala*/
+    margin: 0;
+    padding: 1ex;
+}
+div.box h4 div.icon {
+    width: 32px; height: 32px; float: left;
+    background:  transparent url("iconsBig.png") no-repeat;
+    background-position:  -18px -400px; /* dialog */
+    background-position:  -18px  -82px; /* doc yellow */
+    background-position: -530px  -82px; /* white paper */
+    background-position: -334px -914px; /* gant diagram with key */
+    background-position: -208px -914px; /* gant diagram */
+}
+div.box.action h4 div.icon {
+    background-position: -144px -914px; /* gant diagram */
+}
+
+/* Small icons in rows. */
+div.box table td.icon { vertical-align: top; }
+div.box table td.icon div { width: 20px; height: 20px; background: transparent url("iconsMed.png") no-repeat; }
+div.box.migrationData table.fragments td.icon div { background-position:  -12px  -77px; }  /*doc Y*/
+div.box.migrationData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
+div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
+div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
+
+/* Small icons in comparison table. */
+div.box.comparison { border: none; }
+div.box.comparison .match .icon { width: 20px; background:  transparent url("iconsMed.png") no-repeat; }
+div.box.comparison .match.MATCH    .icon { background-position:  -76px -588px; }
+div.box.comparison .match.MISMATCH .icon { background-position:  -11px -396px; } /*dialog*/
+div.box.comparison .match.MISMATCH .icon { background-position:  -12px  -77px; } /*doc yellow*/
+div.box.comparison .match.MISMATCH .icon { background-position:  -652px  -77px; } /*info white*/
+div.box.comparison .match.MISMATCH .icon { background-position:  -716px  -77px; } /*edit*/
+div.box.comparison .match.EMPTY  .icon { background-position:   -652px -588px; } /*(?)*/
+div.box.comparison .match.MISSING    .icon { background-position:  -1228px -844px; } /*\bin/*/
+
+div.box.migrationData {}
+div.box.action h4 { background-color: #fbd261; } /* #e0effd namodrala, #fcffd1 nazloutla, fef65b zloutkova */
+
