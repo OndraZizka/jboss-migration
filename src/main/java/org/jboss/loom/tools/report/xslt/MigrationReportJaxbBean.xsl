@@ -69,10 +69,10 @@
     <!-- Comparison result -->
     <xsl:template name="ComparisonResult">
         <div class="box comparison">
-            <a href="#" onclick="$('#comparison').slideToggle(100)">show/hide</a>
+            <a href="#" onclick="$('#comparison').slideToggle(10)">show/hide</a>
             <table class="flat data vertBorder fs90" id="comparison">
                 <tr> <th colspan="2">Result</th> <th>File</th> </tr>
-                <xsl:for-each select="/migrationReport/comparisonResult/matches/match">
+                <xsl:for-each select="/migrationReport/comparisonResult/matches/match[@result != 'MATCH']">
                     <tr class="match {@result}">
                         <td class="icon"><div/></td>
                         <td class="result"> <xsl:value-of select="@result"/> </td>
@@ -105,20 +105,22 @@
     <xsl:template name="Actions">
         <xsl:for-each select="/migrationReport/actions/action">
             <div class="box action {@fromMigrator}" id="{@id}">
-
                 <h4><div class="icon"/>From migrator <xsl:value-of select="@fromMigrator"/></h4>
-                <xsl:if test="warnings/*">
-                    <div class="padding">
-                        <!--<h4>Warnings</h4>-->
-                        <table class="warnings wid100p flat vertBorder">
-                        <xsl:for-each select="warnings/warning">
-                            <tr>
-                                <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
-                            </tr>
-                        </xsl:for-each>
-                        </table>
-                    </div>
-                </xsl:if>
+                <div class="padding">
+                    <p class="desc"><xsl:value-of select="desc/text()"/></p>
+                    <xsl:if test="warnings/*">
+                        <div class="padding">
+                            <!--<h4>Warnings</h4>-->
+                            <table class="warnings wid100p flat vertBorder">
+                            <xsl:for-each select="warnings/warning">
+                                <tr>
+                                    <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
+                                </tr>
+                            </xsl:for-each>
+                            </table>
+                        </div>
+                    </xsl:if>
+                </div>
             </div>
         </xsl:for-each>
     </xsl:template>
