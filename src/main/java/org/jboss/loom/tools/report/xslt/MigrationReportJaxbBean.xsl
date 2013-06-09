@@ -90,9 +90,41 @@
                 <h4><div class="icon"/><xsl:value-of select="@fromMigrator"/></h4>
                 <div class="padding">
                     <table class="fragments flat vertBorder" style="border-collapse: collapse;">
+                        <!-- Fragments -->
                         <xsl:for-each select="configFragments/configFragment">
                             <tr>
-                                <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
+                                <td class="icon"><div/></td>
+                                <td>
+                                    <div class="class"><xsl:value-of select="@class"/></div>
+                                    <div class="origin">
+                                        <xsl:if test="origin/@file">
+                                            <div class="file"> <div class="icon"/> <xsl:value-of select="origin/@file"/></div>
+                                        </xsl:if>
+                                        <xsl:if test="origin/@file">
+                                            <div class="part"> <div class="icon"/> <xsl:value-of select="origin/@part"/></div>
+                                        </xsl:if>
+                                        <xsl:if test="origin/@server">
+                                            <div class="server"> <div class="icon"/> <xsl:value-of select="origin/@server"/></div>
+                                        </xsl:if>
+                                    </div>
+                                    <xsl:if test="docRef">
+                                        <div class="docRef">
+                                            <a href="@link"><xsl:value-of select="docRef/@name"/></a>
+                                        </div>
+                                    </xsl:if>
+                                    <xsl:if test="properties">
+                                        <div class="properties">
+                                            <table class="">
+                                                <xsl:for-each select="properties/property">
+                                                <tr>
+                                                    <th><xsl:value-of select="@name"/></th>
+                                                    <td><xsl:value-of select="@value"/></td>
+                                                </tr>
+                                                </xsl:for-each>
+                                            </table>
+                                        </div>
+                                    </xsl:if>
+                                </td>
                             </tr>
                         </xsl:for-each>
                     </table>

@@ -85,7 +85,18 @@ div.box table td.icon div { width: 20px; height: 20px; background: transparent u
 div.box.migrationData table.fragments td.icon div { background-position:  -12px  -77px; }  /*doc Y*/
 div.box.migrationData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
 div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
+div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
 div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
+
+div.box.migrationData table.fragments div.origin div.icon {
+    width: 20px; height: 20px; float: left; background: transparent url("iconsMed.png") no-repeat;
+    font-family: monospace;
+    font-size: 90%;
+}
+div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:  -842px   -77px; } /* file-gear */
+div.box.migrationData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */
+div.box.migrationData table.fragments div.origin div.server div.icon { background-position: -1040px  -652px; } /*server*/
+
 
 /* Small icons in comparison table. */
 div.box.comparison { border: none; }
