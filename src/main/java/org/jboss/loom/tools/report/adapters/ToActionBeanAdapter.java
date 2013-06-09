@@ -23,7 +23,7 @@ public class ToActionBeanAdapter extends XmlAdapter<ActionBean, IMigrationAction
 
     @Override
     public IMigrationAction unmarshal( ActionBean v ) throws Exception {
-        throw new UnsupportedOperationException("Not supported. Converts objects to their hashcode.");
+        throw new UnsupportedOperationException("Unmarshalling not supported.");
     }
 
 }// class

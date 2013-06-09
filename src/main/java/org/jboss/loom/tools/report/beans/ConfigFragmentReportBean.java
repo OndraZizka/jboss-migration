@@ -22,7 +22,7 @@ import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
 public class ConfigFragmentReportBean {
     
     
-    @XmlAttribute
+    @XmlAttribute(name = "class")
     private Class<? extends IConfigFragment> cls;
 
     @XmlElement

@@ -19,7 +19,7 @@ public class ToStringAdapter extends XmlAdapter<String, Object> {
     
     @Override
     public Object unmarshal( String v ) throws Exception {
-        throw new UnsupportedOperationException("Not supported. Converts objects to their hashcode.");
+        throw new UnsupportedOperationException("Not supported. Converts objects using toString().");
     }
     
 }// class
