@@ -4,14 +4,13 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.MBeanJaxbBase;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
     <?xml version="1.0" encoding="UTF-8"?>  
@@ -40,6 +39,9 @@ import org.jboss.loom.spi.IConfigFragment;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "Mail Service ${jndiName}"
+)
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class MailServiceBean extends MBeanJaxbBase<MailServiceBean> implements IConfigFragment, Origin.Wise {

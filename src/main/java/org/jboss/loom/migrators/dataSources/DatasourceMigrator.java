@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.dataSources;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -43,6 +42,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.XmlUtils;
 
 /**
@@ -50,7 +50,10 @@ import org.jboss.loom.utils.XmlUtils;
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Datasources configuration",
+    docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#datasource-config"
+)
 public class DatasourceMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(DatasourceMigrator.class);
     

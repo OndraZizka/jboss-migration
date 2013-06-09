@@ -14,13 +14,16 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Class for unmarshalling and representing application-policy (AS5)
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Application policy ${applicationPolicyName}"
+)
 @XmlRootElement(name = "application-policy")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "application-policy")

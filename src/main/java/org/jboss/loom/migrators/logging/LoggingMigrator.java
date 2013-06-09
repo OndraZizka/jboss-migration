@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.jboss.loom.conf.Configuration.IfExists;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Migrator of logging subsystem implementing IMigrator.
@@ -71,6 +72,11 @@ import static org.jboss.loom.conf.Configuration.IfExists;
  *
  * @author Roman Jakubco
  */
+@ConfigPartDescriptor(
+    name = "JBoss Logging configuration", 
+    docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#idm2915376"
+    //docTargetLink = "https://docs.jboss.org/author/display/AS72/Logging+Configuration"
+)
 public class LoggingMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(LoggingMigrator.class);
     

@@ -13,6 +13,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 
@@ -25,6 +26,10 @@ import org.jboss.loom.utils.XmlUtils;
  * @Jira: MIGR-45
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "JBoss Remoting configuration",
+    docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#remoting"
+)
 public class RemotingMigrator extends AbstractMigrator implements IMigrator {
 
     @Override protected String getConfigPropertyModuleName() { return "remoting"; }

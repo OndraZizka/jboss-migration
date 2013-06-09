@@ -15,6 +15,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.remoting.RemotingConfigBean;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
@@ -29,6 +30,10 @@ import org.slf4j.LoggerFactory;
  *  @Jira MIGR-45
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "EJB 3 configuration",
+    docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#EJBs_on_JBoss"
+)
 public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
     private static final Logger log = LoggerFactory.getLogger( Ejb3Migrator.class );
     

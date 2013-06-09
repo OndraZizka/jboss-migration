@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.server;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
@@ -34,13 +33,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Migrator of server subsystem implementing IMigrator.
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "JBoss Web configuration"
+    //, docLink = "https://docs.jboss.org/author/display/AS72/Logging+Configuration"
+)
 public class ServerMigrator extends AbstractMigrator {
 
     @Override

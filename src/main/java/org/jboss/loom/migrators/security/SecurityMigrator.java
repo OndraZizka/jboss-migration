@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.security;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
@@ -40,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Migrator of security subsystem implementing IMigrator
@@ -56,6 +56,10 @@ import java.util.Set;
  *
  * @author Roman Jakubco
  */
+@ConfigPartDescriptor(
+    name = "Security (JAAS) configuration",
+    docLink = "https://access.redhat.com/site/documentation//en-US/JBoss_Enterprise_Application_Platform/5/html/Security_Guide/index.html"
+)
 public class SecurityMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(SecurityMigrator.class);
 

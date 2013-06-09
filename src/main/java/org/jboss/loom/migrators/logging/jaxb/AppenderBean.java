@@ -15,17 +15,19 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Class for unmarshalling and representing appender (AS5)
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Logging appender ${appenderName}"
+)
 @XmlRootElement(name = "appender")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "appender")
-
 public class AppenderBean extends OriginWiseJaxbBase<AppenderBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
@@ -46,55 +48,26 @@ public class AppenderBean extends OriginWiseJaxbBase<AppenderBean> implements IC
     @XmlPath("layout/param/@value")
     private String layoutParamValue;
 
-    public String getAppenderName() {
-        return appenderName;
-    }
-
-    public void setAppenderName(String appenderName) {
-        this.appenderName = appenderName;
-    }
-
-    public String getAppenderClass() {
-        return appenderClass;
-    }
-
-    public void setAppenderClass(String appenderClass) {
-        this.appenderClass = appenderClass;
-    }
-
-    public Set<ParameterBean> getParameters() {
-        return parameters;
-    }
-
+    
+    public String getAppenderName() { return appenderName; }
+    public void setAppenderName(String appenderName) { this.appenderName = appenderName; }
+    public String getAppenderClass() { return appenderClass; }
+    public void setAppenderClass(String appenderClass) { this.appenderClass = appenderClass; }
+    public Set<ParameterBean> getParameters() { return parameters; }
     public void setParameters(Collection<ParameterBean> parameters) {
         Set<ParameterBean> temp = new HashSet();
         temp.addAll(parameters);
         this.parameters = temp;
     }
-
-    public String getLayoutParamName() {
-        return layoutParamName;
-    }
-
-    public void setLayoutParamName(String layoutParamName) {
-        this.layoutParamName = layoutParamName;
-    }
-
-    public String getLayoutParamValue() {
-        return layoutParamValue;
-    }
-
-    public void setLayoutParamValue(String layoutParamValue) {
-        this.layoutParamValue = layoutParamValue;
-    }
-
-    public Set<String> getAppenderRefs() {
-        return appenderRefs;
-    }
-
+    public String getLayoutParamName() { return layoutParamName; }
+    public void setLayoutParamName(String layoutParamName) { this.layoutParamName = layoutParamName; }
+    public String getLayoutParamValue() { return layoutParamValue; }
+    public void setLayoutParamValue(String layoutParamValue) { this.layoutParamValue = layoutParamValue; }
+    public Set<String> getAppenderRefs() { return appenderRefs; }
     public void setAppenderRefs(Collection<String> appenderRefs) {
         Set<String> temp = new HashSet();
         temp.addAll(appenderRefs);
         this.appenderRefs = temp;
     }
-}
+    
+}// class

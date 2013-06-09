@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  *  Docs: https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#Container_configuration_information-The_jboss_4_0_DTD_elements_related_to_container_configuration.
@@ -47,6 +48,9 @@ import org.jboss.loom.migrators.OriginWiseJaxbBase;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "EJB container ${containerName}"
+)
 @XmlRootElement(name = "container-configuration")
 public class ContainerConfigBean extends OriginWiseJaxbBase<ContainerConfigBean> {
 

@@ -8,6 +8,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.MBeanJaxbBase;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * $JBOSS_HOME/server/$profile/deploy/messaging/remoting-bisocket-service.xml
@@ -34,6 +35,9 @@ import org.jboss.loom.spi.IConfigFragment;
  * @Jira: MIGR-45
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "Remoting service configuration"
+)
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "mbean")

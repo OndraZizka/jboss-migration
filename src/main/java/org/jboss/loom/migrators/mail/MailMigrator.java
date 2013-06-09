@@ -11,6 +11,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 
@@ -47,6 +48,10 @@ import org.jboss.loom.utils.XmlUtils;
  * @Jira: MIGR-9
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "Mail Service configuration"
+    //docTargetLink = "https://docs.jboss.org/author/display/AS72/Logging+Configuration"
+)
 public class MailMigrator extends AbstractMigrator implements IMigrator {
 
     @Override protected String getConfigPropertyModuleName() { return "mail"; }

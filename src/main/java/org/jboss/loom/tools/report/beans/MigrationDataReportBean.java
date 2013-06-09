@@ -15,16 +15,21 @@ import org.jboss.loom.migrators.HasProperties;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.tools.report.adapters.IConfigFragmentAdapter;
 import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
 
 /**
- *
+ *  TODO: Create a (static) dictionary of classes -> annotations,
+ *        reflect that in XML using elements with IDs, and refer to them by XML REFID;
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement
-@XmlAccessorType( XmlAccessType.FIELD)
+@XmlAccessorType( XmlAccessType.NONE )
 public class MigrationDataReportBean {
+
+    private ConfigPartDescriptor annotation;
     
     @XmlAttribute
     private Class<? extends IMigrator> fromMigrator;
@@ -43,13 +48,23 @@ public class MigrationDataReportBean {
     private Map<String, String> properties;
     
     
-    /**  Constructor, kind of */
+    /**
+     * Constructor, kind of.
+     */
     public static MigrationDataReportBean from( MigrationData migData ) {
         MigrationDataReportBean bean = new MigrationDataReportBean();
         
         bean.fromMigrator = migData.getFromMigrator();
         bean.configFragments = migData.getConfigFragments();
         
+        // Annotations.
+        // From the Data class; or from the IMigrator impl.
+        bean.annotation = migData.getClass().getAnnotation( ConfigPartDescriptor.class );
+        if( bean.annotation == null ){
+            bean.annotation = migData.getFromMigrator().getAnnotation( ConfigPartDescriptor.class );
+        }
+        
+        // Mix-ins
         if( migData instanceof Origin.Wise ){
             bean.origin = ((Origin.Wise)migData).getOrigin();
         }
@@ -60,6 +75,9 @@ public class MigrationDataReportBean {
         
         return bean;
     }
+    
+    //private static Map<Class, String> classToNameMap = new HashMap(); // TODO
+    
 
 
     public Class<? extends IMigrator> getFromMigrator() { return fromMigrator; }
@@ -67,5 +85,16 @@ public class MigrationDataReportBean {
     public Origin getOrigin() { return origin; }
     public Map<String, String> getProperties() { return properties; }
     
+    
+    /**  Derived from an annotation. */
+    @XmlAttribute
+    public String getName(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.name() ); }
+    @XmlAttribute
+    public String getDocLink(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.docLink() ); }
+    @XmlAttribute
+    public String getIconFile(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.iconFile() ); }
+    
+    
+    private static String nullIfEmpty(String str){ return str == null ? null : (str.isEmpty() ? null : str); }
 
 }// class

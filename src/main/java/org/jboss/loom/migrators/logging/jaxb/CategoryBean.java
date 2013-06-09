@@ -19,17 +19,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Class for unmarshalling and representing category (AS5)
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Logging category ${categoryName}"
+)
 @XmlRootElement(name = "category")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "category")
-
 public class CategoryBean extends OriginWiseJaxbBase<CategoryBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
