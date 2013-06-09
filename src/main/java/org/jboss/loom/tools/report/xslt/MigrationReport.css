@@ -97,7 +97,8 @@ div.box.migrationData table.fragments div.origin code {
     font-family: monospace;
     font-size: 11pt;
 }
-div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:  -846px   -77px; } /* file-gear */
+div.box.migrationData table.fragments div.origin div.class  div.icon { background-position:  -846px   -77px; } /* file-gear */
+div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:   -18px  -400px; } /* dialog */
 div.box.migrationData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */
 div.box.migrationData table.fragments div.origin div.server div.icon { background-position: -1040px  -652px; } /*server*/
 

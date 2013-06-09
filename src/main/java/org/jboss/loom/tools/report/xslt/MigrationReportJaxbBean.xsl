@@ -110,8 +110,10 @@
                                         <xsl:value-of select="@name"/>
                                         <xsl:if test="not(@name)"><xsl:value-of select="@fromMigrator"/></xsl:if>
                                     </div>
-                                    <div class="class"><xsl:value-of select="@class"/></div>
                                     <div class="origin">
+                                        <xsl:if test="@class">
+                                            <div class="class"> <div class="icon"/> Class: <code><xsl:value-of select="@class"/></code></div>
+                                        </xsl:if>
                                         <xsl:if test="origin/@file">
                                             <div class="file"> <div class="icon"/> File: <code><xsl:value-of select="origin/@file"/></code></div>
                                         </xsl:if>
