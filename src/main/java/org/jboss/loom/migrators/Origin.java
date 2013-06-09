@@ -1,7 +1,10 @@
 package org.jboss.loom.migrators;
 
 import java.io.File;
-import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *  Information about where the given piece of config data came from.
@@ -10,12 +13,13 @@ import javax.xml.bind.annotation.XmlTransient;
  *  @Jira:  MIGR-109  Config (JAXB) beans to remember where did they come from.
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-@XmlTransient
+@XmlRootElement
+@XmlAccessorType( XmlAccessType.NONE )
 public class Origin {
     
-    private String server;
-    private File file;
-    private String part;
+    @XmlAttribute private String server;
+    @XmlAttribute private File file;
+    @XmlAttribute private String part;
 
 
     /** Currently, all the data we know come from files. */
@@ -23,12 +27,13 @@ public class Origin {
         this.file = file;
     }
 
-
     public Origin( File docFile, String part ) {
         this.file = docFile;
         this.part = part;
     }
 
+    private Origin() { } // JAXB
+    
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getServer() { return server; }

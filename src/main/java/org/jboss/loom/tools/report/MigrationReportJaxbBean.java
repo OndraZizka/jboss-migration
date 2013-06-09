@@ -14,6 +14,7 @@ import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ctx.MigrationData;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.recog.ServerInfo;
+import org.jboss.loom.tools.report.adapters.MigrationDataSubtypesAdapter;
 import org.jboss.loom.tools.report.adapters.ToActionBeanAdapter;
 import org.jboss.loom.tools.report.adapters.ToStringAdapter;
 import org.jboss.loom.utils.compar.ComparisonResult;
@@ -37,6 +38,7 @@ public class MigrationReportJaxbBean {
     
     @XmlElementWrapper(name = "configsData")
     @XmlElement(name = "configData")
+    @XmlJavaTypeAdapter( MigrationDataSubtypesAdapter.class )
     public Collection<MigrationData> configData;
 
     @XmlElementWrapper(name = "actions")

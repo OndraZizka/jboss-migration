@@ -24,14 +24,16 @@ import org.jboss.loom.utils.Utils;
  * Source server config data to be migrated.
  *
  * @author Roman Jakubco
+ * 
+ * JAXB removed in favor of MigrationDataReportBean
  */
-@XmlRootElement
-@XmlAccessorType( XmlAccessType.NONE )
+//@XmlRootElement
+//@XmlAccessorType( XmlAccessType.NONE )
 public class MigrationData {
 
     private List<? extends IConfigFragment> configFragments;
     
-    @XmlAttribute(name = "fromMigrator")
+    //@XmlAttribute(name = "fromMigrator")
     private Class<? extends IMigrator> fromMigrator;
     
 
@@ -51,19 +53,18 @@ public class MigrationData {
         return this.getClass().getSimpleName() + " with " + (configFragments == null ? "no" : configFragments.size()) + " config fragments";
     }
 
+    
     // for JAXB
-    @XmlAttribute(name = "desc")
-    public String getDescription(){ return toString(); }
+    //@XmlAttribute(name = "desc")
+    //public String getDescription(){ return toString(); }
 
-    //<editor-fold defaultstate="collapsed" desc="get/set">
-    @XmlElementWrapper(name = "configFragments")
-    @XmlElement(name = "configFragment")
+
+    public Class<? extends IMigrator> getFromMigrator() { return fromMigrator; }
+    
+    //@XmlElementWrapper(name = "configFragments")
+    //@XmlElement(name = "configFragment")
     public <T extends IConfigFragment> List<T> getConfigFragments() {
         return (List<T>) configFragments;
     }
-    //public void setConfigFragments(List<IConfigFragment> configFragment) { this.configFragments = configFragment; }
-    //</editor-fold>
-
-
 
 }// class
