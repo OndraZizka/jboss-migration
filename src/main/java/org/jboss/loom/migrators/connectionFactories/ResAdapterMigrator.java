@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.connectionFactories;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -21,7 +20,6 @@ import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.CliScriptException;
-import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
@@ -41,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.XmlUtils;
 
 /**
@@ -48,7 +47,9 @@ import org.jboss.loom.utils.XmlUtils;
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Resource adapters configuration"
+)
 public class ResAdapterMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(ResAdapterMigrator.class);
 

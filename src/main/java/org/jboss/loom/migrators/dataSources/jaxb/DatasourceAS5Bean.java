@@ -12,17 +12,19 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Class for unmarshalling and representing local-tx-datasource (AS5)
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "Datasource ${jndiName}"
+)
 @XmlRootElement(name = "local-tx-datasource")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "local-tx-datasource")
-
 public class DatasourceAS5Bean extends AbstractDatasourceAS5Bean{
 
 

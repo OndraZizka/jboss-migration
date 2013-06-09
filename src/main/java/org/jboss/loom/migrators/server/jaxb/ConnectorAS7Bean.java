@@ -15,12 +15,11 @@ import javax.xml.bind.annotation.*;
  * Class for marshalling and representing connector in AS7 (AS7)
  *
  * @author Roman Jakubco
+ * @deprecated  Should be read over Management API.
  */
-
 @XmlRootElement(name = "connector")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "connector")
-
 public class ConnectorAS7Bean {
 
     @XmlAttribute(name = "name")

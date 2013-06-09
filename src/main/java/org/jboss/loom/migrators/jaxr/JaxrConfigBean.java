@@ -8,6 +8,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.MBeanJaxbBase;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * $JBOSS_HOME/server/all/deploy/juddi-service.sar/META-INF/jboss-service.xml
@@ -43,6 +44,10 @@ import org.jboss.loom.spi.IConfigFragment;
  * @Jira: MIGR-42
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "JAXR - jUDDI service ${name}", 
+    docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#idm2915376"
+)
 @XmlRootElement(name = "mbean")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "mbean")

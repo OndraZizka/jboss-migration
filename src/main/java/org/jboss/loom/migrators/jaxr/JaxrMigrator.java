@@ -7,11 +7,11 @@ import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ctx.MigrationData;
-import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 
@@ -48,6 +48,9 @@ import org.jboss.loom.utils.XmlUtils;
  * @Jira: MIGR-42
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ConfigPartDescriptor(
+    name = "JAXR (jUDDI) configuration"
+)
 public class JaxrMigrator extends AbstractMigrator implements IMigrator {
 
     @Override protected String getConfigPropertyModuleName() { return "jaxr"; }

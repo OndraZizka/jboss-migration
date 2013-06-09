@@ -8,7 +8,6 @@
 package org.jboss.loom.migrators.classloading;
 
 import java.io.File;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -20,6 +19,7 @@ import org.jboss.loom.migrators.classloading.beans.DeploymentClassloadingConfig;
 import org.jboss.loom.migrators.classloading.beans.JBossClassloadingXml;
 import org.jboss.loom.migrators.classloading.beans.JBossWebXml;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  *  For starters, we will only check for classloading files and WARN if found.
@@ -27,6 +27,9 @@ import org.jboss.loom.spi.IMigrator;
  *  @author Ondrej Zizka, ozizka at redhat.com
  *  @jira MIGR-56
  */
+@ConfigPartDescriptor(
+    name = "Classloading configuration"
+)
 public class ClassloadingMigrator extends AbstractMigrator implements IMigrator {
 
 

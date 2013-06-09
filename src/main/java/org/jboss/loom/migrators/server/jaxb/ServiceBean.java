@@ -11,17 +11,19 @@ import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
  * Class for unmarshalling and representing service (AS5)
  *
  * @author Roman Jakubco
  */
-
+@ConfigPartDescriptor(
+    name = "JBoss Web service ${serviceName}"
+)
 @XmlRootElement(name = "Service")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Service")
-
 public class ServiceBean {
 
     @XmlAttribute(name = "name")
@@ -34,29 +36,15 @@ public class ServiceBean {
     private EngineBean engine;
 
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public Set<ConnectorAS5Bean> getConnectorAS5s() {
-        return connectorAS5s;
-    }
-
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+    public Set<ConnectorAS5Bean> getConnectorAS5s() { return connectorAS5s; }
     public void setConnectorAS5s(Collection<ConnectorAS5Bean> connectorAS5s) {
         Set<ConnectorAS5Bean> temp = new HashSet();
         temp.addAll(connectorAS5s);
         this.connectorAS5s = temp;
     }
-
-    public EngineBean getEngine() {
-        return engine;
-    }
-
-    public void setEngine(EngineBean engine) {
-        this.engine = engine;
-    }
-}
+    public EngineBean getEngine() { return engine; }
+    public void setEngine(EngineBean engine) { this.engine = engine; }
+    
+}// class

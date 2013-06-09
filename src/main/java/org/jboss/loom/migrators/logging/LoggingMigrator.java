@@ -75,7 +75,6 @@ import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 @ConfigPartDescriptor(
     name = "JBoss Logging configuration", 
     docLink = "https://access.redhat.com/site/documentation/en-US/JBoss_Enterprise_Application_Platform/5/html-single/Administration_And_Configuration_Guide/index.html#idm2915376"
-    //docTargetLink = "https://docs.jboss.org/author/display/AS72/Logging+Configuration"
 )
 public class LoggingMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(LoggingMigrator.class);

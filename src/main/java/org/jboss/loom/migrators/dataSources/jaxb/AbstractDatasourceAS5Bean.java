@@ -14,10 +14,9 @@ import javax.xml.bind.annotation.XmlElements;
 import java.util.List;
 
 /**
- * User: Roman Jakubco
- * Date: 4/28/13
+ *  Datasource base class.
  */
-public abstract class AbstractDatasourceAS5Bean implements IConfigFragment{
+public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     @XmlElement(name = "jndi-name")
     private String jndiName;
 
