@@ -82,6 +82,8 @@ div.box.action h4 div.icon {
 /* Small icons in rows. */
 div.box table td.icon { vertical-align: top; }
 div.box table td.icon div { width: 20px; height: 20px; background: transparent url("iconsMed.png") no-repeat; }
+div.box.migrationData table.fragments td{ padding: 0.6ex; }  /*doc Y*/
+div.box.migrationData table.fragments td div { padding-bottom: 0.6ex; }  /*doc Y*/
 div.box.migrationData table.fragments td.icon div { background-position:  -12px  -77px; }  /*doc Y*/
 div.box.migrationData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
 div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
@@ -89,9 +91,11 @@ div.box.migrationData table.fragments td.icon div { background-position:  -974px
 div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
 
 div.box.migrationData table.fragments div.origin div.icon {
-    width: 20px; height: 20px; float: left; background: transparent url("iconsMed.png") no-repeat;
+    width: 20px; height: 20px; float: left; background: transparent url("iconsMed.png") no-repeat; margin-right: 1ex;
+}
+div.box.migrationData table.fragments div.origin code {
     font-family: monospace;
-    font-size: 90%;
+    font-size: 11pt;
 }
 div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:  -846px   -77px; } /* file-gear */
 div.box.migrationData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */

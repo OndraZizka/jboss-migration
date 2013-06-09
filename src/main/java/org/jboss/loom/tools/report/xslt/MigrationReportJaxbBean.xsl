@@ -87,7 +87,17 @@
     <xsl:template name="MigrationData">
         <xsl:for-each select="/migrationReport/configsData/configData">
             <div class="box migrationData">
-                <h4><div class="icon"/><xsl:value-of select="@fromMigrator"/></h4>
+                <!-- From annotation -->
+                <h4><div class="icon"/>
+                    <xsl:value-of select="@name"/>
+                    <xsl:if test="not(@name)"><xsl:value-of select="@fromMigrator"/></xsl:if>
+                    <xsl:if test="@docLink">
+                        (<a href="{@docLink}">
+                            <xsl:if test="not(@docName)">Documentation</xsl:if>
+                            <xsl:if test="@docName"><xsl:value-of select="@docName"/></xsl:if>
+                        </a>)
+                    </xsl:if>
+                </h4>
                 <div class="padding">
                     <table class="fragments flat vertBorder" style="border-collapse: collapse;">
                         <!-- Fragments -->
@@ -95,16 +105,21 @@
                             <tr>
                                 <td class="icon"><div/></td>
                                 <td>
+                                    <!-- From annotation -->
+                                    <div class="class">
+                                        <xsl:value-of select="@name"/>
+                                        <xsl:if test="not(@name)"><xsl:value-of select="@fromMigrator"/></xsl:if>
+                                    </div>
                                     <div class="class"><xsl:value-of select="@class"/></div>
                                     <div class="origin">
                                         <xsl:if test="origin/@file">
-                                            <div class="file"> <div class="icon"/> <xsl:value-of select="origin/@file"/></div>
+                                            <div class="file"> <div class="icon"/> File: <code><xsl:value-of select="origin/@file"/></code></div>
                                         </xsl:if>
                                         <xsl:if test="origin/@file">
-                                            <div class="part"> <div class="icon"/> <xsl:value-of select="origin/@part"/></div>
+                                            <div class="part"> <div class="icon"/> Part: <code><xsl:value-of select="origin/@part"/></code></div>
                                         </xsl:if>
                                         <xsl:if test="origin/@server">
-                                            <div class="server"> <div class="icon"/> <xsl:value-of select="origin/@server"/></div>
+                                            <div class="server"> <div class="icon"/> Server: <code><xsl:value-of select="origin/@server"/></code></div>
                                         </xsl:if>
                                     </div>
                                     <xsl:if test="docRef">
