@@ -13,6 +13,7 @@ public class IConfigFragmentAdapter extends XmlAdapter<ConfigFragmentReportBean,
 
     @Override
     public ConfigFragmentReportBean marshal( IConfigFragment fragment ) throws Exception {
+        if( fragment == null )  return null;
         return ConfigFragmentReportBean.from( fragment );
     }
     
