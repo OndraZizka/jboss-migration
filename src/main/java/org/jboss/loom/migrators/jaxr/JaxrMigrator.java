@@ -6,7 +6,7 @@ import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
@@ -77,7 +77,7 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
         //File ddlData   = Utils.createPath( this.getGlobalConfig().getAS5Config().getDeployDir(), "juddi-service.sar/META-INF/ddl/juddi_data.ddl");
         
         // Store to context
-        ctx.getMigrationData().put( this.getClass(), new MigrationData(beans) );
+        ctx.getMigrationData().put( this.getClass(), new MigratorData(beans) );
     }
 
     
@@ -86,7 +86,7 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
-        MigrationData data = ctx.getMigrationData().get(this.getClass());
+        MigratorData data = ctx.getMigrationData().get(this.getClass());
         if( data == null || data.getConfigFragments().isEmpty() )
             return;
         

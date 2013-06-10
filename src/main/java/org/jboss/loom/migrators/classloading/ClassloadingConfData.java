@@ -4,7 +4,7 @@ import org.jboss.loom.migrators.classloading.beans.DeploymentClassloadingConfig;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 
 /**
  * Holds config data for each app referenced by --app.path=...
@@ -14,7 +14,7 @@ import org.jboss.loom.ctx.MigrationData;
  * 
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class ClassloadingConfData extends MigrationData {
+public class ClassloadingConfData extends MigratorData {
     
     private Map<File, DeploymentClassloadingConfig> deplsClassloadingConfigs = new HashMap();
 

@@ -10,7 +10,7 @@ import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.remoting.RemotingConfigBean;
@@ -102,7 +102,7 @@ public class Ejb3Migrator extends AbstractMigrator implements IMigrator {
     /**
      *  Conf data class for this migrator.
      */
-    public static class Data extends MigrationData {
+    public static class Data extends MigratorData {
         
         Ejb2TimerConfigBean ejbTimer = null;
         List<InvokerProxyBindingBean> invokers = Collections.EMPTY_LIST;

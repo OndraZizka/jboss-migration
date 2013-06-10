@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.migrators.HasProperties;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
@@ -27,7 +27,7 @@ import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
  */
 @XmlRootElement
 @XmlAccessorType( XmlAccessType.NONE )
-public class MigrationDataReportBean {
+public class MigratorDataReportBean {
 
     private ConfigPartDescriptor annotation;
     
@@ -51,8 +51,8 @@ public class MigrationDataReportBean {
     /**
      * Constructor, kind of.
      */
-    public static MigrationDataReportBean from( MigrationData migData ) {
-        MigrationDataReportBean bean = new MigrationDataReportBean();
+    public static MigratorDataReportBean from( MigratorData migData ) {
+        MigratorDataReportBean bean = new MigratorDataReportBean();
         
         bean.fromMigrator = migData.getFromMigrator();
         bean.configFragments = migData.getConfigFragments();

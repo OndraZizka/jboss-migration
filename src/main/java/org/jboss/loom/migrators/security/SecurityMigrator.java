@@ -13,7 +13,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.ModuleCreationAction;
@@ -95,7 +95,7 @@ public class SecurityMigrator extends AbstractMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
             SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
 
-            MigrationData mData = new MigrationData();
+            MigratorData mData = new MigratorData();
             mData.getConfigFragments().addAll(securityAS5.getApplicationPolicies());
 
             ctx.getMigrationData().put(SecurityMigrator.class, mData);

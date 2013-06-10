@@ -13,7 +13,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ModuleCreationAction;
@@ -133,7 +133,7 @@ public class LoggingMigrator extends AbstractMigrator {
             Unmarshaller unmarshaller = JAXBContext.newInstance(LoggingAS5Bean.class).createUnmarshaller();
             LoggingAS5Bean loggingAS5 = (LoggingAS5Bean) unmarshaller.unmarshal(xsr);
 
-            MigrationData mData = new MigrationData();
+            MigratorData mData = new MigratorData();
 
             if(loggingAS5.getCategories() != null){
                 mData.getConfigFragments().addAll(loggingAS5.getCategories());

@@ -82,30 +82,30 @@ div.box.action h4 div.icon {
 /* Small icons in rows. */
 div.box table td.icon { vertical-align: top; }
 div.box table td.icon div { width: 20px; height: 20px; background: transparent url("iconsMed.png") no-repeat; }
-div.box.migrationData table.fragments td{ padding: 0.6ex; }  /*doc Y*/
-div.box.migrationData table.fragments td div { padding-bottom: 0.6ex; }  /*doc Y*/
-div.box.migrationData table.fragments td.icon div { background-position:  -12px  -77px; }  /*doc Y*/
-div.box.migrationData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
-div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
-div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
+div.box.migratorData table.fragments td{ padding: 0.6ex; }  /*doc Y*/
+div.box.migratorData table.fragments td div { padding-bottom: 0.6ex; }  /*doc Y*/
+div.box.migratorData table.fragments td.icon div { background-position:  -12px  -77px; }  /*doc Y*/
+div.box.migratorData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
+div.box.migratorData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
+div.box.migratorData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
 div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
 
-div.box.migrationData table.fragments div.name { font-weight: bold; }
+div.box.migratorData table.fragments div.name { font-weight: bold; }
 
-div.box.migrationData table.fragments div.origin div.icon {
+div.box.migratorData table.fragments div.origin div.icon {
     width: 20px; height: 20px; float: left; background: transparent url("iconsMed.png") no-repeat; margin-right: 1ex;
 }
-div.box.migrationData table.fragments div.origin code {
+div.box.migratorData table.fragments div.origin code {
     font-family: monospace;
     font-size: 11pt;
 }
-div.box.migrationData table.fragments div.origin div.class  div.icon { background-position:  -846px   -77px; } /* file-gear */
-div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:   -18px  -400px; } /* dialog */
-div.box.migrationData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */
-div.box.migrationData table.fragments div.origin div.server div.icon { background-position: -1040px  -652px; } /*server*/
+div.box.migratorData table.fragments div.origin div.class  div.icon { background-position:  -846px   -77px; } /* file-gear */
+div.box.migratorData table.fragments div.origin div.file   div.icon { background-position:   -18px  -400px; } /* dialog */
+div.box.migratorData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */
+div.box.migratorData table.fragments div.origin div.server div.icon { background-position: -1040px  -652px; } /*server*/
 
-div.box.migrationData table.fragments div.properties table th { font-style: italic; }
-div.box.migrationData table.fragments div.properties table th:after { content: ":"; }
+div.box.migratorData table.fragments div.properties table th { font-style: italic; }
+div.box.migratorData table.fragments div.properties table th:after { content: ":"; }
 
 
 /* Small icons in comparison table. */
@@ -119,6 +119,5 @@ div.box.comparison .match.MISMATCH .icon { background-position:  -716px  -77px; 
 div.box.comparison .match.EMPTY  .icon { background-position:   -652px -588px; } /*(?)*/
 div.box.comparison .match.MISSING    .icon { background-position:  -1228px -844px; } /*\bin/*/
 
-div.box.migrationData {}
 div.box.action h4 { background-color: #fbd261; } /* #e0effd namodrala, #fcffd1 nazloutla, fef65b zloutkova */
 

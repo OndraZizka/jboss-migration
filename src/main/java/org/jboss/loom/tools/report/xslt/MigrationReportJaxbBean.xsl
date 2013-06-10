@@ -29,7 +29,7 @@
         <xsl:call-template name="ComparisonResult"/>
 
         <h2><div class="icon"/><span>Source server configuration</span></h2>
-        <xsl:call-template name="MigrationData"/>
+        <xsl:call-template name="MigratorData"/>
 
         <h2><div class="icon"/><span>Actions to migrate to the target server</span></h2>
         <xsl:call-template name="Actions"/>
@@ -83,10 +83,10 @@
         </div>
     </xsl:template>
 
-    <!-- Source server config data (MigrationData) -->
-    <xsl:template name="MigrationData">
+    <!-- Source server config data (MigratorData) -->
+    <xsl:template name="MigratorData">
         <xsl:for-each select="/migrationReport/configsData/configData">
-            <div class="box migrationData">
+            <div class="box migratorData">
                 <!-- From annotation -->
                 <h4><div class="icon"/>
                     <xsl:value-of select="@name"/>

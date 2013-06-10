@@ -16,7 +16,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ModuleCreationAction;
@@ -99,7 +99,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 }
             }
 
-            MigrationData mData = new MigrationData();
+            MigratorData mData = new MigratorData();
 
             for (DatasourcesBean ds : dsColl) {
                 if (ds.getLocalDatasourceAS5s() != null) {

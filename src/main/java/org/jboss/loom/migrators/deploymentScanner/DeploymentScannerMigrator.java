@@ -9,7 +9,7 @@ package org.jboss.loom.migrators.deploymentScanner;
 
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.conf.AS5Config;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -75,7 +75,7 @@ public class DeploymentScannerMigrator extends AbstractMigrator {
             valueList = checkDestinationPath(valueList);
             valueList = checkSourcePath(valueList);
 
-            MigrationData mData = new MigrationData();
+            MigratorData mData = new MigratorData();
             mData.getConfigFragments().addAll(valueList);
             ctx.getMigrationData().put(this.getClass(), mData);
 

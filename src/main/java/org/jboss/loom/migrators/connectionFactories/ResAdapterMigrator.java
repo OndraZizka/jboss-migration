@@ -15,7 +15,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -97,7 +97,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
                 }
             }
 
-            MigrationData migrData = new MigrationData();
+            MigratorData migrData = new MigratorData();
 
             for (ConnectionFactoriesBean cf : connFactories) {
                 if (cf.getConnectionFactories() != null) {

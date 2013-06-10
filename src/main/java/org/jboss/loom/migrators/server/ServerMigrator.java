@@ -12,7 +12,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.conf.GlobalConfiguration;
@@ -75,7 +75,7 @@ public class ServerMigrator extends AbstractMigrator {
 
             ServerAS5Bean serverAS5 = (ServerAS5Bean) unmarshaller.unmarshal(file);
 
-            MigrationData mData = new MigrationData();
+            MigratorData mData = new MigratorData();
             for (ServiceBean s : serverAS5.getServices()) {
                 mData.getConfigFragments().add(s.getEngine());
                 mData.getConfigFragments().addAll(s.getConnectorAS5s());

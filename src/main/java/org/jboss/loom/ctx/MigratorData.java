@@ -29,7 +29,7 @@ import org.jboss.loom.utils.Utils;
  */
 //@XmlRootElement
 //@XmlAccessorType( XmlAccessType.NONE )
-public class MigrationData {
+public class MigratorData {
 
     private List<? extends IConfigFragment> configFragments;
     
@@ -37,12 +37,12 @@ public class MigrationData {
     private Class<? extends IMigrator> fromMigrator;
     
 
-    public MigrationData() {
+    public MigratorData() {
         this(new LinkedList());
         
     }
 
-    public MigrationData( List<? extends IConfigFragment> configFragments ) {
+    public MigratorData( List<? extends IConfigFragment> configFragments ) {
         this.configFragments = configFragments;
         this.fromMigrator = Utils.findSubclassInStackTrace( IMigrator.class );
     }

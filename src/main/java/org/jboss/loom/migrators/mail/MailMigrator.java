@@ -6,7 +6,7 @@ import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigrationData;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
@@ -101,7 +101,7 @@ public class MailMigrator extends AbstractMigrator implements IMigrator {
     /**
      * Custom MigrationData.
      */
-    public static class Data extends MigrationData {
+    public static class Data extends MigratorData {
         MailServiceBean defaultMailService = null;
         
         private Data( List<MailServiceBean> beans ) {

@@ -33,7 +33,7 @@ public class MigrationContext {
     private Map<Class<? extends IMigrator>, IMigrator> migrators = new HashMap();
 
 
-    private final Map<Class<? extends IMigrator>, MigrationData> migrationData = new HashMap();
+    private final Map<Class<? extends IMigrator>, MigratorData> migrationData = new HashMap();
 
     private final List<IMigrationAction> actions = new LinkedList();
     // TBC: Roman said there are cases when the same file is suggested for copying by multiple migrators?
@@ -87,7 +87,7 @@ public class MigrationContext {
     public void setDeploymentInfos( List<DeploymentInfo> deploymentInfos ) { this.deploymentInfos = deploymentInfos; }
     
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
-    public Map<Class<? extends IMigrator>, MigrationData> getMigrationData() { return migrationData; }
+    public Map<Class<? extends IMigrator>, MigratorData> getMigrationData() { return migrationData; }
     public List<IMigrationAction> getActions() { return actions; }
 
     public Batch getBatch() { return batch; }
