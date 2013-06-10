@@ -106,7 +106,7 @@
                                 <td class="icon"><div/></td>
                                 <td>
                                     <!-- From annotation -->
-                                    <div class="class">
+                                    <div class="name">
                                         <xsl:value-of select="@name"/>
                                         <xsl:if test="not(@name)"><xsl:value-of select="@fromMigrator"/></xsl:if>
                                     </div>
@@ -131,7 +131,7 @@
                                     </xsl:if>
                                     <xsl:if test="properties">
                                         <div class="properties">
-                                            <table class="">
+                                            <table class="flat vertBorder">
                                                 <xsl:for-each select="properties/property">
                                                 <tr>
                                                     <th><xsl:value-of select="@name"/></th>

@@ -3,6 +3,7 @@ package org.jboss.loom.tools.report.beans;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -96,7 +97,7 @@ public class ConfigFragmentReportBean {
      */
     public static Map<String, String> describeBean(IConfigFragment bean){
         
-        Map<String, String> ret = new HashMap();
+        Map<String, String> ret = new LinkedHashMap();
                 
         Method[] methods = bean.getClass().getMethods();
         for( Method method : methods ) {

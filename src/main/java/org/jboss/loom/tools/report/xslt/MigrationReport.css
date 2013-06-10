@@ -90,6 +90,8 @@ div.box.migrationData table.fragments td.icon div { background-position:  -974px
 div.box.migrationData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
 div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
 
+div.box.migrationData table.fragments div.name { font-weight: bold; }
+
 div.box.migrationData table.fragments div.origin div.icon {
     width: 20px; height: 20px; float: left; background: transparent url("iconsMed.png") no-repeat; margin-right: 1ex;
 }
@@ -101,6 +103,9 @@ div.box.migrationData table.fragments div.origin div.class  div.icon { backgroun
 div.box.migrationData table.fragments div.origin div.file   div.icon { background-position:   -18px  -400px; } /* dialog */
 div.box.migrationData table.fragments div.origin div.part   div.icon { background-position:   -77px -1165px; } /* puzzle piece */
 div.box.migrationData table.fragments div.origin div.server div.icon { background-position: -1040px  -652px; } /*server*/
+
+div.box.migrationData table.fragments div.properties table th { font-style: italic; }
+div.box.migrationData table.fragments div.properties table th:after { content: ":"; }
 
 
 /* Small icons in comparison table. */
