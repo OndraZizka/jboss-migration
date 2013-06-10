@@ -12,6 +12,7 @@ import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
+import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.jboss.loom.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,11 +76,22 @@ public class ConfigFragmentReportBean {
     
     /* Derived from an annotation. TODO: Move to a base class?*/
     @XmlAttribute
-    public String getName(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.name() ); }
+    public String getName(){
+        String name = this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.name() );
+        if( name == null || ! name.contains("${"))  return name;
+        if( properties == null || properties.isEmpty() )  return name;
+        
+        try {
+            return new IExprLangEvaluator.SimpleEvaluator().evaluateEL( name, this.properties );
+        } catch (Exception ex ){
+            return name;
+        }
+    }
+    
     @XmlAttribute
     public String getDocLink(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.docLink() ); }
     @XmlAttribute
     public String getIconFile(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.iconFile() ); }
     
-    
+
 }// class

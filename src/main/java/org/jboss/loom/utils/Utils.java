@@ -26,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.apache.commons.io.DirectoryWalker;
@@ -283,6 +285,17 @@ public class Utils {
      */
     public static String nullIfEmpty(String str){
         return str == null ? null : (str.isEmpty() ? null : str);
+    }
+    
+    
+    
+    public static Properties mapToProperties( Map<String, String> map ) {
+        Properties props = new Properties();
+        Set<Map.Entry<String, String>> entries = map.entrySet();
+        for( Map.Entry<String, String> entry : entries ) {
+            props.put( entry.getKey(), entry.getValue() );
+        }
+        return props;
     }
     
 }// class

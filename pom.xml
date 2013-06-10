@@ -6,7 +6,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -297,6 +297,27 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils-core</artifactId>
             <version>1.8.3</version>
+        </dependency>
+        -->
+
+        <!-- Expression language -->
+        <!--
+        <dependency>
+            <groupId>commons-el</groupId>
+            <artifactId>commons-el</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>javax.el-api</artifactId>
+            <version>2.2.4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>juel</groupId>
+            <artifactId>juel</artifactId>
+            <version>2.2.1</version>
+            <type>jar</type>
         </dependency>
         -->
         
