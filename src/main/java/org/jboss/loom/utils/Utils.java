@@ -15,30 +15,22 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
 import org.apache.commons.io.DirectoryWalker;
-import org.jboss.loom.ctx.MigratorData;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.tools.report.Reporter;
 
 /**
@@ -248,6 +240,49 @@ public class Utils {
             }
         }
         return null;
+    }
+    
+    
+    
+    /**
+     *  Extracts all String getters properties to a map.
+     */
+    public static Map<String, String> describeBean(IConfigFragment bean){
+        
+        Map<String, String> ret = new LinkedHashMap();
+                
+        Method[] methods = bean.getClass().getMethods();
+        for( Method method : methods ) {
+            boolean get = false;
+            String name = method.getName();
+            
+            // Only use getters which return String.
+            if( method.getParameterTypes().length != 0 )  continue;
+            if( ! method.getReturnType().equals( String.class ) )  continue;
+            if( name.startsWith("get") )  get = true;
+            if( ! (get || name.startsWith("is")) )  continue;
+            
+            // Remove "get" or "is".
+            name =  name.substring( get ? 3 : 2 );
+            // Uncapitalize, unless it's getDLQJNDIName.
+            if( name.length() > 1 && ! Character.isUpperCase( name.charAt(2) ) )
+                name =  StringUtils.uncapitalize( name );
+            
+            try {
+                ret.put( name, (String) method.invoke(bean));
+            } catch(     IllegalAccessException | IllegalArgumentException | InvocationTargetException ex ) {
+                log.warn("Failed extracting property from " + bean.getClass().getSimpleName() + ":\n    " + ex.getMessage(), ex );
+            }
+        }
+        return ret;
+    }
+    
+    
+    /**
+     *  Returns null for empty strings.
+     */
+    public static String nullIfEmpty(String str){
+        return str == null ? null : (str.isEmpty() ? null : str);
     }
     
 }// class

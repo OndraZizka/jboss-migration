@@ -20,6 +20,7 @@ import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
+import org.jboss.loom.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public class ConfigFragmentReportBean {
             } catch(     IllegalAccessException | InvocationTargetException | NoSuchMethodException ex ) {
                 log.warn("Failed extracting properties from " + bean.getClass().getSimpleName() + ":\n    " + ex.getMessage(), ex );
             }*/
-            bean.properties = describeBean( fragment );
+            bean.properties = Utils.describeBean( fragment );
         }
         
         return bean;
@@ -82,48 +83,11 @@ public class ConfigFragmentReportBean {
     
     /* Derived from an annotation. TODO: Move to a base class?*/
     @XmlAttribute
-    public String getName(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.name() ); }
+    public String getName(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.name() ); }
     @XmlAttribute
-    public String getDocLink(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.docLink() ); }
+    public String getDocLink(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.docLink() ); }
     @XmlAttribute
-    public String getIconFile(){ return this.annotation == null ? null : nullIfEmpty( this.annotation.iconFile() ); }
+    public String getIconFile(){ return this.annotation == null ? null : Utils.nullIfEmpty( this.annotation.iconFile() ); }
     
     
-    private static String nullIfEmpty(String str){ return str == null ? null : (str.isEmpty() ? null : str); }
-    
-    
-    /**
-     *  Extracts all String getters properties to a map.
-     */
-    public static Map<String, String> describeBean(IConfigFragment bean){
-        
-        Map<String, String> ret = new LinkedHashMap();
-                
-        Method[] methods = bean.getClass().getMethods();
-        for( Method method : methods ) {
-            boolean get = false;
-            String name = method.getName();
-            
-            // Only use getters which return String.
-            if( method.getParameterTypes().length != 0 )  continue;
-            if( ! method.getReturnType().equals( String.class ) )  continue;
-            if( name.startsWith("get") )  get = true;
-            if( ! (get || name.startsWith("is")) )  continue;
-            
-            // Remove "get" or "is".
-            name =  name.substring( get ? 3 : 2 );
-            // Uncapitalize, unless it's getDLQJNDIName.
-            if( name.length() > 1 && ! Character.isUpperCase( name.charAt(2) ) )
-                name =  StringUtils.uncapitalize( name );
-            
-            try {
-                ret.put( name, (String) method.invoke(bean));
-            } catch(     IllegalAccessException | IllegalArgumentException | InvocationTargetException ex ) {
-                log.warn("Failed extracting property from " + bean.getClass().getSimpleName() + ":\n    " + ex.getMessage(), ex );
-            }
-        }
-        return ret;
-    }
-
-
 }// class
