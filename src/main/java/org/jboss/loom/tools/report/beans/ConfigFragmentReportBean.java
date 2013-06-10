@@ -1,20 +1,12 @@
 package org.jboss.loom.tools.report.beans;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.events.Characters;
-import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.migrators.HasProperties;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
