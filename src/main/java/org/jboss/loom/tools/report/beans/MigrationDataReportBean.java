@@ -42,7 +42,7 @@ public class MigrationDataReportBean {
     @XmlElement
     private Origin origin;
     
-    @XmlElementWrapper(name = "properties")
+    //@XmlElementWrapper(name = "properties")
     @XmlElement(name = "property")
     @XmlJavaTypeAdapter(value = MapPropertiesAdapter.class)
     private Map<String, String> properties;

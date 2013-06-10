@@ -10,7 +10,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.stream.events.Characters;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.migrators.HasProperties;
 import org.jboss.loom.migrators.Origin;
@@ -38,8 +40,8 @@ public class ConfigFragmentReportBean {
     @XmlElement
     private Origin origin;
 
-    @XmlElementWrapper(name = "properties")
-    @XmlElement(name = "property")
+    //@XmlElementWrapper(name = "properties")
+    //@XmlElement(name = "property")
     @XmlJavaTypeAdapter(value = MapPropertiesAdapter.class)
     private Map<String, String> properties;
 
@@ -98,12 +100,23 @@ public class ConfigFragmentReportBean {
                 
         Method[] methods = bean.getClass().getMethods();
         for( Method method : methods ) {
+            boolean get = false;
             String name = method.getName();
+            
+            // Only use getters which return String.
             if( method.getParameterTypes().length != 0 )  continue;
             if( ! method.getReturnType().equals( String.class ) )  continue;
-            if( ! (name.startsWith("get") || name.startsWith("is")) )  continue;
+            if( name.startsWith("get") )  get = true;
+            if( ! (get || name.startsWith("is")) )  continue;
+            
+            // Remove "get" or "is".
+            name =  name.substring( get ? 3 : 2 );
+            // Uncapitalize, unless it's getDLQJNDIName.
+            if( name.length() > 1 && ! Character.isUpperCase( name.charAt(2) ) )
+                name =  StringUtils.uncapitalize( name );
+            
             try {
-                ret.put( StringUtils.uncapitalize( name ), (String) method.invoke(bean));
+                ret.put( name, (String) method.invoke(bean));
             } catch(     IllegalAccessException | IllegalArgumentException | InvocationTargetException ex ) {
                 log.warn("Failed extracting property from " + bean.getClass().getSimpleName() + ":\n    " + ex.getMessage(), ex );
             }
