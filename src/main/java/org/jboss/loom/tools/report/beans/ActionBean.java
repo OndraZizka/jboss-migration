@@ -28,6 +28,9 @@ public class ActionBean {
     @XmlID
     private String hashCode;
     
+    @XmlAttribute(name = "class")
+    private Class<? extends IMigrationAction> cls;
+    
     @XmlAttribute
     private String label;
     
@@ -58,6 +61,8 @@ public class ActionBean {
     public ActionBean() { }
     public static ActionBean from( IMigrationAction action ) {
         ActionBean bean = new ActionBean();
+        
+        bean.cls = action.getClass();
         
         final ActionDescriptor ann = action.getClass().getAnnotation( ActionDescriptor.class );
         if( ann != null ){

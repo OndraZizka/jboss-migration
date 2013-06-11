@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+    Processed by Saxon HE 9.5.x.
+
     Author:  Ondrej Zizka, ozizka@redhat.com
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
@@ -154,9 +156,46 @@
     <xsl:template name="Actions">
         <xsl:for-each select="/migrationReport/actions/action">
             <div class="box action {@fromMigrator}" id="{@id}">
-                <h4><div class="icon"/>From migrator <xsl:value-of select="@fromMigrator"/></h4>
+                <h4><div class="icon"/>
+                    <!-- from migrator <xsl:value-of select="@fromMigrator"/> -->
+                    <xsl:if test="@label">
+                        <xsl:value-of select="@label"/>
+                    </xsl:if>
+                    <xsl:if test="not( @label )">
+                        <!--
+                        <xsl:value-of select="substring-after( @class, '*\.')"/>
+                        <xsl:value-of select="replace( @class, '\.(.*)$', '$1')"/>
+                        -->
+                        <xsl:value-of select="reverse(tokenize(@class,'\.'))[1]"/>
+                        <xsl:if test="@fromMigrator">
+                            from migrator <xsl:value-of select="@fromMigrator"/>
+                        </xsl:if>
+                    </xsl:if>
+                        
+                </h4>
                 <div class="padding">
                     <p class="desc"><xsl:value-of select="desc/text()"/></p>
+                    
+                    <!-- Report properties -->
+                    <xsl:if test="properties/property">
+                        <div class="padding">
+                            <xsl:for-each select="properties/property">
+                                <div class="property {@style}">
+                                    <div class="icon"/>
+                                    <xsl:if test="@label">
+                                        <div class="label"><xsl:value-of select="@label"/></div>
+                                    </xsl:if>
+                                    <div class="value"><xsl:value-of select="@value"/></div>
+                                </div>
+                            </xsl:for-each>
+                        </div>
+                    </xsl:if>
+
+                    <xsl:if test="@fromMigrator">
+                        <div class="fromMigrator">From migrator <xsl:value-of select="@fromMigrator"/></div>
+                    </xsl:if>
+                                        
+                    <!-- Warnings -->
                     <xsl:if test="warnings/*">
                         <div class="padding">
                             <!--<h4>Warnings</h4>-->
@@ -169,6 +208,7 @@
                             </table>
                         </div>
                     </xsl:if>
+                    
                 </div>
             </div>
         </xsl:for-each>

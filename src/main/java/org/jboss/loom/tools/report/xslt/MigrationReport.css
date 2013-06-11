@@ -88,7 +88,6 @@ div.box.migratorData table.fragments td.icon div { background-position:  -12px  
 div.box.migratorData table.fragments td.icon div { background-position:  -334px -652px; } /*lock*/
 div.box.migratorData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
 div.box.migratorData table.fragments td.icon div { background-position:  -974px -652px; } /*gear*/
-div.box.action        table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
 
 div.box.migratorData table.fragments div.name { font-weight: bold; }
 
@@ -108,6 +107,8 @@ div.box.migratorData table.fragments div.properties table th { font-style: itali
 div.box.migratorData table.fragments div.properties table th:after { content: ":"; }
 
 
+
+
 /* Small icons in comparison table. */
 div.box.comparison { border: none; }
 div.box.comparison .match .icon { width: 20px; background:  transparent url("iconsMed.png") no-repeat; }
@@ -119,5 +120,16 @@ div.box.comparison .match.MISMATCH .icon { background-position:  -716px  -77px; 
 div.box.comparison .match.EMPTY  .icon { background-position:   -652px -588px; } /*(?)*/
 div.box.comparison .match.MISSING    .icon { background-position:  -1228px -844px; } /*\bin/*/
 
+/* Actions */
 div.box.action h4 { background-color: #fbd261; } /* #e0effd namodrala, #fcffd1 nazloutla, fef65b zloutkova */
-
+div.box.action .desc { display: none }
+div.box.action div.property.code div.label { font-weight: bold; }
+div.box.action div.property.code div.value {
+    margin: 1ex;
+    border: 1px solid #BFBFBF;
+    padding: 1ex;
+    font-family: Courier, sans-serif; white-space: pre;
+    background-color: #FCFCFC;
+}
+div.box.action div.fromMigrator { font-style: italic; }
+div.box.action table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/

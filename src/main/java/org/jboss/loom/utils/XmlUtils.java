@@ -84,6 +84,8 @@ public class XmlUtils {
     /**
      *  Read XML from the File, look for nodes by XPath, and unmarshall them into given Class.
      *  If Class is Origin.Wise, the origin is stored.
+     * 
+     *  Caution: Uses JDK's XPathFactoryImpl - Saxon doesn't do well with namespaces.
      */
     public static <T> List<T> unmarshallBeans( File docFile, String xpath, Class<T> cls ) throws MigrationException{
         
@@ -94,7 +96,11 @@ public class XmlUtils {
             Document doc = docBuilder.parse(docFile);
 
             // XPath
-            XPath xp = XPathFactory.newInstance().newXPath();
+            //XPathFactory xpf = XPath xp = XPathFactory.newInstance();
+            //XPathFactory xpf = new net.sf.saxon.xpath.XPathFactoryImpl();
+            XPathFactory xpf = new com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl();
+            XPath xp = xpf.newXPath();
+            
             NodeList nodes = (NodeList) xp.evaluate(xpath, doc, XPathConstants.NODESET);
             
             final Origin orig = new Origin( docFile, xpath );
@@ -235,7 +241,9 @@ public class XmlUtils {
      * @param xsltIS may be null -> just saves.
      */
     public static File transformDocToFile( Document doc, File file, InputStream xsltIS ) throws TransformerException {
-        final TransformerFactory tf = TransformerFactory.newInstance();
+        //final TransformerFactory tf = TransformerFactory.newInstance();
+        final TransformerFactory tf = new net.sf.saxon.TransformerFactoryImpl(); // XSLT 2.0
+        
         final Transformer transformer = xsltIS == null ? tf.newTransformer() : tf.newTransformer( new StreamSource( xsltIS ) );
         transformer.setOutputProperty( OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");

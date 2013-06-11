@@ -320,6 +320,14 @@
             <type>jar</type>
         </dependency>
         -->
+
+        <!-- XSLT 2.0 - but breaks @XmlPath :/ -->
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>9.5.0.2</version>
+        </dependency>
+        
         
 
         <!-- Logging -->
