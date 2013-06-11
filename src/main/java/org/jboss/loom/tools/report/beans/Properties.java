@@ -17,13 +17,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 public final class Properties {
     
     @XmlElement( name = "property" )
-    private List<Property> props;
+    private List<ReportProperty> props;
 
     public Properties() {
         props = new LinkedList();
     }
 
-    public Properties( List<Property> props ) {
+    public Properties( List<ReportProperty> props ) {
         this.props = props;
     }
 

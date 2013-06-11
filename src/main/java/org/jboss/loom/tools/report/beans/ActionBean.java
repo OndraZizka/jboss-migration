@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 
 /**
@@ -22,9 +23,17 @@ import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 @XmlAccessorType( XmlAccessType.NONE )
 public class ActionBean {
 
+
     @XmlElement(name = "id")
     @XmlID
     private String hashCode;
+    
+    @XmlAttribute
+    private String label;
+    
+    @XmlElementWrapper(name="properties")
+    @XmlElement(name="property")
+    private List<ReportProperty> reportProperties;
     
     @XmlElement(name = "originMsg")
     private String originMessage;
@@ -47,13 +56,23 @@ public class ActionBean {
 
 
     public ActionBean() { }
-    public ActionBean( IMigrationAction action ) {
-        this.hashCode = Integer.toHexString( action.hashCode() );
-        this.setDescription( action.toDescription() );
-        this.setOriginMessage( action.getOriginMessage() );
-        this.setFromMigrator( action.getFromMigrator() );
-        this.setDependencies( action.getDependencies() );
-        this.setWarnings( action.getWarnings() );
+    public static ActionBean from( IMigrationAction action ) {
+        ActionBean bean = new ActionBean();
+        
+        final ActionDescriptor ann = action.getClass().getAnnotation( ActionDescriptor.class );
+        if( ann != null ){
+            bean.label = ann.header();
+        }
+        List<ReportProperty> props = ReportProperty.extractReportProperties( action );
+        bean.reportProperties = props;
+        
+        bean.hashCode = Integer.toHexString( action.hashCode() );
+        bean.setDescription( action.toDescription() );
+        bean.setOriginMessage( action.getOriginMessage() );
+        bean.setFromMigrator( action.getFromMigrator() );
+        bean.setDependencies( action.getDependencies() );
+        bean.setWarnings( action.getWarnings() );
+        return bean;
     }
 
 

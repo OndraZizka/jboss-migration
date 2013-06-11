@@ -1,6 +1,6 @@
 package org.jboss.loom.tools.report.adapters;
 
-import org.jboss.loom.tools.report.beans.Property;
+import org.jboss.loom.tools.report.beans.ReportProperty;
 import org.jboss.loom.tools.report.beans.Properties;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +20,9 @@ public class MapPropertiesAdapter extends XmlAdapter<Properties, Map<String,Stri
         if( map == null )
             return null;
         
-        List<Property> ret = new ArrayList( map.size() );
+        List<ReportProperty> ret = new ArrayList( map.size() );
         for( Map.Entry<String, String> entry : map.entrySet() ) {
-            ret.add( new Property( entry.getKey(), entry.getValue() ) );
+            ret.add( new ReportProperty( entry.getKey(), entry.getValue() ) );
         }
         return new Properties( ret );
     }

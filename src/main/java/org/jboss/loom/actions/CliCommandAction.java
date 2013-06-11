@@ -21,12 +21,20 @@ import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.jboss.dmr.ModelNode;
+import org.jboss.loom.spi.ann.ActionDescriptor;
+import org.jboss.loom.spi.ann.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ActionDescriptor(
+    header = "Perform CLI command:",
+    props = {
+        @Property(name="cliCommand", expr = "command.command", style = "code") // TODO
+    }
+)
 public class CliCommandAction extends AbstractStatefulAction {
     private static final Logger log = LoggerFactory.getLogger(CliCommandAction.class);
     
@@ -137,11 +145,17 @@ public class CliCommandAction extends AbstractStatefulAction {
     public void setCommand( BatchedCommand command ) { this.command = new BatchedCommandWithAction( this, command ); }
     public Configuration.IfExists getIfExists() { return ifExists; }
     public CliCommandAction setIfExists( Configuration.IfExists ifExists ) { this.ifExists = ifExists; return this; }
-
-
     //</editor-fold>
     
-    
+
+    /*
+     *  Workaround until MIGR-128.
+     *  TODO: Rename getCommand() to getBatchCommand() and this to getCommand().
+     */
+    @Property(name = "cliCommand", style = "code")
+    public String getCommandCommand(){
+        return this.command.getCommand();
+    }
     
     @Override
     public String toString() {

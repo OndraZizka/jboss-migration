@@ -17,7 +17,12 @@ public class ToActionBeanAdapter extends XmlAdapter<ActionBean, IMigrationAction
 
     @Override
     public ActionBean marshal( IMigrationAction action ) throws Exception {
-        ActionBean ret = new ActionBean( action );        
+        if( action == null){
+            log.warn("Null action passed to marshal().");
+            return null;
+        }
+
+        ActionBean ret = ActionBean.from( action );
         return ret;
     }
 
