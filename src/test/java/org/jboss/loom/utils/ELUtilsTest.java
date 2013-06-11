@@ -11,10 +11,6 @@ import static org.junit.Assert.*;
  */
 public class ELUtilsTest {
     
-    public ELUtilsTest() {
-    }
-
-
     @Test
     public void testEvaluateEL() {
         System.out.println( "evaluateEL" );
@@ -25,7 +21,9 @@ public class ELUtilsTest {
             }}
         );
 
-        assertEquals( "Hello  , !", greet );
+        //assertEquals( "Hello  , !", greet );
+        //assertEquals( "Hello Ondra Ondra, Ondra!", greet );
+        assertEquals( "Hello Ondra , 19!", greet );
     }
 
 
@@ -42,7 +40,7 @@ public class ELUtilsTest {
         assertEquals( "Hello Ondra!", greet );
     }
     
-    static class Person {
+    public static class Person {
         String name;
         public Person( String name ) { this.name = name; }
         public String getName(){ return this.name; }

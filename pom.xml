@@ -6,7 +6,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.10.3</version>
+    <version>0.10.4</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -293,12 +293,12 @@
             <artifactId>commons-codec</artifactId>
             <version>1.8</version>
         </dependency>
+        -->
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils-core</artifactId>
             <version>1.8.3</version>
         </dependency>
-        -->
 
         <!-- Expression language -->
         <!--
