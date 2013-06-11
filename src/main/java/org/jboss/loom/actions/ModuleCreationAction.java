@@ -22,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.spi.ann.ActionDescriptor;
+import org.jboss.loom.spi.ann.Property;
 import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ import org.w3c.dom.Document;
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ActionDescriptor( header = "EAP 6 module creation")
 public class ModuleCreationAction extends AbstractStatefulAction {
     private static final Logger log = LoggerFactory.getLogger(ModuleCreationAction.class);
     
@@ -192,7 +195,17 @@ public class ModuleCreationAction extends AbstractStatefulAction {
     public String toString() {
         return "ModuleCreationAction{ " + moduleName + " ifEx=" + ifExists + ", jar=" + jarFile + ", modDir=" + moduleDir + ", backup=" + backupDir + '}';
     }
-    
-    
 
+
+    @Property(name = "jarFile", label = "JAR file to copy", style = "code")
+    public File getJarFile() {
+        return jarFile;
+    }
+
+
+    @Property(name = "moduleName", label = "Module name", style = "code")
+    public String getModuleName() {
+        return moduleName;
+    }
+    
 }// class

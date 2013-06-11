@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import org.apache.commons.io.FileUtils;
+import org.jboss.loom.spi.ann.Property;
 
 /**
  *
@@ -150,11 +151,12 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     //</editor-fold>
 
 
-    
+    @Property(name = "src", style = "code", label = "From")
     public File getSrc() {
         return src;
     }
 
+    @Property(name = "dest", style = "code", label = "To")
     public File getDest() {
         return dest;
     }

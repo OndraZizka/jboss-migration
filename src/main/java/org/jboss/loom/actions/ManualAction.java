@@ -9,6 +9,7 @@ package org.jboss.loom.actions;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.ann.ActionDescriptor;
 
 /**
  *  Migrators create this action to inform the user that a manual intervention is needed,
@@ -16,12 +17,15 @@ import org.jboss.loom.ex.MigrationException;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ActionDescriptor(
+    header = "User intervention necessary"
+)
 public class ManualAction extends AbstractStatefulAction implements IMigrationAction {
 
 
     @Override
     public String toDescription() {
-        return "Manual action:\n  " + StringUtils.join( getWarnings(), "\n  ");
+        return "Manual action:\n  "; // + StringUtils.join( getWarnings(), "\n  ");
     }
 
     @Override public void preValidate() throws MigrationException { }

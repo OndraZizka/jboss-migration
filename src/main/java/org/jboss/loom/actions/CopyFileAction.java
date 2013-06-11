@@ -14,12 +14,16 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@ActionDescriptor(
+    header = "Copy file"
+)
 public class CopyFileAction extends FileAbstractAction {
     private static final Logger log = LoggerFactory.getLogger(CopyFileAction.class);
 
