@@ -19,5 +19,5 @@ public class ToHashCodeAdapter extends XmlAdapter<String, Object>{
     public Object unmarshal( String v ) throws Exception {
         throw new UnsupportedOperationException("Not supported. Converts objects to their hashcode.");
     }
-
+    
 }// class

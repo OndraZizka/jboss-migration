@@ -321,7 +321,7 @@
         </dependency>
         -->
 
-        <!-- XSLT 2.0 - but breaks @XmlPath :/ -->
+        <!-- XSLT 2.0 - but breaks non-namespaced XPath :/ Needs to be only used for reporting. -->
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>

@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 
@@ -24,8 +25,7 @@ import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 public class ActionBean {
 
 
-    @XmlElement(name = "id")
-    @XmlID
+    @XmlAttribute(name = "id") @XmlID
     private String hashCode;
     
     @XmlAttribute(name = "class")

@@ -156,6 +156,7 @@
     <xsl:template name="Actions">
         <xsl:for-each select="/migrationReport/actions/action">
             <div class="box action {@fromMigrator}" id="{@id}">
+                <a name="action{@id}"/>
                 <h4><div class="icon"/>
                     <!-- from migrator <xsl:value-of select="@fromMigrator"/> -->
                     <xsl:if test="@label">
@@ -208,6 +209,18 @@
                             </table>
                         </div>
                     </xsl:if>
+                    
+                    <!-- Dependencies -->
+                    <xsl:if test="dependencies/dep">
+                        <div class="padding">
+                            Depends on
+                            <xsl:for-each select="dependencies/dep">
+                                <a href="#action{text()}"> <xsl:value-of select="position()"/> </a>
+                            </xsl:for-each>
+                        </div>
+                    </xsl:if>
+                    
+                    
                     
                 </div>
             </div>
