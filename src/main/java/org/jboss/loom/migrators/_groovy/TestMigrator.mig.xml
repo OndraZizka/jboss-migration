@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="mail">
+        
+        <jaxbBean file="TestJaxbBean.groovy"/>
+        
+        <xmlQuery id="mailServices"
+            pathMask="${srcServer.dir}/server/${srcServer.profile}/deploy/mail-service.xml"
+            jaxbBean="TestJaxbBean"
+            xpath="/server/mbean[@code='org.jboss.mail.MailService']"
+            subjectLabel="Mail Service config"
+        />
+        
+        <action type="manual">
+            <warning>MailService beans migration is not yet supported.</warning>
+            <forEach query="mailServices">
+                <filter>
+                    //! "smtp.nosuchhost.nosuchdomain.com".equals( it.getSmtpHost() )
+                    it.getSmtpHost() != "smtp.nosuchhost.nosuchdomain.com"
+                </filter>
+                <warning>  MailService will be skipped - JNDI name: ${it.getJndiName()}, MBean name: ${ms.getMbeanName()}</warning>
+            </forEach>
+        </action>
+        
+    </migrator>
+    
+</migration>
