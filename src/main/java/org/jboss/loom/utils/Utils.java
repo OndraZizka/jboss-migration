@@ -45,24 +45,9 @@ import org.jboss.loom.tools.report.Reporter;
 public class Utils {
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
-    
-    /**
-     * Method for testing if given string is null or empty and if it is then CliScriptException is thrown with given message
-     *
-     * @param string string for testing
-     * @param errMsg message for exception
-     * @param name   name of property of tested value
-     * @throws CliScriptException if tested string is empty or null
-     */
-    public static void throwIfBlank(String string, String errMsg, String name) throws CliScriptException {
-        if ((string == null) || (string.isEmpty())) {
-            throw new CliScriptException(name + errMsg);
-        }
-    }
-
 
     /**
-     * Helping method for writing help.
+     *  Prints app help.
      */
     public static void writeHelp() {
         System.out.println();
@@ -93,6 +78,12 @@ public class Utils {
         System.out.println();
     }
 
+    
+    
+    // ======= File utils ====== //
+    
+    
+    
     /**
      * Utils class for finding name of jar file containing class from logging configuration.
      *
@@ -216,6 +207,11 @@ public class Utils {
         return file;
     }
 
+
+    
+    // ======= Lang utils ====== //
+    
+    
     
     /**
      *  Finds a subclass of given class in current stacktrace.
@@ -281,6 +277,17 @@ public class Utils {
         return ret;
     }
     
+
+    
+    /**
+     *  Throws a formatted message (name + errMsg) if string is null or empty.
+     */
+    public static void throwIfBlank(String string, String errMsg, String name) throws CliScriptException {
+        if ((string == null) || (string.isEmpty())) {
+            throw new CliScriptException(name + errMsg);
+        }
+    }
+    
     
     /**
      *  Returns null for empty strings.
@@ -299,6 +306,10 @@ public class Utils {
         }
         return props;
     }
+
+    
+    
+    // ======= Class utils ====== //
     
     public static void copyResourceToDir( Class cls, String name, File dir ) throws IOException {
         String packageDir =  cls.getPackage().getName().replace('.', '/');
