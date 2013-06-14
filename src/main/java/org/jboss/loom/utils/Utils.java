@@ -7,6 +7,7 @@
  */
 package org.jboss.loom.utils;
 
+import groovy.lang.GroovyClassLoader;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.apache.commons.io.FileUtils;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -296,6 +298,15 @@ public class Utils {
             props.put( entry.getKey(), entry.getValue() );
         }
         return props;
+    }
+    
+    public static void copyResourceToDir( Class cls, String name, File dir ) throws IOException {
+        String packageDir =  cls.getPackage().getName().replace('.', '/');
+        String path =  "/" + packageDir + "/" + name;
+        InputStream is = GroovyClassLoader.class.getResourceAsStream( path );
+        if( is == null )
+            throw new IllegalArgumentException("Resource not found: " + packageDir);
+        FileUtils.copyInputStreamToFile( is, new File(dir, name) );
     }
     
 }// class
