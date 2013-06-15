@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class GroovyMigratorsLoader {
     private static final Logger log = LoggerFactory.getLogger( GroovyMigratorsLoader.class );
     
-    private Map<String, Class<? extends IConfigFragment>> fragmentJaxbClasses;
+    private Map<String, Class<? extends IConfigFragment>> fragmentJaxbClasses = new HashMap();
 
     /**
      *  Reads migrator descriptors from *.mig.xml in the given dir and returns them.
@@ -50,15 +51,22 @@ public class GroovyMigratorsLoader {
                 // For each migrator definition...
                 for( MigratorDescriptorBean desc : descriptors ) {
                     
+                    desc.fileOfOrigin = xml;
+                    
                     final DescriptorBasedMigrator mig = DescriptorBasedMigrator.from( desc, this, gc );
 
                     // For each JAXB class...
                     for( JaxbClass jaxbClsBean : desc.jaxbBeansClasses ) {
-                        Class cls = loadGroovyClass( jaxbClsBean.file );
                         
-                        // Put to a map:  "TestJaxbBean" -> class
+                        // Look up in the map:  "TestJaxbBean" -> class
                         String className = StringUtils.substringAfter( jaxbClsBean.file.getName(), "." );
-                        this.fragmentJaxbClasses.put( className, cls );
+                        Class cls = this.fragmentJaxbClasses.get( className );
+                        if( cls == null ){
+                            cls = loadGroovyClass( new File( dir, jaxbClsBean.file.getPath() ) );
+                            this.fragmentJaxbClasses.put( className, cls );
+                        }
+                        mig.addJaxbClass( cls );
+                        
                     }
                     
                     migrators.add( mig );
@@ -83,8 +91,9 @@ public class GroovyMigratorsLoader {
 
     /**
      *  TODO: Create a cache not to load the same classes multiple times.
+     *  @deprecated  Using loadGroovyClass directly.
      */
-    private static <T> List<Class<? extends T>> loadClasses( List<File> groovyFiles, Class<? extends T> expectedSuperType ) throws MigrationException {
+    private static <T> List<Class<? extends T>> loadGroovyClasses( List<File> groovyFiles, Class<? extends T> expectedSuperType ) throws MigrationException {
         
         List<Class<? extends T>> ret = new ArrayList(groovyFiles);
         for( File file : groovyFiles ) {

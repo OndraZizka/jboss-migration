@@ -3,17 +3,18 @@ package org.jboss.loom.migrators._groovy;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-import org.jboss.loom.tools.report.adapters.StringToFileAdapter;
+import javax.xml.bind.annotation.XmlTransient;
+import org.eclipse.persistence.oxm.annotations.XmlLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.Locator;
 
 /**
  *
@@ -38,6 +39,18 @@ public class MigratorDescriptorBean {
     @XmlElement(name = "propQuery")
     List<PropFileQuery> propQueries;
     
+    @XmlElement(name = "action")
+    List<Action> actions;
+    
+    File fileOfOrigin;
+    
+    @XmlLocation
+    @XmlTransient
+    Locator location;
+    
+    
+    
+    
     
 
     @XmlRootElement
@@ -57,12 +70,19 @@ public class MigratorDescriptorBean {
         public String warning;
         @XmlElement
         public List<ForEach> forEach;
+        
+        //public List<PropertyBean> properties;
+        @XmlAnyAttribute
+        public Map<String, String> attribs;
     }
     
     @XmlRootElement
     public static class ForEach {
         public String filter;   // A Groovy expression to filter the items.
         public String warning;  // Warning to add to the current action.
+        
+        @XmlElement(name = "action")
+        List<Action> actions;
     }
 
     

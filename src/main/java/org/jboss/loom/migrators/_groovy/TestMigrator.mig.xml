@@ -12,6 +12,15 @@
             subjectLabel="Mail Service config"
         />
         
+        <forEach query="mailServices">
+            <action type="cli" script="/subsystem=mail/service=foo:add(name=bar,boo=baz)">
+                <filter>
+                    //! "smtp.nosuchhost.nosuchdomain.com".equals( it.getSmtpHost() )
+                    it.getSmtpHost() != "smtp.nosuchhost.nosuchdomain.com"
+                </filter>
+            </action>
+        </forEach>
+        
         <action type="manual">
             <warning>MailService beans migration is not yet supported.</warning>
             <forEach query="mailServices">
