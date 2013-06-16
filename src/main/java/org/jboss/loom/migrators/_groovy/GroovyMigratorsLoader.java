@@ -52,7 +52,7 @@ public class GroovyMigratorsLoader {
                     
                     desc.fileOfOrigin = xml;
                     
-                    final DescriptorBasedMigrator mig = DescriptorBasedMigrator.from( desc, this, gc );
+                    final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, this, gc );
 
                     // For each JAXB class...
                     for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {

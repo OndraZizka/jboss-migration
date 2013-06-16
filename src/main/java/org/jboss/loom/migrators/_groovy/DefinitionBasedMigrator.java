@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrator {
-    private static final Logger name = LoggerFactory.getLogger( DescriptorBasedMigrator.class );
+public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrator {
+    private static final Logger name = LoggerFactory.getLogger( DefinitionBasedMigrator.class );
 
     // Data
     
@@ -38,17 +38,17 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
     
     // Constructors
     
-    public static DescriptorBasedMigrator from( MigratorDefinition desc, GroovyMigratorsLoader loader, GlobalConfiguration globalConfig ) {
-        DescriptorBasedMigrator mig = new DescriptorBasedMigrator(globalConfig);
+    public static DefinitionBasedMigrator from( MigratorDefinition desc, GroovyMigratorsLoader loader, GlobalConfiguration globalConfig ) {
+        DefinitionBasedMigrator mig = new DefinitionBasedMigrator(globalConfig);
         mig.descriptor = desc;
         return mig;
     }
 
-    public DescriptorBasedMigrator( GlobalConfiguration globalConfig ) {
+    public DefinitionBasedMigrator( GlobalConfiguration globalConfig ) {
         super( globalConfig );
     }
     
-    public DescriptorBasedMigrator( MigratorDefinition descriptor, GlobalConfiguration globalConfig ) {
+    public DefinitionBasedMigrator( MigratorDefinition descriptor, GlobalConfiguration globalConfig ) {
         super( globalConfig );
         this.descriptor = descriptor;
     }
@@ -84,7 +84,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
-        List<IMigrationAction> actions = new MigratorDescriptorProcessor(this).process( this.descriptor );
+        List<IMigrationAction> actions = new MigratorDefinitionProcessor(this).process( this.descriptor );
         for( IMigrationAction iMigrationAction : actions ) {
             ctx.getActions().add( iMigrationAction );
         }
@@ -94,7 +94,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
     // Get/set
     public void setJaxbClasses( List<Class> jaxbClasses ) { this.jaxbClasses = jaxbClasses; }
 
-    DescriptorBasedMigrator addJaxbClass( Class cls ) {
+    DefinitionBasedMigrator addJaxbClass( Class cls ) {
         this.jaxbClasses.add( cls );
         return this;
     }

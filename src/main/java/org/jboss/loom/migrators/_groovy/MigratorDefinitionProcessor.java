@@ -18,15 +18,15 @@ import org.slf4j.LoggerFactory;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class MigratorDescriptorProcessor {
-    private static final Logger log = LoggerFactory.getLogger( MigratorDescriptorProcessor.class );
+public class MigratorDefinitionProcessor {
+    private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
     
     private Stack<ProcessingStackItem> stack = new Stack();
     
     private final DefinitionBasedMigrator dbm;
 
 
-    MigratorDescriptorProcessor( DefinitionBasedMigrator dbm ) {
+    MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
         this.stack.push( new RootContext() );
         this.dbm = dbm;
     }
@@ -163,7 +163,7 @@ public class MigratorDescriptorProcessor {
         
         @Override
         public void addAction( IMigrationAction action ) {
-            ProcessingStackItem top = MigratorDescriptorProcessor.this.stack.peek();
+            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
             if( ! (top instanceof HasActions))
                 throw new IllegalArgumentException("It's not possible to add actions to " + top);
             ((HasActions)top).addAction( action );
@@ -171,7 +171,7 @@ public class MigratorDescriptorProcessor {
 
 
         @Override public List<IMigrationAction> getActions() {
-            ProcessingStackItem top = MigratorDescriptorProcessor.this.stack.peek();
+            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
             if( ! (top instanceof HasActions))
                 throw new IllegalArgumentException("Doesn't have actions: " + top);
             return ((HasActions)top).getActions();
@@ -180,7 +180,7 @@ public class MigratorDescriptorProcessor {
 
         @Override
         public void addWarning( String warn ) {
-            ProcessingStackItem top = MigratorDescriptorProcessor.this.stack.peek();
+            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
             if( ! (top instanceof HasWarnings))
                 throw new IllegalArgumentException("It's not possible to add warnings to " + top);
             ((HasWarnings)top).addWarning( warn );
@@ -189,7 +189,7 @@ public class MigratorDescriptorProcessor {
 
         @Override
         public List<String> getWarnings() {
-            ProcessingStackItem top = MigratorDescriptorProcessor.this.stack.peek();
+            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
             if( ! (top instanceof HasWarnings))
                 throw new IllegalArgumentException("Doesn't have warnings: " + top);
             return ((HasWarnings)top).getWarnings();
