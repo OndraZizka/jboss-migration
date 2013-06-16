@@ -10,11 +10,8 @@ import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.eclipse.persistence.oxm.annotations.XmlLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Locator;
 
 /**
  *
@@ -22,8 +19,8 @@ import org.xml.sax.Locator;
  */
 @XmlRootElement( name="migrator" )
 @XmlAccessorType( XmlAccessType.NONE )
-public class MigratorDescriptorBean extends ContainerOfStackables {
-    private static final Logger log = LoggerFactory.getLogger( MigratorDescriptorBean.class );
+public class MigratorDefinition extends ContainerOfStackableDefs {
+    private static final Logger log = LoggerFactory.getLogger( MigratorDefinition.class );
     
     @XmlAttribute
     String name;
@@ -59,7 +56,7 @@ public class MigratorDescriptorBean extends ContainerOfStackables {
     
 
     @XmlRootElement
-    public static class ActionDef extends ContainerOfStackables {
+    public static class ActionDef extends ContainerOfStackableDefs {
         @XmlAttribute
         public String type;
         
@@ -69,7 +66,7 @@ public class MigratorDescriptorBean extends ContainerOfStackables {
     }
     
     @XmlRootElement
-    public static class ForEachDef extends ContainerOfStackables {
+    public static class ForEachDef extends ContainerOfStackableDefs {
     }
 
     

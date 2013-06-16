@@ -15,7 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
-import org.jboss.loom.migrators._groovy.MigratorDescriptorBean.JaxbClassDef;
+import org.jboss.loom.migrators._groovy.MigratorDefinition.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
@@ -44,11 +44,11 @@ public class GroovyMigratorsLoader {
         // For each *.mig.xml file...
         for( File xml : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
             try{
-                List<MigratorDescriptorBean> descriptors = 
-                    XmlUtils.unmarshallBeans( xml, "migration/migrator", MigratorDescriptorBean.class );
+                List<MigratorDefinition> descriptors = 
+                    XmlUtils.unmarshallBeans( xml, "migration/migrator", MigratorDefinition.class );
                 
                 // For each <migrator ...> definition...
-                for( MigratorDescriptorBean desc : descriptors ) {
+                for( MigratorDefinition desc : descriptors ) {
                     
                     desc.fileOfOrigin = xml;
                     

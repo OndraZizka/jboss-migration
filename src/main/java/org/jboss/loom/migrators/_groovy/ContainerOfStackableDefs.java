@@ -12,7 +12,7 @@ import org.xml.sax.Locator;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class ContainerOfStackables {
+public class ContainerOfStackableDefs {
 
     @XmlElement
     public String filter;   // A Groovy expression to filter the items.
@@ -21,10 +21,10 @@ public class ContainerOfStackables {
     public String warning;  // Warning to add to the current action.
 
     @XmlElement(name = "action")
-    List<MigratorDescriptorBean.ActionDef> actionDefs;
+    List<MigratorDefinition.ActionDef> actionDefs;
 
     @XmlElement(name = "forEach")
-    List<MigratorDescriptorBean.ForEachDef> forEachDefs;
+    List<MigratorDefinition.ForEachDef> forEachDefs;
 
     @XmlLocation
     @XmlTransient

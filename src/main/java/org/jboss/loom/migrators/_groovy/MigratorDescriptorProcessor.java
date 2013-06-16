@@ -36,13 +36,13 @@ public class MigratorDescriptorProcessor {
      *  Recursively processes the .mig.xml descriptor into Actions.
      *  TODO: Could be better to put the stack manipulation to the beginning and end of the method.
      */
-    List<IMigrationAction> process( ContainerOfStackables cont ) throws MigrationException {
+    List<IMigrationAction> process( ContainerOfStackableDefs cont ) throws MigrationException {
         
         List<IMigrationAction> actions = new LinkedList();
         
         // ForEach defs
         if( cont.hasForEachDefs() )
-        for( MigratorDescriptorBean.ForEachDef forEachDef : cont.forEachDefs ) {
+        for( MigratorDefinition.ForEachDef forEachDef : cont.forEachDefs ) {
             
             // Recurse
             this.stack.push( new ForEachContext(forEachDef) );
@@ -52,7 +52,7 @@ public class MigratorDescriptorProcessor {
         
         // Action definitions
         if( cont.hasActionDefs() )
-        for( MigratorDescriptorBean.ActionDef actionDef : cont.actionDefs ) {
+        for( MigratorDefinition.ActionDef actionDef : cont.actionDefs ) {
             IMigrationAction action;
             switch( actionDef.type ){
                 case "manual":
@@ -154,9 +154,9 @@ public class MigratorDescriptorProcessor {
      */
     public class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings {
         
-        private final MigratorDescriptorBean.ForEachDef def;
+        private final MigratorDefinition.ForEachDef def;
 
-        private ForEachContext( MigratorDescriptorBean.ForEachDef forEachDef ) {
+        private ForEachContext( MigratorDefinition.ForEachDef forEachDef ) {
             this.def = forEachDef;
         }
 
