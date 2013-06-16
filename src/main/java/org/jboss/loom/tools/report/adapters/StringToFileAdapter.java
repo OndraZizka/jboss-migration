@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
+ *  @deprecated  File conversion is done automatically.
  */
 public class StringToFileAdapter extends XmlAdapter<String, File> {
     private static final Logger log = LoggerFactory.getLogger( StringToFileAdapter.class );

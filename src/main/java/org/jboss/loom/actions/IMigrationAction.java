@@ -11,8 +11,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.jboss.loom.migrators._groovy.MigratorDescriptorProcessor.ProcessingStackItem;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
-import org.jboss.loom.tools.report.adapters.ToHashCodeAdapterList;
 
 /**
  * Actions of which the migration consists.
@@ -36,7 +36,7 @@ import org.jboss.loom.tools.report.adapters.ToHashCodeAdapterList;
  */
 @XmlRootElement(name="action")
 @XmlAccessorType( XmlAccessType.NONE )
-public interface IMigrationAction {
+public interface IMigrationAction extends ProcessingStackItem {
 
     /**
      * State management - basically, a helper state to check in case

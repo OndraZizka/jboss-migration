@@ -15,7 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
-import org.jboss.loom.migrators._groovy.MigratorDescriptorBean.JaxbClass;
+import org.jboss.loom.migrators._groovy.MigratorDescriptorBean.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
@@ -39,8 +39,7 @@ public class GroovyMigratorsLoader {
     public List<IMigrator> loadMigrators( File dir, GlobalConfiguration gc ) throws MigrationException {
         
         List<IMigrator> migrators = new LinkedList();
-        
-        List<Exception> problems = new LinkedList();
+        List<Exception> problems  = new LinkedList();
         
         // For each *.mig.xml file...
         for( File xml : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
@@ -48,7 +47,7 @@ public class GroovyMigratorsLoader {
                 List<MigratorDescriptorBean> descriptors = 
                     XmlUtils.unmarshallBeans( xml, "migration/migrator", MigratorDescriptorBean.class );
                 
-                // For each migrator definition...
+                // For each <migrator ...> definition...
                 for( MigratorDescriptorBean desc : descriptors ) {
                     
                     desc.fileOfOrigin = xml;
@@ -56,7 +55,7 @@ public class GroovyMigratorsLoader {
                     final DescriptorBasedMigrator mig = DescriptorBasedMigrator.from( desc, this, gc );
 
                     // For each JAXB class...
-                    for( JaxbClass jaxbClsBean : desc.jaxbBeansClasses ) {
+                    for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
                         
                         // Look up in the map:  "TestJaxbBean" -> class
                         String className = StringUtils.substringAfter( jaxbClsBean.file.getName(), "." );
@@ -66,7 +65,6 @@ public class GroovyMigratorsLoader {
                             this.fragmentJaxbClasses.put( className, cls );
                         }
                         mig.addJaxbClass( cls );
-                        
                     }
                     
                     migrators.add( mig );
@@ -76,6 +74,8 @@ public class GroovyMigratorsLoader {
                 problems.add(ex);
             }
         }
+        
+        // Wrap all exceptions into one.
         if( ! problems.isEmpty() ){
             String msg = "Errors occured when reading migrator descriptors from " + dir + ": ";
             if( problems.size() == 1 )
@@ -136,9 +136,9 @@ public class GroovyMigratorsLoader {
     }
 
 
-    private static List<File> extractGrovyFilePaths( File baseDir, List<JaxbClass> jaxbBeansClasses ) {
+    private static List<File> extractGrovyFilePaths( File baseDir, List<JaxbClassDef> jaxbBeansClasses ) {
         List<File> ret = new ArrayList(jaxbBeansClasses.size());
-        for( JaxbClass bean : jaxbBeansClasses) {
+        for( JaxbClassDef bean : jaxbBeansClasses) {
             ret.add( new File( baseDir, bean.file.getPath() ) );
         }
         return ret;

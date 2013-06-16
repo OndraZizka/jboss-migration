@@ -22,7 +22,7 @@ import org.xml.sax.Locator;
  */
 @XmlRootElement( name="migrator" )
 @XmlAccessorType( XmlAccessType.NONE )
-public class MigratorDescriptorBean {
+public class MigratorDescriptorBean extends ContainerOfStackables {
     private static final Logger log = LoggerFactory.getLogger( MigratorDescriptorBean.class );
     
     @XmlAttribute
@@ -31,31 +31,27 @@ public class MigratorDescriptorBean {
     //@XmlElementWrapper(name = "jaxbBeans")
     @XmlElement(name = "jaxbBean")
     //@XmlPath("jaxbBean/@file")
-    List<JaxbClass> jaxbBeansClasses;
+    List<JaxbClassDef> jaxbBeansClasses;
     
     @XmlElement(name = "xmlQuery")
-    List<XmlFileQuery> xmlQueries;
+    List<XmlFileQueryDef> xmlQueries;
     
     @XmlElement(name = "propQuery")
-    List<PropFileQuery> propQueries;
+    List<PropFileQueryDef> propQueries;
     
-    @XmlElement(name = "action")
-    List<Action> actions;
+    //@XmlElement(name = "action")
+    //List<ActionDef> actions;
     
     File fileOfOrigin;
     
-    @XmlLocation
-    @XmlTransient
-    Locator location;
-    
-    
-    
-    
-    
 
+    
+    // === Subelement classes === //
+    
+    
     @XmlRootElement
     @XmlAccessorType( XmlAccessType.NONE )
-    public static class JaxbClass {
+    public static class JaxbClassDef {
         @XmlAttribute(name = "file")
         //@XmlJavaTypeAdapter( StringToFileAdapter.class )
         public File file;
@@ -63,13 +59,9 @@ public class MigratorDescriptorBean {
     
 
     @XmlRootElement
-    public static class Action {
+    public static class ActionDef extends ContainerOfStackables {
         @XmlAttribute
         public String type;
-        @XmlElement
-        public String warning;
-        @XmlElement
-        public List<ForEach> forEach;
         
         //public List<PropertyBean> properties;
         @XmlAnyAttribute
@@ -77,23 +69,18 @@ public class MigratorDescriptorBean {
     }
     
     @XmlRootElement
-    public static class ForEach {
-        public String filter;   // A Groovy expression to filter the items.
-        public String warning;  // Warning to add to the current action.
-        
-        @XmlElement(name = "action")
-        List<Action> actions;
+    public static class ForEachDef extends ContainerOfStackables {
     }
 
     
     @XmlRootElement
-    public static class XmlFileQuery extends FileQueryBase {
+    public static class XmlFileQueryDef extends FileQueryBase {
         public Class jaxbBean;
         public String xpath;
     }
 
     @XmlRootElement
-    public static class PropFileQuery extends FileQueryBase {
+    public static class PropFileQueryDef extends FileQueryBase {
         public String propNameMask;
     }
     
