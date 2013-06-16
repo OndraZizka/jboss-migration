@@ -23,10 +23,10 @@ public class MigratorDescriptorProcessor {
     
     private Stack<ProcessingStackItem> stack = new Stack();
     
-    private final DescriptorBasedMigrator dbm;
+    private final DefinitionBasedMigrator dbm;
 
 
-    MigratorDescriptorProcessor( DescriptorBasedMigrator dbm ) {
+    MigratorDescriptorProcessor( DefinitionBasedMigrator dbm ) {
         this.stack.push( new RootContext() );
         this.dbm = dbm;
     }
@@ -64,12 +64,12 @@ public class MigratorDescriptorProcessor {
                     String src = actionDef.attribs.get("src");
                     String dest = actionDef.attribs.get("dest");
                     CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf("ifExists");
-                    action = new CopyFileAction( DescriptorBasedMigrator.class, new File(src), new File(dest), ifExists ); 
+                    action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
                     break;
                 case "cli": 
                     String cliScript = actionDef.attribs.get("cliScript");
                     ModelNode modelNode = ModelNode.fromString( cliScript );
-                    action = new CliCommandAction( DescriptorBasedMigrator.class, cliScript, modelNode ); 
+                    action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
                     break;
                 default: 
                     throw new MigrationException("Unsupported action type '" + actionDef.type + "' in " + cont.location.getSystemId());
