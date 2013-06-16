@@ -10,7 +10,7 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators._groovy.MigratorDescriptorBean.XmlFileQueryDef;
+import org.jboss.loom.migrators._groovy.MigratorDefinition.XmlFileQueryDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.XmlUtils;
@@ -26,7 +26,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
 
     // Data
     
-    private MigratorDescriptorBean descriptor;
+    private MigratorDefinition descriptor;
     
     private List<Class> jaxbClasses = new LinkedList();
     
@@ -38,7 +38,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
     
     // Constructors
     
-    public static DescriptorBasedMigrator from( MigratorDescriptorBean desc, GroovyMigratorsLoader loader, GlobalConfiguration globalConfig ) {
+    public static DescriptorBasedMigrator from( MigratorDefinition desc, GroovyMigratorsLoader loader, GlobalConfiguration globalConfig ) {
         DescriptorBasedMigrator mig = new DescriptorBasedMigrator(globalConfig);
         mig.descriptor = desc;
         return mig;
@@ -48,7 +48,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
         super( globalConfig );
     }
     
-    public DescriptorBasedMigrator( MigratorDescriptorBean descriptor, GlobalConfiguration globalConfig ) {
+    public DescriptorBasedMigrator( MigratorDefinition descriptor, GlobalConfiguration globalConfig ) {
         super( globalConfig );
         this.descriptor = descriptor;
     }
@@ -66,7 +66,7 @@ public class DescriptorBasedMigrator extends AbstractMigrator implements IMigrat
     @Override
     public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
         
-        for( MigratorDescriptorBean.XmlFileQueryDef query : this.descriptor.xmlQueries ) {
+        for( MigratorDefinition.XmlFileQueryDef query : this.descriptor.xmlQueries ) {
             List<IConfigFragment> conf = XmlUtils.readXmlConfigFiles(
                     new File("."), query.pathMask, query.xpath, query.jaxbBean, query.subjectLabel);
             this.loads.put( query.id, new ConfigLoadResult( query, conf ) );
