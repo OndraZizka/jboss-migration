@@ -3,7 +3,11 @@ package org.jboss.loom.utils.el;
 
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleResolver;
+import java.beans.FeatureDescriptor;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -14,10 +18,12 @@ import javax.el.ELResolver;
 import javax.el.ExpressionFactory;
 import javax.el.FunctionMapper;
 import javax.el.MapELResolver;
+import javax.el.PropertyNotFoundException;
 import javax.el.ValueExpression;
 import javax.el.VariableMapper;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.ex.MigrationException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -96,7 +102,7 @@ public interface IExprLangEvaluator {
             
             try {
                 return "" + PropertyUtils.getProperty( subject, propPath );
-            } catch(     IllegalAccessException | InvocationTargetException | NoSuchMethodException ex ) {
+            } catch( IllegalAccessException | InvocationTargetException | NoSuchMethodException ex ) {
                 log.warn("Failed resolving '" + propPath + "' on " + subject + ":\n    " + ex.getMessage(), ex);
                 return "";
             }
@@ -105,20 +111,22 @@ public interface IExprLangEvaluator {
     }// class SimpleEvaluator
     
     
+    static final ExpressionFactory JUEL_FACTORY = new de.odysseus.el.ExpressionFactoryImpl();
+    
     /**
      * JUEL: http://juel.sourceforge.net/guide/start.html
      */ 
     public static class JuelSimpleEvaluator implements IExprLangEvaluator {
         public String evaluateEL( String expr, Map<String, ? extends Object> properties ) {
     
-            ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
-            
+            // Pre-fill a context with values.
             de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
             for( Map.Entry<String, ? extends Object> entry : properties.entrySet() ) {
-                context.setVariable( entry.getKey(), factory.createValueExpression(entry.getValue(), String.class ));
+                context.setVariable( entry.getKey(), JUEL_FACTORY.createValueExpression(entry.getValue(), String.class ));
             }
-            ValueExpression valueExpr = factory.createValueExpression(context, expr, String.class);
             
+            // Create the value expression and evaluate.
+            ValueExpression valueExpr = JUEL_FACTORY.createValueExpression(context, expr, String.class);
             return (String) valueExpr.getValue(context);
         }
     }
@@ -127,31 +135,26 @@ public interface IExprLangEvaluator {
      * JUEL: http://juel.sourceforge.net/guide/start.html
      */ 
     public static class JuelCustomResolverEvaluator implements IExprLangEvaluator {
+        
         public String evaluateEL( String expr, final Map<String, ? extends Object> properties ) {
     
-            final ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
-            
             //ELResolver resolver;
             final CompositeELResolver resolver = new CompositeELResolver();
             resolver.add(new MapELResolver() );
-            resolver.add(new BeanELResolver() );
+            resolver.add(new BeanELDefaultStringResolver("") );
             
             
             //de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
             ELContext context = new ELContext() {
-                @Override public ELResolver getELResolver() {
-                    return resolver;
-                }
+                
+                @Override public ELResolver getELResolver() { return resolver; }
 
-                @Override public FunctionMapper getFunctionMapper() {
-                    throw new UnsupportedOperationException( "Not functions supported." );
-                }
+                @Override public FunctionMapper getFunctionMapper() { return THROW_MAPPER; }
 
-                @Override
-                public VariableMapper getVariableMapper() {
+                @Override public VariableMapper getVariableMapper() {
                     return new VariableMapper() {
                         @Override public ValueExpression resolveVariable( String variable ) {
-                            return factory.createValueExpression( properties.get( variable ), String.class );
+                            return JUEL_FACTORY.createValueExpression( properties.get( variable ), Object.class );
                         }
                         @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
                             throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
@@ -160,11 +163,37 @@ public interface IExprLangEvaluator {
                 }
             };
             
-            ValueExpression valueExpr = factory.createValueExpression(context, expr, String.class);
-            return (String) valueExpr.getValue(context);
+            ValueExpression valueExpr = JUEL_FACTORY.createValueExpression(context, expr, String.class);
+            try {
+                return (String) valueExpr.getValue(context);
+            }
+            catch(javax.el.PropertyNotFoundException ex){
+                throw new IllegalArgumentException("Can't eval '" + expr + "':\n    " + ex.getMessage(), ex);
+            }
         }
     }
     /**/
 
+    
+    static final FunctionMapper THROW_MAPPER = 
+            new FunctionMapper() {
+                @Override public Method resolveFunction( String prefix, String localName ) {
+                    throw new UnsupportedOperationException( "No functions supported." );
+                }
+            };
+
+    /**
+     *  Puts a custom default string in place of unresolved property, instead of throwing an ex.
+     */
+    public static class BeanELDefaultStringResolver extends BeanELOpenResolver {
+
+        private final String defaultString;
+        public BeanELDefaultStringResolver( String defaultString ) {
+            this.defaultString = defaultString;
+        }
+        @Override protected Object onPropertyNotFoundRead( Object base, Object property ) {
+            return this.defaultString;
+        }
+    }
         
 }// class
