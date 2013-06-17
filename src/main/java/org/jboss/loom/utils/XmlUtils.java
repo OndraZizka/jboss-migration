@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 /**
@@ -287,6 +288,27 @@ public class XmlUtils {
         DocumentBuilder db = XmlUtils.createXmlDocumentBuilder();
         Document doc = db.parse( file );
         return doc;
+    }
+
+
+    /** 
+     *  "toString()" for @XmlLocator.
+     */
+    public static String formatLocation( Locator location ) {
+        if( location == null ) return "(unknown location)";
+        return location.getPublicId() == null ?
+            String.format("line %d, col %d in %s",
+                location.getLineNumber(),
+                location.getColumnNumber(),
+                location.getSystemId()
+            )
+                :
+            String.format("Pub: %s Sys: %s Line: %d Col: %d",
+                location.getPublicId(),
+                location.getSystemId(),
+                location.getLineNumber(),
+                location.getColumnNumber()
+           );
     }
 
 }// class
