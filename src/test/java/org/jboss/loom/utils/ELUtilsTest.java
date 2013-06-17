@@ -1,6 +1,7 @@
 package org.jboss.loom.utils;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -11,34 +12,40 @@ import static org.junit.Assert.*;
  */
 public class ELUtilsTest {
     
-    @Test
-    public void testEvaluateEL() {
-        System.out.println( "evaluateEL" );
-
-        String greet = new IExprLangEvaluator.SimpleEvaluator().evaluateEL("Hello ${person.name} ${person.surname}, ${person.age}!", 
+    private static final Map<String, Object> PERSON_MAP_01 =
             new HashMap(){{
                 put("person", new Person("Ondra"));
-            }}
-        );
+            }};
 
-        //assertEquals( "Hello  , !", greet );
-        //assertEquals( "Hello Ondra Ondra, Ondra!", greet );
+    @Test public void testSimpleEvaluator() {
+        System.out.println( "SimpleEvaluator" );
+        doTestBean( new IExprLangEvaluator.SimpleEvaluator() );
+    }
+
+
+    @Test public void testSimpleEvaluator2() {
+        System.out.println( "SimpleEvaluator2" );
+
+        String greet = new IExprLangEvaluator.SimpleEvaluator().evaluateEL("Hello ${person}!", PERSON_MAP_01);
+        assertEquals( "Hello Ondra!", greet );
+    }
+    
+    @Test public void testJuelCustomResolverEvaluator() {
+        System.out.println("JuelCustomResolverEvaluator");
+        doTestBean( new IExprLangEvaluator.JuelCustomResolverEvaluator() );
+    }
+    
+    
+    void doTestSimple( IExprLangEvaluator ev ){
+        String greet = ev.evaluateEL("Hello ${person}!", PERSON_MAP_01);
+        assertEquals( "Hello Ondra!", greet );
+    }
+    
+    void doTestBean( IExprLangEvaluator ev ) {
+        String greet = ev.evaluateEL("Hello ${person.name} ${person.surname}, ${person.age}!", PERSON_MAP_01);
         assertEquals( "Hello Ondra , 19!", greet );
     }
 
-
-    @Test
-    public void testEvaluateEL2() {
-        System.out.println( "evaluateEL2" );
-
-        String greet = new IExprLangEvaluator.SimpleEvaluator().evaluateEL("Hello ${person}!", 
-            new HashMap(){{
-                put("person", new Person("Ondra"));
-            }}
-        );
-
-        assertEquals( "Hello Ondra!", greet );
-    }
     
     public static class Person {
         String name;

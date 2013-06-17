@@ -1,10 +1,21 @@
 package org.jboss.loom.utils.el;
 
 
+import de.odysseus.el.ExpressionFactoryImpl;
+import de.odysseus.el.util.SimpleResolver;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import javax.el.BeanELResolver;
+import javax.el.CompositeELResolver;
+import javax.el.ELContext;
+import javax.el.ELResolver;
+import javax.el.ExpressionFactory;
+import javax.el.FunctionMapper;
+import javax.el.MapELResolver;
+import javax.el.ValueExpression;
+import javax.el.VariableMapper;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -25,14 +36,14 @@ import org.slf4j.LoggerFactory;
  */
 public interface IExprLangEvaluator {
     
-    public String evaluateEL( String template, Map<String, String> properties );
+    public String evaluateEL( String template, Map<String, Object> properties );
     
     
     public static class SimpleEvaluator implements IExprLangEvaluator {
         private static final org.slf4j.Logger log = LoggerFactory.getLogger( SimpleEvaluator.class );
         
         @Override
-        public String evaluateEL( String template, Map<String, String> properties ) {
+        public String evaluateEL( String template, Map<String, Object> properties ) {
             
             StringTokenizer st = new StringTokenizer( template );
             String text = st.nextToken("${");
@@ -95,25 +106,65 @@ public interface IExprLangEvaluator {
     
     
     /**
-     * @Deprecated  TODO:  Use some EL library. http://juel.sourceforge.net/guide/start.html
-     *  
-     */ /* 
-    public static class JuelEvaluator implements IExprLangEvaluator {
-        public static String evaluateEL( String expr, Map<String, String> properties ) {
+     * JUEL: http://juel.sourceforge.net/guide/start.html
+     */ 
+    public static class JuelSimpleEvaluator implements IExprLangEvaluator {
+        public String evaluateEL( String expr, Map<String, Object> properties ) {
     
-            ExpressionFactory factory = new ExpressionFactoryImpl();
-
+            ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
+            
             de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
-            for( Map.Entry<String, String> entry : properties.entrySet() ) {
+            for( Map.Entry<String, Object> entry : properties.entrySet() ) {
                 context.setVariable( entry.getKey(), factory.createValueExpression(entry.getValue(), String.class ));
             }
-
             ValueExpression valueExpr = factory.createValueExpression(context, expr, String.class);
-
+            
             return (String) valueExpr.getValue(context);
         }
     }
-     */
+    /**/
+    /**
+     * JUEL: http://juel.sourceforge.net/guide/start.html
+     */ 
+    public static class JuelCustomResolverEvaluator implements IExprLangEvaluator {
+        public String evaluateEL( String expr, final Map<String, Object> properties ) {
+    
+            final ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
+            
+            //ELResolver resolver;
+            final CompositeELResolver resolver = new CompositeELResolver();
+            resolver.add(new MapELResolver() );
+            resolver.add(new BeanELResolver() );
+            
+            
+            //de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
+            ELContext context = new ELContext() {
+                @Override public ELResolver getELResolver() {
+                    return resolver;
+                }
+
+                @Override public FunctionMapper getFunctionMapper() {
+                    throw new UnsupportedOperationException( "Not functions supported." );
+                }
+
+                @Override
+                public VariableMapper getVariableMapper() {
+                    return new VariableMapper() {
+                        @Override public ValueExpression resolveVariable( String variable ) {
+                            return factory.createValueExpression( properties.get( variable ), String.class );
+                        }
+                        @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
+                            throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
+                        }
+                    };
+                }
+            };
+            
+            ValueExpression valueExpr = factory.createValueExpression(context, expr, String.class);
+            return (String) valueExpr.getValue(context);
+        }
+    }
+    /**/
 
         
 }// class
