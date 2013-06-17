@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.jboss.loom.migrators._groovy.MigratorDefinitionProcessor.ProcessingStackItem;
+import org.jboss.loom.actions.CopyFileAction.IfExists;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 
 /**
