@@ -36,14 +36,14 @@ import org.slf4j.LoggerFactory;
  */
 public interface IExprLangEvaluator {
     
-    public String evaluateEL( String template, Map<String, Object> properties );
+    public String evaluateEL( String template, Map<String, ? extends Object> properties );
     
     
     public static class SimpleEvaluator implements IExprLangEvaluator {
         private static final org.slf4j.Logger log = LoggerFactory.getLogger( SimpleEvaluator.class );
         
         @Override
-        public String evaluateEL( String template, Map<String, Object> properties ) {
+        public String evaluateEL( String template, Map<String, ? extends Object> properties ) {
             
             StringTokenizer st = new StringTokenizer( template );
             String text = st.nextToken("${");
@@ -109,12 +109,12 @@ public interface IExprLangEvaluator {
      * JUEL: http://juel.sourceforge.net/guide/start.html
      */ 
     public static class JuelSimpleEvaluator implements IExprLangEvaluator {
-        public String evaluateEL( String expr, Map<String, Object> properties ) {
+        public String evaluateEL( String expr, Map<String, ? extends Object> properties ) {
     
             ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
             
             de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
-            for( Map.Entry<String, Object> entry : properties.entrySet() ) {
+            for( Map.Entry<String, ? extends Object> entry : properties.entrySet() ) {
                 context.setVariable( entry.getKey(), factory.createValueExpression(entry.getValue(), String.class ));
             }
             ValueExpression valueExpr = factory.createValueExpression(context, expr, String.class);
@@ -122,12 +122,12 @@ public interface IExprLangEvaluator {
             return (String) valueExpr.getValue(context);
         }
     }
-    /**/
+    
     /**
      * JUEL: http://juel.sourceforge.net/guide/start.html
      */ 
     public static class JuelCustomResolverEvaluator implements IExprLangEvaluator {
-        public String evaluateEL( String expr, final Map<String, Object> properties ) {
+        public String evaluateEL( String expr, final Map<String, ? extends Object> properties ) {
     
             final ExpressionFactory factory = new de.odysseus.el.ExpressionFactoryImpl();
             

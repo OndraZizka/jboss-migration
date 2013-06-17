@@ -36,7 +36,7 @@ import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
  */
 @XmlRootElement(name="action")
 @XmlAccessorType( XmlAccessType.NONE )
-public interface IMigrationAction extends ProcessingStackItem {
+public interface IMigrationAction {
 
     /**
      * State management - basically, a helper state to check in case

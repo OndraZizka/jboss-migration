@@ -165,9 +165,6 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     
 
     // TODO: Rather introduce an ActionContext and delegate the calls.
-    @Override
-    public Object getVariable( String name ) {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
+    //@Override public Object getVariable( String name ) { return null; }
     
 }// class
