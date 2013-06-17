@@ -2,8 +2,11 @@ package org.jboss.loom.migrators._groovy;
 
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.actions.CliCommandAction;
@@ -11,11 +14,32 @@ import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ *  Processor for migrator definitions from .mig.xml files.
+ *  These define:
+ * 
+ *    * JAXB classes, coded as Groovy files.
+ *    * Queries which result in a list of IConfigFragment (typically, backed by those JAXB classes).
+ *    * ForEach iterators which iterate over results of queries.
+ *      * ForEach's define a variable which is available in EL and sub-contexts.
+ * 
+ *    * Nested elements which result in actions.
+ *      * These actions can depend on each other.
+ *      * Actions may contain warnings.
+ *      * Some strings may contain EL expressions - e.g. ${varName.bean.path}
+ * 
+ *  TODO:
+ * 
+ *  This is the first attempt on implementation. It's a bit too procedural I guess and could be rewritten to something smarter,
+ *  perhaps Ant tasks engine could be used as a basis.
+ * 
+ *  Other thing to improve could be to process the instructions in the order of appearance in the XML file.
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class MigratorDefinitionProcessor {
@@ -27,7 +51,7 @@ public class MigratorDefinitionProcessor {
 
 
     MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
-        this.stack.push( new RootContext() );
+        this.stack.push( (ProcessingStackItem) new RootContext().setVariable("mig", dbm).setVariable("conf", dbm.getConfig()));
         this.dbm = dbm;
     }
 
@@ -36,21 +60,33 @@ public class MigratorDefinitionProcessor {
      *  Recursively processes the .mig.xml descriptor into Actions.
      *  TODO: Could be better to put the stack manipulation to the beginning and end of the method.
      */
-    List<IMigrationAction> process( ContainerOfStackableDefs cont ) throws MigrationException {
+    List<IMigrationAction> processChildren( ContainerOfStackableDefs cont ) throws MigrationException {
         
         List<IMigrationAction> actions = new LinkedList();
         
-        // ForEach defs
+        // ForEach defs.
         if( cont.hasForEachDefs() )
         for( MigratorDefinition.ForEachDef forEachDef : cont.forEachDefs ) {
             
-            // Recurse
-            this.stack.push( new ForEachContext(forEachDef) );
-            this.process( forEachDef );
+            DefinitionBasedMigrator.ConfigLoadResult queryResult = this.dbm.getQueryResultByName( forEachDef.queryName ); 
+            if( null == queryResult )
+                throw new MigrationException("Query '"+forEachDef.queryName+"' not found. Needed at " + XmlUtils.formatLocation(forEachDef.location));
+            
+            ForEachContext forEachContext = new ForEachContext(forEachDef);
+            this.stack.push( forEachContext );
+            
+            // For each item in query result...
+            //for( IConfigFragment configFragment : queryResult.configFragments ) {
+            for( IConfigFragment configFragment : forEachContext ) {
+                // A variable is set automatically in next().
+                
+                // Recurse.
+                this.processChildren( forEachDef );
+            }
             this.stack.pop();
         }
         
-        // Action definitions
+        // Action definitions.
         if( cont.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : cont.actionDefs ) {
             IMigrationAction action;
@@ -77,7 +113,7 @@ public class MigratorDefinitionProcessor {
             
             // Recurse
             this.stack.push( new ActionContext( action ) );
-            this.process( actionDef );
+            this.processChildren( actionDef );
             this.stack.pop();
             
             actions.add( action );
@@ -87,7 +123,18 @@ public class MigratorDefinitionProcessor {
     
     
 
-    public static interface ProcessingStackItem {}
+    /**
+     *  Interface for context. Maybe should be named ProcessingContext or so.
+     */
+    public static interface ProcessingStackItem {
+        //Map<String, Object> getVariables();
+        
+        /**
+         *  Through this method, contexts may provide variables to XSLT, JAXB and Groovy.
+         *  Variables will be visible in $this context and all children contexts.
+         */
+        Object getVariable( String name );
+    }
     
     public static interface HasWarnings {
         void addWarning( String warn );
@@ -104,7 +151,7 @@ public class MigratorDefinitionProcessor {
     /**
      *  Root context to collect the actions to.
      */
-    public static class RootContext implements ProcessingStackItem, HasActions, HasWarnings {
+    public static class RootContext extends Variables implements ProcessingStackItem, HasActions, HasWarnings {
         
         private List<IMigrationAction> actions = new LinkedList();
         private List<String> warnings = new LinkedList();
@@ -123,8 +170,11 @@ public class MigratorDefinitionProcessor {
             }
             return action;
         }
+        
+        @Override public Object getVariable( String name ){ return this.getVariable( name ); }
     }
 
+    
     /**
      *  Action context - delegates actions and warnings to the referenced action.
      */
@@ -146,20 +196,46 @@ public class MigratorDefinitionProcessor {
         }
 
         @Override public List<String> getWarnings() { return action.getWarnings(); }
+
+        //@Override public Map<String, Object> getVariables() { return null; }
+        @Override public Object getVariable( String name ){ return null; }
     }
     
     
     /**
      *  ForEachContext passes most additions etc to the parent element.
      */
-    public class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings {
+    class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings, Iterable<IConfigFragment> {
         
         private final MigratorDefinition.ForEachDef def;
-
-        private ForEachContext( MigratorDefinition.ForEachDef forEachDef ) {
+        private final Iterator<IConfigFragment> it;
+        private IConfigFragment current = null;
+        
+        ForEachContext( MigratorDefinition.ForEachDef forEachDef ) {
             this.def = forEachDef;
+
+            // Initialize the iterator.
+            DefinitionBasedMigrator.ConfigLoadResult queryResult = MigratorDefinitionProcessor.this.dbm.getQueryResultByName( this.def.queryName );
+            this.it = queryResult.configFragments.iterator();
         }
 
+        // Iterator delegation.
+        @Override
+        public Iterator<IConfigFragment> iterator() {
+            return new Iterator<IConfigFragment>() {
+                @Override public boolean hasNext() { return it.hasNext(); }
+                @Override public IConfigFragment next() { ForEachContext.this.current = it.next(); return ForEachContext.this.current; }
+                @Override public void remove() { throw new UnsupportedOperationException("Remove not supported."); }
+            };
+        }
+        
+        // getVariable()
+        @Override public Object getVariable( String name ) {
+            if( ! def.variableName.equals( name ) )  return null;
+            return this.current;
+        }
+
+        
         
         @Override
         public void addAction( IMigrationAction action ) {
@@ -193,6 +269,22 @@ public class MigratorDefinitionProcessor {
             if( ! (top instanceof HasWarnings))
                 throw new IllegalArgumentException("Doesn't have warnings: " + top);
             return ((HasWarnings)top).getWarnings();
+        }
+    }
+    
+    
+    /**
+     *  Base class for stackable contexts which have variables map. Currently only RootContext.
+     */
+    private static class Variables {
+        private Map<String, Object> variables;
+        public Map<String, Object> getVariables() {
+            return this.variables;
+        }
+        public Variables setVariable( String name, Object value ){
+            if( this.variables == null ) this.variables = new HashMap();
+            this.variables.put( name, value );
+            return this;
         }
     }
 

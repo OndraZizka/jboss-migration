@@ -163,4 +163,11 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         retNodes.add( action );
     }
     
+
+    // TODO: Rather introduce an ActionContext and delegate the calls.
+    @Override
+    public Object getVariable( String name ) {
+        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 }// class

@@ -84,7 +84,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
-        List<IMigrationAction> actions = new MigratorDefinitionProcessor(this).process( this.descriptor );
+        List<IMigrationAction> actions = new MigratorDefinitionProcessor(this).processChildren( this.descriptor );
         for( IMigrationAction iMigrationAction : actions ) {
             ctx.getActions().add( iMigrationAction );
         }
@@ -102,14 +102,13 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     
     
     // Struct
-    private static class ConfigLoadResult {
+    static class ConfigLoadResult {
         public XmlFileQueryDef descriptor;
-        public List<IConfigFragment> conf;
-
+        public List<IConfigFragment> configFragments;
 
         public ConfigLoadResult( XmlFileQueryDef descriptor, List<IConfigFragment> conf ) {
             this.descriptor = descriptor;
-            this.conf = conf;
+            this.configFragments = conf;
         }
     }
 

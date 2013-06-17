@@ -161,5 +161,5 @@ public class CliCommandAction extends AbstractStatefulAction {
     public String toString() {
         return "CliCommandAction{" + command.getCommand() + "; ifExists=" + ifExists + ", todo=" + todo + '}';
     }
-    
+
 }// class

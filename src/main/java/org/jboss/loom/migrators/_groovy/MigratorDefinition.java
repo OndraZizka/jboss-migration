@@ -67,6 +67,12 @@ public class MigratorDefinition extends ContainerOfStackableDefs {
     
     @XmlRootElement
     public static class ForEachDef extends ContainerOfStackableDefs {
+        
+        @XmlAttribute(name = "query")
+        public String queryName;
+        
+        @XmlAttribute(name = "var")
+        public String variableName;
     }
 
     
