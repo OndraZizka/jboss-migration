@@ -99,7 +99,13 @@ public class XmlUtils {
             // XPath
             //XPathFactory xpf = XPath xp = XPathFactory.newInstance();
             //XPathFactory xpf = new net.sf.saxon.xpath.XPathFactoryImpl();
-            XPathFactory xpf = new com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl();
+            // We need Sun's XPath as it ignores namespaces if not specified.
+            //XPathFactory xpf = new com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl(); // Warning
+            XPathFactory xpf;
+            try {
+                xpf = (XPathFactory) Class.forName("com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl").newInstance();
+            } catch( Exception ex ){ throw new IllegalStateException("Shouldn't happen: " + ex.getMessage(), ex ); }
+            
             XPath xp = xpf.newXPath();
             
             NodeList nodes = (NodeList) xp.evaluate(xpath, doc, XPathConstants.NODESET);
