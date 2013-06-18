@@ -16,6 +16,7 @@ import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.XmlUtils;
+import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,17 +43,32 @@ import org.slf4j.LoggerFactory;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class MigratorDefinitionProcessor {
+public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariablesProvider {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
     
     private Stack<ProcessingStackItem> stack = new Stack();
     
     private final DefinitionBasedMigrator dbm;
-
+    
 
     MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
         this.stack.push( (ProcessingStackItem) new RootContext().setVariable("mig", dbm).setVariable("conf", dbm.getConfig()));
         this.dbm = dbm;
+    }
+    
+    
+    /**
+     *  Look up the top-most variable on the stack. Return null if not found.
+     *  I decided to prefer this method over recursive calls down the stack, using parentContext reference,
+     *  because this way I have more control. Could become handy later.
+     */
+    public Object getVariable( String name ){
+        for( ProcessingStackItem context : stack ) {
+            Object var = context.getVariable( name );
+            if( var != null )
+                return var;
+        }
+        return null;
     }
 
 

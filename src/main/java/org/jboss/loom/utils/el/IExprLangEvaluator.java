@@ -1,33 +1,26 @@
 package org.jboss.loom.utils.el;
 
 
-import de.odysseus.el.ExpressionFactoryImpl;
-import de.odysseus.el.util.SimpleResolver;
-import java.beans.FeatureDescriptor;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.el.BeanELResolver;
 import javax.el.CompositeELResolver;
 import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.el.ExpressionFactory;
 import javax.el.FunctionMapper;
 import javax.el.MapELResolver;
-import javax.el.PropertyNotFoundException;
 import javax.el.ValueExpression;
 import javax.el.VariableMapper;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.loom.ex.MigrationException;
 import org.slf4j.LoggerFactory;
 
 /**
  *  Don't look, this is a really ugly code.
+ *  An interface and it's various implementations.
  * 
  *  Evaluates expression like:
  * 
@@ -152,14 +145,19 @@ public interface IExprLangEvaluator {
                 @Override public FunctionMapper getFunctionMapper() { return THROW_MAPPER; }
 
                 @Override public VariableMapper getVariableMapper() {
-                    return new VariableMapper() {
+                    /*return new VariableMapper() {
                         @Override public ValueExpression resolveVariable( String variable ) {
                             return JUEL_FACTORY.createValueExpression( properties.get( variable ), Object.class );
                         }
                         @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
                             throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
                         }
-                    };
+                    };*/
+                    return new ProvidedVariableMapper( new IVariablesProvider<Object>() {
+                        @Override public Object getVariable( String name ) {
+                            return properties.get( name );
+                        }
+                    });
                 }
             };
             
@@ -173,6 +171,27 @@ public interface IExprLangEvaluator {
         }
     }
     /**/
+    
+    
+    
+    public static interface IVariablesProvider<T> {
+        T getVariable( String name );
+    }
+    
+    public class ProvidedVariableMapper extends VariableMapper {
+        private final IVariablesProvider<Object> provider;
+        public ProvidedVariableMapper( IVariablesProvider<Object> provider ) {
+            this.provider = provider;
+        }
+        
+        @Override public ValueExpression resolveVariable( String variable ) {
+            return JUEL_FACTORY.createValueExpression( provider.getVariable( variable ), Object.class );
+        }
+        @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
+            throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
+        }
+    };
+    
 
     
     static final FunctionMapper THROW_MAPPER = 
