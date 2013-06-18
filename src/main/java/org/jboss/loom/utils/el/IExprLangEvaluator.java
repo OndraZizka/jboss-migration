@@ -35,14 +35,21 @@ import org.slf4j.LoggerFactory;
  */
 public interface IExprLangEvaluator {
     
-    public String evaluateEL( String template, Map<String, ? extends Object> properties );
+    public String evaluateEL( String template ); // , Map<String, ? extends Object> properties
     
-    
+            
     public static class SimpleEvaluator implements IExprLangEvaluator {
         private static final org.slf4j.Logger log = LoggerFactory.getLogger( SimpleEvaluator.class );
         
+        private final Map<String, ? extends Object> properties;
+
+        public SimpleEvaluator( Map<String, ? extends Object> properties ) {
+            this.properties = properties;
+        }
+        
+        
         @Override
-        public String evaluateEL( String template, Map<String, ? extends Object> properties ) {
+        public String evaluateEL( String template ) {
             
             StringTokenizer st = new StringTokenizer( template );
             String text = st.nextToken("${");
@@ -110,7 +117,15 @@ public interface IExprLangEvaluator {
      * JUEL: http://juel.sourceforge.net/guide/start.html
      */ 
     public static class JuelSimpleEvaluator implements IExprLangEvaluator {
-        public String evaluateEL( String expr, Map<String, ? extends Object> properties ) {
+        
+        private final Map<String, ? extends Object> properties;
+        
+        public JuelSimpleEvaluator( Map<String, ? extends Object> properties ) {
+            this.properties = properties;
+        }
+        
+        
+        public String evaluateEL( String expr ) {
     
             // Pre-fill a context with values.
             de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
@@ -129,7 +144,14 @@ public interface IExprLangEvaluator {
      */ 
     public static class JuelCustomResolverEvaluator implements IExprLangEvaluator {
         
-        public String evaluateEL( String expr, final Map<String, ? extends Object> properties ) {
+        private final IVariablesProvider varProvider;
+
+        public JuelCustomResolverEvaluator( IVariablesProvider variableProvider ) {
+            this.varProvider = variableProvider;
+        }
+        
+        
+        public String evaluateEL( String expr ) {
     
             //ELResolver resolver;
             final CompositeELResolver resolver = new CompositeELResolver();
@@ -153,11 +175,8 @@ public interface IExprLangEvaluator {
                             throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
                         }
                     };*/
-                    return new ProvidedVariableMapper( new IVariablesProvider<Object>() {
-                        @Override public Object getVariable( String name ) {
-                            return properties.get( name );
-                        }
-                    });
+                    return new ProvidedVariableMapper( varProvider );
+                    
                 }
             };
             

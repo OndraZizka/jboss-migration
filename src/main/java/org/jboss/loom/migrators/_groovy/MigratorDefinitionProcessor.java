@@ -17,6 +17,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
+import org.jboss.loom.utils.el.IExprLangEvaluator.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     
     private final DefinitionBasedMigrator dbm;
     
+    private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
+
 
     MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
         this.stack.push( (ProcessingStackItem) new RootContext().setVariable("mig", dbm).setVariable("conf", dbm.getConfig()));

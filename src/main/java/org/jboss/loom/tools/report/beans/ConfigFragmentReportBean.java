@@ -82,7 +82,7 @@ public class ConfigFragmentReportBean {
         if( properties == null || properties.isEmpty() )  return name;
         
         try {
-            return new IExprLangEvaluator.SimpleEvaluator().evaluateEL( name, this.properties );
+            return new IExprLangEvaluator.SimpleEvaluator(this.properties).evaluateEL( name );
         } catch (Exception ex ){
             return name;
         }

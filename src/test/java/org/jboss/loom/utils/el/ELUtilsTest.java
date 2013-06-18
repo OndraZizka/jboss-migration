@@ -2,7 +2,7 @@ package org.jboss.loom.utils.el;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.jboss.loom.utils.el.IExprLangEvaluator;
+import org.jboss.loom.utils.el.IExprLangEvaluator.IVariablesProvider;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -16,33 +16,39 @@ public class ELUtilsTest {
             new HashMap(){{
                 put("person", new Person("Ondra"));
             }};
+    
+    private static final IVariablesProvider PERSON_MAP_01_VAR_PROVIDER =
+        new IVariablesProvider<Object>() {
+            @Override public Object getVariable( String name ) {
+                return PERSON_MAP_01.get( name );
+            }
+        };
+    
 
     @Test public void testSimpleEvaluator() {
         System.out.println( "SimpleEvaluator" );
-        doTestBean( new IExprLangEvaluator.SimpleEvaluator() );
+        doTestBean( new IExprLangEvaluator.SimpleEvaluator(PERSON_MAP_01) );
     }
 
 
     @Test public void testSimpleEvaluator2() {
         System.out.println( "SimpleEvaluator2" );
-
-        String greet = new IExprLangEvaluator.SimpleEvaluator().evaluateEL("Hello ${person}!", PERSON_MAP_01);
-        assertEquals( "Hello Ondra!", greet );
+        doTestSimple( new IExprLangEvaluator.SimpleEvaluator(PERSON_MAP_01) );
     }
     
     @Test public void testJuelCustomResolverEvaluator() {
         System.out.println("JuelCustomResolverEvaluator");
-        doTestBean( new IExprLangEvaluator.JuelCustomResolverEvaluator() );
+        doTestBean( new IExprLangEvaluator.JuelCustomResolverEvaluator(PERSON_MAP_01_VAR_PROVIDER) );
     }
     
     
     void doTestSimple( IExprLangEvaluator ev ){
-        String greet = ev.evaluateEL("Hello ${person}!", PERSON_MAP_01);
+        String greet = ev.evaluateEL("Hello ${person}!");
         assertEquals( "Hello Ondra!", greet );
     }
     
     void doTestBean( IExprLangEvaluator ev ) {
-        String greet = ev.evaluateEL("Hello ${person.name} ${person.surname}, ${person.age}!", PERSON_MAP_01);
+        String greet = ev.evaluateEL("Hello ${person.name} ${person.surname}, ${person.age}!");
         assertEquals( "Hello Ondra , 19!", greet );
     }
 
