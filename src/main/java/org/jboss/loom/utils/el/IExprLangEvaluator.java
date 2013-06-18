@@ -103,7 +103,9 @@ public interface IExprLangEvaluator {
             try {
                 return "" + PropertyUtils.getProperty( subject, propPath );
             } catch( IllegalAccessException | InvocationTargetException | NoSuchMethodException ex ) {
-                log.warn("Failed resolving '" + propPath + "' on " + subject + ":\n    " + ex.getMessage(), ex);
+                log.warn("Failed resolving '" + propPath + "' on " + subject + ":\n    " + ex.getMessage());
+                if( log.isTraceEnabled() )
+                    log.trace("    Stacktrace:\n", ex);
                 return "";
             }
         }
