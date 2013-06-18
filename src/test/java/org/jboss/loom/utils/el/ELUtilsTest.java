@@ -1,4 +1,4 @@
-package org.jboss.loom.utils;
+package org.jboss.loom.utils.el;
 
 import java.util.HashMap;
 import java.util.Map;
