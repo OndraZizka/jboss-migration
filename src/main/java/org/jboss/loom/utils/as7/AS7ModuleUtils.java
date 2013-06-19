@@ -29,7 +29,7 @@ import java.io.File;
 public class AS7ModuleUtils {
 
     /**
-     * Method for creating module.xml.
+     * Creates module.xml.
      *
      * @param moduleName The name of the created module.
      * @param fileName The name of the file deployed as module.

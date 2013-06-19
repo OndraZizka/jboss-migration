@@ -26,7 +26,7 @@ public class CliApiCommandBuilder {
     }
 
     /**
-     * Method for adding new property to ModelNode and checking if its value isn't empty or null
+     * adds new property to ModelNode and checks if its value isn't empty or null.
      *
      * @param property name of the property to set
      * @param value    value for setting

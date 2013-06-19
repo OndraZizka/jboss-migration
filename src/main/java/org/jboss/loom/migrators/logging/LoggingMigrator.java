@@ -592,7 +592,7 @@ public class LoggingMigrator extends AbstractMigrator {
     
     /**
      * Not implemented yet. Not sure if it is necessary..
-     * Method for migrating File-Appender to Handler in AS7
+     * Migrates File-Appender to Handler in AS7
      *
      * @return migrated File-Handler object
      */

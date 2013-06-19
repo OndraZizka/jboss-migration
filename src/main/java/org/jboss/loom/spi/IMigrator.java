@@ -26,8 +26,8 @@ public interface IMigrator {
 
 
     /**
-     * Method for loading all files from AS5 and converting them to objects for migration which are then stored in Mig-
-     * rationContext
+     * Loads all files from AS5 and converts them to objects for migration 
+     * which are then stored in MigrationContext.
      *
      * @param ctx context of migration with necessary object and information
      * @throws LoadMigrationException if loading of AS5 configuration fails (missing files / cannot read / wrong content)
