@@ -665,43 +665,15 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("jndi-name", dsAS7.getJndiName());
         builder.addProperty("connection-url", dsAS7.getConnectionUrl());
 
-        // TODO: Most are the same as for non-XA. Refactor.
         // TODO: BeanUtils.copyProperties?
-        builder.addProperty("allocation-retry", dsAS7.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", dsAS7.getAllocRetryWaitMillis());
-        builder.addProperty("background-validation", dsAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", dsAS7.getBackgroundValidMin());
-        builder.addProperty("blocking-timeout-millis", dsAS7.getBlockingTimeoutMillis());
-        builder.addProperty("check-valid-connection-sql", dsAS7.getCheckValidConSql());
-        builder.addProperty("exception-sorter-class-name", dsAS7.getExceptionSorter());
-        builder.addProperty("idle-timeout-minutes", dsAS7.getIdleTimeoutMin());
-        builder.addProperty("max-pool-size", dsAS7.getMaxPoolSize());
-        builder.addProperty("min-pool-size", dsAS7.getMinPoolSize());
-        builder.addProperty("new-connection-sql", dsAS7.getNewConnectionSql());
-        builder.addProperty("password", dsAS7.getPassword());
-        builder.addProperty("prefill", dsAS7.getPrefill());
-        builder.addProperty("prepared-statement-cache-size", dsAS7.getPreStatementCacheSize());
-        builder.addProperty("query-timeout", dsAS7.getQueryTimeout());
-        builder.addProperty("security-domain", dsAS7.getSecurityDomain());
-        builder.addProperty("set-tx-query-timeout", dsAS7.getSetTxQueryTimeout());
-        builder.addProperty("share-prepared-statements", dsAS7.getSharePreStatements());
-        builder.addProperty("stale-connection-checker-class-name", dsAS7.getStaleConChecker());
-        builder.addProperty("track-statements", dsAS7.getTrackStatements());
-        builder.addProperty("transaction-isolation", dsAS7.getTransIsolation());
-        builder.addProperty("url-delimeter", dsAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", dsAS7.getUrlSelector());
-        builder.addProperty("use-fast-fail", dsAS7.getUseFastFail());
-        builder.addProperty("use-java-context", dsAS7.getUseJavaContext());
-        builder.addProperty("use-try-lock", dsAS7.getUseTryLock());
-        builder.addProperty("user-name", dsAS7.getUserName());
-        builder.addProperty("valid-connection-checker-class-name", dsAS7.getValidateOnMatch());
-        builder.addProperty("validate-on-match", dsAS7.getValidateOnMatch());
+        addDatasourceProperties( builder, dsAS7 );
 
         // Non-XA specific
         builder.addProperty("jta", dsAS7.getJta());
         
         resultScript.append(builder.formatAndClearProps());
-        // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
+        
+        // TODO: Not sure whether to enabled the datasource .
         //resultScript.append("\n");
         //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
 

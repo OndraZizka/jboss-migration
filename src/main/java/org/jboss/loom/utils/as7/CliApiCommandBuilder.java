@@ -8,9 +8,7 @@
 package org.jboss.loom.utils.as7;
 
 import java.lang.reflect.InvocationTargetException;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.ex.MigrationException;
 
