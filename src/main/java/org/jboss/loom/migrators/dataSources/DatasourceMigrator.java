@@ -63,13 +63,12 @@ public class DatasourceMigrator extends AbstractMigrator {
     private static final String JDBC_DRIVER_MODULE_PREFIX = "jdbcdrivers.";
     private static final String DATASOURCES_ROOT_ELEMENT_NAME = "datasources";
 
-    private int namingSequence = 1;
+    protected int namingSequence = 1;
 
     
 
     public DatasourceMigrator(GlobalConfiguration globalConfig) {
         super(globalConfig);
-
     }
 
     @Override
@@ -102,17 +101,14 @@ public class DatasourceMigrator extends AbstractMigrator {
             MigratorData mData = new MigratorData();
 
             for (DatasourcesBean ds : dsColl) {
-                if (ds.getLocalDatasourceAS5s() != null) {
+                if (ds.getLocalDatasourceAS5s() != null) 
                     mData.getConfigFragments().addAll(ds.getLocalDatasourceAS5s());
-                }
 
-                if (ds.getXaDatasourceAS5s() != null) {
+                if (ds.getXaDatasourceAS5s() != null)
                     mData.getConfigFragments().addAll(ds.getXaDatasourceAS5s());
-                }
 
-                if(ds.getNoTxDatasourceAS5s() != null){
+                if(ds.getNoTxDatasourceAS5s() != null)
                     mData.getConfigFragments().addAll(ds.getNoTxDatasourceAS5s());
-                }
             }
 
             ctx.getMigrationData().put(DatasourceMigrator.class, mData);
@@ -337,14 +333,10 @@ public class DatasourceMigrator extends AbstractMigrator {
         xaDatasourceAS7.setSameRmOverride(xaDatasourceAS5.getSameRM());
         xaDatasourceAS7.setInterleaving(xaDatasourceAS5.getInterleaving());
         xaDatasourceAS7.setNoTxSeparatePools(xaDatasourceAS5.getNoTxSeparatePools());
-
-        if(xaDatasourceAS5.getXaDatasourceProps() != null){
+        if(xaDatasourceAS5.getXaDatasourceProps() != null)
             xaDatasourceAS7.setXaDatasourceProps(xaDatasourceAS5.getXaDatasourceProps());
-        }
-
         xaDatasourceAS7.setXaResourceTimeout(xaDatasourceAS5.getXaResourceTimeout());
         xaDatasourceAS7.setTransIsolation(xaDatasourceAS5.getTransIsolation());
-
     }
 
     /**
@@ -354,17 +346,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param datasourceAS5 datasource from AS5 for getting attributes
      */
     private static void setDatasourceProps(DatasourceAS7Bean datasourceAS7, AbstractDatasourceAS5Bean datasourceAS5){
-        if(datasourceAS5 instanceof NoTxDatasourceAS5Bean){
-            datasourceAS7.setJta("false");
-
-        } else{
-            datasourceAS7.setJta("true");
-        }
-
-        if( datasourceAS5.getConnectionProperties() != null){
+        datasourceAS7.setJta( (datasourceAS5 instanceof NoTxDatasourceAS5Bean) ? "false" : "true");
+        if( datasourceAS5.getConnectionProperties() != null)
             datasourceAS7.setConnectionProperties( datasourceAS5.getConnectionProperties() );
-        }
-
         datasourceAS7.setConnectionUrl( datasourceAS5.getConnectionUrl() );
         datasourceAS7.setMinPoolSize(datasourceAS5.getMinPoolSize());
         datasourceAS7.setMaxPoolSize(datasourceAS5.getMaxPoolSize());
@@ -400,43 +384,43 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
         builder.addPropertyIfSet("jndi-name", dataSource.getJndiName());
-
-        // TODO: Try if property enabled works
-        builder.addPropertyIfSet("enabled", "true");
-
         builder.addPropertyIfSet("driver-name", dataSource.getDriver());
-        
-        builder.addPropertyIfSet("jta", dataSource.getJta());
-        builder.addPropertyIfSet("use-java-context", dataSource.getUseJavaContext());
+        builder.addPropertyIfSet("enabled", "true"); // TODO: Try if this property works
         builder.addPropertyIfSet("connection-url", dataSource.getConnectionUrl());
-        builder.addPropertyIfSet("url-delimeter", dataSource.getUrlDelimeter());
-        builder.addPropertyIfSet("url-selector-strategy-class-name", dataSource.getUrlSelector());
-        builder.addPropertyIfSet("transaction-isolation", dataSource.getTransIsolation());
-        builder.addPropertyIfSet("new-connection-sql", dataSource.getNewConnectionSql());
-        builder.addPropertyIfSet("prefill", dataSource.getPrefill());
-        builder.addPropertyIfSet("min-pool-size", dataSource.getMinPoolSize());
-        builder.addPropertyIfSet("max-pool-size", dataSource.getMaxPoolSize());
-        builder.addPropertyIfSet("password", dataSource.getPassword());
-        builder.addPropertyIfSet("user-name", dataSource.getUserName());
-        builder.addPropertyIfSet("security-domain", dataSource.getSecurityDomain());
-        builder.addPropertyIfSet("check-valid-connection-sql", dataSource.getCheckValidConSql());
-        builder.addPropertyIfSet("validate-on-match", dataSource.getValidateOnMatch());
-        builder.addPropertyIfSet("background-validation", dataSource.getBackgroundValid());
-        builder.addPropertyIfSet("background-validation-minutes", dataSource.getBackgroundValidMin());
-        builder.addPropertyIfSet("use-fast-fail", dataSource.getUseFastFail());
-        builder.addPropertyIfSet("exception-sorter-class-name", dataSource.getExceptionSorter());
-        builder.addPropertyIfSet("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
-        builder.addPropertyIfSet("stale-connection-checker-class-name", dataSource.getStaleConChecker());
-        builder.addPropertyIfSet("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
-        builder.addPropertyIfSet("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
-        builder.addPropertyIfSet("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
-        builder.addPropertyIfSet("query-timeout", dataSource.getQueryTimeout());
+        
         builder.addPropertyIfSet("allocation-retry", dataSource.getAllocationRetry());
         builder.addPropertyIfSet("allocation-retry-wait-millis", dataSource.getAllocRetryWaitMillis());
-        builder.addPropertyIfSet("use-try-lock", dataSource.getUseTryLock());
+        builder.addPropertyIfSet("background-validation", dataSource.getBackgroundValid());
+        builder.addPropertyIfSet("background-validation-minutes", dataSource.getBackgroundValidMin());
+        builder.addPropertyIfSet("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
+        builder.addPropertyIfSet("check-valid-connection-sql", dataSource.getCheckValidConSql());
+        builder.addPropertyIfSet("exception-sorter-class-name", dataSource.getExceptionSorter());
+        builder.addPropertyIfSet("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
+        builder.addPropertyIfSet("max-pool-size", dataSource.getMaxPoolSize());
+        builder.addPropertyIfSet("min-pool-size", dataSource.getMinPoolSize());
+        builder.addPropertyIfSet("new-connection-sql", dataSource.getNewConnectionSql());
+        builder.addPropertyIfSet("password", dataSource.getPassword());
+        builder.addPropertyIfSet("prefill", dataSource.getPrefill());
         builder.addPropertyIfSet("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
-        builder.addPropertyIfSet("track-statements", dataSource.getTrackStatements());
+        builder.addPropertyIfSet("query-timeout", dataSource.getQueryTimeout());
+        builder.addPropertyIfSet("security-domain", dataSource.getSecurityDomain());
+        builder.addPropertyIfSet("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
         builder.addPropertyIfSet("share-prepared-statements", dataSource.getSharePreStatements());
+        builder.addPropertyIfSet("stale-connection-checker-class-name", dataSource.getStaleConChecker());
+        builder.addPropertyIfSet("track-statements", dataSource.getTrackStatements());
+        builder.addPropertyIfSet("transaction-isolation", dataSource.getTransIsolation());
+        builder.addPropertyIfSet("url-delimeter", dataSource.getUrlDelimeter());
+        builder.addPropertyIfSet("url-selector-strategy-class-name", dataSource.getUrlSelector());
+        builder.addPropertyIfSet("use-fast-fail", dataSource.getUseFastFail());
+        builder.addPropertyIfSet("use-java-context", dataSource.getUseJavaContext());
+        builder.addPropertyIfSet("use-try-lock", dataSource.getUseTryLock());
+        builder.addPropertyIfSet("user-name", dataSource.getUserName());
+        builder.addPropertyIfSet("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
+        builder.addPropertyIfSet("validate-on-match", dataSource.getValidateOnMatch());
+
+        // Non-XA specific
+        builder.addPropertyIfSet( "jta", dataSource.getJta());
+        
         return builder.getCommand();
     }
 
@@ -483,41 +467,47 @@ public class DatasourceMigrator extends AbstractMigrator {
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
 
         builder.addPropertyIfSet("jndi-name", dataSource.getJndiName());
-        builder.addPropertyIfSet("use-java-context", dataSource.getUseJavaContext());
         builder.addPropertyIfSet("driver-name", dataSource.getDriver());
-        builder.addPropertyIfSet("url-delimeter", dataSource.getUrlDelimeter());
-        builder.addPropertyIfSet("url-selector-strategy-class-name", dataSource.getUrlSelector());
-        builder.addPropertyIfSet("transaction-isolation", dataSource.getTransIsolation());
-        builder.addPropertyIfSet("new-connection-sql", dataSource.getNewConnectionSql());
-        builder.addPropertyIfSet("prefill", dataSource.getPrefill());
-        builder.addPropertyIfSet("min-pool-size", dataSource.getMinPoolSize());
-        builder.addPropertyIfSet("max-pool-size", dataSource.getMaxPoolSize());
-        builder.addPropertyIfSet("is-same-rm-override", dataSource.getSameRmOverride());
-        builder.addPropertyIfSet("interleaving", dataSource.getInterleaving());
-        builder.addPropertyIfSet("no-tx-separate-pools", dataSource.getNoTxSeparatePools());
-        builder.addPropertyIfSet("password", dataSource.getPassword());
-        builder.addPropertyIfSet("user-name", dataSource.getUserName());
-        builder.addPropertyIfSet("security-domain", dataSource.getSecurityDomain());
-        builder.addPropertyIfSet("check-valid-connection-sql", dataSource.getCheckValidConSql());
-        builder.addPropertyIfSet("validate-on-match", dataSource.getValidateOnMatch());
-        builder.addPropertyIfSet("background-validation", dataSource.getBackgroundValid());
-        builder.addPropertyIfSet("background-validation-minutes", dataSource.getBackgroundValidMin());
-        builder.addPropertyIfSet("use-fast-fail", dataSource.getUseFastFail());
-        builder.addPropertyIfSet("exception-sorter-class-name", dataSource.getExceptionSorter());
-        builder.addPropertyIfSet("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
-        builder.addPropertyIfSet("stale-connection-checker-class-name", dataSource.getStaleConChecker());
-        builder.addPropertyIfSet("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
-        builder.addPropertyIfSet("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
-        builder.addPropertyIfSet("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
-        builder.addPropertyIfSet("query-timeout", dataSource.getQueryTimeout());
+        
+        // TODO: Doesn't have connection-url???
+        // TODO: Most are the same as for non-XA. Refactor.
+        // TODO: BeanUtils.copyProperties?
         builder.addPropertyIfSet("allocation-retry", dataSource.getAllocationRetry());
         builder.addPropertyIfSet("allocation-retry-wait-millis", dataSource.getAllocRetryWaitMillis());
-        builder.addPropertyIfSet("use-try-lock", dataSource.getUseTryLock());
-        builder.addPropertyIfSet("xa-resource-timeout", dataSource.getXaResourceTimeout());
+        builder.addPropertyIfSet("background-validation", dataSource.getBackgroundValid());
+        builder.addPropertyIfSet("background-validation-minutes", dataSource.getBackgroundValidMin());
+        builder.addPropertyIfSet("blocking-timeout-millis", dataSource.getBlockingTimeoutMillis());
+        builder.addPropertyIfSet("check-valid-connection-sql", dataSource.getCheckValidConSql());
+        builder.addPropertyIfSet("exception-sorter-class-name", dataSource.getExceptionSorter());
+        builder.addPropertyIfSet("idle-timeout-minutes", dataSource.getIdleTimeoutMin());
+        builder.addPropertyIfSet("max-pool-size", dataSource.getMaxPoolSize());
+        builder.addPropertyIfSet("min-pool-size", dataSource.getMinPoolSize());
+        builder.addPropertyIfSet("new-connection-sql", dataSource.getNewConnectionSql());
+        builder.addPropertyIfSet("password", dataSource.getPassword());
+        builder.addPropertyIfSet("prefill", dataSource.getPrefill());
         builder.addPropertyIfSet("prepared-statement-cache-size", dataSource.getPreStatementCacheSize());
-        builder.addPropertyIfSet("track-statements", dataSource.getTrackStatements());
+        builder.addPropertyIfSet("query-timeout", dataSource.getQueryTimeout());
+        builder.addPropertyIfSet("security-domain", dataSource.getSecurityDomain());
+        builder.addPropertyIfSet("set-tx-query-timeout", dataSource.getSetTxQueryTimeout());
         builder.addPropertyIfSet("share-prepared-statements", dataSource.getSharePreStatements());
+        builder.addPropertyIfSet("stale-connection-checker-class-name", dataSource.getStaleConChecker());
+        builder.addPropertyIfSet("track-statements", dataSource.getTrackStatements());
+        builder.addPropertyIfSet("transaction-isolation", dataSource.getTransIsolation());
+        builder.addPropertyIfSet("url-delimeter", dataSource.getUrlDelimeter());
+        builder.addPropertyIfSet("url-selector-strategy-class-name", dataSource.getUrlSelector());
+        builder.addPropertyIfSet("use-fast-fail", dataSource.getUseFastFail());
+        builder.addPropertyIfSet("use-java-context", dataSource.getUseJavaContext());
+        builder.addPropertyIfSet("use-try-lock", dataSource.getUseTryLock());
+        builder.addPropertyIfSet("user-name", dataSource.getUserName());
+        builder.addPropertyIfSet("valid-connection-checker-class-name", dataSource.getValidateOnMatch());
+        builder.addPropertyIfSet("validate-on-match", dataSource.getValidateOnMatch());
         
+        // XA specific
+        builder.addPropertyIfSet("interleaving", dataSource.getInterleaving());
+        builder.addPropertyIfSet("is-same-rm-override", dataSource.getSameRmOverride());
+        builder.addPropertyIfSet("no-tx-separate-pools", dataSource.getNoTxSeparatePools());
+        builder.addPropertyIfSet("xa-resource-timeout", dataSource.getXaResourceTimeout());
+
         return builder.getCommand();
     }
     
@@ -640,39 +630,43 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("name", datasourceAS7.getPoolName());
         builder.addProperty("driver-name", datasourceAS7.getDriver());
         builder.addProperty("jndi-name", datasourceAS7.getJndiName());
-        
-        builder.addProperty("jta", datasourceAS7.getJta());
-        builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
         builder.addProperty("connection-url", datasourceAS7.getConnectionUrl());
-        builder.addProperty("url-delimeter", datasourceAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
-        builder.addProperty("transaction-isolation", datasourceAS7.getTransIsolation());
-        builder.addProperty("new-connection-sql", datasourceAS7.getNewConnectionSql());
-        builder.addProperty("prefill", datasourceAS7.getPrefill());
-        builder.addProperty("min-pool-size", datasourceAS7.getMinPoolSize());
-        builder.addProperty("max-pool-size", datasourceAS7.getMaxPoolSize());
-        builder.addProperty("password", datasourceAS7.getPassword());
-        builder.addProperty("user-name", datasourceAS7.getUserName());
-        builder.addProperty("security-domain", datasourceAS7.getSecurityDomain());
-        builder.addProperty("check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
-        builder.addProperty("validate-on-match", datasourceAS7.getValidateOnMatch());
-        builder.addProperty("background-validation", datasourceAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", datasourceAS7.getBackgroundValidMin());
-        builder.addProperty("use-fast-fail", datasourceAS7.getUseFastFail());
-        builder.addProperty("exception-sorter-class-name", datasourceAS7.getExceptionSorter());
-        builder.addProperty("valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
-        builder.addProperty("stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
-        builder.addProperty("blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
-        builder.addProperty("set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
-        builder.addProperty("query-timeout", datasourceAS7.getQueryTimeout());
+
+        // TODO: Most are the same as for non-XA. Refactor.
+        // TODO: BeanUtils.copyProperties?
         builder.addProperty("allocation-retry", datasourceAS7.getAllocationRetry());
         builder.addProperty("allocation-retry-wait-millis", datasourceAS7.getAllocRetryWaitMillis());
-        builder.addProperty("use-try-lock", datasourceAS7.getUseTryLock());
+        builder.addProperty("background-validation", datasourceAS7.getBackgroundValid());
+        builder.addProperty("background-validation-minutes", datasourceAS7.getBackgroundValidMin());
+        builder.addProperty("blocking-timeout-millis", datasourceAS7.getBlockingTimeoutMillis());
+        builder.addProperty("check-valid-connection-sql", datasourceAS7.getCheckValidConSql());
+        builder.addProperty("exception-sorter-class-name", datasourceAS7.getExceptionSorter());
+        builder.addProperty("idle-timeout-minutes", datasourceAS7.getIdleTimeoutMin());
+        builder.addProperty("max-pool-size", datasourceAS7.getMaxPoolSize());
+        builder.addProperty("min-pool-size", datasourceAS7.getMinPoolSize());
+        builder.addProperty("new-connection-sql", datasourceAS7.getNewConnectionSql());
+        builder.addProperty("password", datasourceAS7.getPassword());
+        builder.addProperty("prefill", datasourceAS7.getPrefill());
         builder.addProperty("prepared-statement-cache-size", datasourceAS7.getPreStatementCacheSize());
-        builder.addProperty("track-statements", datasourceAS7.getTrackStatements());
+        builder.addProperty("query-timeout", datasourceAS7.getQueryTimeout());
+        builder.addProperty("security-domain", datasourceAS7.getSecurityDomain());
+        builder.addProperty("set-tx-query-timeout", datasourceAS7.getSetTxQueryTimeout());
         builder.addProperty("share-prepared-statements", datasourceAS7.getSharePreStatements());
+        builder.addProperty("stale-connection-checker-class-name", datasourceAS7.getStaleConChecker());
+        builder.addProperty("track-statements", datasourceAS7.getTrackStatements());
+        builder.addProperty("transaction-isolation", datasourceAS7.getTransIsolation());
+        builder.addProperty("url-delimeter", datasourceAS7.getUrlDelimeter());
+        builder.addProperty("url-selector-strategy-class-name", datasourceAS7.getUrlSelector());
+        builder.addProperty("use-fast-fail", datasourceAS7.getUseFastFail());
+        builder.addProperty("use-java-context", datasourceAS7.getUseJavaContext());
+        builder.addProperty("use-try-lock", datasourceAS7.getUseTryLock());
+        builder.addProperty("user-name", datasourceAS7.getUserName());
+        builder.addProperty("valid-connection-checker-class-name", datasourceAS7.getValidateOnMatch());
+        builder.addProperty("validate-on-match", datasourceAS7.getValidateOnMatch());
 
+        // Non-XA specific
+        builder.addProperty("jta", datasourceAS7.getJta());
+        
         resultScript.append(builder.asStringNew());
         // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
         //resultScript.append("\n");
@@ -705,41 +699,45 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         builder.addProperty("name", xaDatasourceAS7.getPoolName());
         builder.addProperty("jndi-name", xaDatasourceAS7.getJndiName());
-        builder.addProperty("use-java-context", xaDatasourceAS7.getUseJavaContext());
         builder.addProperty("driver-name", xaDatasourceAS7.getDriver());
-        builder.addProperty("url-delimeter", xaDatasourceAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
-        builder.addProperty("transaction-isolation", xaDatasourceAS7.getTransIsolation());
-        builder.addProperty("new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
-        builder.addProperty("prefill", xaDatasourceAS7.getPrefill());
-        builder.addProperty("min-pool-size", xaDatasourceAS7.getMinPoolSize());
-        builder.addProperty("max-pool-size", xaDatasourceAS7.getMaxPoolSize());
-        builder.addProperty("is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
-        builder.addProperty("interleaving", xaDatasourceAS7.getInterleaving());
-        builder.addProperty("no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
-        builder.addProperty("password", xaDatasourceAS7.getPassword());
-        builder.addProperty("user-name", xaDatasourceAS7.getUserName());
-        builder.addProperty("security-domain", xaDatasourceAS7.getSecurityDomain());
-        builder.addProperty("check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
-        builder.addProperty("validate-on-match", xaDatasourceAS7.getValidateOnMatch());
-        builder.addProperty("background-validation", xaDatasourceAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
-        builder.addProperty("use-fast-fail", xaDatasourceAS7.getUseFastFail());
-        builder.addProperty("exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
-        builder.addProperty("valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
-        builder.addProperty("stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
-        builder.addProperty("blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
-        builder.addProperty("idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMin());
-        builder.addProperty("set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
-        builder.addProperty("query-timeout", xaDatasourceAS7.getQueryTimeout());
+
+        // TODO: Doesn't have connection-url???
         builder.addProperty("allocation-retry", xaDatasourceAS7.getAllocationRetry());
         builder.addProperty("allocation-retry-wait-millis", xaDatasourceAS7.getAllocRetryWaitMillis());
-        builder.addProperty("use-try-lock", xaDatasourceAS7.getUseTryLock());
-        builder.addProperty("xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
+        builder.addProperty("background-validation", xaDatasourceAS7.getBackgroundValid());
+        builder.addProperty("background-validation-minutes", xaDatasourceAS7.getBackgroundValidMin());
+        builder.addProperty("blocking-timeout-millis", xaDatasourceAS7.getBlockingTimeoutMillis());
+        builder.addProperty("check-valid-connection-sql", xaDatasourceAS7.getCheckValidConSql());
+        builder.addProperty("exception-sorter-class-name", xaDatasourceAS7.getExceptionSorter());
+        builder.addProperty("idle-timeout-minutes", xaDatasourceAS7.getIdleTimeoutMin());
+        builder.addProperty("max-pool-size", xaDatasourceAS7.getMaxPoolSize());
+        builder.addProperty("min-pool-size", xaDatasourceAS7.getMinPoolSize());
+        builder.addProperty("new-connection-sql", xaDatasourceAS7.getNewConnectionSql());
+        builder.addProperty("password", xaDatasourceAS7.getPassword());
+        builder.addProperty("prefill", xaDatasourceAS7.getPrefill());
         builder.addProperty("prepared-statement-cache-size", xaDatasourceAS7.getPreStatementCacheSize());
-        builder.addProperty("track-statements", xaDatasourceAS7.getTrackStatements());
+        builder.addProperty("query-timeout", xaDatasourceAS7.getQueryTimeout());
+        builder.addProperty("security-domain", xaDatasourceAS7.getSecurityDomain());
+        builder.addProperty("set-tx-query-timeout", xaDatasourceAS7.getSetTxQueryTimeout());
         builder.addProperty("share-prepared-statements", xaDatasourceAS7.getSharePreStatements());
+        builder.addProperty("stale-connection-checker-class-name", xaDatasourceAS7.getStaleConChecker());
+        builder.addProperty("track-statements", xaDatasourceAS7.getTrackStatements());
+        builder.addProperty("transaction-isolation", xaDatasourceAS7.getTransIsolation());
+        builder.addProperty("url-delimeter", xaDatasourceAS7.getUrlDelimeter());
+        builder.addProperty("url-selector-strategy-class-name", xaDatasourceAS7.getUrlSelector());
+        builder.addProperty("use-fast-fail", xaDatasourceAS7.getUseFastFail());
+        builder.addProperty("use-java-context", xaDatasourceAS7.getUseJavaContext());
+        builder.addProperty("use-try-lock", xaDatasourceAS7.getUseTryLock());
+        builder.addProperty("user-name", xaDatasourceAS7.getUserName());
+        builder.addProperty("valid-connection-checker-class-name", xaDatasourceAS7.getValidateOnMatch());
+        builder.addProperty("validate-on-match", xaDatasourceAS7.getValidateOnMatch());
 
+        // XA specific
+        builder.addProperty("interleaving", xaDatasourceAS7.getInterleaving());
+        builder.addProperty("is-same-rm-override", xaDatasourceAS7.getSameRmOverride());
+        builder.addProperty("no-tx-separate-pools", xaDatasourceAS7.getNoTxSeparatePools());
+        builder.addProperty("xa-resource-timeout", xaDatasourceAS7.getXaResourceTimeout());
+        
         resultScript.append(builder.asStringNew());
         //resultScript.append("\n");
 
