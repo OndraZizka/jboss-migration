@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.apache.commons.lang.StringUtils;
 
 /**
  *  Metadata for JAXB classes; to be used for reporting and ModelNode creation.
@@ -35,4 +36,16 @@ public @interface Property {
         public Type value() default Type.FIELD;
     }
     
+    public static class Utils{
+        public static String convertPropToMethodName( String propName ){
+            StringBuilder sb  = new StringBuilder("get");
+            String[] parts = StringUtils.split( propName, "-");
+            for( String part : parts) {
+                sb.append( StringUtils.capitalize( part ) );
+            }
+            return sb.toString();
+        }
+    }
+    
+
 }// class

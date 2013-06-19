@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelType;
+import org.jboss.loom.spi.ann.Property;
 
 /**
  *
@@ -213,7 +214,7 @@ public class AS7CliUtils {
         String[] parts = StringUtils.split( props );
         for( String prop : parts ) {
             try {
-                Method method = source.getClass().getMethod( convertPropToMethodName(prop) );
+                Method method = source.getClass().getMethod( Property.Utils.convertPropToMethodName(prop) );
                 if( String.class != method.getReturnType() )
                     continue;
                 String val = (String) method.invoke(source);
@@ -225,14 +226,6 @@ public class AS7CliUtils {
         }
     }
     
-    private static String convertPropToMethodName( String propName ){
-        StringBuilder sb  = new StringBuilder("get");
-        String[] parts = StringUtils.split( propName, "-");
-        for( String part : parts) {
-            sb.append( StringUtils.capitalize( part ) );
-        }
-        return sb.toString();
-    }
     
     
     /**
