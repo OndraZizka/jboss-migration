@@ -388,6 +388,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addPropertyIfSet("enabled", "true"); // TODO: Try if this property works
         builder.addPropertyIfSet("connection-url", ds.getConnectionUrl());
         
+        // TODO: Refactor to be able to use addDatasourceProperties(builder, ds);
         builder.addPropertyIfSet("allocation-retry", ds.getAllocationRetry());
         builder.addPropertyIfSet("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
         builder.addPropertyIfSet("background-validation", ds.getBackgroundValid());
@@ -423,6 +424,40 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         return builder.getCommand();
     }
+    
+    
+    private static void addDatasourceProperties( CliAddScriptBuilder builder, AbstractDatasourceAS7Bean xadsAS7 ) {
+        builder.addProperty("allocation-retry", xadsAS7.getAllocationRetry());
+        builder.addProperty("allocation-retry-wait-millis", xadsAS7.getAllocRetryWaitMillis());
+        builder.addProperty("background-validation", xadsAS7.getBackgroundValid());
+        builder.addProperty("background-validation-minutes", xadsAS7.getBackgroundValidMin());
+        builder.addProperty("blocking-timeout-millis", xadsAS7.getBlockingTimeoutMillis());
+        builder.addProperty("check-valid-connection-sql", xadsAS7.getCheckValidConSql());
+        builder.addProperty("exception-sorter-class-name", xadsAS7.getExceptionSorter());
+        builder.addProperty("idle-timeout-minutes", xadsAS7.getIdleTimeoutMin());
+        builder.addProperty("max-pool-size", xadsAS7.getMaxPoolSize());
+        builder.addProperty("min-pool-size", xadsAS7.getMinPoolSize());
+        builder.addProperty("new-connection-sql", xadsAS7.getNewConnectionSql());
+        builder.addProperty("password", xadsAS7.getPassword());
+        builder.addProperty("prefill", xadsAS7.getPrefill());
+        builder.addProperty("prepared-statement-cache-size", xadsAS7.getPreStatementCacheSize());
+        builder.addProperty("query-timeout", xadsAS7.getQueryTimeout());
+        builder.addProperty("security-domain", xadsAS7.getSecurityDomain());
+        builder.addProperty("set-tx-query-timeout", xadsAS7.getSetTxQueryTimeout());
+        builder.addProperty("share-prepared-statements", xadsAS7.getSharePreStatements());
+        builder.addProperty("stale-connection-checker-class-name", xadsAS7.getStaleConChecker());
+        builder.addProperty("track-statements", xadsAS7.getTrackStatements());
+        builder.addProperty("transaction-isolation", xadsAS7.getTransIsolation());
+        builder.addProperty("url-delimeter", xadsAS7.getUrlDelimeter());
+        builder.addProperty("url-selector-strategy-class-name", xadsAS7.getUrlSelector());
+        builder.addProperty("use-fast-fail", xadsAS7.getUseFastFail());
+        builder.addProperty("use-java-context", xadsAS7.getUseJavaContext());
+        builder.addProperty("use-try-lock", xadsAS7.getUseTryLock());
+        builder.addProperty("user-name", xadsAS7.getUserName());
+        builder.addProperty("valid-connection-checker-class-name", xadsAS7.getValidateOnMatch());
+        builder.addProperty("validate-on-match", xadsAS7.getValidateOnMatch());
+    }
+    
 
 
     /**
@@ -604,7 +639,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-major-version", driver.getMajorVersion());
         builder.addProperty("driver-minor-version", driver.getMinorVersion());
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -665,7 +700,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // Non-XA specific
         builder.addProperty("jta", dsAS7.getJta());
         
-        resultScript.append(builder.asStringNew());
+        resultScript.append(builder.formatAndClearProps());
         // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
         //resultScript.append("\n");
         //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
@@ -700,35 +735,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-name", xadsAS7.getDriver());
 
         // TODO: Doesn't have connection-url???
-        builder.addProperty("allocation-retry", xadsAS7.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", xadsAS7.getAllocRetryWaitMillis());
-        builder.addProperty("background-validation", xadsAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", xadsAS7.getBackgroundValidMin());
-        builder.addProperty("blocking-timeout-millis", xadsAS7.getBlockingTimeoutMillis());
-        builder.addProperty("check-valid-connection-sql", xadsAS7.getCheckValidConSql());
-        builder.addProperty("exception-sorter-class-name", xadsAS7.getExceptionSorter());
-        builder.addProperty("idle-timeout-minutes", xadsAS7.getIdleTimeoutMin());
-        builder.addProperty("max-pool-size", xadsAS7.getMaxPoolSize());
-        builder.addProperty("min-pool-size", xadsAS7.getMinPoolSize());
-        builder.addProperty("new-connection-sql", xadsAS7.getNewConnectionSql());
-        builder.addProperty("password", xadsAS7.getPassword());
-        builder.addProperty("prefill", xadsAS7.getPrefill());
-        builder.addProperty("prepared-statement-cache-size", xadsAS7.getPreStatementCacheSize());
-        builder.addProperty("query-timeout", xadsAS7.getQueryTimeout());
-        builder.addProperty("security-domain", xadsAS7.getSecurityDomain());
-        builder.addProperty("set-tx-query-timeout", xadsAS7.getSetTxQueryTimeout());
-        builder.addProperty("share-prepared-statements", xadsAS7.getSharePreStatements());
-        builder.addProperty("stale-connection-checker-class-name", xadsAS7.getStaleConChecker());
-        builder.addProperty("track-statements", xadsAS7.getTrackStatements());
-        builder.addProperty("transaction-isolation", xadsAS7.getTransIsolation());
-        builder.addProperty("url-delimeter", xadsAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", xadsAS7.getUrlSelector());
-        builder.addProperty("use-fast-fail", xadsAS7.getUseFastFail());
-        builder.addProperty("use-java-context", xadsAS7.getUseJavaContext());
-        builder.addProperty("use-try-lock", xadsAS7.getUseTryLock());
-        builder.addProperty("user-name", xadsAS7.getUserName());
-        builder.addProperty("valid-connection-checker-class-name", xadsAS7.getValidateOnMatch());
-        builder.addProperty("validate-on-match", xadsAS7.getValidateOnMatch());
+        addDatasourceProperties( builder, xadsAS7 );
 
         // XA specific
         builder.addProperty("interleaving", xadsAS7.getInterleaving());
@@ -736,7 +743,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
         builder.addProperty("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
         
-        resultScript.append(builder.asStringNew());
+        resultScript.append(builder.formatAndClearProps());
         //resultScript.append("\n");
 
         // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API

@@ -115,8 +115,24 @@ public abstract class AbstractDatasourceAS7Bean{
 
     @XmlPath("/statement/share-prepared-statements/text()")
     private String sharePreStatements;
+    
 
 
+    @XmlPath("/pool/min-pool-size/text()")
+    public String getMinPoolSize() { return minPoolSize; }
+    public void setMinPoolSize(String minPoolSize) { this.minPoolSize = minPoolSize; }
+    private String minPoolSize;
+    
+    @XmlPath("/pool/max-pool-size/text()")
+    public String getMaxPoolSize() { return maxPoolSize; }
+    public void setMaxPoolSize(String maxPoolSize) { this.maxPoolSize = maxPoolSize; }
+    private String maxPoolSize;
+
+    // Elements in pool element
+    @XmlPath("/pool/prefill/text()")
+    public String getPrefill() { return prefill; }
+    public void setPrefill(String prefill) { this.prefill = prefill; }
+    private String prefill;
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">

@@ -19,11 +19,9 @@ import java.util.Set;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "xa-datasource")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "xa-datasource")
-
 public class XaDatasourceAS7Bean extends AbstractDatasourceAS7Bean{
 
     // Basic elements in datasource element
@@ -36,13 +34,7 @@ public class XaDatasourceAS7Bean extends AbstractDatasourceAS7Bean{
 
     // Elements in pool element
     @XmlPath("/xa-pool/prefill/text()")
-    private String prefill;
-
-    @XmlPath("/xa-pool/min-pool-size/text()")
-    private String minPoolSize;
-
-    @XmlPath("/xa-pool/max-pool-size/text()")
-    private String maxPoolSize;
+    @Override public String getPrefill() { return super.getPrefill(); }
 
     @XmlPath("/xa-pool/is-same-rm-override/text()")
     private String isSameRmOverride;
@@ -69,59 +61,20 @@ public class XaDatasourceAS7Bean extends AbstractDatasourceAS7Bean{
         this.xaDatasourceProps = temp;
     }
 
-    public String getPrefill() {
-        return prefill;
-    }
-
-    public void setPrefill(String prefill) {
-        this.prefill = prefill;
-    }
-
-    public String getMinPoolSize() {
-        return minPoolSize;
-    }
-
-    public void setMinPoolSize(String minPoolSize) {
-        this.minPoolSize = minPoolSize;
-    }
-
-    public String getMaxPoolSize() {
-        return maxPoolSize;
-    }
-
-    public void setMaxPoolSize(String maxPoolSize) {
-        this.maxPoolSize = maxPoolSize;
-    }
-
-    public String getSameRmOverride() {
-        return isSameRmOverride;
-    }
-
-    public void setSameRmOverride(String sameRmOverride) {
-        isSameRmOverride = sameRmOverride;
-    }
-
-    public String getInterleaving() {
-        return interleaving;
-    }
-
-    public void setInterleaving(String interleaving) {
-        this.interleaving = interleaving;
-    }
-
-    public String getNoTxSeparatePools() {
-        return noTxSeparatePools;
-    }
-
-    public void setNoTxSeparatePools(String noTxSeparatePools) {
-        this.noTxSeparatePools = noTxSeparatePools;
-    }
-
-    public String getXaResourceTimeout() {
-        return xaResourceTimeout;
-    }
-
-    public void setXaResourceTimeout(String xaResourceTimeout) {
-        this.xaResourceTimeout = xaResourceTimeout;
-    }
-}
+    @XmlPath("/xa-pool/min-pool-size/text()")
+    @Override public String getMinPoolSize() { return super.getMinPoolSize(); }
+    
+    @XmlPath("/xa-pool/max-pool-size/text()")
+    @Override public String getMaxPoolSize() { return super.getMaxPoolSize(); }
+    
+    public String getSameRmOverride() { return isSameRmOverride; }
+    public void setSameRmOverride(String sameRmOverride) { isSameRmOverride = sameRmOverride; }
+    public String getInterleaving() { return interleaving; }
+    public void setInterleaving(String interleaving) { this.interleaving = interleaving; }
+    public String getNoTxSeparatePools() { return noTxSeparatePools; }
+    public void setNoTxSeparatePools(String noTxSeparatePools) { this.noTxSeparatePools = noTxSeparatePools; }
+    public String getXaResourceTimeout() { return xaResourceTimeout; }
+    public void setXaResourceTimeout(String xaResourceTimeout) { this.xaResourceTimeout = xaResourceTimeout; }
+    
+    
+}// class

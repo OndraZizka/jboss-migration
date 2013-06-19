@@ -951,7 +951,7 @@ public class LoggingMigrator extends AbstractMigrator {
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         builder.addProperty("level", logger.getLoggerLevelName());
         builder.addProperty("use-parent-handlers", logger.getUseParentHandlers());
-        resultScript.append(builder.asString());
+        resultScript.append(builder.formatAndClearProps());
 
         if (logger.getHandlers() != null) {
             /*StringBuilder handlersBuilder = new StringBuilder();
@@ -1003,7 +1003,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("append", periodic.getAppend());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level formatter autoflush append");
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -1040,7 +1040,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("max-backup-index", sizeHandler.getMaxBackupIndex());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush ...");
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -1072,7 +1072,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("overflow-action", asyncHandler.getOverflowAction());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter ...");
 
-        resultScript.append(builder.asString());
+        resultScript.append(builder.formatAndClearProps());
 
         if (asyncHandler.getSubhandlers() != null) {
             StringBuilder handlersBuilder = new StringBuilder();
@@ -1116,7 +1116,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("target", consoleHandler.getTarget());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter autoflush target");
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -1146,7 +1146,7 @@ public class LoggingMigrator extends AbstractMigrator {
         builder.addProperty("module", customHandler.getModule());
         // TODO: AS7CliUtils.copyProperties(handler, builder, "level filter formatter class module");
 
-        resultScript.append(builder.asString());
+        resultScript.append(builder.formatAndClearProps());
 
         if( customHandler.getProperties() != null && ! customHandler.getProperties().isEmpty() ) {
             StringBuilder propertiesBuilder = new StringBuilder();

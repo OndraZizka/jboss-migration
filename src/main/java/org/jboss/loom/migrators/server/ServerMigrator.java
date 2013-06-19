@@ -487,7 +487,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("secure", connAS7.getSecure());
         builder.addProperty("enabled", connAS7.getEnabled());
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -518,7 +518,7 @@ public class ServerMigrator extends AbstractMigrator {
         builder.addProperty("session-cache-size", connAS7.getSessionCacheSize());
         builder.addProperty("session-timeout", connAS7.getSessionTimeout());
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
@@ -557,7 +557,7 @@ public class ServerMigrator extends AbstractMigrator {
             }
         }
 
-        resultScript.append(builder.asString()).append(aliases).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(aliases).append(")");
 
         return resultScript.toString();
     }
@@ -585,7 +585,7 @@ public class ServerMigrator extends AbstractMigrator {
 
         builder.addProperty("interface", socketBinding.getSocketInterface());
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }

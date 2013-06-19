@@ -412,7 +412,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         cliBuilder.addProperty("archive", resourceAdapter.getArchive());
         cliBuilder.addProperty("transaction-support", resourceAdapter.getTransactionSupport());
 
-        adapterScript = adapterScript.concat(cliBuilder.asString() + ")");
+        adapterScript = adapterScript.concat(cliBuilder.formatAndClearProps() + ")");
         resultBuilder.append(adapterScript);
 
         return resultBuilder.toString();
@@ -467,7 +467,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         cliBuilder.addProperty("allocation-retry-wait-millis", connDef.getAllocRetryWaitMillis());
         cliBuilder.addProperty("xa-resource-timeout", connDef.getXaResourceTimeout());
 
-        script.append(cliBuilder.asString()).append(")");
+        script.append(cliBuilder.formatAndClearProps()).append(")");
 
         return script.toString();
     }

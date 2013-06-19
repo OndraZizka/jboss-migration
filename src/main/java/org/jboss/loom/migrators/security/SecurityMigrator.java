@@ -396,7 +396,7 @@ public class SecurityMigrator extends AbstractMigrator {
         resultScript.append(securityDomain.getSecurityDomainName()).append(":add(");
         builder.addProperty("cache-type", securityDomain.getCacheType());
 
-        resultScript.append(builder.asString()).append(")");
+        resultScript.append(builder.formatAndClearProps()).append(")");
 
         return resultScript.toString();
     }
