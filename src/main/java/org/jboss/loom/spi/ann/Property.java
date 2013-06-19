@@ -53,8 +53,12 @@ public @interface Property {
     public static class Utils {
         
         public static Map<String, Object> describeBean( Object bean ) throws MigrationException{
-            
             Map<String, Object> map = new LinkedHashMap();
+            describeBean( bean, bean.getClass(), map );
+            return map;
+        }
+        
+        public static void describeBean( Object bean, Class cls, Map<String, Object> map ) throws MigrationException{
             
             List<Exception> problems = new LinkedList();
             
@@ -77,6 +81,7 @@ public @interface Property {
                 if( access == Access.Type.PUBLIC    && ! Modifier.isPublic( field.getModifiers() ) )  continue;
                 
                 String propName = ann.name() != null ? ann.name() : convertFieldToPropName( field.getName() );
+                if( map.containsKey( propName ))  continue;
                 try {
                     map.put( propName, field.get( bean ) );
                 } catch( IllegalArgumentException | IllegalAccessException ex ){
@@ -114,6 +119,7 @@ public @interface Property {
                 
                 
                 String propName = ann.name() != null ? ann.name() : convertMethodToPropName( method.getName() );
+                if( map.containsKey( propName ))  continue;
                 try {
                     map.put( propName, method.invoke(bean));
                 } catch( IllegalAccessException | IllegalArgumentException | InvocationTargetException ex ) {
@@ -122,9 +128,15 @@ public @interface Property {
                     problems.add( ex2 );
                 }
             }
-            return map;
             
-        }
+            // Skip Object and primitive types.
+            if( cls.getSuperclass() == null || cls.getSuperclass().getSuperclass() == null )
+                return;
+            describeBean( bean, cls.getSuperclass(), map );
+            
+        }// describeBean();
+        
+        
         
         /**
          *  Converts "foo-bar" to "getFooBar()".
