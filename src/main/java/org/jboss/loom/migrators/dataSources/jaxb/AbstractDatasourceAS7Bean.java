@@ -118,249 +118,72 @@ public abstract class AbstractDatasourceAS7Bean{
 
 
 
-
-    public String getLinkedSecurity() {
-        return linkedSecurity;
-    }
-
-    public String getJndiName() {
-        return jndiName;
-    }
-
-    public String getEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(String enabled) {
-        this.enabled = enabled;
-    }
-
-    public void setJndiName(String jndiName) {
-        this.jndiName = jndiName;
-    }
-
-    public String getPoolName() {
-        return poolName;
-    }
-
-    public void setPoolName(String poolName) {
-        this.poolName = poolName;
-    }
-
-    public String getUseJavaContext() {
-        return useJavaContext;
-    }
-
-    public void setUseJavaContext(String useJavaContext) {
-        this.useJavaContext = useJavaContext;
-    }
-
-    public String getUrlDelimeter() {
-        return urlDelimeter;
-    }
-
-    public void setUrlDelimeter(String urlDelimeter) {
-        this.urlDelimeter = urlDelimeter;
-    }
-
-    public String getUrlSelector() {
-        return urlSelector;
-    }
-
-    public void setUrlSelector(String urlSelector) {
-        this.urlSelector = urlSelector;
-    }
-
-    public String getDriver() {
-        return driver;
-    }
-
-    public void setDriver(String driver) {
-        this.driver = driver;
-    }
-
-    public String getTransIsolation() {
-        return transIsolation;
-    }
-
-    public void setTransIsolation(String transIsolation) {
-        this.transIsolation = transIsolation;
-    }
-
-    public String getNewConnectionSql() {
-        return newConnectionSql;
-    }
-
-    public void setNewConnectionSql(String newConnectionSql) {
-        this.newConnectionSql = newConnectionSql;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getSecurityDomain() {
-        return securityDomain;
-    }
-
+    
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public String getLinkedSecurity() { return linkedSecurity; }
+    public String getJndiName() { return jndiName; }
+    public String getEnabled() { return enabled; }
+    public void setEnabled(String enabled) { this.enabled = enabled; }
+    public void setJndiName(String jndiName) { this.jndiName = jndiName; }
+    public String getPoolName() { return poolName; }
+    public void setPoolName(String poolName) { this.poolName = poolName; }
+    public String getUseJavaContext() { return useJavaContext; }
+    public void setUseJavaContext(String useJavaContext) { this.useJavaContext = useJavaContext; }
+    public String getUrlDelimeter() { return urlDelimeter; }
+    public void setUrlDelimeter(String urlDelimeter) { this.urlDelimeter = urlDelimeter; }
+    public String getUrlSelector() { return urlSelector; }
+    public void setUrlSelector(String urlSelector) { this.urlSelector = urlSelector; }
+    public String getDriver() { return driver; }
+    public void setDriver(String driver) { this.driver = driver; }
+    public String getTransIsolation() { return transIsolation; }
+    public void setTransIsolation(String transIsolation) { this.transIsolation = transIsolation; }
+    public String getNewConnectionSql() { return newConnectionSql; }
+    public void setNewConnectionSql(String newConnectionSql) { this.newConnectionSql = newConnectionSql; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+    public String getSecurityDomain() { return securityDomain; }
     public void setSecurityDomain(String securityDomain) {
         this.securityDomain = securityDomain;
         linkedSecurity = securityDomain;
     }
-
-    public String getBlockingTimeoutMillis() {
-        return blockingTimeoutMillis;
-    }
-
-    public void setBlockingTimeoutMillis(String blockingTimeoutMillis) {
-        this.blockingTimeoutMillis = blockingTimeoutMillis;
-    }
-
-    public String getIdleTimeoutMin() {
-        return idleTimeoutMin;
-    }
-
-    public void setIdleTimeoutMin(String idleTimeoutMin) {
-        this.idleTimeoutMin = idleTimeoutMin;
-    }
-
-    public String getSetTxQueryTimeout() {
-        return setTxQueryTimeout;
-    }
-
-    public void setSetTxQueryTimeout(String setTxQueryTimeout) {
-        this.setTxQueryTimeout = setTxQueryTimeout;
-    }
-
-    public String getQueryTimeout() {
-        return queryTimeout;
-    }
-
-    public void setQueryTimeout(String queryTimeout) {
-        this.queryTimeout = queryTimeout;
-    }
-
-    public String getAllocationRetry() {
-        return allocationRetry;
-    }
-
-    public void setAllocationRetry(String allocationRetry) {
-        this.allocationRetry = allocationRetry;
-    }
-
-    public String getAllocRetryWaitMillis() {
-        return allocRetryWaitMillis;
-    }
-
-    public void setAllocRetryWaitMillis(String allocRetryWaitMillis) {
-        this.allocRetryWaitMillis = allocRetryWaitMillis;
-    }
-
-    public String getUseTryLock() {
-        return useTryLock;
-    }
-
-    public void setUseTryLock(String useTryLock) {
-        this.useTryLock = useTryLock;
-    }
-
-    public String getCheckValidConSql() {
-        return checkValidConSql;
-    }
-
-    public void setCheckValidConSql(String checkValidConSql) {
-        this.checkValidConSql = checkValidConSql;
-    }
-
-    public String getValidateOnMatch() {
-        return validateOnMatch;
-    }
-
-    public void setValidateOnMatch(String validateOnMatch) {
-        this.validateOnMatch = validateOnMatch;
-    }
-
-    public String getBackgroundValid() {
-        return backgroundValid;
-    }
-
-    public void setBackgroundValid(String backgroundValid) {
-        this.backgroundValid = backgroundValid;
-    }
-
-    public String getBackgroundValidMin() {
-        return backgroundValidMin;
-    }
-
-    public void setBackgroundValidMin(String backgroundValidMin) {
-        this.backgroundValidMin = backgroundValidMin;
-    }
-
-    public String getUseFastFail() {
-        return useFastFail;
-    }
-
-    public void setUseFastFail(String useFastFail) {
-        this.useFastFail = useFastFail;
-    }
-
-    public String getExceptionSorter() {
-        return exceptionSorter;
-    }
-
-    public void setExceptionSorter(String exceptionSorter) {
-        this.exceptionSorter = exceptionSorter;
-    }
-
-    public String getValidConChecker() {
-        return validConChecker;
-    }
-
-    public void setValidConChecker(String validConChecker) {
-        this.validConChecker = validConChecker;
-    }
-
-    public String getStaleConChecker() {
-        return staleConChecker;
-    }
-
-    public void setStaleConChecker(String staleConChecker) {
-        this.staleConChecker = staleConChecker;
-    }
-
-    public String getPreStatementCacheSize() {
-        return preStatementCacheSize;
-    }
-
-    public void setPreStatementCacheSize(String preStatementCacheSize) {
-        this.preStatementCacheSize = preStatementCacheSize;
-    }
-
-    public String getTrackStatements() {
-        return trackStatements;
-    }
-
-    public void setTrackStatements(String trackStatements) {
-        this.trackStatements = trackStatements;
-    }
-
-    public String getSharePreStatements() {
-        return sharePreStatements;
-    }
-
-    public void setSharePreStatements(String sharePreStatements) {
-        this.sharePreStatements = sharePreStatements;
-    }
-}
+    public String getBlockingTimeoutMillis() { return blockingTimeoutMillis; }
+    public void setBlockingTimeoutMillis(String blockingTimeoutMillis) { this.blockingTimeoutMillis = blockingTimeoutMillis; }
+    public String getIdleTimeoutMin() { return idleTimeoutMin; }
+    public void setIdleTimeoutMin(String idleTimeoutMin) { this.idleTimeoutMin = idleTimeoutMin; }
+    public String getSetTxQueryTimeout() { return setTxQueryTimeout; }
+    public void setSetTxQueryTimeout(String setTxQueryTimeout) { this.setTxQueryTimeout = setTxQueryTimeout; }
+    public String getQueryTimeout() { return queryTimeout; }
+    public void setQueryTimeout(String queryTimeout) { this.queryTimeout = queryTimeout; }
+    public String getAllocationRetry() { return allocationRetry; }
+    public void setAllocationRetry(String allocationRetry) { this.allocationRetry = allocationRetry; }
+    public String getAllocRetryWaitMillis() { return allocRetryWaitMillis; }
+    public void setAllocRetryWaitMillis(String allocRetryWaitMillis) { this.allocRetryWaitMillis = allocRetryWaitMillis; }
+    public String getUseTryLock() { return useTryLock; }
+    public void setUseTryLock(String useTryLock) { this.useTryLock = useTryLock; }
+    public String getCheckValidConSql() { return checkValidConSql; }
+    public void setCheckValidConSql(String checkValidConSql) { this.checkValidConSql = checkValidConSql; }
+    public String getValidateOnMatch() { return validateOnMatch; }
+    public void setValidateOnMatch(String validateOnMatch) { this.validateOnMatch = validateOnMatch; }
+    public String getBackgroundValid() { return backgroundValid; }
+    public void setBackgroundValid(String backgroundValid) { this.backgroundValid = backgroundValid; }
+    public String getBackgroundValidMin() { return backgroundValidMin; }
+    public void setBackgroundValidMin(String backgroundValidMin) { this.backgroundValidMin = backgroundValidMin; }
+    public String getUseFastFail() { return useFastFail; }
+    public void setUseFastFail(String useFastFail) { this.useFastFail = useFastFail; }
+    public String getExceptionSorter() { return exceptionSorter; }
+    public void setExceptionSorter(String exceptionSorter) { this.exceptionSorter = exceptionSorter; }
+    public String getValidConChecker() { return validConChecker; }
+    public void setValidConChecker(String validConChecker) { this.validConChecker = validConChecker; }
+    public String getStaleConChecker() { return staleConChecker; }
+    public void setStaleConChecker(String staleConChecker) { this.staleConChecker = staleConChecker; }
+    public String getPreStatementCacheSize() { return preStatementCacheSize; }
+    public void setPreStatementCacheSize(String preStatementCacheSize) { this.preStatementCacheSize = preStatementCacheSize; }
+    public String getTrackStatements() { return trackStatements; }
+    public void setTrackStatements(String trackStatements) { this.trackStatements = trackStatements; }
+    public String getSharePreStatements() { return sharePreStatements; }
+    public void setSharePreStatements(String sharePreStatements) { this.sharePreStatements = sharePreStatements; }
+    //</editor-fold>
+    
+}// class
