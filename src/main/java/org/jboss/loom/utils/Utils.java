@@ -246,6 +246,7 @@ public class Utils {
     
     /**
      *  Extracts all String getters properties to a map.
+     *  @see also @Property.Utils.convert*()
      */
     public static Map<String, String> describeBean(IConfigFragment bean){
         

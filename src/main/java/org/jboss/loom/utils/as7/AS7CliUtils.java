@@ -352,21 +352,11 @@ public class AS7CliUtils {
     
     /**
      *  Converts "some-property-name" to "getSomePropertyName()".
+     *  
+     *  @deprecated  Use @Property.Utils.convertPropToMethodName().
      */
     public static String formatGetterName(String prop){
-        StringBuilder sb = new StringBuilder("get");
-        //String[] parts = StringUtils.split( prop, "-_");
-        boolean capNext = true;
-        for( int i = 0; i < prop.length(); i++ ) {
-            char ch = prop.charAt(i);
-            if( Character.isLetter( ch )){
-                sb.append( capNext ? Character.toUpperCase( ch ) : ch );
-                capNext = false;
-            }
-            else 
-                capNext = true;
-        }
-        return sb.toString();
+        return Property.Utils.convertPropToMethodName( prop );
     }
         
 }// class
