@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing connection-factories (AS5)
+ * JAXB bean for connection-factories (AS5)
  *
  * @author Roman Jakubco
  */

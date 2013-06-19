@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.security.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing module-option (AS7)
+ * JAXB bean for module-option (AS7)
  *
  * @author Roman Jakubco
  */

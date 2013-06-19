@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.dataSources.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing connection-property (AS5, AS7)
+ * JAXB bean for connection-property (AS5, AS7)
  *
  * @author Roman Jakubco
  */

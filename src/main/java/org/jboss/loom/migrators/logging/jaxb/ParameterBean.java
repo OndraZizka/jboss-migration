@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.logging.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for unmarshalling and representing parameter (AS5)
+ * JAXB bean for parameter (AS5)
  *
  * @author Roman Jakubco
  */

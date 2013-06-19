@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing custom-handler (AS7)
+ * JAXB bean for custom-handler (AS7)
  *
  * @author Roman Jakubco
  */

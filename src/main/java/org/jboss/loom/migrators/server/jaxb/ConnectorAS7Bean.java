@@ -12,7 +12,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing connector in AS7 (AS7)
+ * JAXB bean for connector in AS7 (AS7)
  *
  * @author Roman Jakubco
  * @deprecated  Should be read over Management API.

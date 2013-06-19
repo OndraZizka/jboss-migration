@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing security-domain (AS7)
+ * JAXB bean for security-domain (AS7)
  *
  * @author Roman Jakubco
  */

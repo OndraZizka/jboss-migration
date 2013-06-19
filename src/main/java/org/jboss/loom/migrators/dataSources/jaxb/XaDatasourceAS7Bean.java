@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing xa-datasource in AS7 (AS7)
+ * JAXB bean for xa-datasource in AS7 (AS7)
  *
  * @author Roman Jakubco
  */

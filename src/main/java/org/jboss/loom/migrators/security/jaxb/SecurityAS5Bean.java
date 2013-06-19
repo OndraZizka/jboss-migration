@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing security policy (AS5)
+ * JAXB bean for security policy (AS5)
  *
  * @author Roman Jakubco
  */

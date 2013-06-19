@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.security.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for unmarshalling and representing module-option (AS5)
+ * JAXB bean for module-option (AS5)
  *
  * @author Roman Jakubco
  */

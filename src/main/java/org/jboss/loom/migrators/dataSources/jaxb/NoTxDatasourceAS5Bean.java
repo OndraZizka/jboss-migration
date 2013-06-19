@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * Class for unmarshalling and representing no-tx-datasource (AS5)
+ * JAXB bean for no-tx-datasource (AS5)
  *
  * @author Roman Jakubco
  * 

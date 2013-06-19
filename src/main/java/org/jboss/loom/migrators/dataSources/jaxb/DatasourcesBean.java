@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing datasources (AS5)
+ * JAXB bean for datasources (AS5)
  *
  * @author Roman Jakubco
  */

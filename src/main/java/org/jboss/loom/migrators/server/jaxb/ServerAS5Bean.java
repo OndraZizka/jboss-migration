@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing server (AS5)
+ * JAXB bean for server (AS5)
  *
  * @author Roman Jakubco
  */

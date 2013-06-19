@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.logging.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing property (AS7)
+ * JAXB bean for property (AS7)
  *
  * @author Roman Jakubco
  */

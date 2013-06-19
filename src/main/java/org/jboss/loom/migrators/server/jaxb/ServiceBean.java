@@ -14,7 +14,7 @@ import java.util.Set;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
- * Class for unmarshalling and representing service (AS5)
+ * JAXB bean for service (AS5)
  *
  * @author Roman Jakubco
  */

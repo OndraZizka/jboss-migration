@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing xa-datasource in AS5 (AS5)
+ * JAXB bean for xa-datasource in AS5 (AS5)
  *
  * @author Roman Jakubco
  */

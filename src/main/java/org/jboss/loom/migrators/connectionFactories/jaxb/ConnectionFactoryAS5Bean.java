@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.*;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
- * Class for unmarshalling and representing tx-connection-factory (AS5)
+ * JAXB bean for tx-connection-factory (AS5)
  *
  * @author Roman Jakubco
  */

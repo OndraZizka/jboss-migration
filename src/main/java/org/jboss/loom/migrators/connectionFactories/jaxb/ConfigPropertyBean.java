@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.connectionFactories.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for unmarshalling and representing of config-property (AS5, AS7)
+ * JAXB bean for of config-property (AS5, AS7)
  *
  * @author Roman Jakubco
  */

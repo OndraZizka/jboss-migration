@@ -17,7 +17,7 @@ import org.jboss.loom.migrators.OriginWiseJaxbBase;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
- * Class for unmarshalling and representing application-policy (AS5)
+ * JAXB bean for application-policy (AS5)
  *
  * @author Roman Jakubco
  */

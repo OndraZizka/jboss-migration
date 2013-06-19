@@ -17,7 +17,7 @@ import java.util.Set;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
 
 /**
- * Class for unmarshalling and representing logging configuration (AS5)
+ * JAXB bean for logging configuration (AS5)
  *
  * @author Roman Jakubco
  */

@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing virtual-server (AS)
+ * JAXB bean for virtual-server (AS)
  *
  * @author Roman Jakubco
  */

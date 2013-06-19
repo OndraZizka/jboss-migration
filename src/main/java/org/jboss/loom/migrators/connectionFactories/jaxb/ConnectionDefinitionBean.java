@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling/unmarshalling and representing connection-definition ( AS7)
+ * JAXB bean for connection-definition ( AS7)
  *
  * @author Roman Jakubco
  */

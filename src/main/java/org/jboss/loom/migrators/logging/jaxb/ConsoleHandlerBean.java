@@ -11,7 +11,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing console-handler (AS7)
+ * JAXB bean for console-handler (AS7)
  *
  * @author Roman Jakubco
  */

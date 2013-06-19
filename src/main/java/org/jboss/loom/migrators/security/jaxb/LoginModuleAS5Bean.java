@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for unmarshalling and representing login-module (AS5)
+ * JAXB bean for login-module (AS5)
  *
  * @author Roman Jakubco
  */

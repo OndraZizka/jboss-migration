@@ -22,7 +22,7 @@ import org.jboss.loom.migrators.OriginWiseJaxbBase;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
- * Class for unmarshalling and representing category (AS5)
+ * JAXB bean for category (AS5)
  *
  * @author Roman Jakubco
  */

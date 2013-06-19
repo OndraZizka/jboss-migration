@@ -10,7 +10,7 @@ package org.jboss.loom.migrators.server.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * Class for marshalling and representing socket-binding (AS7)
+ * JAXB bean for socket-binding (AS7)
  *
  * @author Roman Jakubco
  */

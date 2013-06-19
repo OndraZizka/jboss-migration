@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**
- * Class for unmarshalling and representing local-tx-datasource (AS5)
+ * JAXB bean for local-tx-datasource (AS5)
  *
  * @author Roman Jakubco
  */

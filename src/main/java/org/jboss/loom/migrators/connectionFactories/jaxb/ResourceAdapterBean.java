@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing resource-adapter (AS7)
+ * JAXB bean for resource-adapter (AS7)
  *
  * @author Roman Jakubco
  */

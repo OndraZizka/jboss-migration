@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Class for marshalling and representing async-handler  (AS7)
+ * JAXB bean for async-handler  (AS7)
  *
  * @author Roman Jakubco
  */
