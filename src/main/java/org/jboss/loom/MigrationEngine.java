@@ -261,9 +261,9 @@ public class MigrationEngine {
                     message = "Verification of migration actions results failed.";
                     this.postValidateActions();
                 }
+                message = "Cleaning backups of migration actions failed.";
             }
             finally {
-                message = "Cleaning backups of migration actions failed.";
                 this.cleanBackupsIfAny();
             }
             
