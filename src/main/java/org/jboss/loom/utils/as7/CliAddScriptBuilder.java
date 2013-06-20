@@ -9,6 +9,7 @@ package org.jboss.loom.utils.as7;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -26,6 +27,12 @@ public class CliAddScriptBuilder {
     public void addProperty(String property, String value) {
         if( value == null || value.isEmpty() )  return;
         this.properties.add( property + "=" + value);
+    }
+    
+    public void addProperties( Map<String,String> props ){
+        for( Map.Entry<String, String> en : props.entrySet() ) {
+            addProperty( en.getKey(), en.getValue() );
+        }
     }
 
     /**

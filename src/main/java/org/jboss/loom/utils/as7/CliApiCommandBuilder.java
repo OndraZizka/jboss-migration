@@ -8,6 +8,7 @@
 package org.jboss.loom.utils.as7;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.ex.MigrationException;
@@ -41,6 +42,12 @@ public class CliApiCommandBuilder {
         if( value == null || value.isEmpty() )
             value = default_;
         this.command.get(property).set(value);
+    }
+    
+    public void addPropertiesIfSet( Map<String, String> props ){
+        for( Map.Entry<String, String> entry : props.entrySet() ) {
+            addPropertyIfSet( entry.getKey(), entry.getValue() );
+        }
     }
 
     public ModelNode getCommand() {
