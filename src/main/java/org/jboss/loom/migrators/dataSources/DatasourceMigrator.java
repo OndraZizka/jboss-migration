@@ -372,7 +372,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
 
         return new CliCommandAction( DatasourceMigrator.class, 
-                createDatasourceScriptNew(datasource), 
+                createDatasourceScript(datasource), 
                 createDatasourceModelNode(datasource) );
     }
 
@@ -406,7 +406,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @deprecated  This should be buildable from the ModelNode.
      *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
-    private static String createDatasourceScriptNew(DatasourceAS7Bean dsAS7) throws CliScriptException {
+    private static String createDatasourceScript(DatasourceAS7Bean dsAS7) throws CliScriptException {
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder("data-source add ");
@@ -487,7 +487,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         List<CliCommandAction> actions = new LinkedList();
         actions.add( new CliCommandAction( DatasourceMigrator.class, 
-                createXaDatasourceScriptNew(ds),
+                createXaDatasourceScript(ds),
                 createXaDatasourceModelNode(ds)));
 
         // Properties
@@ -541,9 +541,9 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @deprecated  This should be buildable from the ModelNode.
      *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
-    private static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xadsAS7) throws CliScriptException {
+    private static String createXaDatasourceScript(XaDatasourceAS7Bean xadsAS7) throws CliScriptException {
         
-        String errMsg = " in xaDatasource must be set.";
+        String errMsg = " in XA datasource must be set.";
         Utils.throwIfBlank(xadsAS7.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(xadsAS7.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(xadsAS7.getDriver(), errMsg, "Driver name");
