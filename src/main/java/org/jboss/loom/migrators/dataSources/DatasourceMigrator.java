@@ -47,6 +47,8 @@ import org.jboss.loom.utils.XmlUtils;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
+ * 
+ *   WARNING: This is the worst written migrator. DO NOT use it as inspiration for your migrator.
  *
  * @author Roman Jakubco
  */
