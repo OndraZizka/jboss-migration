@@ -377,25 +377,27 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     private static ModelNode createDatasourceModelNode( DatasourceAS7Bean ds ){
+        // TODO: Use @Property(...) and get values automatically.
+        
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
         request.get(ClientConstants.OP_ADDR).add("data-source", ds.getPoolName());
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
-        builder.addPropertyIfSet("jndi-name", ds.getJndiName());
-        builder.addPropertyIfSet("driver-name", ds.getDriver());
-        builder.addPropertyIfSet("enabled", "true"); // TODO: Try if this property works
-        builder.addPropertyIfSet("connection-url", ds.getConnectionUrl());
-        
-        // NOT TODO: Refactor to be able to use addDatasourceProperties(builder, ds);
-        // TODO: Introduce @Eap6CliProperty(["allocation-retry"]) and get values automatically.
         Map<String, String> props = new HashMap();
+        
+        props.put("jndi-name", ds.getJndiName());
+        props.put("driver-name", ds.getDriver());
+        props.put("enabled", "true"); // TODO: Try if this property works
+        props.put("connection-url", ds.getConnectionUrl());
+        
         fillDatasourcePropertiesMap( props, ds );
-        builder.addPropertiesIfSet( props );
 
         // Non-XA specific
-        builder.addPropertyIfSet( "jta", ds.getJta());
+        props.put( "jta", ds.getJta());
+
+        builder.addPropertiesIfSet( props );
         
         return builder.getCommand();
     }
@@ -406,31 +408,33 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @deprecated  This should be buildable from the ModelNode.
      *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
-    private static String createDatasourceScript(DatasourceAS7Bean dsAS7) throws CliScriptException {
+    private static String createDatasourceScript(DatasourceAS7Bean ds) throws CliScriptException {
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("data-source add ");
-
-        builder.addProperty("name", dsAS7.getPoolName());
-        builder.addProperty("driver-name", dsAS7.getDriver());
-        builder.addProperty("jndi-name", dsAS7.getJndiName());
-        builder.addProperty("connection-url", dsAS7.getConnectionUrl());
-
+        StringBuilder sb = new StringBuilder("data-source add ");
+        
         // TODO: BeanUtils.copyProperties?
+
         Map<String, String> props = new HashMap();
-        fillDatasourcePropertiesMap( props, dsAS7 );
-        builder.addProperties( props );
+
+        props.put("name", ds.getPoolName());
+        props.put("jndi-name", ds.getJndiName());
+        props.put("driver-name", ds.getDriver());
+        props.put("connection-url", ds.getConnectionUrl());
+
+        fillDatasourcePropertiesMap( props, ds );
 
         // Non-XA specific
-        builder.addProperty("jta", dsAS7.getJta());
+        props.put("jta", ds.getJta());
         
-        resultScript.append(builder.formatAndClearProps());
+        builder.addProperties( props );
+        sb.append(builder.formatAndClearProps());
         
         // TODO: Not sure whether to enabled the datasource .
         //resultScript.append("\n");
         //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
 
-        return resultScript.toString();
+        return sb.toString();
     }
     
     
@@ -511,22 +515,22 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
 
-        builder.addPropertyIfSet("jndi-name", ds.getJndiName());
-        builder.addPropertyIfSet("driver-name", ds.getDriver());
-        
         // TODO: Doesn't have connection-url???
-        // TODO: Most are the same as for non-XA. Refactor.
         // TODO: BeanUtils.copyProperties?
         Map<String,String> props = new HashMap();
+
+        props.put("jndi-name", ds.getJndiName());
+        props.put("driver-name", ds.getDriver());
+        
         fillDatasourcePropertiesMap( props, ds );
-        builder.addPropertiesIfSet( props );
         
         // XA specific
-        builder.addPropertyIfSet("interleaving", ds.getInterleaving());
-        builder.addPropertyIfSet("is-same-rm-override", ds.getSameRmOverride());
-        builder.addPropertyIfSet("no-tx-separate-pools", ds.getNoTxSeparatePools());
-        builder.addPropertyIfSet("xa-resource-timeout", ds.getXaResourceTimeout());
+        props.put("interleaving", ds.getInterleaving());
+        props.put("is-same-rm-override", ds.getSameRmOverride());
+        props.put("no-tx-separate-pools", ds.getNoTxSeparatePools());
+        props.put("xa-resource-timeout", ds.getXaResourceTimeout());
 
+        builder.addPropertiesIfSet( props );
         return builder.getCommand();
     }
     
@@ -549,30 +553,30 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(xadsAS7.getDriver(), errMsg, "Driver name");
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("xa-data-source add ");
+        StringBuilder sb = new StringBuilder("xa-data-source add ");
+        Map<String, String> props = new HashMap();
 
-        builder.addProperty("name", xadsAS7.getPoolName());
-        builder.addProperty("jndi-name", xadsAS7.getJndiName());
-        builder.addProperty("driver-name", xadsAS7.getDriver());
+        props.put("name", xadsAS7.getPoolName());
+        props.put("jndi-name", xadsAS7.getJndiName());
+        props.put("driver-name", xadsAS7.getDriver());
 
         // TODO: Doesn't have connection-url???
-        Map<String, String> props = new HashMap();
         fillDatasourcePropertiesMap( props, xadsAS7 );
-        builder.addProperties( props );
 
         // XA specific
-        builder.addProperty("interleaving", xadsAS7.getInterleaving());
-        builder.addProperty("is-same-rm-override", xadsAS7.getSameRmOverride());
-        builder.addProperty("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
-        builder.addProperty("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
+        props.put("interleaving", xadsAS7.getInterleaving());
+        props.put("is-same-rm-override", xadsAS7.getSameRmOverride());
+        props.put("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
+        props.put("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
         
-        resultScript.append(builder.formatAndClearProps());
-        //resultScript.append("\n");
+        builder.addProperties( props );
+        sb.append(builder.formatAndClearProps());
 
         // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
+        //resultScript.append("\n");
         //resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
 
-        return resultScript.toString();
+        return sb.toString();
     }
     
     
@@ -618,12 +622,12 @@ public class DatasourceMigrator extends AbstractMigrator {
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
 
-        StringBuilder resultScript = new StringBuilder();
-        resultScript.append("/subsystem=datasources/xa-data-source=").append(datasource.getPoolName());
-        resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
-        resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
+        StringBuilder sb = new StringBuilder();
+        sb.append("/subsystem=datasources/xa-data-source=").append(datasource.getPoolName());
+        sb.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
+        sb.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
 
-        return resultScript.toString();
+        return sb.toString();
     }
 
     
@@ -654,14 +658,14 @@ public class DatasourceMigrator extends AbstractMigrator {
         request.get(ClientConstants.OP_ADDR).add("jdbc-driver", driver.getDriverModule()); // getDriverName()
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(request);
-
-        builder.addPropertyIfSet("driver-name", driver.getDriverModule());
-        builder.addPropertyIfSet("driver-module-name", driver.getDriverModule());
-        builder.addPropertyIfSet("driver-class-name", driver.getDriverClass());
-        builder.addPropertyIfSet("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
-        builder.addPropertyIfSet("driver-major-version", driver.getMajorVersion());
-        builder.addPropertyIfSet("driver-minor-version", driver.getMinorVersion());
-        
+        Map<String,String> props = new HashMap();
+        props.put("driver-name", driver.getDriverModule());
+        props.put("driver-module-name", driver.getDriverModule());
+        props.put("driver-class-name", driver.getDriverClass());
+        props.put("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+        props.put("driver-major-version", driver.getMajorVersion());
+        props.put("driver-minor-version", driver.getMinorVersion());
+        builder.addPropertiesIfSet( props );
         return builder.getCommand();
     }    
     
@@ -682,21 +686,21 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("/subsystem=datasources/jdbc-driver=");
-
-        resultScript.append(driver.getDriverName()).append(":add(");
-        resultScript.append("driver-module-name=").append(driver.getDriverModule()).append(", ");
-
-        builder.addProperty("driver-class-name", driver.getDriverClass());
-        builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
-        builder.addProperty("driver-major-version", driver.getMajorVersion());
-        builder.addProperty("driver-minor-version", driver.getMinorVersion());
-
-        resultScript.append(builder.formatAndClearProps()).append(")");
-
-        return resultScript.toString();
+        StringBuilder sb = new StringBuilder("/subsystem=datasources");
+        sb.append("/jdbc-driver=").append(driver.getDriverName());
+        sb.append(":add(");
+        //sb.append("driver-module-name=").append(driver.getDriverModule()).append(", ");
+        
+        Map<String,String> props = new HashMap();
+        props.put("driver-module-name", driver.getDriverModule());
+        props.put("driver-class-name", driver.getDriverClass());
+        props.put("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
+        props.put("driver-major-version", driver.getMajorVersion());
+        props.put("driver-minor-version", driver.getMinorVersion());
+        builder.addProperties( props );
+        
+        sb.append(builder.formatAndClearProps()).append(")");
+        return sb.toString();
     }
-
-
     
 }// class
