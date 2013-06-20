@@ -391,36 +391,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // NOT TODO: Refactor to be able to use addDatasourceProperties(builder, ds);
         // TODO: Introduce @Eap6CliProperty(["allocation-retry"]) and get values automatically.
         Map<String, String> props = new HashMap();
-        props.put("allocation-retry", ds.getAllocationRetry());
-        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
-        props.put("background-validation", ds.getBackgroundValid());
-        props.put("background-validation-minutes", ds.getBackgroundValidMin());
-        props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
-        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
-        props.put("exception-sorter-class-name", ds.getExceptionSorter());
-        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
-        props.put("max-pool-size", ds.getMaxPoolSize());
-        props.put("min-pool-size", ds.getMinPoolSize());
-        props.put("new-connection-sql", ds.getNewConnectionSql());
-        props.put("password", ds.getPassword());
-        props.put("prefill", ds.getPrefill());
-        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
-        props.put("query-timeout", ds.getQueryTimeout());
-        props.put("security-domain", ds.getSecurityDomain());
-        props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
-        props.put("share-prepared-statements", ds.getSharePreStatements());
-        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
-        props.put("track-statements", ds.getTrackStatements());
-        props.put("transaction-isolation", ds.getTransIsolation());
-        props.put("url-delimeter", ds.getUrlDelimeter());
-        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
-        props.put("use-fast-fail", ds.getUseFastFail());
-        props.put("use-java-context", ds.getUseJavaContext());
-        props.put("use-try-lock", ds.getUseTryLock());
-        props.put("user-name", ds.getUserName());
-        props.put("valid-connection-checker-class-name", ds.getValidateOnMatch());
-        props.put("validate-on-match", ds.getValidateOnMatch());
-        
+        fillDatasourcePropertiesMap( props, ds );
         builder.addPropertiesIfSet( props );
 
         // Non-XA specific
@@ -611,7 +582,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         StringBuilder resultScript = new StringBuilder("/subsystem=datasources/jdbc-driver=");
 
         resultScript.append(driver.getDriverName()).append(":add(");
-        resultScript.append("driver-module-name=").append(driver.getDriverModule() + ", ");
+        resultScript.append("driver-module-name=").append(driver.getDriverModule()).append(", ");
 
         builder.addProperty("driver-class-name", driver.getDriverClass());
         builder.addProperty("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
