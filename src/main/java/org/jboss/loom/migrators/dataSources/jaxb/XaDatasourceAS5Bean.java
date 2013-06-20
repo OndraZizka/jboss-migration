@@ -47,63 +47,24 @@ public class XaDatasourceAS5Bean extends AbstractDatasourceAS5Bean {
 
 
 
-    public String getXaDatasourceClass() {
-        return xaDatasourceClass;
-    }
-
-    public void setXaDatasourceClass(String xaDatasourceClass) {
-        this.xaDatasourceClass = xaDatasourceClass;
-    }
-
-    public Collection<XaDatasourcePropertyBean> getXaDatasourceProps() {
-        return xaDatasourceProps;
-    }
-
+    public String getXaDatasourceClass() { return xaDatasourceClass; }
+    public void setXaDatasourceClass(String xaDatasourceClass) { this.xaDatasourceClass = xaDatasourceClass; }
+    public Collection<XaDatasourcePropertyBean> getXaDatasourceProps() { return xaDatasourceProps; }
     public void setXaDatasourceProps(Collection<XaDatasourcePropertyBean> xaDatasourceProps) {
         Set<XaDatasourcePropertyBean> temp = new HashSet();
         temp.addAll(xaDatasourceProps);
         this.xaDatasourceProps = temp;
     }
+    public String getSameRM() { return isSameRM; }
+    public void setSameRM(String sameRM) { isSameRM = sameRM; }
+    public String getInterleaving() { return interleaving; }
+    public void setInterleaving(String interleaving) { this.interleaving = interleaving; }
+    public String getNoTxSeparatePools() { return noTxSeparatePools; }
+    public void setNoTxSeparatePools(String noTxSeparatePools) { this.noTxSeparatePools = noTxSeparatePools; }
+    public String getXaResourceTimeout() { return xaResourceTimeout; }
+    public void setXaResourceTimeout(String xaResourceTimeout) { this.xaResourceTimeout = xaResourceTimeout; }
+    
+    public String getTransIsolation() { return transIsolation; }
+    public void setTransIsolation(String transIsolation) { this.transIsolation = transIsolation; }
 
-
-    public String getSameRM() {
-        return isSameRM;
-    }
-
-    public void setSameRM(String sameRM) {
-        isSameRM = sameRM;
-    }
-
-    public String getInterleaving() {
-        return interleaving;
-    }
-
-    public void setInterleaving(String interleaving) {
-        this.interleaving = interleaving;
-    }
-
-    public String getNoTxSeparatePools() {
-        return noTxSeparatePools;
-    }
-
-    public void setNoTxSeparatePools(String noTxSeparatePools) {
-        this.noTxSeparatePools = noTxSeparatePools;
-    }
-
-    public String getXaResourceTimeout() {
-        return xaResourceTimeout;
-    }
-
-    public void setXaResourceTimeout(String xaResourceTimeout) {
-        this.xaResourceTimeout = xaResourceTimeout;
-    }
-
-    public String getTransIsolation() {
-        return transIsolation;
-    }
-
-    public void setTransIsolation(String transIsolation) {
-        this.transIsolation = transIsolation;
-    }
-
-}
+}// class
