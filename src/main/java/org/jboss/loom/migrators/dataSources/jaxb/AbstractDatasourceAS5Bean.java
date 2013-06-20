@@ -27,7 +27,7 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     private String urlDelimeter;
 
     @XmlElement(name = "url-selector-strategy-class-name")
-    private String urlSelectStratClName;
+    private String urlSelectStrategyClassName;
 
     @XmlElement(name = "driver-class")
     private String driverClass;
@@ -54,7 +54,7 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     private String securityDomain;
 
     @XmlElement(name = "blocking-timeout-millis")
-    private String blockingTimeMillis;
+    private String blockingTimeoutMillis;
 
     @XmlElement(name = "idle-timeout-minutes")
     private String idleTimeoutMin;
@@ -69,22 +69,22 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     private String allocationRetry;
 
     @XmlElement(name = "allocation-retry-wait-millis")
-    private String allocRetryWaitMillis;
+    private String allocationRetryWaitMillis;
 
     @XmlElement(name = "use-try-lock")
     private String useTryLock;
 
     @XmlElement(name = "check-valid-connection-sql")
-    private String checkValidConSql;
+    private String checkValidConnectionSql;
 
     @XmlElement(name = "validate-on-match")
     private String validateOnMatch;
 
     @XmlElement(name = "background-validation")
-    private String backgroundValid;
+    private String backgroundValidation;
 
     @XmlElement(name = "background-validation-millis")
-    private String backgroundValidMillis;
+    private String backgroundValidationMillis;
 
     @XmlElement(name = "exception-sorter-class-name")
     private String excepSorterClName;
@@ -93,19 +93,19 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     private String validConCheckerClName;
 
     @XmlElement(name = "stale-connection-checker-class-name")
-    private String staleConCheckerClName;
+    private String staleConnectionCheckerClassName;
 
     @XmlElement(name = "prepared-statement-cache-size")
-    private String preStatementCacheSize;
+    private String preparedStatementCacheSize;
 
     @XmlElement(name = "track-statements")
     private String trackStatements;
 
     @XmlElement(name = "share-prepared-statements")
-    private String sharePreStatements;
+    private String sharePreparedStatements;
 
     @XmlElement(name = "transaction-isolation")
-    private String transIsolation;
+    private String transactionIsolation;
 
     @XmlElement(name = "connection-url")
     private String connectionUrl;
@@ -115,8 +115,8 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     private List<ConnectionPropertyBean> connectionProperties;
 
 
-    public String getTransIsolation() { return transIsolation; }
-    public void setTransIsolation(String transIsolation) { this.transIsolation = transIsolation; }
+    public String getTransIsolation() { return transactionIsolation; }
+    public void setTransIsolation(String transIsolation) { this.transactionIsolation = transIsolation; }
     public String getConnectionUrl() { return connectionUrl; }
     public void setConnectionUrl(String connectionUrl) { this.connectionUrl = connectionUrl; }
     public List<ConnectionPropertyBean> getConnectionProperties() { return connectionProperties; }
@@ -129,8 +129,8 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     public void setUseJavaContext(String useJavaContext) { this.useJavaContext = useJavaContext; }
     public String getUrlDelimeter() { return urlDelimeter; }
     public void setUrlDelimeter(String urlDelimeter) { this.urlDelimeter = urlDelimeter; }
-    public String getUrlSelectStratClName() { return urlSelectStratClName; }
-    public void setUrlSelectStratClName(String urlSelectStratClName) { this.urlSelectStratClName = urlSelectStratClName; }
+    public String getUrlSelectStratClName() { return urlSelectStrategyClassName; }
+    public void setUrlSelectStratClName(String urlSelectStratClName) { this.urlSelectStrategyClassName = urlSelectStratClName; }
     public String getDriverClass() { return driverClass; }
     public void setDriverClass(String driverClass) { this.driverClass = driverClass; }
     public String getNewConnectionSql() { return newConnectionSql; }
@@ -147,8 +147,8 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     public void setPassword(String password) { this.password = password; }
     public String getSecurityDomain() { return securityDomain; }
     public void setSecurityDomain(String securityDomain) { this.securityDomain = securityDomain; }
-    public String getBlockingTimeMillis() { return blockingTimeMillis; }
-    public void setBlockingTimeMillis(String blockingTimeMillis) { this.blockingTimeMillis = blockingTimeMillis; }
+    public String getBlockingTimeMillis() { return blockingTimeoutMillis; }
+    public void setBlockingTimeMillis(String blockingTimeMillis) { this.blockingTimeoutMillis = blockingTimeMillis; }
     public String getIdleTimeoutMin() { return idleTimeoutMin; }
     public void setIdleTimeoutMin(String idleTimeoutMin) { this.idleTimeoutMin = idleTimeoutMin; }
     public String getSetTxQueryTime() { return setTxQueryTime; }
@@ -157,29 +157,29 @@ public abstract class AbstractDatasourceAS5Bean implements IConfigFragment {
     public void setQueryTimeout(String queryTimeout) { this.queryTimeout = queryTimeout; }
     public String getAllocationRetry() { return allocationRetry; }
     public void setAllocationRetry(String allocationRetry) { this.allocationRetry = allocationRetry; }
-    public String getAllocRetryWaitMillis() { return allocRetryWaitMillis; }
-    public void setAllocRetryWaitMillis(String allocRetryWaitMillis) { this.allocRetryWaitMillis = allocRetryWaitMillis; }
+    public String getAllocRetryWaitMillis() { return allocationRetryWaitMillis; }
+    public void setAllocRetryWaitMillis(String allocRetryWaitMillis) { this.allocationRetryWaitMillis = allocRetryWaitMillis; }
     public String getUseTryLock() { return useTryLock; }
     public void setUseTryLock(String useTryLock) { this.useTryLock = useTryLock; }
-    public String getCheckValidConSql() { return checkValidConSql; }
-    public void setCheckValidConSql(String checkValidConSql) { this.checkValidConSql = checkValidConSql; }
+    public String getCheckValidConSql() { return checkValidConnectionSql; }
+    public void setCheckValidConSql(String checkValidConSql) { this.checkValidConnectionSql = checkValidConSql; }
     public String getValidateOnMatch() { return validateOnMatch; }
     public void setValidateOnMatch(String validateOnMatch) { this.validateOnMatch = validateOnMatch; }
-    public String getBackgroundValid() { return backgroundValid; }
-    public void setBackgroundValid(String backgroundValid) { this.backgroundValid = backgroundValid; }
-    public String getBackgroundValidMillis() { return backgroundValidMillis; }
-    public void setBackgroundValidMillis(String backgroundValidMillis) { this.backgroundValidMillis = backgroundValidMillis; }
+    public String getBackgroundValid() { return backgroundValidation; }
+    public void setBackgroundValid(String backgroundValid) { this.backgroundValidation = backgroundValid; }
+    public String getBackgroundValidMillis() { return backgroundValidationMillis; }
+    public void setBackgroundValidMillis(String backgroundValidMillis) { this.backgroundValidationMillis = backgroundValidMillis; }
     public String getExcepSorterClName() { return excepSorterClName; }
     public void setExcepSorterClName(String excepSorterClName) { this.excepSorterClName = excepSorterClName; }
     public String getValidConCheckerClName() { return validConCheckerClName; }
     public void setValidConCheckerClName(String validConCheckerClName) { this.validConCheckerClName = validConCheckerClName; }
-    public String getStaleConCheckerClName() { return staleConCheckerClName; }
-    public void setStaleConCheckerClName(String staleConCheckerClName) { this.staleConCheckerClName = staleConCheckerClName; }
-    public String getPreStatementCacheSize() { return preStatementCacheSize; }
-    public void setPreStatementCacheSize(String preStatementCacheSize) { this.preStatementCacheSize = preStatementCacheSize; }
+    public String getStaleConCheckerClName() { return staleConnectionCheckerClassName; }
+    public void setStaleConCheckerClName(String staleConCheckerClName) { this.staleConnectionCheckerClassName = staleConCheckerClName; }
+    public String getPreStatementCacheSize() { return preparedStatementCacheSize; }
+    public void setPreStatementCacheSize(String preStatementCacheSize) { this.preparedStatementCacheSize = preStatementCacheSize; }
     public String getTrackStatements() { return trackStatements; }
     public void setTrackStatements(String trackStatements) { this.trackStatements = trackStatements; }
-    public String getSharePreStatements() { return sharePreStatements; }
-    public void setSharePreStatements(String sharePreStatements) { this.sharePreStatements = sharePreStatements; }
+    public String getSharePreStatements() { return sharePreparedStatements; }
+    public void setSharePreStatements(String sharePreStatements) { this.sharePreparedStatements = sharePreStatements; }
     //</editor-fold>
 }
