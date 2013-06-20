@@ -341,9 +341,6 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     /**
      * Sets specific attributes for Datasource
-     *
-     * @param datasourceAS7 datasource from AS7 for setting attributes
-     * @param  dsAS5 datasource from AS5 for getting attributes
      */
     private static void setDatasourceProps(DatasourceAS7Bean datasourceAS7, AbstractDatasourceAS5Bean dsAS5){
         datasourceAS7.setJta( ( dsAS5 instanceof NoTxDatasourceAS5Bean) ? "false" : "true");
@@ -357,22 +354,15 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     /**
      * Creates CliCommandAction for adding a Datasource
-     *
-     * @param datasource Datasource for adding
-     * @return  created CliCommandAction for adding the Datasource
-     * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
-     *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
-    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean datasource) throws CliScriptException {
+    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean ds) throws CliScriptException {
         String errMsg = " in datasource must be set.";
-        Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(datasource.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
-        Utils.throwIfBlank(datasource.getConnectionUrl(), errMsg, "Connection url");
+        validateDatasource( ds, errMsg);
+        Utils.throwIfBlank( ds.getConnectionUrl(), errMsg, "Connection url");
 
         return new CliCommandAction( DatasourceMigrator.class, 
-                createDatasourceScript(datasource), 
-                createDatasourceModelNode(datasource) );
+                createDatasourceScript(ds), 
+                createDatasourceModelNode(ds) );
     }
 
     private static ModelNode createDatasourceModelNode( DatasourceAS7Bean ds ){
@@ -483,9 +473,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      */
     private static List<CliCommandAction> createXaDatasourceCliActions(XaDatasourceAS7Bean ds) throws CliScriptException {
         String errMsg = " in XA datasource must be set.";
-        Utils.throwIfBlank( ds.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank( ds.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank( ds.getDriver(), errMsg, "Driver name");
+        validateDatasource( ds, errMsg);
 
         List<CliCommandAction> actions = new LinkedList();
         actions.add( new CliCommandAction( DatasourceMigrator.class, 
@@ -543,29 +531,27 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @deprecated  This should be buildable from the ModelNode.
      *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
-    private static String createXaDatasourceScript(XaDatasourceAS7Bean xadsAS7) throws CliScriptException {
+    private static String createXaDatasourceScript(XaDatasourceAS7Bean ds) throws CliScriptException {
         
         String errMsg = " in XA datasource must be set.";
-        Utils.throwIfBlank(xadsAS7.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(xadsAS7.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(xadsAS7.getDriver(), errMsg, "Driver name");
+        validateDatasource( ds, errMsg);
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder sb = new StringBuilder("xa-data-source add ");
         Map<String, String> props = new HashMap();
 
-        props.put("name", xadsAS7.getPoolName());
-        props.put("jndi-name", xadsAS7.getJndiName());
-        props.put("driver-name", xadsAS7.getDriver());
+        props.put("name", ds.getPoolName());
+        props.put("jndi-name", ds.getJndiName());
+        props.put("driver-name", ds.getDriver());
 
         // TODO: Doesn't have connection-url???
-        fillDatasourcePropertiesMap( props, xadsAS7 );
+        fillDatasourcePropertiesMap( props, ds );
 
         // XA specific
-        props.put("interleaving", xadsAS7.getInterleaving());
-        props.put("is-same-rm-override", xadsAS7.getSameRmOverride());
-        props.put("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
-        props.put("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
+        props.put("interleaving", ds.getInterleaving());
+        props.put("is-same-rm-override", ds.getSameRmOverride());
+        props.put("no-tx-separate-pools", ds.getNoTxSeparatePools());
+        props.put("xa-resource-timeout", ds.getXaResourceTimeout());
         
         builder.addProperties( props );
         sb.append(builder.formatAndClearProps());
@@ -698,6 +684,12 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         sb.append(builder.formatAndClearProps()).append(")");
         return sb.toString();
+    }
+    
+    private static void validateDatasource( AbstractDatasourceAS7Bean datasource, String errMsg ) throws CliScriptException {
+        Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
+        Utils.throwIfBlank(datasource.getJndiName(), errMsg, "Jndi-name");
+        Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
     }
     
 }// class
