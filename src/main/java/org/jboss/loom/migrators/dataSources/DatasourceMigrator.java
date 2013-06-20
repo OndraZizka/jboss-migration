@@ -430,39 +430,6 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
     
 
-    private static void fillDatasourcePropsMap( Map<String, String> props, XaDatasourceAS7Bean ds ) {
-        props.put("allocation-retry", ds.getAllocationRetry());
-        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
-        props.put("background-validation", ds.getBackgroundValid());
-        props.put("background-validation-minutes", ds.getBackgroundValidMin());
-        props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
-        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
-        props.put("exception-sorter-class-name", ds.getExceptionSorter());
-        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
-        props.put("max-pool-size", ds.getMaxPoolSize());
-        props.put("min-pool-size", ds.getMinPoolSize());
-        props.put("new-connection-sql", ds.getNewConnectionSql());
-        props.put("password", ds.getPassword());
-        props.put("prefill", ds.getPrefill());
-        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
-        props.put("query-timeout", ds.getQueryTimeout());
-        props.put("security-domain", ds.getSecurityDomain());
-        props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
-        props.put("share-prepared-statements", ds.getSharePreStatements());
-        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
-        props.put("track-statements", ds.getTrackStatements());
-        props.put("transaction-isolation", ds.getTransIsolation());
-        props.put("url-delimeter", ds.getUrlDelimeter());
-        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
-        props.put("use-fast-fail", ds.getUseFastFail());
-        props.put("use-java-context", ds.getUseJavaContext());
-        props.put("use-try-lock", ds.getUseTryLock());
-        props.put("user-name", ds.getUserName());
-        props.put("valid-connection-checker-class-name", ds.getValidateOnMatch());
-        props.put("validate-on-match", ds.getValidateOnMatch());
-    }
-    
-    
     private static Map<String,String> fillDatasourcePropertiesMap( Map<String, String> props, AbstractDatasourceAS7Bean ds) {
         props.put("allocation-retry", ds.getAllocationRetry());
         props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
@@ -544,7 +511,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // TODO: Most are the same as for non-XA. Refactor.
         // TODO: BeanUtils.copyProperties?
         Map<String,String> props = new HashMap();
-        fillDatasourcePropsMap(props, ds);
+        fillDatasourcePropertiesMap( props, ds );
         builder.addPropertiesIfSet( props );
         
         // XA specific
