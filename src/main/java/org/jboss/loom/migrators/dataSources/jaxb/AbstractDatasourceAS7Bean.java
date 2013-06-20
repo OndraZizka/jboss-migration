@@ -13,8 +13,7 @@ import javax.xml.bind.annotation.XmlElement;
 import org.jboss.loom.spi.ann.Property;
 
 /**
- * User: Roman Jakubco
- * Date: 4/28/13
+ *  @author Roman Jakubco
  */
 @Property.Access( Property.Access.Type.FIELD )
 public abstract class AbstractDatasourceAS7Bean{
