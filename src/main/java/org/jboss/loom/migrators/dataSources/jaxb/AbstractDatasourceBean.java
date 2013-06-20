@@ -18,6 +18,7 @@ import java.util.List;
  */
 public abstract class AbstractDatasourceBean {
 
+    /*
     @XmlElement(name = "driver-class")
     public String getDriverClass() { return driverClass; }
     public void setDriverClass(String driverClass) { this.driverClass = driverClass; }
@@ -26,7 +27,8 @@ public abstract class AbstractDatasourceBean {
     @XmlElement(name = "connection-url")
     public String getConnectionUrl() { return connectionUrl; }
     public void setConnectionUrl(String connectionUrl) { this.connectionUrl = connectionUrl; }
-    private String connectionUrl; // Not in AS 7
+    private String connectionUrl; // Not in AS 7 ???
+    */
 
     @XmlElement(name = "jndi-name")
     public String getJndiName() { return jndiName; }

@@ -277,7 +277,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         dsAS7.setEnabled("true");
         dsAS7.setUseJavaContext( dsAS5.getUseJavaContext());
         dsAS7.setUrlDelimeter( dsAS5.getUrlDelimeter());
-        dsAS7.setUrlSelector( dsAS5.getUrlSelectStratClName());
+        dsAS7.setUrlSelectorStrategyClassName(dsAS5.getUrlSelectorStrategyClassName());
 
         dsAS7.setNewConnectionSql( dsAS5.getNewConnectionSql());
 
@@ -288,30 +288,30 @@ public class DatasourceMigrator extends AbstractMigrator {
         dsAS7.setSecurityDomain( dsAS5.getSecurityDomain());
 
         // Elements in element <timeout> in AS7
-        dsAS7.setBlockingTimeoutMillis( dsAS5.getBlockingTimeMillis());
-        dsAS7.setIdleTimeoutMin( dsAS5.getIdleTimeoutMin());
+        dsAS7.setBlockingTimeoutMillis( dsAS5.getBlockingTimeoutMillis());
+        dsAS7.setIdleTimeoutMinutes(dsAS5.getIdleTimeoutMinutes());
         dsAS7.setQueryTimeout( dsAS5.getQueryTimeout());
         dsAS7.setAllocationRetry( dsAS5.getAllocationRetry());
-        dsAS7.setAllocRetryWaitMillis( dsAS5.getAllocRetryWaitMillis());
-        dsAS7.setSetTxQueryTimeout( dsAS5.getSetTxQueryTime());
+        dsAS7.setAllocationRetryWaitMillis(dsAS5.getAllocationRetryWaitMillis());
+        dsAS7.setSetTxQueryTimeout( dsAS5.getSetTxQueryTimeout());
         dsAS7.setUseTryLock( dsAS5.getUseTryLock());
 
         // Elements in element <validation> in AS7
-        dsAS7.setCheckValidConSql( dsAS5.getCheckValidConSql());
+        dsAS7.setCheckValidConnectionSql(dsAS5.getCheckValidConnectionSql());
         dsAS7.setValidateOnMatch( dsAS5.getValidateOnMatch());
-        dsAS7.setBackgroundValid( dsAS5.getBackgroundValid());
-        dsAS7.setExceptionSorter( dsAS5.getExcepSorterClName());
-        dsAS7.setValidConChecker( dsAS5.getValidConCheckerClName());
-        dsAS7.setStaleConChecker( dsAS5.getStaleConCheckerClName());
+        dsAS7.setBackgroundValidation(dsAS5.getBackgroundValidation());
+        dsAS7.setExceptionSorter( dsAS5.getExceptionSorterClassName());
+        dsAS7.setValidConnectionChecker(dsAS5.getValidConnectionCheckerClassName());
+        dsAS7.setStaleConnectionChecker(dsAS5.getStaleConnectionCheckerClassName());
         // Millis represents Milliseconds?
-        if ( dsAS5.getBackgroundValidMillis() != null) {
-            Integer tmp = Integer.valueOf( dsAS5.getBackgroundValidMillis()) / 60000;
-            dsAS7.setBackgroundValidMin(tmp.toString());
+        if ( dsAS5.getBackgroundValidationMillis()!= null) {
+            Integer tmp = Integer.valueOf( dsAS5.getBackgroundValidationMillis()) / 60000;
+            dsAS7.setBackgroundValidationMinutes(tmp.toString());
         }
 
         // Elements in element <statement> in AS7
         dsAS7.setTrackStatements( dsAS5.getTrackStatements());
-        dsAS7.setSharePreStatements( dsAS5.getSharePreStatements());
+        dsAS7.setSharePreparedStatements(dsAS5.getSharePreparedStatements());
         dsAS7.setQueryTimeout( dsAS5.getQueryTimeout());
 
         // Strange element use-fast-fail
@@ -337,7 +337,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         if( dsAS5.getXaDatasourceProps() != null)
             dsAS7.setXaDatasourceProps( dsAS5.getXaDatasourceProps());
         dsAS7.setXaResourceTimeout( dsAS5.getXaResourceTimeout());
-        dsAS7.setTransIsolation( dsAS5.getTransIsolation());
+        dsAS7.setTransactionIsolation(dsAS5.getTransIsolation());
     }
 
     /**
@@ -431,28 +431,28 @@ public class DatasourceMigrator extends AbstractMigrator {
 
     private static Map<String,String> fillDatasourcePropertiesMap( Map<String, String> props, AbstractDatasourceAS7Bean ds) {
         props.put("allocation-retry", ds.getAllocationRetry());
-        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
-        props.put("background-validation", ds.getBackgroundValid());
-        props.put("background-validation-minutes", ds.getBackgroundValidMin());
+        props.put("allocation-retry-wait-millis", ds.getAllocationRetryWaitMillis());
+        props.put("background-validation", ds.getBackgroundValidation());
+        props.put("background-validation-minutes", ds.getBackgroundValidationMinutes());
         props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
-        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
+        props.put("check-valid-connection-sql", ds.getCheckValidConnectionSql());
         props.put("exception-sorter-class-name", ds.getExceptionSorter());
-        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
+        props.put("idle-timeout-minutes", ds.getIdleTimeoutMinutes());
         props.put("max-pool-size", ds.getMaxPoolSize());
         props.put("min-pool-size", ds.getMinPoolSize());
         props.put("new-connection-sql", ds.getNewConnectionSql());
         props.put("password", ds.getPassword());
         props.put("prefill", ds.getPrefill());
-        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
+        props.put("prepared-statement-cache-size", ds.getPreparedStatementCacheSize());
         props.put("query-timeout", ds.getQueryTimeout());
         props.put("security-domain", ds.getSecurityDomain());
         props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
-        props.put("share-prepared-statements", ds.getSharePreStatements());
-        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
+        props.put("share-prepared-statements", ds.getSharePreparedStatements());
+        props.put("stale-connection-checker-class-name", ds.getStaleConnectionChecker());
         props.put("track-statements", ds.getTrackStatements());
-        props.put("transaction-isolation", ds.getTransIsolation());
+        props.put("transaction-isolation", ds.getTransactionIsolation());
         props.put("url-delimeter", ds.getUrlDelimeter());
-        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
+        props.put("url-selector-strategy-class-name", ds.getUrlSelectorStrategyClassName());
         props.put("use-fast-fail", ds.getUseFastFail());
         props.put("use-java-context", ds.getUseJavaContext());
         props.put("use-try-lock", ds.getUseTryLock());
