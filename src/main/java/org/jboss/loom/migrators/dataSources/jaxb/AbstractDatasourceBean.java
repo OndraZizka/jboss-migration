@@ -17,7 +17,7 @@ import java.util.List;
  *  @author  Ondrej Zizka
  */
 public abstract class AbstractDatasourceBean {
-    
+
     @XmlElement(name = "jndi-name")
     private String jndiName;
 
@@ -127,22 +127,22 @@ public abstract class AbstractDatasourceBean {
     private List<ConnectionPropertyBean> connectionProperties;
 
 
-    public String getTransIsolation() { return transactionIsolation; }
-    public void setTransIsolation(String transIsolation) { this.transactionIsolation = transIsolation; }
+    //<editor-fold defaultstate="collapsed" desc="get/set">
+    public String getTransactionIsolation() { return transactionIsolation; }
+    public void setTransactionIsolation( String transactionIsolation ) { this.transactionIsolation = transactionIsolation; }
     public String getConnectionUrl() { return connectionUrl; }
     public void setConnectionUrl(String connectionUrl) { this.connectionUrl = connectionUrl; }
     public List<ConnectionPropertyBean> getConnectionProperties() { return connectionProperties; }
     public void setConnectionProperties(List<ConnectionPropertyBean> connectionProperties) { this.connectionProperties = connectionProperties; }
 
-    //<editor-fold defaultstate="collapsed" desc="get/set">
     public String getJndiName() { return jndiName; }
     public void setJndiName(String jndiName) { this.jndiName = jndiName; }
     public String getUseJavaContext() { return useJavaContext; }
     public void setUseJavaContext(String useJavaContext) { this.useJavaContext = useJavaContext; }
     public String getUrlDelimeter() { return urlDelimeter; }
     public void setUrlDelimeter(String urlDelimeter) { this.urlDelimeter = urlDelimeter; }
-    public String getUrlSelectStratClName() { return urlSelectorStrategyClassName; }
-    public void setUrlSelectStratClName(String urlSelectStratClName) { this.urlSelectorStrategyClassName = urlSelectStratClName; }
+    public String getUrlSelectorStrategyClassName() { return urlSelectorStrategyClassName; }
+    public void setUrlSelectorStrategyClassName( String urlSelectorStrategyClassName ) { this.urlSelectorStrategyClassName = urlSelectorStrategyClassName; }
     public String getDriverClass() { return driverClass; }
     public void setDriverClass(String driverClass) { this.driverClass = driverClass; }
     public String getNewConnectionSql() { return newConnectionSql; }
@@ -159,39 +159,39 @@ public abstract class AbstractDatasourceBean {
     public void setPassword(String password) { this.password = password; }
     public String getSecurityDomain() { return securityDomain; }
     public void setSecurityDomain(String securityDomain) { this.securityDomain = securityDomain; }
-    public String getBlockingTimeMillis() { return blockingTimeoutMillis; }
-    public void setBlockingTimeMillis(String blockingTimeMillis) { this.blockingTimeoutMillis = blockingTimeMillis; }
-    public String getIdleTimeoutMin() { return idleTimeoutMinutes; }
-    public void setIdleTimeoutMin(String idleTimeoutMin) { this.idleTimeoutMinutes = idleTimeoutMin; }
-    public String getSetTxQueryTime() { return setTxQueryTimeout; }
-    public void setSetTxQueryTime(String setTxQueryTime) { this.setTxQueryTimeout = setTxQueryTime; }
+    public String getBlockingTimeoutMillis() { return blockingTimeoutMillis; }
+    public void setBlockingTimeoutMillis( String blockingTimeoutMillis ) { this.blockingTimeoutMillis = blockingTimeoutMillis; }
+    public String getIdleTimeoutMinutes() { return idleTimeoutMinutes; }
+    public void setIdleTimeoutMinutes( String idleTimeoutMinutes ) { this.idleTimeoutMinutes = idleTimeoutMinutes; }
+    public String getSetTxQueryTimeout() { return setTxQueryTimeout; }
+    public void setSetTxQueryTimeout( String setTxQueryTimeout ) { this.setTxQueryTimeout = setTxQueryTimeout; }
     public String getQueryTimeout() { return queryTimeout; }
     public void setQueryTimeout(String queryTimeout) { this.queryTimeout = queryTimeout; }
     public String getAllocationRetry() { return allocationRetry; }
     public void setAllocationRetry(String allocationRetry) { this.allocationRetry = allocationRetry; }
-    public String getAllocRetryWaitMillis() { return allocationRetryWaitMillis; }
-    public void setAllocRetryWaitMillis(String allocRetryWaitMillis) { this.allocationRetryWaitMillis = allocRetryWaitMillis; }
+    public String getAllocationRetryWaitMillis() { return allocationRetryWaitMillis; }
+    public void setAllocationRetryWaitMillis( String allocationRetryWaitMillis ) { this.allocationRetryWaitMillis = allocationRetryWaitMillis; }
     public String getUseTryLock() { return useTryLock; }
     public void setUseTryLock(String useTryLock) { this.useTryLock = useTryLock; }
-    public String getCheckValidConSql() { return checkValidConnectionSql; }
-    public void setCheckValidConSql(String checkValidConSql) { this.checkValidConnectionSql = checkValidConSql; }
+    public String getCheckValidConnectionSql() { return checkValidConnectionSql; }
+    public void setCheckValidConnectionSql( String checkValidConnectionSql ) { this.checkValidConnectionSql = checkValidConnectionSql; }
     public String getValidateOnMatch() { return validateOnMatch; }
     public void setValidateOnMatch(String validateOnMatch) { this.validateOnMatch = validateOnMatch; }
-    public String getBackgroundValid() { return backgroundValidation; }
-    public void setBackgroundValid(String backgroundValid) { this.backgroundValidation = backgroundValid; }
-    public String getBackgroundValidMillis() { return backgroundValidationMillis; }
-    public void setBackgroundValidMillis(String backgroundValidMillis) { this.backgroundValidationMillis = backgroundValidMillis; }
-    public String getExcepSorterClName() { return exceptionSorterClassName; }
-    public void setExcepSorterClName(String excepSorterClName) { this.exceptionSorterClassName = excepSorterClName; }
-    public String getValidConCheckerClName() { return validConnectionCheckerClassName; }
-    public void setValidConCheckerClName(String validConCheckerClName) { this.validConnectionCheckerClassName = validConCheckerClName; }
-    public String getStaleConCheckerClName() { return staleConnectionCheckerClassName; }
-    public void setStaleConCheckerClName(String staleConCheckerClName) { this.staleConnectionCheckerClassName = staleConCheckerClName; }
-    public String getPreStatementCacheSize() { return preparedStatementCacheSize; }
-    public void setPreStatementCacheSize(String preStatementCacheSize) { this.preparedStatementCacheSize = preStatementCacheSize; }
+    public String getBackgroundValidation() { return backgroundValidation; }
+    public void setBackgroundValidation( String backgroundValidation ) { this.backgroundValidation = backgroundValidation; }
+    public String getBackgroundValidationMillis() { return backgroundValidationMillis; }
+    public void setBackgroundValidationMillis( String backgroundValidationMillis ) { this.backgroundValidationMillis = backgroundValidationMillis; }
+    public String getExceptionSorterClassName() { return exceptionSorterClassName; }
+    public void setExceptionSorterClassName( String exceptionSorterClassName ) { this.exceptionSorterClassName = exceptionSorterClassName; }
+    public String getValidConnectionCheckerClassName() { return validConnectionCheckerClassName; }
+    public void setValidConnectionCheckerClassName( String validConnectionCheckerClassName ) { this.validConnectionCheckerClassName = validConnectionCheckerClassName; }
+    public String getStaleConnectionCheckerClassName() { return staleConnectionCheckerClassName; }
+    public void setStaleConnectionCheckerClassName( String staleConnectionCheckerClassName ) { this.staleConnectionCheckerClassName = staleConnectionCheckerClassName; }
+    public String getPreparedStatementCacheSize() { return preparedStatementCacheSize; }
+    public void setPreparedStatementCacheSize( String preparedStatementCacheSize ) { this.preparedStatementCacheSize = preparedStatementCacheSize; }
     public String getTrackStatements() { return trackStatements; }
     public void setTrackStatements(String trackStatements) { this.trackStatements = trackStatements; }
-    public String getSharePreStatements() { return sharePreparedStatements; }
-    public void setSharePreStatements(String sharePreStatements) { this.sharePreparedStatements = sharePreStatements; }
+    public String getSharePreparedStatements() { return sharePreparedStatements; }
+    public void setSharePreparedStatements( String sharePreparedStatements ) { this.sharePreparedStatements = sharePreparedStatements; }
     //</editor-fold>
 }
