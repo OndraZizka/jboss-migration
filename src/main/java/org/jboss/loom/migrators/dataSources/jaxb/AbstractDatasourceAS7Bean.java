@@ -20,7 +20,7 @@ public abstract class AbstractDatasourceAS7Bean{
     private String linkedSecurity;
 
     @XmlPath("@jndi-name")
-    private String jndiName;
+    private String jndiName;// == In base class
 
     @XmlPath("@pool-name")
     private String poolName;
@@ -29,112 +29,112 @@ public abstract class AbstractDatasourceAS7Bean{
     private String enabled;
 
     @XmlPath("@use-java-context")
-    private String useJavaContext;
+    private String useJavaContext;//
 
     @XmlElement(name = "url-delimeter")
-    private String urlDelimeter;
+    private String urlDelimeter;//
 
     @XmlElement(name = "url-selector-strategy-class-name")
-    private String urlSelector;
+    private String urlSelectorStrategyClassName;//
 
     @Property(label = "driver name")
     @XmlElement(name = "driver")
     private String driver;
 
     @XmlElement(name = "transaction-isolation")
-    private String transactionIsolation;
+    private String transactionIsolation;//
 
     @XmlElement(name = "new-connection-sql")
-    private String newConnectionSql;
+    private String newConnectionSql;//
 
 
     // Elements in security element
     @XmlPath("/security/password/text()")
-    private String password;
+    private String password;//
 
     @XmlPath("/security/user-name/text()")
-    private String userName;
+    private String userName;//
 
     @XmlPath("/security/security-domain/text()")
-    private String securityDomain;
+    private String securityDomain;//
 
 
     // Elements in validation element
     @XmlPath("/validation/check-valid-connection-sql/text()")
-    private String checkValidConnectionSql;
+    private String checkValidConnectionSql;//
 
     @XmlPath("/validation/validate-on-match/text()")
-    private String validateOnMatch;
+    private String validateOnMatch;//
 
     @XmlPath("/validation/background-validation/text()")
-    private String backgroundValidation;
+    private String backgroundValidation; //
 
     @XmlPath("/validation/background-validation-minutes/text()")
-    private String backgroundValidationMinutes;
+    private String backgroundValidationMinutes;/// Millis
 
     @XmlPath("/validation/use-fast-fail/text()")
     private String useFastFail;
 
     @XmlPath("/validation/exception-sorter/text()")
-    private String exceptionSorter;
+    private String exceptionSorter; /// ~ClassName
 
     @XmlPath("/validation/valid-connection-checker/text()")
-    private String validConnectionChecker;
+    private String validConnectionChecker;///~ClassName
 
     @XmlPath("/validation/stale-connection-checker/text()")
-    private String staleConnectionChecker;
+    private String staleConnectionChecker;///~ClassName
 
 
     // Elements in timeout element
     @XmlPath("/timeout/blocking-timeout-millis/text()")
-    private String blockingTimeoutMillis;
+    private String blockingTimeoutMillis;//
 
     @XmlPath("/timeout/idle-timeout-minutes/text()")
-    private String idleTimeoutMinutes;
+    private String idleTimeoutMinutes;//
     
     @XmlPath("/timeout/set-tx-query-timeout/text()")
-    private String setTxQueryTimeout;
+    private String setTxQueryTimeout;//
 
     @XmlPath("/timeout/query-timeout/text()")
-    private String queryTimeout;
+    private String queryTimeout;//
 
     @XmlPath("/timeout/allocation-retry/text()")
-    private String allocationRetry;
+    private String allocationRetry;//
 
     @XmlPath("/timeout/allocation-retry-wait-millis/text()")
-    private String allocationRetryWaitMillis;
+    private String allocationRetryWaitMillis;//
 
     @XmlPath("/timeout/use-try-lock/text()")
-    private String useTryLock;
+    private String useTryLock;//
 
 
     // Elements in statement element
     @XmlPath("/statement/prepared-statement-cache-size/text()")
-    private String preparedStatementCacheSize;
+    private String preparedStatementCacheSize;//
 
     @XmlPath("/statement/track-statements/text()")
-    private String trackStatements;
+    private String trackStatements;//
 
     @XmlPath("/statement/share-prepared-statements/text()")
-    private String sharePreparedStatements;
+    private String sharePreparedStatements;//
     
 
 
+    // Elements in pool element
     @XmlPath("/pool/min-pool-size/text()")
     public String getMinPoolSize() { return minPoolSize; }
     public void setMinPoolSize(String minPoolSize) { this.minPoolSize = minPoolSize; }
-    private String minPoolSize;
+    private String minPoolSize;//
     
     @XmlPath("/pool/max-pool-size/text()")
     public String getMaxPoolSize() { return maxPoolSize; }
     public void setMaxPoolSize(String maxPoolSize) { this.maxPoolSize = maxPoolSize; }
-    private String maxPoolSize;
+    private String maxPoolSize;//
 
-    // Elements in pool element
     @XmlPath("/pool/prefill/text()")
     public String getPrefill() { return prefill; }
     public void setPrefill(String prefill) { this.prefill = prefill; }
-    private String prefill;
+    private String prefill;//
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -149,8 +149,8 @@ public abstract class AbstractDatasourceAS7Bean{
     public void setUseJavaContext(String useJavaContext) { this.useJavaContext = useJavaContext; }
     public String getUrlDelimeter() { return urlDelimeter; }
     public void setUrlDelimeter(String urlDelimeter) { this.urlDelimeter = urlDelimeter; }
-    public String getUrlSelector() { return urlSelector; }
-    public void setUrlSelector(String urlSelector) { this.urlSelector = urlSelector; }
+    public String getUrlSelector() { return urlSelectorStrategyClassName; }
+    public void setUrlSelector(String urlSelector) { this.urlSelectorStrategyClassName = urlSelector; }
     public String getDriver() { return driver; }
     public void setDriver(String driver) { this.driver = driver; }
     public String getTransIsolation() { return transactionIsolation; }
