@@ -363,13 +363,12 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Datasource
      *                            are missing or are empty (pool-name, jndi-name, connection-url, driver-name)
      */
-    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean datasource)
-            throws CliScriptException {
+    private static CliCommandAction createDatasourceCliAction(DatasourceAS7Bean datasource) throws CliScriptException {
         String errMsg = " in datasource must be set.";
         Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(datasource.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(datasource.getConnectionUrl(), errMsg, "Connection url");
         Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
+        Utils.throwIfBlank(datasource.getConnectionUrl(), errMsg, "Connection url");
 
         return new CliCommandAction( DatasourceMigrator.class, 
                 createDatasourceScript(datasource), 
@@ -482,9 +481,8 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Xa-Datasource
      *                            are missing or are empty (pool-name, jndi-name, driver-name)
      */
-    private static List<CliCommandAction> createXaDatasourceCliActions(XaDatasourceAS7Bean ds)
-            throws CliScriptException {
-        String errMsg = " in xaDatasource must be set.";
+    private static List<CliCommandAction> createXaDatasourceCliActions(XaDatasourceAS7Bean ds) throws CliScriptException {
+        String errMsg = " in XA datasource must be set.";
         Utils.throwIfBlank( ds.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank( ds.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank( ds.getDriver(), errMsg, "Driver name");
@@ -616,8 +614,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @deprecated  This should be buildable from the ModelNode.
      *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
      */
-    private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
-            throws CliScriptException {
+    private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty) throws CliScriptException {
         
         String errMsg = "in xa-datasource property must be set";
         Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
