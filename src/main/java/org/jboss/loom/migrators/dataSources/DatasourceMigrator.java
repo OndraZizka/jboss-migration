@@ -241,14 +241,14 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param drivers map containing created drivers to this point
      * @return created AS7 datasource
      */
-    private AbstractDatasourceAS7Bean migrateDatasouceAS5(AbstractDatasourceAS5Bean  dsAS5, Map<String, DriverBean> drivers){
+    private AbstractDatasourceAS7Bean migrateDatasouceAS5(AbstractDatasourceAS5Bean dsAS5, Map<String, DriverBean> drivers){
         AbstractDatasourceAS7Bean dsAS7;
         DriverBean driver;
 
         if( dsAS5 instanceof XaDatasourceAS5Bean){
             dsAS7 = new XaDatasourceAS7Bean();
-            driver = drivers.get( ((XaDatasourceAS5Bean)  dsAS5).getXaDatasourceClass() );
-            setXaDatasourceProps( (XaDatasourceAS7Bean) dsAS7, (XaDatasourceAS5Bean)  dsAS5 );
+            driver = drivers.get( ((XaDatasourceAS5Bean) dsAS5).getXaDatasourceClass() );
+            setXaDatasourceProps( (XaDatasourceAS7Bean) dsAS7, (XaDatasourceAS5Bean) dsAS5 );
         } else {
             dsAS7 = new DatasourceAS7Bean();
             driver = drivers.get(  dsAS5.getDriverClass() );
@@ -261,7 +261,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
         else {
             driver = new DriverBean();
-            driver.setDriverClass(  dsAS5.getDriverClass() );
+            driver.setDriverClass( dsAS5.getDriverClass() );
 
             String driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++;
             dsAS7.setDriver(driverName);
@@ -270,7 +270,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         }
 
         // Standalone elements in AS7
-        dsAS7.setJndiName("java:jboss/datasources/" +  dsAS5.getJndiName());
+        dsAS7.setJndiName("java:jboss/datasources/" + dsAS5.getJndiName());
         dsAS7.setPoolName( dsAS5.getJndiName());
         dsAS7.setEnabled("true");
         dsAS7.setUseJavaContext( dsAS5.getUseJavaContext());
@@ -305,7 +305,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         if ( dsAS5.getBackgroundValidMillis() != null) {
             Integer tmp = Integer.valueOf( dsAS5.getBackgroundValidMillis()) / 60000;
             dsAS7.setBackgroundValidMin(tmp.toString());
-
         }
 
         // Elements in element <statement> in AS7
@@ -322,34 +321,34 @@ public class DatasourceMigrator extends AbstractMigrator {
     /**
      * Sets specific attributes for Xa-Datasource
      *
-     * @param xadsAS7 xa-datasource from AS7 for setting attributes
+     * @param dsAS7 xa-datasource from AS7 for setting attributes
      * @param xaDatasourceAS5 xa-datasource from AS5 for getting attributes
      */
-    private static void setXaDatasourceProps(XaDatasourceAS7Bean xadsAS7, XaDatasourceAS5Bean xadsAS5){
+    private static void setXaDatasourceProps(XaDatasourceAS7Bean dsAS7, XaDatasourceAS5Bean dsAS5){
         // Elements in element <xa-pool> in AS7
-        xadsAS7.setMinPoolSize( xadsAS5.getMinPoolSize());
-        xadsAS7.setMaxPoolSize( xadsAS5.getMaxPoolSize());
-        xadsAS7.setPrefill( xadsAS5.getPrefill());
-        xadsAS7.setSameRmOverride( xadsAS5.getSameRM());
-        xadsAS7.setInterleaving( xadsAS5.getInterleaving());
-        xadsAS7.setNoTxSeparatePools( xadsAS5.getNoTxSeparatePools());
-        if( xadsAS5.getXaDatasourceProps() != null)
-            xadsAS7.setXaDatasourceProps( xadsAS5.getXaDatasourceProps());
-        xadsAS7.setXaResourceTimeout( xadsAS5.getXaResourceTimeout());
-        xadsAS7.setTransIsolation( xadsAS5.getTransIsolation());
+        dsAS7.setMinPoolSize( dsAS5.getMinPoolSize());
+        dsAS7.setMaxPoolSize( dsAS5.getMaxPoolSize());
+        dsAS7.setPrefill( dsAS5.getPrefill());
+        dsAS7.setSameRmOverride( dsAS5.getSameRM());
+        dsAS7.setInterleaving( dsAS5.getInterleaving());
+        dsAS7.setNoTxSeparatePools( dsAS5.getNoTxSeparatePools());
+        if( dsAS5.getXaDatasourceProps() != null)
+            dsAS7.setXaDatasourceProps( dsAS5.getXaDatasourceProps());
+        dsAS7.setXaResourceTimeout( dsAS5.getXaResourceTimeout());
+        dsAS7.setTransIsolation( dsAS5.getTransIsolation());
     }
 
     /**
      * Sets specific attributes for Datasource
      */
-    private static void setDatasourceProps(DatasourceAS7Bean datasourceAS7, AbstractDatasourceAS5Bean dsAS5){
-        datasourceAS7.setJta( ( dsAS5 instanceof NoTxDatasourceAS5Bean) ? "false" : "true");
+    private static void setDatasourceProps(DatasourceAS7Bean dsAS7, AbstractDatasourceAS5Bean dsAS5){
+        dsAS7.setJta( ( dsAS5 instanceof NoTxDatasourceAS5Bean) ? "false" : "true");
         if( dsAS5.getConnectionProperties() != null)
-            datasourceAS7.setConnectionProperties( dsAS5.getConnectionProperties() );
-        datasourceAS7.setConnectionUrl( dsAS5.getConnectionUrl() );
-        datasourceAS7.setMinPoolSize( dsAS5.getMinPoolSize());
-        datasourceAS7.setMaxPoolSize( dsAS5.getMaxPoolSize());
-        datasourceAS7.setPrefill( dsAS5.getPrefill());
+            dsAS7.setConnectionProperties( dsAS5.getConnectionProperties() );
+        dsAS7.setConnectionUrl( dsAS5.getConnectionUrl() );
+        dsAS7.setMinPoolSize( dsAS5.getMinPoolSize());
+        dsAS7.setMaxPoolSize( dsAS5.getMaxPoolSize());
+        dsAS7.setPrefill( dsAS5.getPrefill());
     }
 
     /**
