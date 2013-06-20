@@ -56,7 +56,7 @@ import org.jboss.loom.utils.XmlUtils;
 )
 public class DatasourceMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(DatasourceMigrator.class);
-    
+
     @Override protected String getConfigPropertyModuleName() { return "datasource"; }
 
     
@@ -388,36 +388,40 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addPropertyIfSet("enabled", "true"); // TODO: Try if this property works
         builder.addPropertyIfSet("connection-url", ds.getConnectionUrl());
         
-        // TODO: Refactor to be able to use addDatasourceProperties(builder, ds);
-        builder.addPropertyIfSet("allocation-retry", ds.getAllocationRetry());
-        builder.addPropertyIfSet("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
-        builder.addPropertyIfSet("background-validation", ds.getBackgroundValid());
-        builder.addPropertyIfSet("background-validation-minutes", ds.getBackgroundValidMin());
-        builder.addPropertyIfSet("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
-        builder.addPropertyIfSet("check-valid-connection-sql", ds.getCheckValidConSql());
-        builder.addPropertyIfSet("exception-sorter-class-name", ds.getExceptionSorter());
-        builder.addPropertyIfSet("idle-timeout-minutes", ds.getIdleTimeoutMin());
-        builder.addPropertyIfSet("max-pool-size", ds.getMaxPoolSize());
-        builder.addPropertyIfSet("min-pool-size", ds.getMinPoolSize());
-        builder.addPropertyIfSet("new-connection-sql", ds.getNewConnectionSql());
-        builder.addPropertyIfSet("password", ds.getPassword());
-        builder.addPropertyIfSet("prefill", ds.getPrefill());
-        builder.addPropertyIfSet("prepared-statement-cache-size", ds.getPreStatementCacheSize());
-        builder.addPropertyIfSet("query-timeout", ds.getQueryTimeout());
-        builder.addPropertyIfSet("security-domain", ds.getSecurityDomain());
-        builder.addPropertyIfSet("set-tx-query-timeout", ds.getSetTxQueryTimeout());
-        builder.addPropertyIfSet("share-prepared-statements", ds.getSharePreStatements());
-        builder.addPropertyIfSet("stale-connection-checker-class-name", ds.getStaleConChecker());
-        builder.addPropertyIfSet("track-statements", ds.getTrackStatements());
-        builder.addPropertyIfSet("transaction-isolation", ds.getTransIsolation());
-        builder.addPropertyIfSet("url-delimeter", ds.getUrlDelimeter());
-        builder.addPropertyIfSet("url-selector-strategy-class-name", ds.getUrlSelector());
-        builder.addPropertyIfSet("use-fast-fail", ds.getUseFastFail());
-        builder.addPropertyIfSet("use-java-context", ds.getUseJavaContext());
-        builder.addPropertyIfSet("use-try-lock", ds.getUseTryLock());
-        builder.addPropertyIfSet("user-name", ds.getUserName());
-        builder.addPropertyIfSet("valid-connection-checker-class-name", ds.getValidateOnMatch());
-        builder.addPropertyIfSet("validate-on-match", ds.getValidateOnMatch());
+        // NOT TODO: Refactor to be able to use addDatasourceProperties(builder, ds);
+        // TODO: Introduce @Eap6CliProperty(["allocation-retry"]) and get values automatically.
+        Map<String, String> props = new HashMap();
+        props.put("allocation-retry", ds.getAllocationRetry());
+        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
+        props.put("background-validation", ds.getBackgroundValid());
+        props.put("background-validation-minutes", ds.getBackgroundValidMin());
+        props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
+        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
+        props.put("exception-sorter-class-name", ds.getExceptionSorter());
+        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
+        props.put("max-pool-size", ds.getMaxPoolSize());
+        props.put("min-pool-size", ds.getMinPoolSize());
+        props.put("new-connection-sql", ds.getNewConnectionSql());
+        props.put("password", ds.getPassword());
+        props.put("prefill", ds.getPrefill());
+        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
+        props.put("query-timeout", ds.getQueryTimeout());
+        props.put("security-domain", ds.getSecurityDomain());
+        props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
+        props.put("share-prepared-statements", ds.getSharePreStatements());
+        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
+        props.put("track-statements", ds.getTrackStatements());
+        props.put("transaction-isolation", ds.getTransIsolation());
+        props.put("url-delimeter", ds.getUrlDelimeter());
+        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
+        props.put("use-fast-fail", ds.getUseFastFail());
+        props.put("use-java-context", ds.getUseJavaContext());
+        props.put("use-try-lock", ds.getUseTryLock());
+        props.put("user-name", ds.getUserName());
+        props.put("valid-connection-checker-class-name", ds.getValidateOnMatch());
+        props.put("validate-on-match", ds.getValidateOnMatch());
+        
+        builder.addPropertiesIfSet( props );
 
         // Non-XA specific
         builder.addPropertyIfSet( "jta", ds.getJta());
@@ -425,37 +429,71 @@ public class DatasourceMigrator extends AbstractMigrator {
         return builder.getCommand();
     }
     
+
+    private static void fillDatasourcePropsMap( Map<String, String> props, XaDatasourceAS7Bean ds ) {
+        props.put("allocation-retry", ds.getAllocationRetry());
+        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
+        props.put("background-validation", ds.getBackgroundValid());
+        props.put("background-validation-minutes", ds.getBackgroundValidMin());
+        props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
+        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
+        props.put("exception-sorter-class-name", ds.getExceptionSorter());
+        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
+        props.put("max-pool-size", ds.getMaxPoolSize());
+        props.put("min-pool-size", ds.getMinPoolSize());
+        props.put("new-connection-sql", ds.getNewConnectionSql());
+        props.put("password", ds.getPassword());
+        props.put("prefill", ds.getPrefill());
+        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
+        props.put("query-timeout", ds.getQueryTimeout());
+        props.put("security-domain", ds.getSecurityDomain());
+        props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
+        props.put("share-prepared-statements", ds.getSharePreStatements());
+        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
+        props.put("track-statements", ds.getTrackStatements());
+        props.put("transaction-isolation", ds.getTransIsolation());
+        props.put("url-delimeter", ds.getUrlDelimeter());
+        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
+        props.put("use-fast-fail", ds.getUseFastFail());
+        props.put("use-java-context", ds.getUseJavaContext());
+        props.put("use-try-lock", ds.getUseTryLock());
+        props.put("user-name", ds.getUserName());
+        props.put("valid-connection-checker-class-name", ds.getValidateOnMatch());
+        props.put("validate-on-match", ds.getValidateOnMatch());
+    }
     
-    private static void addDatasourceProperties( CliAddScriptBuilder builder, AbstractDatasourceAS7Bean xadsAS7 ) {
-        builder.addProperty("allocation-retry", xadsAS7.getAllocationRetry());
-        builder.addProperty("allocation-retry-wait-millis", xadsAS7.getAllocRetryWaitMillis());
-        builder.addProperty("background-validation", xadsAS7.getBackgroundValid());
-        builder.addProperty("background-validation-minutes", xadsAS7.getBackgroundValidMin());
-        builder.addProperty("blocking-timeout-millis", xadsAS7.getBlockingTimeoutMillis());
-        builder.addProperty("check-valid-connection-sql", xadsAS7.getCheckValidConSql());
-        builder.addProperty("exception-sorter-class-name", xadsAS7.getExceptionSorter());
-        builder.addProperty("idle-timeout-minutes", xadsAS7.getIdleTimeoutMin());
-        builder.addProperty("max-pool-size", xadsAS7.getMaxPoolSize());
-        builder.addProperty("min-pool-size", xadsAS7.getMinPoolSize());
-        builder.addProperty("new-connection-sql", xadsAS7.getNewConnectionSql());
-        builder.addProperty("password", xadsAS7.getPassword());
-        builder.addProperty("prefill", xadsAS7.getPrefill());
-        builder.addProperty("prepared-statement-cache-size", xadsAS7.getPreStatementCacheSize());
-        builder.addProperty("query-timeout", xadsAS7.getQueryTimeout());
-        builder.addProperty("security-domain", xadsAS7.getSecurityDomain());
-        builder.addProperty("set-tx-query-timeout", xadsAS7.getSetTxQueryTimeout());
-        builder.addProperty("share-prepared-statements", xadsAS7.getSharePreStatements());
-        builder.addProperty("stale-connection-checker-class-name", xadsAS7.getStaleConChecker());
-        builder.addProperty("track-statements", xadsAS7.getTrackStatements());
-        builder.addProperty("transaction-isolation", xadsAS7.getTransIsolation());
-        builder.addProperty("url-delimeter", xadsAS7.getUrlDelimeter());
-        builder.addProperty("url-selector-strategy-class-name", xadsAS7.getUrlSelector());
-        builder.addProperty("use-fast-fail", xadsAS7.getUseFastFail());
-        builder.addProperty("use-java-context", xadsAS7.getUseJavaContext());
-        builder.addProperty("use-try-lock", xadsAS7.getUseTryLock());
-        builder.addProperty("user-name", xadsAS7.getUserName());
-        builder.addProperty("valid-connection-checker-class-name", xadsAS7.getValidateOnMatch());
-        builder.addProperty("validate-on-match", xadsAS7.getValidateOnMatch());
+    
+    private static Map<String,String> fillDatasourcePropertiesMap( Map<String, String> props, AbstractDatasourceAS7Bean ds) {
+        props.put("allocation-retry", ds.getAllocationRetry());
+        props.put("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
+        props.put("background-validation", ds.getBackgroundValid());
+        props.put("background-validation-minutes", ds.getBackgroundValidMin());
+        props.put("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
+        props.put("check-valid-connection-sql", ds.getCheckValidConSql());
+        props.put("exception-sorter-class-name", ds.getExceptionSorter());
+        props.put("idle-timeout-minutes", ds.getIdleTimeoutMin());
+        props.put("max-pool-size", ds.getMaxPoolSize());
+        props.put("min-pool-size", ds.getMinPoolSize());
+        props.put("new-connection-sql", ds.getNewConnectionSql());
+        props.put("password", ds.getPassword());
+        props.put("prefill", ds.getPrefill());
+        props.put("prepared-statement-cache-size", ds.getPreStatementCacheSize());
+        props.put("query-timeout", ds.getQueryTimeout());
+        props.put("security-domain", ds.getSecurityDomain());
+        props.put("set-tx-query-timeout", ds.getSetTxQueryTimeout());
+        props.put("share-prepared-statements", ds.getSharePreStatements());
+        props.put("stale-connection-checker-class-name", ds.getStaleConChecker());
+        props.put("track-statements", ds.getTrackStatements());
+        props.put("transaction-isolation", ds.getTransIsolation());
+        props.put("url-delimeter", ds.getUrlDelimeter());
+        props.put("url-selector-strategy-class-name", ds.getUrlSelector());
+        props.put("use-fast-fail", ds.getUseFastFail());
+        props.put("use-java-context", ds.getUseJavaContext());
+        props.put("use-try-lock", ds.getUseTryLock());
+        props.put("user-name", ds.getUserName());
+        props.put("valid-connection-checker-class-name", ds.getValidateOnMatch());
+        props.put("validate-on-match", ds.getValidateOnMatch());
+        return props;
     }
     
 
@@ -505,35 +543,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         // TODO: Doesn't have connection-url???
         // TODO: Most are the same as for non-XA. Refactor.
         // TODO: BeanUtils.copyProperties?
-        builder.addPropertyIfSet("allocation-retry", ds.getAllocationRetry());
-        builder.addPropertyIfSet("allocation-retry-wait-millis", ds.getAllocRetryWaitMillis());
-        builder.addPropertyIfSet("background-validation", ds.getBackgroundValid());
-        builder.addPropertyIfSet("background-validation-minutes", ds.getBackgroundValidMin());
-        builder.addPropertyIfSet("blocking-timeout-millis", ds.getBlockingTimeoutMillis());
-        builder.addPropertyIfSet("check-valid-connection-sql", ds.getCheckValidConSql());
-        builder.addPropertyIfSet("exception-sorter-class-name", ds.getExceptionSorter());
-        builder.addPropertyIfSet("idle-timeout-minutes", ds.getIdleTimeoutMin());
-        builder.addPropertyIfSet("max-pool-size", ds.getMaxPoolSize());
-        builder.addPropertyIfSet("min-pool-size", ds.getMinPoolSize());
-        builder.addPropertyIfSet("new-connection-sql", ds.getNewConnectionSql());
-        builder.addPropertyIfSet("password", ds.getPassword());
-        builder.addPropertyIfSet("prefill", ds.getPrefill());
-        builder.addPropertyIfSet("prepared-statement-cache-size", ds.getPreStatementCacheSize());
-        builder.addPropertyIfSet("query-timeout", ds.getQueryTimeout());
-        builder.addPropertyIfSet("security-domain", ds.getSecurityDomain());
-        builder.addPropertyIfSet("set-tx-query-timeout", ds.getSetTxQueryTimeout());
-        builder.addPropertyIfSet("share-prepared-statements", ds.getSharePreStatements());
-        builder.addPropertyIfSet("stale-connection-checker-class-name", ds.getStaleConChecker());
-        builder.addPropertyIfSet("track-statements", ds.getTrackStatements());
-        builder.addPropertyIfSet("transaction-isolation", ds.getTransIsolation());
-        builder.addPropertyIfSet("url-delimeter", ds.getUrlDelimeter());
-        builder.addPropertyIfSet("url-selector-strategy-class-name", ds.getUrlSelector());
-        builder.addPropertyIfSet("use-fast-fail", ds.getUseFastFail());
-        builder.addPropertyIfSet("use-java-context", ds.getUseJavaContext());
-        builder.addPropertyIfSet("use-try-lock", ds.getUseTryLock());
-        builder.addPropertyIfSet("user-name", ds.getUserName());
-        builder.addPropertyIfSet("valid-connection-checker-class-name", ds.getValidateOnMatch());
-        builder.addPropertyIfSet("validate-on-match", ds.getValidateOnMatch());
+        Map<String,String> props = new HashMap();
+        fillDatasourcePropsMap(props, ds);
+        builder.addPropertiesIfSet( props );
         
         // XA specific
         builder.addPropertyIfSet("interleaving", ds.getInterleaving());
@@ -666,7 +678,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("connection-url", dsAS7.getConnectionUrl());
 
         // TODO: BeanUtils.copyProperties?
-        addDatasourceProperties( builder, dsAS7 );
+        Map<String, String> props = new HashMap();
+        fillDatasourcePropertiesMap( props, dsAS7 );
+        builder.addProperties( props );
 
         // Non-XA specific
         builder.addProperty("jta", dsAS7.getJta());
@@ -707,7 +721,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         builder.addProperty("driver-name", xadsAS7.getDriver());
 
         // TODO: Doesn't have connection-url???
-        addDatasourceProperties( builder, xadsAS7 );
+        Map<String, String> props = new HashMap();
+        fillDatasourcePropertiesMap( props, xadsAS7 );
+        builder.addProperties( props );
 
         // XA specific
         builder.addProperty("interleaving", xadsAS7.getInterleaving());
