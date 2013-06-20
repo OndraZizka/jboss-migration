@@ -19,6 +19,10 @@ import org.jboss.loom.spi.ann.Property;
 public abstract class AbstractDatasourceAS7Bean{
     private String linkedSecurity;
 
+    @Property(label = "driver name")
+    @XmlElement(name = "driver")
+    private String driver;
+
     @XmlPath("@jndi-name")
     private String jndiName;// == In base class
 
@@ -36,10 +40,6 @@ public abstract class AbstractDatasourceAS7Bean{
 
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelectorStrategyClassName;//
-
-    @Property(label = "driver name")
-    @XmlElement(name = "driver")
-    private String driver;
 
     @XmlElement(name = "transaction-isolation")
     private String transactionIsolation;//

@@ -18,6 +18,11 @@ import java.util.List;
  */
 public abstract class AbstractDatasourceBean {
 
+    @XmlElement(name = "driver-class")
+    public String getDriverClass() { return driverClass; }
+    public void setDriverClass(String driverClass) { this.driverClass = driverClass; }
+    private String driverClass;// Not in AS 7 (module instead)
+
     @XmlElement(name = "connection-url")
     public String getConnectionUrl() { return connectionUrl; }
     public void setConnectionUrl(String connectionUrl) { this.connectionUrl = connectionUrl; }
@@ -42,11 +47,6 @@ public abstract class AbstractDatasourceBean {
     public String getUrlSelectorStrategyClassName() { return urlSelectorStrategyClassName; }
     public void setUrlSelectorStrategyClassName( String urlSelectorStrategyClassName ) { this.urlSelectorStrategyClassName = urlSelectorStrategyClassName; }
     private String urlSelectorStrategyClassName;
-
-    @XmlElement(name = "driver-class")
-    public String getDriverClass() { return driverClass; }
-    public void setDriverClass(String driverClass) { this.driverClass = driverClass; }
-    private String driverClass;// Not in AS 7 (module instead)
 
     @XmlElement(name = "transaction-isolation")
     public String getTransactionIsolation() { return transactionIsolation; }
