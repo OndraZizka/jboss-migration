@@ -400,6 +400,40 @@ public class DatasourceMigrator extends AbstractMigrator {
         return builder.getCommand();
     }
     
+    /**
+     * Creates a CLI script for adding a Datasource. New format of script.
+     *
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
+     */
+    private static String createDatasourceScriptNew(DatasourceAS7Bean dsAS7) throws CliScriptException {
+
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
+        StringBuilder resultScript = new StringBuilder("data-source add ");
+
+        builder.addProperty("name", dsAS7.getPoolName());
+        builder.addProperty("driver-name", dsAS7.getDriver());
+        builder.addProperty("jndi-name", dsAS7.getJndiName());
+        builder.addProperty("connection-url", dsAS7.getConnectionUrl());
+
+        // TODO: BeanUtils.copyProperties?
+        Map<String, String> props = new HashMap();
+        fillDatasourcePropertiesMap( props, dsAS7 );
+        builder.addProperties( props );
+
+        // Non-XA specific
+        builder.addProperty("jta", dsAS7.getJta());
+        
+        resultScript.append(builder.formatAndClearProps());
+        
+        // TODO: Not sure whether to enabled the datasource .
+        //resultScript.append("\n");
+        //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
+
+        return resultScript.toString();
+    }
+    
+    
 
     private static Map<String,String> fillDatasourcePropertiesMap( Map<String, String> props, AbstractDatasourceAS7Bean ds) {
         props.put("allocation-retry", ds.getAllocationRetry());
@@ -467,6 +501,8 @@ public class DatasourceMigrator extends AbstractMigrator {
     }
 
     
+    // === XA datasource ===
+    
     private static ModelNode createXaDatasourceModelNode( XaDatasourceAS7Bean ds){
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -493,6 +529,52 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         return builder.getCommand();
     }
+    
+    /**
+     * Creates a CLI script for adding a Xa-Datasource. New format of script.
+     *
+     * @param xadsAS7 object of XaDatasource
+     * @return string containing created CLI script
+     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
+     *                           (pool-name, jndi-name, driver-name)
+     * 
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
+     */
+    private static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xadsAS7) throws CliScriptException {
+        
+        String errMsg = " in xaDatasource must be set.";
+        Utils.throwIfBlank(xadsAS7.getPoolName(), errMsg, "Pool-name");
+        Utils.throwIfBlank(xadsAS7.getJndiName(), errMsg, "Jndi-name");
+        Utils.throwIfBlank(xadsAS7.getDriver(), errMsg, "Driver name");
+
+        CliAddScriptBuilder builder = new CliAddScriptBuilder();
+        StringBuilder resultScript = new StringBuilder("xa-data-source add ");
+
+        builder.addProperty("name", xadsAS7.getPoolName());
+        builder.addProperty("jndi-name", xadsAS7.getJndiName());
+        builder.addProperty("driver-name", xadsAS7.getDriver());
+
+        // TODO: Doesn't have connection-url???
+        Map<String, String> props = new HashMap();
+        fillDatasourcePropertiesMap( props, xadsAS7 );
+        builder.addProperties( props );
+
+        // XA specific
+        builder.addProperty("interleaving", xadsAS7.getInterleaving());
+        builder.addProperty("is-same-rm-override", xadsAS7.getSameRmOverride());
+        builder.addProperty("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
+        builder.addProperty("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
+        
+        resultScript.append(builder.formatAndClearProps());
+        //resultScript.append("\n");
+
+        // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
+        //resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
+
+        return resultScript.toString();
+    }
+    
     
 
     /**
@@ -525,6 +607,27 @@ public class DatasourceMigrator extends AbstractMigrator {
         return connProperty;
     }
 
+    /**
+     * Creates a CLI script for adding one Xa-Datasource-Property of the specific Xa-Datasource
+     * @deprecated  This should be buildable from the ModelNode.
+     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
+     */
+    private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
+            throws CliScriptException {
+        
+        String errMsg = "in xa-datasource property must be set";
+        Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
+
+        StringBuilder resultScript = new StringBuilder();
+        resultScript.append("/subsystem=datasources/xa-data-source=").append(datasource.getPoolName());
+        resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
+        resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
+
+        return resultScript.toString();
+    }
+
+    
+    
     /**
      * Creates CliCommandAction for adding a Driver
      *
@@ -594,114 +697,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         return resultScript.toString();
     }
 
-    /**
-     * Creates a CLI script for adding a Datasource. New format of script.
-     *
-     * @param dsAS7 object of Datasource
-     * @return string containing created CLI script
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (pool-name, jndi-name, connection-url, driver-name)
-     * 
-     * @deprecated  This should be buildable from the ModelNode.
-     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
-     */
-    private static String createDatasourceScriptNew(DatasourceAS7Bean dsAS7) throws CliScriptException {
 
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("data-source add ");
-
-        builder.addProperty("name", dsAS7.getPoolName());
-        builder.addProperty("driver-name", dsAS7.getDriver());
-        builder.addProperty("jndi-name", dsAS7.getJndiName());
-        builder.addProperty("connection-url", dsAS7.getConnectionUrl());
-
-        // TODO: BeanUtils.copyProperties?
-        Map<String, String> props = new HashMap();
-        fillDatasourcePropertiesMap( props, dsAS7 );
-        builder.addProperties( props );
-
-        // Non-XA specific
-        builder.addProperty("jta", dsAS7.getJta());
-        
-        resultScript.append(builder.formatAndClearProps());
-        
-        // TODO: Not sure whether to enabled the datasource .
-        //resultScript.append("\n");
-        //resultScript.append("data-source enable --name=").append(datasourceAS7.getPoolName());
-
-        return resultScript.toString();
-    }
-
-
-    /**
-     * Creates a CLI script for adding a Xa-Datasource. New format of script.
-     *
-     * @param xadsAS7 object of XaDatasource
-     * @return string containing created CLI script
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (pool-name, jndi-name, driver-name)
-     * 
-     * @deprecated  This should be buildable from the ModelNode.
-     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
-     */
-    private static String createXaDatasourceScriptNew(XaDatasourceAS7Bean xadsAS7) throws CliScriptException {
-        
-        String errMsg = " in xaDatasource must be set.";
-        Utils.throwIfBlank(xadsAS7.getPoolName(), errMsg, "Pool-name");
-        Utils.throwIfBlank(xadsAS7.getJndiName(), errMsg, "Jndi-name");
-        Utils.throwIfBlank(xadsAS7.getDriver(), errMsg, "Driver name");
-
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("xa-data-source add ");
-
-        builder.addProperty("name", xadsAS7.getPoolName());
-        builder.addProperty("jndi-name", xadsAS7.getJndiName());
-        builder.addProperty("driver-name", xadsAS7.getDriver());
-
-        // TODO: Doesn't have connection-url???
-        Map<String, String> props = new HashMap();
-        fillDatasourcePropertiesMap( props, xadsAS7 );
-        builder.addProperties( props );
-
-        // XA specific
-        builder.addProperty("interleaving", xadsAS7.getInterleaving());
-        builder.addProperty("is-same-rm-override", xadsAS7.getSameRmOverride());
-        builder.addProperty("no-tx-separate-pools", xadsAS7.getNoTxSeparatePools());
-        builder.addProperty("xa-resource-timeout", xadsAS7.getXaResourceTimeout());
-        
-        resultScript.append(builder.formatAndClearProps());
-        //resultScript.append("\n");
-
-        // TODO: Not sure if set datasource enabled. For now I don't know way enabling datasource in CLI API
-        //resultScript.append("xa-data-source enable --name=").append(xaDatasourceAS7.getPoolName());
-
-        return resultScript.toString();
-    }
-
-    /**
-     * Creates a CLI script for adding one Xa-Datasource-Property of the specific Xa-Datasource
-     *
-     * @param datasource Xa-Datasource containing Xa-Datasource-Property
-     * @param xaDatasourceProperty Xa-Datasource-Property
-     * @return created string containing CLI script for adding Xa-Datasource-Property
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (property-name)
-     * 
-     * @deprecated  This should be buildable from the ModelNode.
-     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
-     */
-    private static String createXaPropertyScript(XaDatasourceAS7Bean datasource, XaDatasourcePropertyBean xaDatasourceProperty)
-            throws CliScriptException {
-        
-        String errMsg = "in xa-datasource property must be set";
-        Utils.throwIfBlank(xaDatasourceProperty.getXaDatasourcePropName(), errMsg, "Property name");
-
-        StringBuilder resultScript = new StringBuilder();
-        resultScript.append("/subsystem=datasources/xa-data-source=").append(datasource.getPoolName());
-        resultScript.append("/xa-datasource-properties=").append(xaDatasourceProperty.getXaDatasourcePropName());
-        resultScript.append(":add(value=").append(xaDatasourceProperty.getXaDatasourceProp()).append(")");
-
-        return resultScript.toString();
-    }
     
 }// class
