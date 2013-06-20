@@ -23,7 +23,7 @@ import org.jboss.loom.ex.MigrationException;
 @Target({ElementType.FIELD, ElementType.METHOD })
 public @interface Property {
     
-    public String name();
+    public String name() default "";
     public String expr() default "";
     public String label() default "";
     public String style() default "";
@@ -75,7 +75,7 @@ public @interface Property {
                 if( access == Access.Type.ANNOTATED && null == ann )  continue;
                 if( access == Access.Type.PUBLIC    && ! Modifier.isPublic( field.getModifiers() ) )  continue;
                 
-                String propName = ann.name() != null ? ann.name() : convertFieldToPropName( field.getName() );
+                String propName = (ann.name() != null && ! ann.name().isEmpty()) ? ann.name() : convertFieldToPropName( field.getName() );
                 if( map.containsKey( propName ))  continue;
                 try {
                     map.put( propName, field.get( bean ) );
@@ -111,7 +111,7 @@ public @interface Property {
                     name =  StringUtils.uncapitalize( name );
                 */
                 
-                String propName = ann.name() != null ? ann.name() : convertMethodToPropName( method.getName() );
+                String propName = (ann.name() != null && ! ann.name().isEmpty()) ? ann.name() : convertMethodToPropName( method.getName() );
                 if( map.containsKey( propName ))  continue;
                 try {
                     map.put( propName, method.invoke(bean));
