@@ -16,7 +16,8 @@ import org.jboss.loom.spi.ann.Property;
  *  @author Roman Jakubco
  */
 @Property.Access( Property.Access.Type.FIELD )
-public abstract class AbstractDatasourceAS7Bean{
+public abstract class AbstractDatasourceAS7Bean // TODO: extends AbstractDatasourceBean
+{
     private String linkedSecurity;
 
     @Property(label = "driver name")
