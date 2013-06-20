@@ -37,6 +37,7 @@ public abstract class AbstractDatasourceAS7Bean{
     @XmlElement(name = "url-selector-strategy-class-name")
     private String urlSelector;
 
+    @Property(label = "driver name")
     @XmlElement(name = "driver")
     private String driver;
 
