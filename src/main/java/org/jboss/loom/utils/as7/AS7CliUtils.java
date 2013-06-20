@@ -23,7 +23,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.Operation;
 import org.jboss.dmr.ModelType;
 import org.jboss.loom.spi.ann.Property;
 
@@ -249,6 +251,55 @@ public class AS7CliUtils {
 
 
     /**
+     *  Parse CLI command into a ModelNode - /foo=a/bar=b/:operation(param=value,...) .
+     * 
+     *  TODO: Support nested params.
+     */
+    public static ModelNode parseCommand( String command ) {
+        String[] parts = StringUtils.split( command, ':' );
+        if( parts.length < 2 )  throw new IllegalArgumentException("Missing CLI command operation: " + command);
+        String addr = parts[0];
+        
+        ModelNode query = new ModelNode();
+        
+        // Addr
+        String[] partsAddr = StringUtils.split( addr, '/' );
+        for( String segment : partsAddr ) {
+            String[] partsSegment = StringUtils.split( segment, "=", 2);
+            if( partsSegment.length != 2 )  throw new IllegalArgumentException("Wrong addr segment format - need '=': " + command);
+            query.get(ClientConstants.OP_ADDR).add( partsSegment[0], partsSegment[1] );
+        }
+        
+        // Op
+        String[] partsOp = StringUtils.split( parts[1], '(' );
+        String opName = partsOp[0];
+        query.get(ClientConstants.OP).set(opName);
+        
+        // Op args
+        if( partsOp.length > 1 ){
+            String args = StringUtils.removeEnd( partsOp[1], ")" );
+            for( String arg : args.split(",") ) {
+                String[] partsArg = arg.split("=", 2);
+                query.get(partsArg[0]).set( unquote( partsArg[1] ) );
+            }
+        }
+        return query;
+    }// parseCommand()
+    
+    
+    /**
+     *  Changes "foo\"bar" to foo"bar.
+     *  Is tolerant - doesn't check if the quotes are really present.
+     */
+    public static String unquote( String string ) {
+        string = StringUtils.removeStart( string, "\"" );
+        string = StringUtils.removeEnd( string, "\"" );
+        return StringEscapeUtils.unescapeJava( string );
+    }
+
+    
+    
+    /**
      *   Formats Model node to the form of CLI script command - /foo=a/bar=b/:operation(param=value,...) .
      */
     public static String formatCommand( ModelNode command ) {
@@ -358,5 +409,5 @@ public class AS7CliUtils {
     public static String formatGetterName(String prop){
         return Property.Utils.convertPropToMethodName( prop );
     }
-        
+
 }// class

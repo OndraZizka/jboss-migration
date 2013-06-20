@@ -12,9 +12,7 @@ import org.junit.Test;
  */
 public class AS7CliUtilsTest {
 
-    @Test
-    public void testFormatCommand(){
-        
+    @Test public void testFormatCommand(){
         ModelNode cmd = new ModelNode();
         ModelNode addr = cmd.get(ClientConstants.OP_ADDR);
         addr.add("foo", "a");
@@ -26,7 +24,14 @@ public class AS7CliUtilsTest {
         String str = AS7CliUtils.formatCommand( cmd );
         
         Assert.assertEquals( "/foo=a/bar=b:do-something(param1=\"val1\",param2=\"val2\")", str);
+    }
+    
+    @Test public void testParseAndFormatCommand(){
+        final String command = "/foo=a/bar=b:do-something(param1=\"val1\",param2=\"val2\")";
+        final ModelNode modalNode = AS7CliUtils.parseCommand( command );
+        final String command2 = AS7CliUtils.formatCommand( modalNode );
         
+        Assert.assertEquals( command, command2 );
     }
     
 }// class
