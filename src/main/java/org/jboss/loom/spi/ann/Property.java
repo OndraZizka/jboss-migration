@@ -96,7 +96,6 @@ public @interface Property {
                 if( access == Access.Type.ANNOTATED && null == ann )  continue;
                 if( access == Access.Type.PUBLIC    && ! Modifier.isPublic( method.getModifiers() ) )  continue;
                         
-
                 // Only use getters which return String.
                 /*boolean get = false;
                 String name = method.getName();
@@ -111,7 +110,6 @@ public @interface Property {
                 if( name.length() > 1 && ! Character.isUpperCase( name.charAt(2) ) )
                     name =  StringUtils.uncapitalize( name );
                 */
-                
                 
                 String propName = ann.name() != null ? ann.name() : convertMethodToPropName( method.getName() );
                 if( map.containsKey( propName ))  continue;
