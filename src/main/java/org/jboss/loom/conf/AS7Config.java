@@ -41,7 +41,7 @@ public class AS7Config {
         if( modulesDir != null )
             modulesSubPath = modulesDir;
         else
-            modulesSubPath = isVersionLaterThan("7.2.0") ? "modules" : "modules/system/layers/base";
+            modulesSubPath = isVersionLaterThan("7.2.0") ? "modules/system/layers/base" : "modules";
         
         return new File(this.getDir(), modulesSubPath);
     }
