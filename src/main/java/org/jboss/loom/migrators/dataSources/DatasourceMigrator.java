@@ -43,7 +43,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
+import org.jboss.loom.utils.UtilsAS5;
 import org.jboss.loom.utils.XmlUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
+import org.jboss.loom.utils.as7.AS7ModuleUtils;
 
 /**
  * Migrator of Datasource subsystem implementing IMigrator
@@ -128,7 +131,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * TODO: Rewrite to some sane form. I.e. code drivers "cache" and references handover properly.
      */
     @Override
-    public void createActions(MigrationContext ctx) throws MigrationException {
+    public void createActions( MigrationContext ctx ) throws MigrationException {
         
         Map<String, DriverBean> classToDriverMap = new HashMap();
         
@@ -164,7 +167,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         // Search for driver class in jars and create module. Similar to finding logging classes.
         HashMap<File, String> tempModules = new HashMap();
         for( DriverBean driver : classToDriverMap.values() ) {
-            ctx.getActions().addAll( createDriverActions(driver, tempModules) );
+            ctx.getActions().addAll( createDriverActions( ctx, driver, tempModules) );
         }
 
         // Add datasource CliCommandActions after drivers.
@@ -182,16 +185,32 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws ActionException if jar archive containing class declared in driver cannot be found or if creation of
      *         CliCommandAction fails or if Document representing module.xml cannot be created.
      */
-    private List<IMigrationAction> createDriverActions(DriverBean driver, HashMap<File, String> tempModules)
+    private List<IMigrationAction> createDriverActions( MigrationContext ctx, DriverBean driver, HashMap<File, String> tempModules )
             throws MigrationException {
         
-        // Find driver .jar
-        File driverJar;
+        String driverClass = StringUtils.defaultIfEmpty( driver.getDriverClass(), driver.getXaDatasourceClass() );
+
+        
+        // Find out if the driver already exists in AS 7. If so, find which module and which configured JDBC driver it is.
         try {
-            driverJar = Utils.findJarFileWithClass(
-                    StringUtils.defaultIfEmpty(driver.getDriverClass(), driver.getXaDatasourceClass() ),
-                    getGlobalConfig().getAS5Config().getDir(),
-                    getGlobalConfig().getAS5Config().getProfileName());
+            File driverJarAS7 = Utils.lookForJarWithClass( driverClass, getGlobalConfig().getAS7Config().getModulesDir() );
+            if( driverJarAS7 != null ){
+                log.info("Target server already contains JDBC driver " + driverClass);
+                String driverModuleName = AS7ModuleUtils.identifyModuleContainingJar( getGlobalConfig().getAS7Config(), driverJarAS7 );
+                String driverName = AS7CliUtils.findJdbcDriverUsingModule( driverModuleName, ctx.getAS7Client() );
+            }
+        }
+        catch( IOException ex ) {
+            throw new MigrationException("Finding jar containing driver class failed: " + ex .getMessage(), ex );
+        }
+
+        
+        // Find driver .jar in AS 5
+        File driverJarAS5;
+        try {
+            driverJarAS5 = UtilsAS5.findJarFileWithClass( driverClass,
+                getGlobalConfig().getAS5Config().getDir(),
+                getGlobalConfig().getAS5Config().getProfileName());
         }
         catch (IOException e) {
             throw new MigrationException("Finding jar containing driver class failed: " + e.getMessage(), e);
@@ -199,10 +218,10 @@ public class DatasourceMigrator extends AbstractMigrator {
 
         List<IMigrationAction> actions = new LinkedList();
 
-        if( tempModules.containsKey(driverJar) ) {
+        if( tempModules.containsKey(driverJarAS5) ) {
             // ModuleCreationAction is already set. No need for another one => just create a CLI for the driver.
             try {
-                driver.setDriverModule(tempModules.get(driverJar));
+                driver.setDriverModule(tempModules.get(driverJarAS5));
                 actions.add( createDriverCliAction(driver) );
             }
             catch (CliScriptException ex) {
@@ -216,7 +235,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         {
             final String moduleName = driver.getDriverName();
             driver.setDriverModule( moduleName );
-            tempModules.put(driverJar, driver.getDriverModule());
+            tempModules.put(driverJarAS5, driver.getDriverModule());
 
             // CliAction
             try{
@@ -229,7 +248,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
             
-            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, driverJar, Configuration.IfExists.OVERWRITE);
+            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, driverJarAS5, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
         }
 
@@ -624,7 +643,7 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Driver are missing or
      *                            are empty (module, driver-name)
      */
-    private static CliCommandAction createDriverCliAction(DriverBean driver) throws CliScriptException {
+    private static CliCommandAction createDriverCliAction( DriverBean driver ) throws CliScriptException {
         
         String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
@@ -633,7 +652,7 @@ public class DatasourceMigrator extends AbstractMigrator {
         return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), createDriverModelNode(driver) );
     }
     
-    private static ModelNode createDriverModelNode( DriverBean driver){
+    private static ModelNode createDriverModelNode( DriverBean driver ){
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "datasources");
