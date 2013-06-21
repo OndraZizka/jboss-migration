@@ -7,11 +7,9 @@
  */
 package org.jboss.loom.utils.as7;
 
-import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.jboss.loom.ex.CliBatchException;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.utils.as7.BatchFailure;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -25,8 +23,8 @@ import java.util.Collection;
 import java.util.Set;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.as.controller.client.Operation;
 import org.jboss.dmr.ModelType;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.spi.ann.Property;
 
 /**
@@ -410,4 +408,37 @@ public class AS7CliUtils {
         return Property.Utils.convertPropToMethodName( prop );
     }
 
+
+    /**
+     *  Returns the name of JDBC driver which uses given module.
+     * 
+        /subsystem=datasources/:read-attribute(name=installed-drivers)
+        {
+            "outcome" => "success",
+            "result" => [{
+                "driver-name" => "h2",
+                "deployment-name" => undefined,
+                "driver-module-name" => "com.h2database.h2",
+                "module-slot" => "main",
+                "driver-datasource-class-name" => "",
+                "driver-xa-datasource-class-name" => "org.h2.jdbcx.JdbcDataSource",
+                "driver-class-name" => "org.h2.Driver",
+                "driver-major-version" => 1,
+                "driver-minor-version" => 3,
+                "jdbc-compliant" => true
+            }]
+        }
+     */
+    public static String findJdbcDriverUsingModule( String driverModuleName, ModelControllerClient as7Client ) throws IOException {
+        
+        ModelNode query = parseCommand("/subsystem=datasources/:read-attribute(name=installed-drivers)");
+        ModelNode driversNode = as7Client.execute( query );
+        driversNode = driversNode.get("result");
+        for( ModelNode modelNode : driversNode.asList() ) {
+            if( modelNode.get("driver-module-name").asString().equals( driverModuleName ) )
+                return modelNode.get("driver-name").asString();
+        }
+        return null;
+    }
+        
 }// class

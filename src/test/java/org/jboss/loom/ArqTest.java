@@ -1,6 +1,5 @@
 package org.jboss.loom;
 
-import java.io.IOException;
 import java.net.UnknownHostException;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
