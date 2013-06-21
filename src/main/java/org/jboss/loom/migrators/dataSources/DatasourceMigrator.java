@@ -265,8 +265,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         
         // Driver jar not processed yet => create ModuleCreationAction, new module and a CLI script.
         {
-            final String moduleName = driver.getDriverName();
-            driver.setDriverModule( moduleName );
+            // Driver name == module name (the operation has that constraint)
+            driver.setDriverName( driverNameIfNew );
+            driver.setDriverModule( driverNameIfNew );
             tempModules.put(driverJarAS5, driver.getDriverModule());
 
             // CliAction
@@ -280,7 +281,7 @@ public class DatasourceMigrator extends AbstractMigrator {
 
             String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
             
-            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), moduleName, deps, driverJarAS5, Configuration.IfExists.OVERWRITE);
+            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), driver.getDriverModule(), deps, driverJarAS5, Configuration.IfExists.OVERWRITE);
             actions.add(moduleAction);
         }
 

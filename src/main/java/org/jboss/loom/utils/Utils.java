@@ -79,72 +79,37 @@ public class Utils {
     }
 
     
-    
-    // ======= File utils ====== //
-    
-    
-    
     /**
-     * Utils class for finding name of jar file containing class from logging configuration.
-     *
-     * @param className  name of the class which must be found
-     * @param dirAS5     AS5 home dir
-     * @param profileAS5 name of AS5 profile
-     * @return name of jar file which contains given class
-     * @throws FileNotFoundException if the jar file is not found
-     *                               <p/>
-     *                               TODO: This would cause false positives - e.g. class = org.Foo triggered by org/Foo/Blah.class .
+     *  TODO: Return a list of files.
      */
-    public static File findJarFileWithClass(String className, String dirAS5, String profileAS5) throws FileNotFoundException, IOException {
+    public static File lookForJarWithClass( String className, File... dirs ) throws IOException {
+        for( File dir : dirs ) {
+            log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + className);
 
-        String classFilePath = className.replace(".", "/");
+            String classFilePath = className.replace(".", "/");
 
-        // First look for jar file in lib directory in given AS5 profile
-        File dir = Utils.createPath(dirAS5, "server", profileAS5, "lib");
-        File jar = lookForJarWithAClass(dir, classFilePath);
-        if (jar != null)
-            //return jar.getName();
-            return jar;
+            if( ! dir.isDirectory() ){
+                log.trace("    Not a directory: " +  dir.getPath());
+                continue;
+            }
 
-        // If not found in profile's lib directory then try common/lib folder (common jars for all profiles)
-        dir = Utils.createPath(dirAS5, "common", "lib");
-        jar = lookForJarWithAClass(dir, classFilePath);
-        if (jar != null)
-            //return jar.getName();
-            return jar;
+            Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
+            log.trace("    Found .jar files: " + jarFiles.size());
 
-        throw new FileNotFoundException("Cannot find jar file which contains class: " + className);
-    }
-
-    private static File lookForJarWithAClass(File dir, String classFilePath) throws IOException {
-        log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + classFilePath.replace('/', '.'));
-        if( ! dir.isDirectory() ){
-            log.trace("    Not a directory: " +  dir.getPath());
-            return null;
-        }
-
-        //SuffixFileFilter sf = new SuffixFileFilter(".jar");
-        //List<File> list = (List<File>) FileUtils.listFiles(dir, sf, FileFilterUtils.makeCVSAware(null));
-        Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
-        log.trace("    Found .jar files: " + jarFiles.size());
-
-        for (File file : jarFiles) {
-            // Search the contained files for those containing $classFilePath.
-            try (JarFile jarFile = new JarFile(file)) {
-                final Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    final JarEntry entry = entries.nextElement();
-                    if ((!entry.isDirectory()) && entry.getName().contains(classFilePath)) {
-
-                        // Assuming that jar file contains some package with class (common Java practice)
-                        //return  StringUtils.substringAfterLast(file.getPath(), "/");
-                        return file;
+            for( File file : jarFiles ) {
+                // Search the contained files for those containing $classFilePath.
+                try( JarFile jarFile = new JarFile(file) ) {
+                    final Enumeration<JarEntry> entries = jarFile.entries();
+                    while( entries.hasMoreElements() ) {
+                        final JarEntry entry = entries.nextElement();
+                        if( ( ! entry.isDirectory() ) && entry.getName().contains( classFilePath ))
+                            return file;
                     }
                 }
             }
         }
         return null;
-    }
+    }// lookForJarWithClass()
 
     
     /**

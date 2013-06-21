@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.jboss.loom.conf.Configuration.IfExists;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
+import org.jboss.loom.utils.UtilsAS5;
 
 /**
  * Migrator of logging subsystem implementing IMigrator.
@@ -257,7 +258,7 @@ public class LoggingMigrator extends AbstractMigrator {
         
         File fileJar;
         try {
-            fileJar = Utils.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
+            fileJar = UtilsAS5.findJarFileWithClass(handler.getClassValue(), getGlobalConfig().getAS5Config().getDir(),
                     getGlobalConfig().getAS5Config().getProfileName());
         } catch (IOException ex) {
             throw new MigrationException("Failed finding jar with class " + handler.getClassValue() + ": " + ex.getMessage(), ex);

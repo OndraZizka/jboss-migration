@@ -1,3 +1,4 @@
 /target/
 /MigratorAS57.log
 /src/main/java/cz/muni/fi/jboss/migration/actions/IMigrationActionListener.java
+/src/test/java/org/jboss/loom/utils/as7/AS7CliUtilsTest_.java
