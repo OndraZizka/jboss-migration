@@ -22,7 +22,6 @@ import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ModuleCreationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
-import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
@@ -133,101 +132,134 @@ public class DatasourceMigrator extends AbstractMigrator {
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
         
-        Map<String, DriverBean> classToDriverMap = new HashMap();
+        // E.g. "com.mysql.jdbc.Driver" -> "mysql"
+        Map<String, String> classToDriverNameMap = new HashMap();
         
-        List<IMigrationAction> tempActions = new LinkedList();
+        Map<File, String> jarToModuleMap = new HashMap();
+        
+        
         for( IConfigFragment fragment : ctx.getMigrationData().get(DatasourceMigrator.class).getConfigFragments() ) {
             
             String dsType = null;
             try {
+                if( ! (fragment instanceof AbstractDatasourceBean) )
+                    throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
+                
+                final AbstractDatasourceAS5Bean dsBeanAS5 = (AbstractDatasourceAS5Bean) fragment;
+                
+                
+                // Getting existing or creating new driver resource.
+                final String cls = dsBeanAS5.getDriverClass(); // StringUtils.defaultIfEmpty( driver.getDatasourceClass(), driver.getXaDatasourceClass() );
+                String driverName = classToDriverNameMap.get( cls );
+                if( driverName == null ){
+                    
+                    // Search for driver class in jars and create module.
+                    List<IMigrationAction> actions = new LinkedList();
+                    driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++; // If new.
+                    driverName = createDriverActions( ctx, dsBeanAS5.getDriverClass(), jarToModuleMap, actions, driverName );
+                    ctx.getActions().addAll( actions );
+                    classToDriverNameMap.put( cls, driverName );
+                }
+                
+                AbstractDatasourceAS7Bean dsBean = migrateDatasouceAS5( dsBeanAS5 );
+                dsBean.setDriver( driverName );
+
+                // Creating the datasource resource.
                 if( fragment instanceof DatasourceAS5Bean ) {
                     dsType = "local-tx-datasource";
-                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
-                    tempActions.add( createDatasourceCliAction(ds) );
+                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) dsBean;
+                    ctx.getActions().add( createDatasourceCliAction(ds) );
                 }
                 else if( fragment instanceof XaDatasourceAS5Bean ) {
                     dsType = "xa-datasource";
-                    final XaDatasourceAS7Bean ds = (XaDatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
-                    tempActions.addAll(createXaDatasourceCliActions(ds));
+                    final XaDatasourceAS7Bean ds = (XaDatasourceAS7Bean) dsBean;
+                    ctx.getActions().addAll( createXaDatasourceCliActions(ds) );
                 }
                 else if( fragment instanceof NoTxDatasourceAS5Bean ){
                     dsType = "no-tx-datasource";
-                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) migrateDatasouceAS5( (AbstractDatasourceAS5Bean) fragment, classToDriverMap );
-                    tempActions.add(createDatasourceCliAction(ds));
+                    final DatasourceAS7Bean ds = (DatasourceAS7Bean) dsBean;
+                    ctx.getActions().add( createDatasourceCliAction(ds) );
                 }
-                else 
-                    throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment );
             }
             catch (CliScriptException ex) {
                 throw new MigrationException("Migration of " + dsType + " failed: " + ex.getMessage(), ex);
             }
         }
 
-        
-        // Search for driver class in jars and create module. Similar to finding logging classes.
-        HashMap<File, String> tempModules = new HashMap();
-        for( DriverBean driver : classToDriverMap.values() ) {
-            ctx.getActions().addAll( createDriverActions( ctx, driver, tempModules) );
-        }
+    }// createActions()
 
-        // Add datasource CliCommandActions after drivers.
-        ctx.getActions().addAll(tempActions);
-    }
+    
 
     /**
      * Creates CliCommandAction for given driver and if driver's module isn't already created then it creates
      * ModuleCreationAction.
      *
-     * @param driver driver for migration
-     * @param tempModules  Map containing already created Modules
-     * @return  list containing CliCommandAction for adding driver and if Module module for this driver hasn't be already
-     *          defined then the list also contains ModuleCreationAction for creating module.
-     * @throws ActionException if jar archive containing class declared in driver cannot be found or if creation of
-     *         CliCommandAction fails or if Document representing module.xml cannot be created.
+     * TODO: Much better than the original, but I still don't like the structure of the flow. Should be like:
+     * 
+     *   1) Check if driver for JDBC class exists in AS7
+     *      1a) If not:
+     *          1a1) Check if a module with it exists
+     *             1a1a) If not, copy .jar from AS 5 and create a module.
+     *             1a1b) Store the module name.
+     *          1a2) Create the driver
+     *      1b) Store driver name
      */
-    private List<IMigrationAction> createDriverActions( MigrationContext ctx, DriverBean driver, HashMap<File, String> tempModules )
+    private String createDriverActions( final MigrationContext ctx, final String driverClass, Map<File, String> tempModules, final List<IMigrationAction> actions, String driverNameIfNew )
             throws MigrationException {
-        
-        String driverClass = StringUtils.defaultIfEmpty( driver.getDriverClass(), driver.getXaDatasourceClass() );
+
+        // Driver to create, if necessary.
+        DriverBean driver = new DriverBean();
+        driver.setDriverClass( driverClass );
+        driver.setXaDatasourceClass( driverClass );
 
         
         // Find out if the driver already exists in AS 7. If so, find which module and which configured JDBC driver it is.
         try {
             File driverJarAS7 = Utils.lookForJarWithClass( driverClass, getGlobalConfig().getAS7Config().getModulesDir() );
+            // A .jar with driver class found.
             if( driverJarAS7 != null ){
                 log.info("Target server already contains JDBC driver " + driverClass);
                 String driverModuleName = AS7ModuleUtils.identifyModuleContainingJar( getGlobalConfig().getAS7Config(), driverJarAS7 );
-                String driverName = AS7CliUtils.findJdbcDriverUsingModule( driverModuleName, ctx.getAS7Client() );
+                
+                // If a driver with that class exists, no actions needed. Return it's name.
+                String existingDiverName = AS7CliUtils.findJdbcDriverUsingModule( driverModuleName, ctx.getAS7Client() );
+                if( existingDiverName != null )
+                    return existingDiverName;
+                
+                // Otherwise, we need to create that driver.
+                driver.setDriverModule( driverModuleName );
+                driver.setDriverName( driverNameIfNew );
+                actions.add( createDriverCliAction(driver) );
+                return driverNameIfNew;
             }
         }
         catch( IOException ex ) {
-            throw new MigrationException("Finding jar containing driver class failed: " + ex .getMessage(), ex );
+            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' failed: " + ex .getMessage(), ex );
         }
 
-        
+        // The driver .jar not found in AS 7 -> copy it from AS 5.
         // Find driver .jar in AS 5
         File driverJarAS5;
         try {
-            driverJarAS5 = UtilsAS5.findJarFileWithClass( driverClass,
+            driverJarAS5 = UtilsAS5.findJarFileWithClass( driverClass, // TODO: return List<FIle>
                 getGlobalConfig().getAS5Config().getDir(),
                 getGlobalConfig().getAS5Config().getProfileName());
         }
-        catch (IOException e) {
-            throw new MigrationException("Finding jar containing driver class failed: " + e.getMessage(), e);
+        catch( IOException ex ) {
+            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' failed: " + ex .getMessage(), ex );
         }
 
-        List<IMigrationAction> actions = new LinkedList();
-
+        // If there's already a module for that jar -> Just create the driver resource.
         if( tempModules.containsKey(driverJarAS5) ) {
             // ModuleCreationAction is already set. No need for another one => just create a CLI for the driver.
             try {
-                driver.setDriverModule(tempModules.get(driverJarAS5));
+                driver.setDriverModule( tempModules.get(driverJarAS5) );
                 actions.add( createDriverCliAction(driver) );
+                return driver.getDriverName();
             }
             catch (CliScriptException ex) {
                 throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
             }
-            return actions;
         }
         
         
@@ -252,8 +284,10 @@ public class DatasourceMigrator extends AbstractMigrator {
             actions.add(moduleAction);
         }
 
-        return actions;
+        return driver.getDriverName();
     }
+    
+    
 
     /**
      * Migrates datasource (all types) from AS5 to its equivalent in AS7
@@ -262,32 +296,17 @@ public class DatasourceMigrator extends AbstractMigrator {
      * @param drivers map containing created drivers to this point
      * @return created AS7 datasource
      */
-    private AbstractDatasourceAS7Bean migrateDatasouceAS5(AbstractDatasourceAS5Bean dsAS5, Map<String, DriverBean> drivers){
+    private AbstractDatasourceAS7Bean migrateDatasouceAS5( AbstractDatasourceAS5Bean dsAS5 ){
+        
         AbstractDatasourceAS7Bean dsAS7;
+        
         DriverBean driver;
-
         if( dsAS5 instanceof XaDatasourceAS5Bean){
             dsAS7 = new XaDatasourceAS7Bean();
-            driver = drivers.get( ((XaDatasourceAS5Bean) dsAS5).getXaDatasourceClass() );
             setXaDatasourceProps( (XaDatasourceAS7Bean) dsAS7, (XaDatasourceAS5Bean) dsAS5 );
         } else {
             dsAS7 = new DatasourceAS7Bean();
-            driver = drivers.get(  dsAS5.getDriverClass() );
-            setDatasourceProps((DatasourceAS7Bean) dsAS7,  dsAS5);
-        }
-
-        // Setting name for driver
-        if( null != driver ){
-            dsAS7.setDriver( driver.getDriverName());
-        }
-        else {
-            driver = new DriverBean();
-            driver.setDriverClass( dsAS5.getDriverClass() );
-
-            String driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++;
-            dsAS7.setDriver(driverName);
-            driver.setDriverName(driverName);
-            drivers.put(  dsAS5.getDriverClass(), driver );
+            setDatasourceProps( (DatasourceAS7Bean) dsAS7,  dsAS5 );
         }
 
         // Standalone elements in AS7
