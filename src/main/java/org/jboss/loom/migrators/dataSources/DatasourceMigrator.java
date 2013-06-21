@@ -270,19 +270,20 @@ public class DatasourceMigrator extends AbstractMigrator {
             driver.setDriverModule( driverNameIfNew );
             tempModules.put(driverJarAS5, driver.getDriverModule());
 
+            // ModuleCreationAction
+            String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
+            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), driver.getDriverModule(), deps, driverJarAS5, Configuration.IfExists.OVERWRITE);
+            actions.add(moduleAction);
+            
             // CliAction
             try{
                 CliCommandAction action = createDriverCliAction(driver);
+                action.addDependency( moduleAction );
                 actions.add( action );
             }
             catch (CliScriptException ex) {
                 throw new MigrationException("Migration of driver failed (CLI command): " + ex.getMessage(), ex);
             }
-
-            String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
-            
-            IMigrationAction moduleAction = new ModuleCreationAction( this.getClass(), driver.getDriverModule(), deps, driverJarAS5, Configuration.IfExists.OVERWRITE);
-            actions.add(moduleAction);
         }
 
         return driver.getDriverName();

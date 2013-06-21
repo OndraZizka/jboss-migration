@@ -86,8 +86,6 @@ public class Utils {
         for( File dir : dirs ) {
             log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + className);
 
-            String classFilePath = className.replace(".", "/");
-
             if( ! dir.isDirectory() ){
                 log.trace("    Not a directory: " +  dir.getPath());
                 continue;
@@ -96,20 +94,31 @@ public class Utils {
             Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
             log.trace("    Found .jar files: " + jarFiles.size());
 
+            String classFilePath = className.replace(".", "/");
+
             for( File file : jarFiles ) {
                 // Search the contained files for those containing $classFilePath.
                 try( JarFile jarFile = new JarFile(file) ) {
-                    final Enumeration<JarEntry> entries = jarFile.entries();
-                    while( entries.hasMoreElements() ) {
-                        final JarEntry entry = entries.nextElement();
-                        if( ( ! entry.isDirectory() ) && entry.getName().contains( classFilePath ))
-                            return file;
-                    }
+                    if( containsClass( jarFile, classFilePath ) )
+                        return file;
                 }
             }
         }
         return null;
     }// lookForJarWithClass()
+
+
+    
+    private static boolean containsClass( JarFile jarFile, String classFilePath ) {
+        final Enumeration<JarEntry> entries = jarFile.entries();
+        while( entries.hasMoreElements() ) {
+            final JarEntry entry = entries.nextElement();
+            if( ( ! entry.isDirectory() ) && entry.getName().contains( classFilePath ))
+                return true;
+        }
+        return false;
+    }
+    
 
     
     /**
@@ -285,5 +294,5 @@ public class Utils {
             throw new IllegalArgumentException("Resource not found: " + packageDir);
         FileUtils.copyInputStreamToFile( is, new File(dir, name) );
     }
-    
+
 }// class
