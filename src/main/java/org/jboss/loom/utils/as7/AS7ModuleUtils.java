@@ -20,6 +20,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.IOException;
+import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.conf.AS7Config;
 
 /**
  * Util class for generation of module XML.
@@ -109,6 +112,28 @@ public class AS7ModuleUtils {
 
         Document doc = builder.getDOMImplementation().createDocument(null, null, null);
         return doc;
+    }
+
+
+    /**
+     *  Returns the name of the module which uses given .jar.
+     *  For example, file at modules/system/layers/base/com/h2database/h2/main/h2-1.3.168.jar
+     *  should return "com.h2database.h2".
+     * 
+     *  The current implementation is naive, assuming that the .jar file is in the module's root dir, where module.xml is.
+     * 
+     *  This method behavior is likely to change with various versions of EAP.
+     */
+    public static String identifyModuleContainingJar( AS7Config as7Config, File jar ) {
+        
+        String modAbsPath = as7Config.getModulesDir().getPath();
+        String jarAbsPath = jar.getParentFile().getParentFile().getPath();
+        
+        String commonPrefix = StringUtils.getCommonPrefix( new String[]{ modAbsPath, jarAbsPath } );
+        String diff = jarAbsPath.substring( commonPrefix.length() );
+        
+        String modName = StringUtils.removeStart( diff, "/" );
+        return modName.replace('/', '.');
     }
 
 }// class
