@@ -1,6 +1,9 @@
 package org.jboss.loom;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
+import org.apache.commons.io.FileUtils;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.as7.AS7CliUtils;
@@ -22,6 +25,14 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 public class ArqTest {
+    
+    //@BeforeClass
+    public static void copyMgmtUsersFile( AS7Config as7Config ) throws IOException {
+        FileUtils.copyInputStreamToFile(
+            ArqTest.class.getResourceAsStream("/org/jboss/loom/mgmt-users.properties"),
+            new File( as7Config.getConfigDir() + "/mgmt-users.properties")
+        );
+    }
     
     /**
      * Test of doMigration method, of class MigratorEngine.
@@ -60,6 +71,7 @@ public class ArqTest {
     private void runEap520( String profile ) throws Exception {
         Configuration conf = TestAppConfig.createTestConfig_EAP_520(profile);
         updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
+        copyMgmtUsersFile( conf.getGlobal().getAS7Config() );
         
         TestAppConfig.announceMigration( conf );
         ConfigurationValidator.validate( conf );
