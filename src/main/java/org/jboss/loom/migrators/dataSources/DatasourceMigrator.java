@@ -153,7 +153,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 String driverName = classToDriverNameMap.get( cls );
                 if( driverName == null ){
                     
-                    // Search for driver class in jars and create module.
+                    // Search for driver class in both AS 5 and AS 7 jars and create module.
                     List<IMigrationAction> actions = new LinkedList();
                     driverName = JDBC_DRIVER_MODULE_PREFIX + "createdDriver" + this.namingSequence ++; // If new.
                     driverName = createDriverActions( ctx, dsBeanAS5.getDriverClass(), jarToModuleMap, actions, driverName );
