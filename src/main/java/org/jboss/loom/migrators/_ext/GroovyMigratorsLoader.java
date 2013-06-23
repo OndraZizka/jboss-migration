@@ -1,4 +1,4 @@
-package org.jboss.loom.migrators._groovy;
+package org.jboss.loom.migrators._ext;
 
 import groovy.lang.GroovyClassLoader;
 import java.io.File;
@@ -15,7 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
-import org.jboss.loom.migrators._groovy.MigratorDefinition.JaxbClassDef;
+import org.jboss.loom.migrators._ext.MigratorDefinition.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;

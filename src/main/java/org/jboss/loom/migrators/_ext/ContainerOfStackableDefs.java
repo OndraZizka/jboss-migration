@@ -1,4 +1,4 @@
-package org.jboss.loom.migrators._groovy;
+package org.jboss.loom.migrators._ext;
 
 
 import java.util.List;

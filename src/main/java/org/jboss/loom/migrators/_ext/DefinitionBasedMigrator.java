@@ -1,4 +1,4 @@
-package org.jboss.loom.migrators._groovy;
+package org.jboss.loom.migrators._ext;
 
 import java.io.File;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators._groovy.MigratorDefinition.XmlFileQueryDef;
+import org.jboss.loom.migrators._ext.MigratorDefinition.XmlFileQueryDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.XmlUtils;
