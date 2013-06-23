@@ -113,7 +113,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
         } catch (JAXBException | SAXException | IOException e) {
             throw new LoadMigrationException(e);
         }
-    }
+    }// loadSourceServerConfig()
 
     
     
@@ -143,8 +143,8 @@ public class ResAdapterMigrator extends AbstractMigrator {
                     continue;
                 }
                 throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
-
-            } catch (CliScriptException e) {
+            }
+            catch (CliScriptException e) {
                 throw new MigrationException("Migration of " + raType +" failed: " + e.getMessage(), e);
             }
         }
@@ -168,7 +168,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             }
             ctx.getActions().add( action );
         }
-    }
+    }// createActions()
 
     
     
@@ -189,24 +189,23 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         ConnectionDefinitionBean connDef = new ConnectionDefinitionBean();
 
-        if(connFactoryAS5 instanceof ConnectionFactoryAS5Bean){
+        if( connFactoryAS5 instanceof ConnectionFactoryAS5Bean ) {
             if ( ( ( ConnectionFactoryAS5Bean )connFactoryAS5 ).getXaTransaction() != null ) {
                 resAdapter.setTransactionSupport( "XATransaction" );
                 ConnectionFactoryAS5Bean tempFactory = ( ConnectionFactoryAS5Bean ) connFactoryAS5;
 
-                connDef.setXaResourceTimeout(tempFactory.getXaResourceTimeout());
-                connDef.setXaMaxPoolSize(tempFactory.getMaxPoolSize());
+                connDef.setXaResourceTimeout( tempFactory.getXaResourceTimeout() );
+                connDef.setXaMaxPoolSize( tempFactory.getMaxPoolSize() );
                 connDef.setXaMinPoolSize( tempFactory.getMinPoolSize() );
-                connDef.setXaNoTxSeparatePools(tempFactory.getNoTxSeparatePools());
+                connDef.setXaNoTxSeparatePools( tempFactory.getNoTxSeparatePools() );
                 connDef.setXaPrefill( tempFactory.getPrefill() );
-
             } else {
                 resAdapter.setTransactionSupport( "LocalTransaction" );
                 connDef.setMaxPoolSize( connFactoryAS5.getMaxPoolSize() );
                 connDef.setMinPoolSize( connFactoryAS5.getMinPoolSize() );
                 connDef.setPrefill( connFactoryAS5.getPrefill() );
             }
-        } else{
+        } else {
             resAdapter.setTransactionSupport( "NoTransaction" );
         }
 
@@ -259,8 +258,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the Resource-Adapter are
      *                            missing or are empty (archive-name)
      */
-    private static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter)
-            throws CliScriptException {
+    private static List<CliCommandAction> createResourceAdapterCliCommand(ResourceAdapterBean adapter) throws CliScriptException {
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(adapter.getArchive(), errMsg, "Archive name");
 
@@ -297,9 +295,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
      *          if required attributes for a creation of the CLI command of the Connection-Definition
      *          are missing or are empty (class-name, pool-name)
      */
-    private static List<CliCommandAction> createConDefinitionCliAction(ResourceAdapterBean adapter,
-                                                                       ConnectionDefinitionBean def)
-            throws CliScriptException {
+    private static List<CliCommandAction> createConDefinitionCliAction( 
+            ResourceAdapterBean adapter, ConnectionDefinitionBean def ) throws CliScriptException 
+    {
         String errMsg = "in connection-definition in resource-adapter(connection-factories) must be set";
         Utils.throwIfBlank(def.getClassName(), errMsg, "Class-name");
         Utils.throwIfBlank(def.getPoolName(), errMsg, "Pool-name");
@@ -322,14 +320,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         builder.addPropertyIfSet("flush-strategy", def.getFlushStrategy());
 
-        if(adapter.getTransactionSupport().equalsIgnoreCase("xatransaction")){
+        if( adapter.getTransactionSupport().equalsIgnoreCase( "xatransaction" ) ) {
             builder.addPropertyIfSet("min-pool-size", def.getXaMinPoolSize());
             builder.addPropertyIfSet("max-pool-size", def.getXaMaxPoolSize());
             builder.addPropertyIfSet("prefill", def.getXaPrefill());
             builder.addPropertyIfSet("xa-resource-timeout", def.getXaResourceTimeout());
             builder.addPropertyIfSet("no-tx-separate-pools", def.getXaNoTxSeparatePools());
             builder.addPropertyIfSet("use-strict-min",def.getXaUseStrictMin());
-        } else{
+        } else {
             builder.addPropertyIfSet("min-pool-size", def.getMinPoolSize());
             builder.addPropertyIfSet("max-pool-size", def.getMaxPoolSize());
             builder.addPropertyIfSet("prefill", def.getPrefill());
@@ -354,10 +352,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         actions.add( new CliCommandAction( ResAdapterMigrator.class, createConnDefinitionScript(adapter, def), builder.getCommand()));
 
-        if (def.getConfigProperties() != null) {
-            for (ConfigPropertyBean configProperty : def.getConfigProperties()) {
-                actions.add(createPropertyCliAction(adapter, def, configProperty));
-
+        if( def.getConfigProperties() != null ) {
+            for( ConfigPropertyBean configProperty : def.getConfigProperties() ) {
+                actions.add( createPropertyCliAction( adapter, def, configProperty ) );
             }
         }
 
@@ -404,7 +401,6 @@ public class ResAdapterMigrator extends AbstractMigrator {
         String errMsg = " in resource-adapter(connection-factories in AS5) must be set.";
         Utils.throwIfBlank(resourceAdapter.getArchive(), errMsg, "Archive name");
 
-
         StringBuilder resultBuilder = new StringBuilder();
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
@@ -435,8 +431,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
 
         CliAddScriptBuilder cliBuilder = new CliAddScriptBuilder();
 
-        StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=" +
-                adapter.getJndiName());
+        StringBuilder script = new StringBuilder("/subsystem=resource-adapters/resource-adapter=" + adapter.getJndiName());
 
         script.append("/connection-definitions=").append(connDef.getPoolName()).append(":add(");
 
@@ -451,12 +446,12 @@ public class ResAdapterMigrator extends AbstractMigrator {
         cliBuilder.addProperty("min-pool-size", connDef.getMinPoolSize());
         cliBuilder.addProperty("max-pool-size", connDef.getMaxPoolSize());
 
-        if (connDef.getSecurityDomain() != null) {
-            cliBuilder.addProperty("security-domain", connDef.getSecurityDomain());
-        } else if (connDef.getSecDomainAndApp() != null) {
-            cliBuilder.addProperty("security-domain-and-application", connDef.getSecDomainAndApp());
-        } else if (connDef.getAppManagedSec() != null) {
-            cliBuilder.addProperty("application-managed-security", connDef.getAppManagedSec());
+        if( connDef.getSecurityDomain() != null ) {
+            cliBuilder.addProperty( "security-domain", connDef.getSecurityDomain() );
+        } else if( connDef.getSecDomainAndApp() != null ) {
+            cliBuilder.addProperty( "security-domain-and-application", connDef.getSecDomainAndApp() );
+        } else if( connDef.getAppManagedSec() != null ) {
+            cliBuilder.addProperty( "application-managed-security", connDef.getAppManagedSec() );
         }
 
         cliBuilder.addProperty("background-validation", connDef.getBackgroundValidation());
@@ -483,8 +478,9 @@ public class ResAdapterMigrator extends AbstractMigrator {
      * @throws CliScriptException if required attributes for a creation of the CLI command of the config-property
      *                            are missing or are empty (name)
      */
-    private static String createPropertyScript(ResourceAdapterBean adapter, ConnectionDefinitionBean connDef,
-                                               ConfigPropertyBean property) throws CliScriptException {
+    private static String createPropertyScript(
+            ResourceAdapterBean adapter, ConnectionDefinitionBean connDef, ConfigPropertyBean property) throws CliScriptException 
+    {
         String errMsg = "of config-property in connection-definition in resource-adapter must be set.";
         Utils.throwIfBlank(property.getConfigPropertyName(), errMsg, "Name");
 
