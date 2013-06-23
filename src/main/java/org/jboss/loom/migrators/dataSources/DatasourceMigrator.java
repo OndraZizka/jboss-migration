@@ -218,7 +218,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             File driverJarAS7 = Utils.lookForJarWithClass( driverClass, getGlobalConfig().getAS7Config().getModulesDir() );
             // A .jar with driver class found.
             if( driverJarAS7 != null ){
-                log.info("Target server already contains JDBC driver " + driverClass);
+                log.info("Target server already contains JDBC driver '" + driverClass + "': " + driverJarAS7);
                 String driverModuleName = AS7ModuleUtils.identifyModuleContainingJar( getGlobalConfig().getAS7Config(), driverJarAS7 );
                 
                 // If a driver with that class exists, no actions needed. Return it's name.
@@ -234,7 +234,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             }
         }
         catch( IOException ex ) {
-            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' failed: " + ex .getMessage(), ex );
+            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' in the source server failed:\n    " + ex .getMessage(), ex );
         }
 
         // The driver .jar not found in AS 7 -> copy it from AS 5.
@@ -246,7 +246,7 @@ public class DatasourceMigrator extends AbstractMigrator {
                 getGlobalConfig().getAS5Config().getProfileName());
         }
         catch( IOException ex ) {
-            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' failed: " + ex .getMessage(), ex );
+            throw new MigrationException("Finding .jar containing driver class '"+driverClass+"' in the target server failed:\n    " + ex .getMessage(), ex );
         }
 
         // If there's already a module for that jar -> Just create the driver resource.
@@ -268,7 +268,7 @@ public class DatasourceMigrator extends AbstractMigrator {
             // Driver name == module name (the operation has that constraint)
             driver.setDriverName( driverNameIfNew );
             driver.setDriverModule( driverNameIfNew );
-            tempModules.put(driverJarAS5, driver.getDriverModule());
+            tempModules.put( driverJarAS5, driver.getDriverModule() );
 
             // ModuleCreationAction
             String[] deps = new String[]{"javax.api", "javax.transaction.api", null, "javax.servlet.api"}; // null = next is optional.
