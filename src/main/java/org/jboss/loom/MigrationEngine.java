@@ -251,20 +251,14 @@ public class MigrationEngine {
             this.preValidateActions();
             message = "Failed creating backups for the migration actions.";
             this.backupActions();
-            
-            rollback:
-            try {
-                message = "Failed performing the migration actions.";
-                this.performActions();
 
-                if( ! dryRun ){
-                    message = "Verification of migration actions results failed.";
-                    this.postValidateActions();
-                }
-                message = "Cleaning backups of migration actions failed.";
-            }
-            finally {
-                this.cleanBackupsIfAny();
+            // Perform
+            message = "Failed performing the migration actions.";
+            this.performActions();
+
+            if( ! dryRun ){
+                message = "Verification of migration actions results failed.";
+                this.postValidateActions();
             }
             
             // Close the AS 7 management client connection.
@@ -275,30 +269,28 @@ public class MigrationEngine {
             
         }
         catch( MigrationException ex ) {
-            this.rollbackActionsWhichWerePerformed();
             
-            // Build up a description.
+            // Rollback.
+            this.rollbackActionsWhichWerePerformed();
+
+            // Build up a description of what happened.
             String description = "";
             if( ex instanceof ActionException ){
-                IMigrationAction action = ((ActionException)ex).getAction();
-                // Header
-                description = 
-                          "\n    Migration action which caused the failure: "
-                        + "  (from " + action.getFromMigrator().getSimpleName() + ")";
-                // StackTraceElement
-                if( action.getOriginStackTrace() != null )
-                    description += "\n\tat " + action.getOriginStackTrace().toString();
-                // Description
-                description += "\n    " + action.toDescription();
-                // Origin message
-                if( action.getOriginMessage() != null )
-                    description += "\n    Purpose of the action: " + action.getOriginMessage();
+                description = ((ActionException) ex).formatDescription();
             }
             this.ctx.setFinalException( new MigrationException( message
                   + "\n    " + ex.getMessage() 
                   + description, ex ) );
+
+            // Clean backups - only if rollback went fine.
+            try {
+                this.cleanBackupsIfAny();
+            } catch ( Exception ex2 ){
+                log.error("Cleaning backups of migration actions failed: " + ex2.getMessage(), ex2 );
+            }
         }
         
+        // Report
         this.createReport();
         
         if( this.ctx.getFinalException() != null)
@@ -402,7 +394,13 @@ public class MigrationEngine {
             
             // On dry run, CliCommandActions can still be performed as they only add to the batch.
             if( (action instanceof CliCommandAction) ||  ! dryRun )
-                action.perform();
+                try {
+                    action.perform();
+                } catch( ActionException ex ){
+                    throw ex;
+                } catch( Throwable ex ){
+                    throw new ActionException( action, "Failed to perform action:\n"+action.toDescription()+"\n    " + ex.getMessage(), ex);
+                }
         }
         
         /// DEBUG: Dump created CLI operations
@@ -438,7 +436,7 @@ public class MigrationEngine {
             
             throw new ActionException( causeAction, "Executing a CLI batch failed: " + failure.getMessage());
         }
-        catch( IOException ex ) {
+        catch( Exception ex ) {
             throw new MigrationException("Executing a CLI batch failed: " + ex, ex);
         }
         
@@ -467,7 +465,11 @@ public class MigrationEngine {
         List<IMigrationAction> actions = ctx.getActions();
         for( IMigrationAction action : actions ) {
             //if( action.isAfterPerform()) // Checked in rollback() itself.
-            action.rollback();
+            try {
+                action.rollback();
+            } catch ( ActionException ex ){
+                throw new MigrationException( "Rollback failed: " + ex.formatDescription(), ex );
+            }
         }
     }
     
