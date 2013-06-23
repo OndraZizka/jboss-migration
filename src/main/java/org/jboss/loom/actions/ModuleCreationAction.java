@@ -12,22 +12,20 @@ import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.as7.AS7ModuleUtils;
-import org.jboss.loom.utils.Utils;
 import org.apache.commons.io.FileUtils;
 
-import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.xml.parsers.ParserConfigurationException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.jboss.loom.spi.ann.Property;
-import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
 /**
  * @author Ondrej Zizka, ozizka at redhat.com
@@ -71,7 +69,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         if( ! jarFile.exists() )
             throw new ActionException(this, "Module source jar doesn't exist: " + jarFile.getPath());
         
-        File dir = getModuleDir();
+        File dir = getModuleDir(); // Stored in perform.
         if( dir.exists() ){
             switch( this.ifExists ){
                 case FAIL:
@@ -80,10 +78,10 @@ public class ModuleCreationAction extends AbstractStatefulAction {
                 case MERGE:
                     throw new UnsupportedOperationException("ASK and MERGE are not supported for " + getClass().getSimpleName());
                 case WARN:
-                    log.warn("Module directory for "+this.moduleName+" already exists: " + this.moduleDir);
+                    log.warn("Module directory for "+this.moduleName+" already exists: " + dir);
                     break;
                 case SKIP:
-                    log.debug("Module directory for "+this.moduleName+" already exists, skipping: " + this.moduleDir);
+                    log.debug("Module directory for "+this.moduleName+" already exists, skipping: " + dir);
                     break;
             }
         }
@@ -105,8 +103,9 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             if( moduleXmlFile.exists() && this.ifExists != Configuration.IfExists.OVERWRITE )
                 throw new ActionException(this, MODULE_XML_FNAME + " already exists: " + moduleXmlFile.getPath() );
             
-            Document doc = AS7ModuleUtils.createModuleXML( moduleName, jarFile.getName(), deps );
-            XmlUtils.transformDocToFile( doc, moduleXmlFile );
+            //Document doc = AS7ModuleUtils.createModuleXML( moduleName, jarFile.getName(), deps );
+            //XmlUtils.transformDocToFile( doc, moduleXmlFile );
+            AS7ModuleUtils.createModuleXML_FreeMarker( new ModuleXmlInfo( moduleName, jarFile.getName(), deps ), moduleXmlFile );
 
             // Backup
             this.moduleDir = dir;
@@ -114,7 +113,7 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         catch( IOException ex ) {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
-        catch( TransformerException | ParserConfigurationException ex ) {
+        catch( Exception ex ) {
             throw new ActionException(this, "Creation of " + MODULE_XML_FNAME + " failed: " + ex.getMessage(), ex);
         }
 
@@ -124,9 +123,9 @@ public class ModuleCreationAction extends AbstractStatefulAction {
 
     @Override
     public void rollback() throws MigrationException {
-        if( this.isAfterPerform() ) {
+        //if( this.isAfterPerform() )
             FileUtils.deleteQuietly( this.moduleDir );
-        }
+            
         if( this.backupDir != null ){
             try {
                 FileUtils.moveDirectory( this.backupDir, this.moduleDir );
@@ -135,11 +134,6 @@ public class ModuleCreationAction extends AbstractStatefulAction {
             }
         }
         setState(State.ROLLED_BACK);
-    }
-
-
-    @Override
-    public void postValidate() throws MigrationException {
     }
 
 
@@ -185,6 +179,13 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         setState(State.FINISHED);
     }
 
+    
+    @Override
+    public void postValidate() throws MigrationException {
+    }
+
+
+    
 
     private File getModuleDir() {
         return new File( getMigrationContext().getAs7Config().getModulesDir(), this.moduleName.replace('.', '/') + "/main" );
@@ -196,16 +197,66 @@ public class ModuleCreationAction extends AbstractStatefulAction {
         return "ModuleCreationAction{ " + moduleName + " ifEx=" + ifExists + ", jar=" + jarFile + ", modDir=" + moduleDir + ", backup=" + backupDir + '}';
     }
 
+    
+    // Getters / properties
 
     @Property(name = "jarFile", label = "JAR file to copy", style = "code")
-    public File getJarFile() {
-        return jarFile;
-    }
-
-
+    public File getJarFile() { return jarFile; }
+    
     @Property(name = "moduleName", label = "Module name", style = "code")
-    public String getModuleName() {
-        return moduleName;
-    }
+    public String getModuleName() { return moduleName; }
+
+
+    public String[] getDeps() { return deps; }
+    
+    
+    
+    // == Structures == //
+    
+    public static class ModuleXmlInfo {
+        public String moduleName;
+        public String jarFile;
+        public List<Dep> deps;
+
+        public ModuleXmlInfo( String moduleName, String jarFile, String[] deps ) {
+            this.moduleName = moduleName;
+            this.jarFile = jarFile;
+            this.deps = Dep.listFrom( deps );
+        }
+
+        public List<String> getResourceRoots() { return new LinkedList(){{ add(getJarFile()); }}; } // for FreeMarker template.
+        
+        public String getModuleName() { return moduleName; }
+        public String getJarFile() { return jarFile; }
+        public List<Dep> getDeps() { return deps; }
+        
+    }// ModuleXmlInfo
+
+    public static class Dep {
+        public String name;
+        public boolean optional;
+
+        public Dep( String name, boolean optional ) {
+            this.name = name;
+            this.optional = optional;
+        }
+
+        public String getName() { return name; }
+        public boolean isOptional() { return optional; }
+        
+        private static List<Dep> listFrom( String[] depsDef ){
+            List<Dep> deps = new ArrayList(depsDef.length);
+            boolean isNextOpt = false;
+            for( String dep : depsDef ) {
+                if( dep == null ){
+                    isNextOpt = true;
+                    continue;
+                }
+                deps.add( new Dep( dep, isNextOpt ) );
+                isNextOpt = false;                
+            }
+            return deps;
+        }
+    }// class Dep
     
 }// class
