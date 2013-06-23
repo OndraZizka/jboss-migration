@@ -669,8 +669,9 @@ public class DatasourceMigrator extends AbstractMigrator {
         String errMsg = " in driver must be set.";
         Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
         Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
-
-        return new CliCommandAction( DatasourceMigrator.class, createDriverScript(driver), createDriverModelNode(driver) );
+        
+        final ModelNode modelNode = createDriverModelNode(driver);
+        return new CliCommandAction( DatasourceMigrator.class, /*createDriverScript(driver)*/ AS7CliUtils.formatCommand( modelNode ), modelNode);
     }
     
     private static ModelNode createDriverModelNode( DriverBean driver ){
@@ -693,39 +694,6 @@ public class DatasourceMigrator extends AbstractMigrator {
         return builder.getCommand();
     }    
     
-    /**
-     * Creates a CLI script for adding a Driver
-     *
-     * @param driver object of DriverBean
-     * @return string containing created CLI script
-     * @throws CliScriptException if required attributes for creation of the CLI script are missing or are empty
-     *                           (module, driver-name)
-     * 
-     * @deprecated  This should be buildable from the ModelNode.
-     *              String cliCommand = AS7CliUtils.formatCommand( builder.getCommand() );
-     */
-    private static String createDriverScript(DriverBean driver) throws CliScriptException {
-        String errMsg = " in driver must be set.";
-        Utils.throwIfBlank(driver.getDriverModule(), errMsg, "Module");
-        Utils.throwIfBlank(driver.getDriverName(), errMsg, "Driver-name");
-
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder sb = new StringBuilder("/subsystem=datasources");
-        sb.append("/jdbc-driver=").append(driver.getDriverName());
-        sb.append(":add(");
-        //sb.append("driver-module-name=").append(driver.getDriverModule()).append(", ");
-        
-        Map<String,String> props = new HashMap();
-        props.put("driver-module-name", driver.getDriverModule());
-        props.put("driver-class-name", driver.getDriverClass());
-        props.put("driver-xa-datasource-class-name", driver.getXaDatasourceClass());
-        props.put("driver-major-version", driver.getMajorVersion());
-        props.put("driver-minor-version", driver.getMinorVersion());
-        builder.addProperties( props );
-        
-        sb.append(builder.formatAndClearProps()).append(")");
-        return sb.toString();
-    }
     
     private static void validateDatasource( AbstractDatasourceAS7Bean datasource, String errMsg ) throws CliScriptException {
         Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
