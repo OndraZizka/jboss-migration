@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
@@ -74,6 +75,15 @@ public class Reporter {
             FileUtils.copyInputStreamToFile( is, new File(reportDir, "iconsBig.png") );
             is = Reporter.class.getResourceAsStream(RESOURCES_PATH + "iconsMed.png");
             FileUtils.copyInputStreamToFile( is, new File(reportDir, "iconsMed.png") );
+        }
+        catch( TransformerException ex ){
+            //log.error("ex:", ex);
+            //log.error("ex.getCause():", ex.getCause());
+            //log.error("ex.getException():", ex.getException());
+            for( Throwable throwable : ex.getSuppressed() ) {
+                log.error( "ex.getSuppressed():", new Exception( throwable ) );
+            }
+            throw new MigrationException("Failed creating migration report:\n    " + ex.getMessageAndLocation(), ex);
         }
         catch( Exception ex ) {
             log.error("AAAA!", ex);
