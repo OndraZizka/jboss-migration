@@ -139,7 +139,7 @@ public class Utils {
      *  Searches a file of given name under given directory tree.
      *  @throws  CopyException if nothing found.
      */
-    public static List<File> searchForFileOrDir(final String name, final File dir) throws IOException {
+    public static List<File> searchForFileOrDir( final String name, final File dir ) throws IOException {
 
         List<File> found = new DirectoryWalker(){
             @Override protected boolean handleDirectory( File directory, int depth, Collection results ) throws IOException {
@@ -148,7 +148,8 @@ public class Utils {
                 return true;
             }
             @Override protected void handleFile( File file, int depth, Collection results ) throws IOException {
-                results.add( file );
+                if( file.getName().equals( name ))
+                    results.add( file );
             }
             public List<File> search() throws IOException {
                 List<File> found = new LinkedList();
