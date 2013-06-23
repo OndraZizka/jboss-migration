@@ -267,13 +267,12 @@ public class LoggingMigrator extends AbstractMigrator {
         List<IMigrationAction> actions = new LinkedList();
 
         if (tempModules.containsKey(fileJar)) {
-            // It means that moduleAction is already set. No need for another one => create CLI for CustomHandler and
-            // continue on the next iteration
+            // ModuleCreationAction is already set. No need for another one => just create CLI for CustomHandler
             try {
-                handler.setModule(tempModules.get(fileJar));
-                actions.add(createCustomHandlerCliAction(handler));
+                handler.setModule( tempModules.get( fileJar ) );
+                actions.add( createCustomHandlerCliAction( handler ) );
             }
-            catch (CliScriptException ex) {
+            catch( CliScriptException ex ) {
                 throw new MigrationException("Failed creating a CLI command for appeneder " + handler.getName() + ": " + ex.getMessage(), ex);
             }
 
@@ -288,7 +287,7 @@ public class LoggingMigrator extends AbstractMigrator {
             handler.setModule( moduleName );
             tempModules.put( fileJar, moduleName );
 
-            actions.add(createCustomHandlerCliAction(handler));
+            actions.add( createCustomHandlerCliAction( handler ) );
 
             String[] deps = new String[]{"javax.api", "org.jboss.logging", null, "org.apache.log4j"};
 
@@ -296,7 +295,8 @@ public class LoggingMigrator extends AbstractMigrator {
                     this.getClass(), moduleName, deps, fileJar, 
                     this.parseIfExistsParam("logger." + IfExists.PARAM_NAME, IfExists.OVERWRITE));
             actions.add(moduleAction);
-        }catch (CliScriptException e) {
+        }
+        catch( CliScriptException e ) {
             throw new MigrationException("Migration of the appeneder " + handler.getName() + " failed (CLI command): " + e.getMessage(), e);
         }
 
