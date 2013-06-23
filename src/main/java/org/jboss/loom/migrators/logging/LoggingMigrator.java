@@ -184,7 +184,7 @@ public class LoggingMigrator extends AbstractMigrator {
         // Appenders.
         HashMap<File, String> tempModules = new HashMap();
         for( AppenderBean appender : appenders) {
-            List<IMigrationAction> actions = createAppenderAction( appender, tempModules );
+            List<? extends IMigrationAction> actions = createAppenderAction( appender, tempModules );
             for( IMigrationAction action : actions ) {
                 ctx.getActions().add( action );
                 appenderNamesToActions.put( appender.getAppenderName(), action );
