@@ -203,7 +203,7 @@
                             <table class="warnings wid100p flat vertBorder">
                             <xsl:for-each select="warnings/warning">
                                 <tr>
-                                    <td class="icon"><div/></td> <td><xsl:value-of select="text()"/></td>
+                                    <td class="icon"><div/></td> <td class="text"><xsl:value-of select="text()"/></td>
                                 </tr>
                             </xsl:for-each>
                             </table>

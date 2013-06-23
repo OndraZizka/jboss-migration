@@ -134,3 +134,4 @@ div.box.action div.property.code div.value {
 }
 div.box.action div.fromMigrator { font-style: italic; }
 div.box.action table.warnings  td.icon div { background-position:  -334px -588px; } /*(!)*/
+div.box.action table.warnings  td.text { white-space: pre-wrap; } /*(!)*/
