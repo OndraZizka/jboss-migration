@@ -75,6 +75,7 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
         
         try {
             this.temp = File.createTempFile(this.dest.getName(), null);
+            FileUtils.deleteQuietly( this.temp );
             Utils.copyFileOrDirectory(this.dest, this.temp);
         } catch (IOException ex) {
             throw new ActionException(this, "Creating a backup file failed: " + ex.getMessage(), ex);
