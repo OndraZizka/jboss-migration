@@ -132,14 +132,14 @@ public class ResAdapterMigrator extends AbstractMigrator {
             try {
                 if( fragment instanceof ConnectionFactoryAS5Bean ) {
                     raType = "tx-connection-factory";
-                    ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, referencedRARs )));
+                    final ResourceAdapterBean raBean = migrateConnFactory( (ConnectionFactoryAS5Bean) fragment, referencedRARs );
+                    ctx.getActions().addAll( createResourceAdapterCliCommand( raBean ) );
                     continue;
                 }
                 if( fragment instanceof NoTxConnectionFactoryAS5Bean ) {
                     raType = "no-tx-connection-factory";
-                    ctx.getActions().addAll(createResourceAdapterCliCommand(
-                            migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, referencedRARs )));
+                    final ResourceAdapterBean raBean = migrateConnFactory( (NoTxConnectionFactoryAS5Bean) fragment, referencedRARs );
+                    ctx.getActions().addAll( createResourceAdapterCliCommand( raBean ) );
                     continue;
                 }
                 throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
@@ -155,7 +155,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             final File profileDir = getGlobalConfig().getAS5Config().getProfileDir(); //  .../deployments ?
             Collection<File> foundRARs;
             try {
-                foundRARs = Utils.searchForFileOrDir(referencedRAR, profileDir);
+                foundRARs = Utils.searchForFileOrDir( referencedRAR, profileDir );
             } catch ( IOException ex ) {
                 throw new MigrationException("Can't find " + referencedRAR + ": " + ex.getMessage(), ex);
             }
@@ -163,7 +163,7 @@ public class ResAdapterMigrator extends AbstractMigrator {
             File rarTo = Utils.createPath(getGlobalConfig().getAS7Config().getDir(), "standalone", "deployments", rarFrom.getName());
             CopyFileAction action = new CopyFileAction( this.getClass(), rarFrom, rarTo, CopyFileAction.IfExists.SKIP);
             if( foundRARs.size() > 1 ){
-                String warn = "Found multiple " + referencedRAR + " in " + profileDir + ":\n  " + StringUtils.join( foundRARs, "\n  ");
+                String warn = "Found multiple '" + referencedRAR + "' in '" + profileDir + "':\n  " + StringUtils.join( foundRARs, "\n  ");
                 action.addWarning( warn );
             }
             ctx.getActions().add( action );
