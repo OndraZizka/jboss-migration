@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.spi.ann.Property;
+import org.jboss.loom.utils.Utils;
 
 /**
  *
@@ -74,7 +75,7 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
         
         try {
             this.temp = File.createTempFile(this.dest.getName(), null);
-            FileUtils.copyFile(this.dest, this.temp);
+            Utils.copyFileOrDirectory(this.dest, this.temp);
         } catch (IOException ex) {
             throw new ActionException(this, "Creating a backup file failed: " + ex.getMessage(), ex);
         }

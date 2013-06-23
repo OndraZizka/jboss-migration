@@ -182,6 +182,18 @@ public class Utils {
         return file;
     }
 
+    /**
+     *  Missing from Commons IO's FileUtils...
+     */
+    public static void copyFileOrDirectory( File src, File dest  ) throws IOException {
+        if( src.isFile() )
+            FileUtils.copyFile( src, dest );
+        else if( src.isDirectory() )
+            FileUtils.copyDirectory( src, dest );
+        else
+            throw new UnsupportedOperationException("Can only copy file or directory. Not this: " + src.getPath());
+    }
+
 
     
     // ======= Lang utils ====== //
