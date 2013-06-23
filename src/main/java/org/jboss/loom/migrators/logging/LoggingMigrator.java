@@ -184,11 +184,11 @@ public class LoggingMigrator extends AbstractMigrator {
         // Appenders.
         HashMap<File, String> tempModules = new HashMap();
         for( AppenderBean appender : appenders) {
-                List<IMigrationAction> actions = createAppenderAction( appender, tempModules );
-                for( IMigrationAction action : actions ) {
-                    ctx.getActions().add( action );
-                    appenderNamesToActions.put( appender.getAppenderName(), action );
-                }
+            List<IMigrationAction> actions = createAppenderAction( appender, tempModules );
+            for( IMigrationAction action : actions ) {
+                ctx.getActions().add( action );
+                appenderNamesToActions.put( appender.getAppenderName(), action );
+            }
         }
 
         // Categories
@@ -903,12 +903,12 @@ public class LoggingMigrator extends AbstractMigrator {
         if( (root.getRootLoggerHandlers() != null) || !(root.getRootLoggerHandlers().isEmpty())){
             StringBuilder handlerTemp = new StringBuilder();
             for(String handler : root.getRootLoggerHandlers()){
-                handlerTemp.append("\"" + handler + "\",");
+                handlerTemp.append('"').append(handler).append('"');
             }
 
             String temp = handlerTemp.toString();
             String handlers ="/subsystem=logging/root-logger=ROOT:write-attribute(name=handlers, value=[" +
-                    StringUtils.substringBeforeLast(temp, "," + "])");
+                    StringUtils.substringBeforeLast(temp, ",") + "])";
 
             ModelNode handlersNode = new ModelNode();
             handlersNode.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
