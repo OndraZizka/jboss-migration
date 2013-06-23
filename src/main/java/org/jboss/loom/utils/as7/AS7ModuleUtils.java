@@ -7,6 +7,10 @@
  */
 package org.jboss.loom.utils.as7;
 
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -20,9 +24,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.actions.ModuleCreationAction.ModuleXmlInfo;
 import org.jboss.loom.conf.AS7Config;
+import org.jboss.loom.ex.MigrationException;
 
 /**
  * Util class for generation of module XML.
@@ -30,47 +38,66 @@ import org.jboss.loom.conf.AS7Config;
  * @author Roman Jakubco
  */
 public class AS7ModuleUtils {
+    
+    private static final String MODULE_NS = "urn:jboss:module:1.1";
 
     /**
      * Creates module.xml.
-     *
-     * @param moduleName The name of the created module.
-     * @param fileName The name of the file deployed as module.
-     * @returns A document representing created module.xml.
-     * @throws javax.xml.parsers.ParserConfigurationException if parser cannot be initialized.
      */
-    public static Document createModuleXML(String moduleName, String fileName, String[] deps) throws ParserConfigurationException {
+    public static void createModuleXML_FreeMarker( ModuleXmlInfo moduleInfo, File modFile ) throws MigrationException {
+        try {
+            Configuration cfg = new Configuration();
+            cfg.setClassForTemplateLoading( AS7ModuleUtils.class, "/org/jboss/loom/utils/as7/" );
+            cfg.setObjectWrapper( new DefaultObjectWrapper() );
+            cfg.setSharedVariable("modInfo", moduleInfo);
+            
+            Template temp = cfg.getTemplate("module.xml.freemarker");
 
-        /**
-         * Example of module xml,
-         * <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
-         *     <resources>
-         *         <resource-root path="h2-1.3.168.jar"/>
-         *     </resources>
-         *     <dependencies>
-         *         <module name="javax.api"/>
-         *         <module name="javax.transaction.api"/>
-         *         <module name="javax.servlet.api" optional="true"/>
-         *     </dependencies>
-         * </module>
-         */
+            Writer out = new FileWriter( modFile );
+            temp.process( null, out );
+            out.close();
+        } catch( TemplateException  | IOException ex ) {
+            throw new MigrationException("Failed creating " + modFile.getPath() + ": " + ex.getMessage(), ex);
+        }
+    }
+    
+    
+    /**
+     * Example of module xml,
+     * <module xmlns="urn:jboss:module:1.1" name="com.h2database.h2">
+     *     <resources>
+     *         <resource-root path="h2-1.3.168.jar"/>
+     *     </resources>
+     *     <dependencies>
+     *         <module name="javax.api"/>
+     *         <module name="javax.transaction.api"/>
+     *         <module name="javax.servlet.api" optional="true"/>
+     *     </dependencies>
+     * </module>
+     * 
+     * @Deprecated  Screws up namespaces. I haven't found a way to fix it in JAXP. Switched to FreeMarker.
+     */
+    public static Document createModuleXML(String moduleName, String jarFile, String[] deps) throws ParserConfigurationException {
+
         Document doc = createDoc();
+        //Document doc = createDoc(MODULE_NS, "module");
 
         Element root = doc.createElement("module");
+        //Element root = doc.createElementNS("module", MODULE_NS);
         doc.appendChild(root);
-
-        root.setAttribute("xmlns", "urn:jboss:module:1.1");
+        //Element root = doc.getDocumentElement();
+        root.setAttribute("xmlns", MODULE_NS);
         root.setAttribute("name", moduleName);
 
-        Element resources = doc.createElement("resources");
+        Element resources = doc.createElementNS("resources", null);
         root.appendChild(resources);
 
-        Element resource = doc.createElement("resource-root");
-        resource.setAttribute("path", fileName);
+        Element resource = doc.createElementNS("resource-root", null);
+        resource.setAttribute("path", jarFile);
         resources.appendChild(resource);
 
         // Dependencies
-        Element dependencies = doc.createElement("dependencies");
+        Element dependencies = doc.createElementNS("dependencies", null);
 
         boolean optional = false;
         for( String modName : deps ) {
@@ -78,7 +105,7 @@ public class AS7ModuleUtils {
                 optional = true;
                 continue;
             }
-            Element module = doc.createElement("module");
+            Element module = doc.createElementNS("module", null);
             module.setAttribute("name", modName);
             if( optional )
                 module.setAttribute("optional", "true");
@@ -106,11 +133,27 @@ public class AS7ModuleUtils {
 
 
     private static Document createDoc() throws ParserConfigurationException {
+        return createDoc( null, null );
+    }
+    
+    private static Document createDoc( String namespace, String rootElmName ) throws ParserConfigurationException 
+    {
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        // Need specifically Xerces as it treats namespaces better way.
+        /*DocumentBuilderFactory domFactory;
+        try {
+            domFactory = (DocumentBuilderFactory) Class.forName("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl").newInstance();
+        } catch( ClassNotFoundException | InstantiationException | IllegalAccessException ex ) {
+            throw new IllegalStateException("JDK's DocumentBuilderFactoryImpl not found:\n    " + ex.getMessage(), ex );
+        }*/
+        //DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl", ClassLoader.getSystemClassLoader());
+        
         domFactory.setIgnoringComments(true);
+        domFactory.setNamespaceAware( false );
+        domFactory.setValidating( false );
         DocumentBuilder builder = domFactory.newDocumentBuilder();
 
-        Document doc = builder.getDOMImplementation().createDocument(null, null, null);
+        Document doc = builder.getDOMImplementation().createDocument( namespace, rootElmName, null );// rootElmName
         return doc;
     }
 

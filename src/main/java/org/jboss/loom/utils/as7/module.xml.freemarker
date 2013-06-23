@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module xmlns="urn:jboss:module:1.1" name="${modInfo.moduleName}">
+    <resources>
+        <#list modInfo.resourceRoots as resRoot>
+            <resource-root path="${resRoot}"/>
+        </#list>
+    </resources>
+    <dependencies>
+        <#list modInfo.deps as dep>
+            <module name="${dep.name}" <#if dep.optional> optional="true"</#if>/>
+        </#list>
+    </dependencies>
+</module>

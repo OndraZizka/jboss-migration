@@ -20,6 +20,7 @@ Any value defined here will override the pom.xml file value but is only applicab
         <word>Datasource</word>
         <word>marshalling</word>
         <word>Migrators</word>
+        <word>namespaces</word>
         <word>param</word>
         <word>plugin</word>
         <word>plugins</word>
