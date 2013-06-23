@@ -26,5 +26,10 @@ public class BatchFailure {
 
     public Integer getIndex() { return index; }
     public String getMessage() { return message; }
+
+
+    @Override public String toString() {
+        return "[" + index + "] " + message;
+    }
     
 }
