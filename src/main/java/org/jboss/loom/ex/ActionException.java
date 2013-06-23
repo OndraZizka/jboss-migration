@@ -38,4 +38,25 @@ public class ActionException extends MigrationException {
         return action;
     }
     
+    
+
+    public String formatDescription() {
+        IMigrationAction action = this.getAction();
+        // Header
+        String description = 
+                  "\n    Migration action which caused the failure: "
+                + "  (from " + action.getFromMigrator().getSimpleName() + ")";
+        // StackTraceElement
+        if( action.getOriginStackTrace() != null )
+            description += "\n\tat " + action.getOriginStackTrace().toString();
+        // Description
+        description += "\n    " + action.toDescription();
+        // Origin message
+        if( action.getOriginMessage() != null )
+            description += "\n    Purpose of the action: " + action.getOriginMessage();
+        return description;
+    }
+
+    
+    
 }// class
