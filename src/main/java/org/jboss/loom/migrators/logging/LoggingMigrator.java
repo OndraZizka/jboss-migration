@@ -309,7 +309,7 @@ public class LoggingMigrator extends AbstractMigrator {
      *  Processes AppenderBean. Adds actions to context!
      *  TODO: Refactor to return the action.
      */
-    private List<IMigrationAction> createAppenderAction( AppenderBean appenderBean, HashMap<File, String> tempModules ) throws MigrationException {
+    private List<? extends IMigrationAction> createAppenderAction( AppenderBean appenderBean, HashMap<File, String> tempModules ) throws MigrationException {
         
         // Selection of classes which are stored in log4j or jboss logging jars.
         String cls = appenderBean.getAppenderClass();
@@ -352,7 +352,7 @@ public class LoggingMigrator extends AbstractMigrator {
                 }
             }
 
-            return (List) Collections.singletonList( action );
+            return Collections.singletonList( action );
         }
         catch (CliScriptException e) {
             throw new MigrationException("Migration of the appender " + appenderBean.getAppenderName() + " failed: " + e.getMessage(), e);
