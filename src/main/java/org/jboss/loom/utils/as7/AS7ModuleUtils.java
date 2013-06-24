@@ -89,15 +89,15 @@ public class AS7ModuleUtils {
         root.setAttribute("xmlns", MODULE_NS);
         root.setAttribute("name", moduleName);
 
-        Element resources = doc.createElementNS("resources", null);
+        Element resources = doc.createElementNS(MODULE_NS, "resources");
         root.appendChild(resources);
 
-        Element resource = doc.createElementNS("resource-root", null);
+        Element resource = doc.createElementNS(MODULE_NS, "resource-root");
         resource.setAttribute("path", jarFile);
         resources.appendChild(resource);
 
         // Dependencies
-        Element dependencies = doc.createElementNS("dependencies", null);
+        Element dependencies = doc.createElementNS(MODULE_NS, "dependencies");
 
         boolean optional = false;
         for( String modName : deps ) {
@@ -105,7 +105,7 @@ public class AS7ModuleUtils {
                 optional = true;
                 continue;
             }
-            Element module = doc.createElementNS("module", null);
+            Element module = doc.createElementNS(MODULE_NS, "module");
             module.setAttribute("name", modName);
             if( optional )
                 module.setAttribute("optional", "true");
