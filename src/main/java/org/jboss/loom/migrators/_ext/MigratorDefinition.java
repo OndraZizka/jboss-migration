@@ -10,6 +10,8 @@ import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.eclipse.persistence.oxm.annotations.XmlLocation;
+import org.xml.sax.Locator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +41,10 @@ public class MigratorDefinition extends ContainerOfStackableDefs {
     //@XmlElement(name = "action")
     //List<ActionDef> actions;
     
-    File fileOfOrigin;
+    //File fileOfOrigin;
     
+    @XmlLocation Locator location;
+    public Locator getLocation() { return location; }
 
     
     // === Subelement classes === //
