@@ -10,9 +10,9 @@ import org.junit.Test;
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
-public class GroovyMigratorsLoaderTest {
+public class ExternalMigratorsLoaderTest {
     
-    public GroovyMigratorsLoaderTest() {
+    public ExternalMigratorsLoaderTest() {
     }
 
 
@@ -22,10 +22,10 @@ public class GroovyMigratorsLoaderTest {
         
         File workDir = new File("target/extMigrators/");
         FileUtils.forceMkdir( workDir );
-        Utils.copyResourceToDir( GroovyMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
-        Utils.copyResourceToDir( GroovyMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
+        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
+        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
         
-        new GroovyMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
+        new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
     }
 
 
