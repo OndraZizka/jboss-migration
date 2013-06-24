@@ -24,6 +24,7 @@ Any value defined here will override the pom.xml file value but is only applicab
         <word>param</word>
         <word>plugin</word>
         <word>plugins</word>
+        <word>Programatically</word>
         <word>stacktrace</word>
     </spellchecker-wordlist>
 </project-shared-configuration>

@@ -416,6 +416,13 @@
             <version>2.1.4</version>
         </dependency>
         
+        <!-- Javassist for MigratorSubclassMaker -->
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.17.1-GA</version>
+        </dependency>
+
 
         <!-- Logging -->
         <dependency>
