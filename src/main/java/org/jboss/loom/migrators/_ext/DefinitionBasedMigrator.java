@@ -38,7 +38,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     
     // Constructors
     
-    public static DefinitionBasedMigrator from( MigratorDefinition desc, GroovyMigratorsLoader loader, GlobalConfiguration globalConfig ) {
+    public static DefinitionBasedMigrator from( MigratorDefinition desc, GlobalConfiguration globalConfig ) {
         DefinitionBasedMigrator mig = new DefinitionBasedMigrator(globalConfig);
         mig.descriptor = desc;
         return mig;
