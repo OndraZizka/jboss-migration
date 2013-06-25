@@ -7,9 +7,8 @@
  */
 package org.jboss.loom.migrators.dataSources.jaxb;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
 import javax.xml.bind.annotation.XmlElement;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.spi.ann.Property;
 
 /**

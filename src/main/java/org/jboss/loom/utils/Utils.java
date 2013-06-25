@@ -8,14 +8,6 @@
 package org.jboss.loom.utils;
 
 import groovy.lang.GroovyClassLoader;
-import org.jboss.loom.ex.CliScriptException;
-import org.jboss.loom.ex.CopyException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.NameFileFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,9 +25,17 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.apache.commons.io.DirectoryWalker;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.ex.CliScriptException;
+import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.tools.report.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Global utils class.

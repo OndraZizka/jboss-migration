@@ -7,20 +7,19 @@
  */
 package org.jboss.loom;
 
+import java.util.LinkedList;
+import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.Configuration.ModuleSpecificProperty;
+import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.RollbackMigrationException;
 import org.jboss.loom.utils.Utils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.LinkedList;
-import java.util.List;
-import org.jboss.loom.conf.ConfigurationValidator;
 
 
 /**

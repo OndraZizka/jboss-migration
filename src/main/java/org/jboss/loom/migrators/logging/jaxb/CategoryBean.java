@@ -8,17 +8,16 @@
 package org.jboss.loom.migrators.logging.jaxb;
 
 import java.util.ArrayList;
-import org.jboss.loom.spi.IConfigFragment;
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
-import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.bind.annotation.*;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**

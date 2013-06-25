@@ -7,10 +7,10 @@
  */
 package org.jboss.loom.migrators.security.jaxb;
 
-import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.*;
 
 /**
  * JAXB bean for login-module (AS5)

@@ -7,13 +7,13 @@
  */
 package org.jboss.loom.migrators.logging.jaxb;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import java.util.Set;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 /**
  * @author Roman Jakubco

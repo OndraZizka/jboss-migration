@@ -7,11 +7,10 @@
  */
 package org.jboss.loom.migrators.server;
 
-import org.jboss.loom.migrators.server.jaxb.SocketBindingBean;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import org.jboss.loom.migrators.server.jaxb.SocketBindingBean;
 
 /**
  * Class containing all helping information for successful migration of Server (Web)

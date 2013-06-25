@@ -1,10 +1,10 @@
 package org.jboss.loom.migrators.classloading;
 
-import org.jboss.loom.migrators.classloading.beans.DeploymentClassloadingConfig;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import org.jboss.loom.ctx.MigratorData;
+import org.jboss.loom.migrators.classloading.beans.DeploymentClassloadingConfig;
 
 /**
  * Holds config data for each app referenced by --app.path=...

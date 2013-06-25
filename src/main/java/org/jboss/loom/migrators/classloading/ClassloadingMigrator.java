@@ -9,9 +9,9 @@ package org.jboss.loom.migrators.classloading;
 
 import java.io.File;
 import org.jboss.loom.actions.ManualAction;
-import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.DeploymentInfo;
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;

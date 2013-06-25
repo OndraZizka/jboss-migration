@@ -7,10 +7,10 @@
  */
 package org.jboss.loom.utils.as7;
 
-import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.as.cli.batch.BatchedCommand;
 import org.jboss.as.cli.batch.impl.DefaultBatchedCommand;
 import org.jboss.dmr.ModelNode;
+import org.jboss.loom.actions.CliCommandAction;
 
 /**
  *

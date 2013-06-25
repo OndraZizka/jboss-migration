@@ -1,11 +1,11 @@
 package org.jboss.loom.tools.report.adapters;
 
-import org.jboss.loom.tools.report.beans.ReportProperty;
-import org.jboss.loom.tools.report.beans.Properties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import org.jboss.loom.tools.report.beans.Properties;
+import org.jboss.loom.tools.report.beans.ReportProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

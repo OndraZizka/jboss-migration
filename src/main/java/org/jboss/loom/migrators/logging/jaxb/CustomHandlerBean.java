@@ -7,12 +7,11 @@
  */
 package org.jboss.loom.migrators.logging.jaxb;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
-import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.*;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 /**
  * JAXB bean for custom-handler (AS7)

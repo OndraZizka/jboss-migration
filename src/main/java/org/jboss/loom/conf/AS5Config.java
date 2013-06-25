@@ -7,9 +7,8 @@
  */
 package org.jboss.loom.conf;
 
-import org.jboss.loom.utils.Utils;
-
 import java.io.File;
+import org.jboss.loom.utils.Utils;
 
 /**
  * AS 5 specific configuration.

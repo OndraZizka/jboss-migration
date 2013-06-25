@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.migrators.transactions;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.LoadMigrationException;

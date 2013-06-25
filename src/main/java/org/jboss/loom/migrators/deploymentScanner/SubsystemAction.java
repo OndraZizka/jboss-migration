@@ -10,7 +10,6 @@ package org.jboss.loom.migrators.deploymentScanner;
 import org.jboss.loom.actions.AbstractStatefulAction;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.deploymentScanner.jaxb.Subsystem;
-import org.jboss.loom.utils.Utils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

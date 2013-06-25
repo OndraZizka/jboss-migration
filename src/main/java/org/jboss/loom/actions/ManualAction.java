@@ -7,7 +7,6 @@
  */
 package org.jboss.loom.actions;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.ann.ActionDescriptor;
 

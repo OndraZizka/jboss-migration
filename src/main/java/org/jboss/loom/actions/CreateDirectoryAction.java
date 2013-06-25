@@ -7,12 +7,12 @@
  */
 package org.jboss.loom.actions;
 
-import org.jboss.loom.ex.ActionException;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.spi.IMigrator;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
+import org.jboss.loom.ex.ActionException;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.IMigrator;
 
 /**
  * Creates the given dir.

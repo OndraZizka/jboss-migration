@@ -8,10 +8,8 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.TestAppConfig;
 import org.jboss.loom.conf.AS7Config;
-import org.jboss.loom.conf.Configuration;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

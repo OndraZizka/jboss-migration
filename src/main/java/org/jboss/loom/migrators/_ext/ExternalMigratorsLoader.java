@@ -16,7 +16,6 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
 import org.jboss.loom.migrators._ext.MigratorDefinition.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;

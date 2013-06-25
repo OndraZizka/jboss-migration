@@ -11,9 +11,11 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
+import java.io.Writer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,14 +25,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.actions.ModuleCreationAction.ModuleXmlInfo;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.ex.MigrationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Util class for generation of module XML.

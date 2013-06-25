@@ -1,12 +1,12 @@
 package org.jboss.loom.recog;
 
-import org.jboss.loom.recog.as7.JBossAS7ServerType;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.recog.as5.JBossAS5ServerType;
+import org.jboss.loom.recog.as7.JBossAS7ServerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

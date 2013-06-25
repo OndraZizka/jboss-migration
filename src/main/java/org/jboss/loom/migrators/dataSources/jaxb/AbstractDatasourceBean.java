@@ -7,9 +7,9 @@
  */
 package org.jboss.loom.migrators.dataSources.jaxb;
 
+import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
-import java.util.List;
 
 /**
  *  Datasource base class.

@@ -1,9 +1,5 @@
 package org.jboss.loom.actions;
 
-import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.spi.IMigrator;
-
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -11,6 +7,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 
 /**

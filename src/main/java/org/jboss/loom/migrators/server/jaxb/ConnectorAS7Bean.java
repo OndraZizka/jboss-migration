@@ -7,9 +7,8 @@
  */
 package org.jboss.loom.migrators.server.jaxb;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
-
 import javax.xml.bind.annotation.*;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 /**
  * JAXB bean for connector in AS7 (AS7)

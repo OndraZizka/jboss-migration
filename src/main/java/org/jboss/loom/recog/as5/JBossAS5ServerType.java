@@ -17,8 +17,8 @@ import org.jboss.loom.recog.HasHashes;
 import org.jboss.loom.recog.IServerType;
 import org.jboss.loom.recog.Version;
 import org.jboss.loom.recog.VersionRange;
-import org.jboss.loom.utils.compar.FileHashComparer;
 import org.jboss.loom.utils.compar.ComparisonResult;
+import org.jboss.loom.utils.compar.FileHashComparer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

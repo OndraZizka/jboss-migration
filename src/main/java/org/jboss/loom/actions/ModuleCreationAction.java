@@ -7,13 +7,6 @@
  */
 package org.jboss.loom.actions;
 
-import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.ex.ActionException;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.spi.IMigrator;
-import org.jboss.loom.utils.as7.AS7ModuleUtils;
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,9 +14,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.ex.ActionException;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.jboss.loom.spi.ann.Property;
+import org.jboss.loom.utils.as7.AS7ModuleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

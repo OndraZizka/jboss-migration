@@ -7,13 +7,12 @@
  */
 package org.jboss.loom.migrators.connectionFactories.jaxb;
 
-import org.jboss.loom.spi.IConfigFragment;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import org.jboss.loom.spi.IConfigFragment;
 
 /**
  * User: Roman Jakubco

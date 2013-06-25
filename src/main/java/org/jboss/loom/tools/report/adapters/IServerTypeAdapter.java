@@ -1,7 +1,6 @@
 package org.jboss.loom.tools.report.adapters;
 
 
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import org.jboss.loom.recog.IServerType;
 import org.slf4j.Logger;

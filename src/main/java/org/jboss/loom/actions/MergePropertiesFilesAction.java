@@ -7,9 +7,9 @@
  */
 package org.jboss.loom.actions;
 
+import java.io.File;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
-import java.io.File;
 
 /**
  *  Merges two properties files - overwrites properties in dest with those from src.

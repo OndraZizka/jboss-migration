@@ -7,20 +7,19 @@
  */
 package org.jboss.loom.migrators.deploymentScanner;
 
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.migrators.deploymentScanner.jaxb.StandaloneDeploymentScannerType;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.jboss.loom.actions.ManualAction;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.deploymentScanner.jaxb.StandaloneDeploymentScannerType;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 /**
  * TODO: Javadoc.

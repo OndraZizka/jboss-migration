@@ -7,8 +7,8 @@
  */
 package org.jboss.loom.migrators.logging.jaxb;
 
-import org.eclipse.persistence.oxm.annotations.XmlPath;
 import javax.xml.bind.annotation.*;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
 
 /**
  * JAXB bean for size-rotating-file-handler (AS7)

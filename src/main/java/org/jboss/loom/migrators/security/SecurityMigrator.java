@@ -7,18 +7,25 @@
  */
 package org.jboss.loom.migrators.security;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
-import org.jboss.loom.utils.as7.CliAddScriptBuilder;
-import org.jboss.loom.utils.as7.CliApiCommandBuilder;
-import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.ModuleCreationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
@@ -26,21 +33,13 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.security.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
+import org.jboss.loom.utils.UtilsAS5;
+import org.jboss.loom.utils.as7.CliAddScriptBuilder;
+import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import org.jboss.loom.spi.ann.ConfigPartDescriptor;
-import org.jboss.loom.utils.UtilsAS5;
 
 /**
  * Migrator of security subsystem implementing IMigrator

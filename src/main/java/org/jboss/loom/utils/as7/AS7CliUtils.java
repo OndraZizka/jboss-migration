@@ -24,7 +24,6 @@ import java.util.Set;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelType;
-import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.spi.ann.Property;
 
 /**

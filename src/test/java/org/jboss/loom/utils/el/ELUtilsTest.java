@@ -3,8 +3,8 @@ package org.jboss.loom.utils.el;
 import java.util.HashMap;
 import java.util.Map;
 import org.jboss.loom.utils.el.IExprLangEvaluator.IVariablesProvider;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *

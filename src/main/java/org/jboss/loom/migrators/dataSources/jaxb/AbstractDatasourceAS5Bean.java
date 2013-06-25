@@ -7,9 +7,8 @@
  */
 package org.jboss.loom.migrators.dataSources.jaxb;
 
-import org.jboss.loom.spi.IConfigFragment;
-
 import javax.xml.bind.annotation.XmlElement;
+import org.jboss.loom.spi.IConfigFragment;
 
 /**
  *  Datasource base class.

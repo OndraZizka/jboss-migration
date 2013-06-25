@@ -7,15 +7,14 @@
  */
 package org.jboss.loom.conf;
 
-import org.jboss.loom.spi.IMigrator;
 import java.util.LinkedList;
-import org.apache.commons.collections.map.MultiValueMap;
-
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.apache.commons.collections.map.MultiValueMap;
+import org.jboss.loom.spi.IMigrator;
 
 /**
  *  Holds global configuration and plugin-specific configuration.

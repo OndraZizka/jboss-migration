@@ -8,14 +8,13 @@
 package org.jboss.loom.actions;
 
 import java.util.HashSet;
-import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ex.MigrationException;
-import org.jboss.loom.spi.IMigrator;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.spi.IMigrator;
 
 /**
  * Implements lifecycle methods which manage the state,

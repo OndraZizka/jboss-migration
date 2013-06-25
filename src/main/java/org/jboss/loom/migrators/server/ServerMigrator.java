@@ -7,33 +7,32 @@
  */
 package org.jboss.loom.migrators.server;
 
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.dmr.ModelNode;
-import org.jboss.loom.utils.as7.CliAddScriptBuilder;
-import org.jboss.loom.utils.as7.CliApiCommandBuilder;
-import org.jboss.loom.ctx.MigrationContext;
-import org.jboss.loom.ctx.MigratorData;
-import org.jboss.loom.actions.CliCommandAction;
-import org.jboss.loom.actions.CopyFileAction;
-import org.jboss.loom.conf.GlobalConfiguration;
-import org.jboss.loom.ex.*;
-import org.jboss.loom.migrators.AbstractMigrator;
-import org.jboss.loom.migrators.server.jaxb.*;
-import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.utils.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.loom.actions.CliCommandAction;
+import org.jboss.loom.actions.CopyFileAction;
+import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ctx.MigrationContext;
+import org.jboss.loom.ctx.MigratorData;
+import org.jboss.loom.ex.*;
+import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.server.jaxb.*;
+import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
+import org.jboss.loom.utils.Utils;
+import org.jboss.loom.utils.as7.CliAddScriptBuilder;
+import org.jboss.loom.utils.as7.CliApiCommandBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Migrator of server subsystem implementing IMigrator.

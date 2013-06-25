@@ -7,13 +7,12 @@
  */
 package org.jboss.loom.actions;
 
+import java.io.File;
+import java.io.IOException;
+import org.apache.commons.io.FileUtils;
 import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 import org.jboss.loom.spi.ann.ActionDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

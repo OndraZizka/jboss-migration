@@ -7,9 +7,8 @@
  */
 package org.jboss.loom.migrators.deploymentScanner.jaxb;
 
-import org.jboss.loom.spi.IConfigFragment;
-
 import javax.xml.bind.annotation.*;
+import org.jboss.loom.spi.IConfigFragment;
 
 /**
  * Date: 4/17/13

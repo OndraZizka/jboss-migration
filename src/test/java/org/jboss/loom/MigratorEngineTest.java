@@ -1,6 +1,5 @@
 package org.jboss.loom;
 
-import org.jboss.loom.MigratorApp;
 import org.jboss.loom.MigrationEngine;
 import org.jboss.loom.conf.Configuration;
 import org.apache.commons.io.FileUtils;

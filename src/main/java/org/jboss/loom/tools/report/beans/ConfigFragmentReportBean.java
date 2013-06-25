@@ -12,8 +12,8 @@ import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
-import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.jboss.loom.utils.Utils;
+import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

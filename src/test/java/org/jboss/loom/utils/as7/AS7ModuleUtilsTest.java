@@ -6,8 +6,8 @@ import org.jboss.loom.TestAppConfig;
 import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.Utils;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *

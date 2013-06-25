@@ -7,13 +7,12 @@
  */
 package org.jboss.loom.migrators.security.jaxb;
 
-import org.jboss.loom.spi.IConfigFragment;
-
-import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.*;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 
 /**

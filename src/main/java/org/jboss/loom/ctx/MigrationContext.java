@@ -7,18 +7,17 @@
  */
 package org.jboss.loom.ctx;
 
-import org.jboss.loom.actions.IMigrationAction;
-import org.jboss.loom.conf.AS7Config;
-import org.jboss.loom.spi.IMigrator;
+import java.util.*;
 import org.jboss.as.cli.batch.Batch;
 import org.jboss.as.cli.batch.impl.DefaultBatch;
-import org.w3c.dom.Document;
-
-import java.util.*;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.actions.IMigrationAction;
+import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.recog.ServerInfo;
+import org.jboss.loom.spi.IMigrator;
+import org.w3c.dom.Document;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.

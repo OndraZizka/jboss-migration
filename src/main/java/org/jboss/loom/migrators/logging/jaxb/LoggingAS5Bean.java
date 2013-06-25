@@ -8,13 +8,12 @@
 package org.jboss.loom.migrators.logging.jaxb;
 
 
-import org.jboss.loom.spi.IConfigFragment;
-
-import javax.xml.bind.annotation.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.*;
 import org.jboss.loom.migrators.OriginWiseJaxbBase;
+import org.jboss.loom.spi.IConfigFragment;
 
 /**
  * JAXB bean for logging configuration (AS5)

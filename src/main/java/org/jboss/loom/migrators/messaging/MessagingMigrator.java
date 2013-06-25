@@ -1,7 +1,5 @@
 package org.jboss.loom.migrators.messaging;
 
-import org.jboss.loom.migrators.messaging.jaxb.ServerPeerBean;
-import org.jboss.loom.migrators.messaging.jaxb.PersistenceServiceBean;
 import java.io.File;
 import java.util.List;
 import org.jboss.loom.actions.AbstractStatefulAction;
@@ -13,6 +11,8 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators.messaging.jaxb.ConnectionFactoryBean;
 import org.jboss.loom.migrators.messaging.jaxb.DestinationBean;
+import org.jboss.loom.migrators.messaging.jaxb.PersistenceServiceBean;
+import org.jboss.loom.migrators.messaging.jaxb.ServerPeerBean;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;

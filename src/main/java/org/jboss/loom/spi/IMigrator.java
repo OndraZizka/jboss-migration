@@ -1,8 +1,8 @@
 package org.jboss.loom.spi;
 
-import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 

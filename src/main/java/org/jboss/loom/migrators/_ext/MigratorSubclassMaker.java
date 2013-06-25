@@ -7,7 +7,6 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
-import javassist.CtField;
 import javassist.CtNewConstructor;
 import javassist.NotFoundException;
 import org.jboss.loom.conf.GlobalConfiguration;
