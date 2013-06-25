@@ -1,10 +1,9 @@
 package org.jboss.loom.migrators._ext;
 
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,98 +29,166 @@ import org.slf4j.LoggerFactory;
  */
 public class ExternalMigratorsLoader {
     private static final Logger log = LoggerFactory.getLogger( ExternalMigratorsLoader.class );
-    
-    private Map<String, Class<? extends IConfigFragment>> fragmentJaxbClasses = new HashMap();
 
+    // Migrator descriptors.
+    private List<MigratorDefinition> descriptors;
+    
+    // Map of JAXB class name -> class - not to lead them multiple times.
+    private Map<String, Class<? extends IConfigFragment>> fragmentJaxbClasses = new HashMap();
+    
+    // Map of migragor class name -> class
+    private Map<String, Class<? extends DefinitionBasedMigrator>> migratorsClasses = new HashMap();
+    
+
+    
+    /**
+     *  Reads migrator descriptors from *.mig.xml in the given dir and returns them.
+     * 
+     *  1) Reads the definitions from the XML files.
+     *  2) Loads the Groovy classes referenced in these definitions.
+     *  3) Creates the classes of the Migrators.
+     *  4) Instantiates the classes and returns the list of instances.
+     */
+    public Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> loadMigrators( File dir, GlobalConfiguration globConf ) throws MigrationException {
+        // Read the definitions from the XML files.
+        this.descriptors = loadMigratorDefinitions( dir, globConf );
+        
+        // Load the Groovy classes referenced in these definitions.
+        //this.fragmentJaxbClasses = loadJaxbClasses( this.descriptors );
+        
+        // Create the classes of the Migrators.
+        //this.migratorsClasses = createMigratorsClasses();
+        
+        
+        // Instantiates the classes and returns the list of instances.
+        Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs = instantiateMigratorsFromDefinitions( this.descriptors, this.fragmentJaxbClasses, globConf );
+        return migs;
+    }
+    
+
+    
+    
     /**
      *  Reads migrator descriptors from *.mig.xml in the given dir and returns them.
      */
-    public List<IMigrator> loadMigrators( File dir, GlobalConfiguration gc ) throws MigrationException {
+    public static List<MigratorDefinition> loadMigratorDefinitions( File dir, GlobalConfiguration gc ) throws MigrationException {
         
-        List<IMigrator> migrators = new LinkedList();
+        List<MigratorDefinition> retDefs = new LinkedList();
         List<Exception> problems  = new LinkedList();
         
         // For each *.mig.xml file...
         for( File xml : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
             try{
-                List<MigratorDefinition> descriptors = 
-                    XmlUtils.unmarshallBeans( xml, "migration/migrator", MigratorDefinition.class );
-                
-                // For each <migrator ...> definition...
-                for( MigratorDefinition desc : descriptors ) {
-                    
-                    desc.fileOfOrigin = xml;
-                    
-                    final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, gc );
-
-                    // For each JAXB class...
-                    for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
-                        
-                        // Look up in the map:  "TestJaxbBean" -> class
-                        String className = StringUtils.substringAfter( jaxbClsBean.file.getName(), "." );
-                        Class cls = this.fragmentJaxbClasses.get( className );
-                        if( cls == null ){
-                            cls = loadGroovyClass( new File( dir, jaxbClsBean.file.getPath() ) );
-                            this.fragmentJaxbClasses.put( className, cls );
-                        }
-                        mig.addJaxbClass( cls );
-                    }
-                    
-                    migrators.add( mig );
-                }
+                List<MigratorDefinition> defs = XmlUtils.unmarshallBeans( xml, "/migration/migrator", MigratorDefinition.class );
+                retDefs.addAll( defs );
             }
             catch( Exception ex ){
                 problems.add(ex);
             }
         }
-        
-        // Wrap all exceptions into one.
-        if( ! problems.isEmpty() ){
-            String msg = "Errors occured when reading migrator descriptors from " + dir + ": ";
-            if( problems.size() == 1 )
-                throw new MigrationException(msg, problems.get(0));
-            else
-                throw new MigrationExceptions(msg, problems);
-        }
-        
-        return migrators;
-        
-    }// loadMigrators()
-
+        String msg = "Errors occured when reading migrator descriptors from " + dir + ": ";
+        MigrationExceptions.wrapExceptions( problems, null );
+        return retDefs;
+    }
+    
 
     /**
-     *  TODO: Create a cache not to load the same classes multiple times.
-     *  @deprecated  Using loadGroovyClass directly.
+     *  Loads the Groovy classes referenced in these definitions.
      */
-    private static <T> List<Class<? extends T>> loadGroovyClasses( List<File> groovyFiles, Class<? extends T> expectedSuperType ) throws MigrationException {
+    private static Map<String, Class<? extends IConfigFragment>> loadJaxbClasses(
+            MigratorDefinition desc ) throws MigrationException
+    {
+        Map<String, Class<? extends IConfigFragment>> jaxbClasses = new HashMap();
+        List<Exception> problems  = new LinkedList();
         
-        List<Class<? extends T>> ret = new ArrayList(groovyFiles);
-        for( File file : groovyFiles ) {
-            Class cls = loadGroovyClass( file );
-            if( ! expectedSuperType.isAssignableFrom( cls ) )
-                // throw
-                continue;
-            ret.add( cls );
+        // JAXB class...
+        for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
+            try {
+                // Look up in the map:  "TestJaxbBean" -> class
+                String className = StringUtils.substringAfter( jaxbClsBean.file.getName(), "." );
+                Class cls = jaxbClasses.get( className );
+                if( cls == null ){
+                    // Use the directory where the definition XML file is from.
+                    File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
+                    final File groovyFile = new File( dir, jaxbClsBean.file.getPath() );
+                    cls = loadGroovyClass( groovyFile );
+                    if( ! IConfigFragment.class.isAssignableFrom( cls ) ){
+                        problems.add( new MigrationException("Groovy class from '"+groovyFile.getPath()+
+                            "' doesn't implement " + IConfigFragment.class.getSimpleName() + ": " + cls.getName()));
+                        continue;
+                    }
+                    jaxbClasses.put( className, cls );
+                }
+                //mig.addJaxbClass( cls );
+            }
+            catch( Exception ex ){
+                problems.add(ex);
+            }
         }
-        return ret;
-    }
+        MigrationExceptions.wrapExceptions( problems, "Failed loading JAXB classes. ");
+        return jaxbClasses;
+    }// loadJaxbClasses()
 
-
-    private static Class loadGroovyClass( File file ) throws MigrationException {
+    
+    
+    /**
+     *  Processes the definitions - loads the used classes and creates the migrator objects.
+     */
+    public static Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> instantiateMigratorsFromDefinitions (
+            List<MigratorDefinition> defs, 
+            Map<String, Class<? extends IConfigFragment>> fragClasses,
+            GlobalConfiguration globConf
+        ) throws MigrationException
+    {
+        //List<IMigrator> migrators = new LinkedList();
+        List<Class<? extends DefinitionBasedMigrator>> migClasses = new LinkedList();
+        Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migrators = new HashMap();
+        List<Exception> problems  = new LinkedList();
         
-        try {
-            InputStream groovyClassIS = new FileInputStream( file );
-            //FileReader fr = new FileReader( file );
+        // For each <migrator ...> definition...
+        for( MigratorDefinition desc : defs ) {
+            try {
+                // JAXB classes.
+                Map<String, Class<? extends IConfigFragment>> jaxbClasses = loadJaxbClasses( desc );
+                
+                // Migrator class.
+                Class<? extends DefinitionBasedMigrator> migClass = MigratorSubclassMaker.createClass( desc.name );
+                migClasses.add( migClass );
 
+                // Instance.
+                //final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, gc );
+                DefinitionBasedMigrator mig = MigratorSubclassMaker.instantiate( migClass, desc, globConf );
+                migrators.put( migClass, mig );
+            } catch( Exception ex ) {
+                problems.add( ex );
+            }
+        }
+        MigrationExceptions.wrapExceptions( problems, "Failed processing migrator definitions. ");
+        return migrators;
+    }
+    
+
+    /**
+     *  Loads a groovy class from given file.
+     */
+    private static Class loadGroovyClass( File file ) throws MigrationException {
+        try {
+            //InputStream groovyClassIS = new FileInputStream( file );
+            //FileReader fr = new FileReader( file );
+            GroovyCodeSource src = new GroovyCodeSource( file );
             GroovyClassLoader gcl = new GroovyClassLoader();
-            Class clazz = gcl.parseClass( groovyClassIS, StringUtils.substringBefore(file.getName(),"."));
-            
+            //Class clazz = gcl.parseClass( groovyClassIS, StringUtils.substringBefore(file.getName(),"."));
+            Class clazz = gcl.parseClass( src );
             return clazz;
         }
         catch( IOException ex ){
             throw new MigrationException("Failed creating class from " + file.getPath() + ":\n    " + ex.getMessage(), ex);
         }
     }
+    
+    
+    
+    
     
     
     // Test

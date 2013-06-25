@@ -7,6 +7,7 @@
  */
 package org.jboss.loom;
 
+import groovy.lang.GroovyClassLoader;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.IMigrationAction;
@@ -25,7 +26,6 @@ import org.jboss.loom.migrators.security.SecurityMigrator;
 import org.jboss.loom.migrators.server.ServerMigrator;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.as7.AS7CliUtils;
-import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.as7.BatchFailure;
 import org.jboss.loom.utils.as7.BatchedCommandWithAction;
 import org.eclipse.persistence.exceptions.JAXBException;
@@ -43,12 +43,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.*;
+import org.apache.commons.io.FileUtils;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.loom.actions.ActionDependencySorter;
 import org.jboss.loom.actions.ManualAction;
 import org.jboss.loom.actions.review.BeansXmlReview;
 import org.jboss.loom.actions.review.IActionReview;
 import org.jboss.loom.ctx.DeploymentInfo;
+import org.jboss.loom.ex.MigrationExceptions;
+import org.jboss.loom.migrators._ext.ExternalMigratorsLoader;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.ejb3.Ejb3Migrator;
 import org.jboss.loom.migrators.mail.MailMigrator;
@@ -71,7 +74,7 @@ import org.jboss.loom.utils.compar.FileHashComparer;
  */
 public class MigrationEngine {
     private static final Logger log = LoggerFactory.getLogger(MigrationEngine.class);
-        
+
 
     private Configuration config;
 
@@ -81,7 +84,7 @@ public class MigrationEngine {
     
     
 
-    public MigrationEngine( Configuration config ) throws InitMigratorsExceptions {
+    public MigrationEngine( Configuration config ) throws MigrationException {
         this.config = config;
         this.init();
         this.resetContext( config );
@@ -95,15 +98,20 @@ public class MigrationEngine {
     
     /**
      *  Initializes this Migrator, especially instantiates the IMigrators.
+     *  No time to make it neatly so it's a bit procedural.
      */
-    private void init() throws InitMigratorsExceptions {
+    private void init() throws MigrationException {
         
         // Find IMigrator implementations.
         List<Class<? extends IMigrator>> migratorClasses = findMigratorClasses();
 
         // Initialize migrator instances. 
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
-                createMigrators( migratorClasses, config.getGlobal() );
+                createJavaMigrators( migratorClasses, config.getGlobal() );
+        
+        // Initialize externalized migrators.
+        final File dir = new File(config.getGlobal().getExternalMigratorsDir());
+        migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( dir, config.getGlobal()) );
         
         this.migrators = new ArrayList(migratorsMap.values());
         
@@ -123,13 +131,53 @@ public class MigrationEngine {
     
     
     
+    
+    /**
+     *  Finds the implementations of the IMigrator.
+     *  TODO: Implement scanning for classes.
+     */
+    private List<Class<? extends IMigrator>> findMigratorClasses() {
+        
+        LinkedList<Class<? extends IMigrator>> migratorClasses = new LinkedList();
+        findStaticMigratorClasses( migratorClasses );
+        //findExternalMigratorClasses( migratorClasses );
+        return migratorClasses;
+    }
+    
+    
+    private static void findStaticMigratorClasses( LinkedList<Class<? extends IMigrator>> migratorClasses ) {
+        migratorClasses.add( SecurityMigrator.class );
+        migratorClasses.add( ServerMigrator.class );
+        migratorClasses.add( DatasourceMigrator.class );
+        migratorClasses.add( ResAdapterMigrator.class );
+        migratorClasses.add( LoggingMigrator.class );
+        //migratorClasses.add( DeploymentScannerMigrator.class );
+        migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
+        migratorClasses.add( MailMigrator.class );          // Warn-only impl.
+        migratorClasses.add( JaxrMigrator.class );          // Warn-only impl.
+        migratorClasses.add( RemotingMigrator.class );      // Warn-only impl.
+        migratorClasses.add( Ejb3Migrator.class );          // Warn-only impl.
+        migratorClasses.add( MessagingMigrator.class );     // Warn-only impl.
+    }
+
+    
+    
+    private static List<Class<? extends IActionReview>> findActionReviewers(){
+        LinkedList<Class<? extends IActionReview>> reviewers = new LinkedList();
+        reviewers.add( BeansXmlReview.class );
+        return reviewers;
+    }
+
+    
+    
+    
     /**
      *  Instantiate the plugins.
      */
-    private static Map<Class<? extends IMigrator>, IMigrator> createMigrators(
+    private static Map<Class<? extends IMigrator>, IMigrator> createJavaMigrators(
             List<Class<? extends IMigrator>> migratorClasses,
             GlobalConfiguration globalConfig
-    ) throws InitMigratorsExceptions {
+    ) throws InitMigratorsExceptions, MigrationException {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new LinkedHashMap();
         List<Exception> exs  = new LinkedList<>();
@@ -154,44 +202,14 @@ public class MigrationEngine {
             }
         }
         
-        if( ! exs.isEmpty() ){
+        /*if( ! exs.isEmpty() ){
             throw new InitMigratorsExceptions(exs);
-        }
+        }*/
+        MigrationExceptions.wrapExceptions( exs, "Failed processing migrator definitions. ");
         
         return migs;
     }// createMigrators()
     
-    
-    
-    
-    /**
-     *  Finds the implementations of the IMigrator.
-     *  TODO: Implement scanning for classes.
-     */
-    private static List<Class<? extends IMigrator>> findMigratorClasses() {
-        
-        LinkedList<Class<? extends IMigrator>> migratorClasses = new LinkedList();
-        migratorClasses.add( SecurityMigrator.class );
-        migratorClasses.add( ServerMigrator.class );
-        migratorClasses.add( DatasourceMigrator.class );
-        migratorClasses.add( ResAdapterMigrator.class );
-        migratorClasses.add( LoggingMigrator.class );
-        //migratorClasses.add( DeploymentScannerMigrator.class );
-        migratorClasses.add( ClassloadingMigrator.class );  // Warn-only impl.
-        migratorClasses.add( MailMigrator.class );          // Warn-only impl.
-        migratorClasses.add( JaxrMigrator.class );          // Warn-only impl.
-        migratorClasses.add( RemotingMigrator.class );      // Warn-only impl.
-        migratorClasses.add( Ejb3Migrator.class );          // Warn-only impl.
-        migratorClasses.add( MessagingMigrator.class );     // Warn-only impl.
-        return migratorClasses;
-    }
-    
-    private static List<Class<? extends IActionReview>> findActionReviewers(){
-        LinkedList<Class<? extends IActionReview>> reviewers = new LinkedList();
-        reviewers.add( BeansXmlReview.class );
-        return reviewers;
-    }
-
     
     
     

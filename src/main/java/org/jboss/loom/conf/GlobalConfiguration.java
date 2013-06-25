@@ -43,6 +43,8 @@ public class GlobalConfiguration {
     private boolean isTestRun = false;
     
     private String reportDir = "MigrationReport";
+    
+    private String externalMigratorsDir;
 
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
@@ -66,6 +68,9 @@ public class GlobalConfiguration {
     
     public String getReportDir() { return reportDir; }
     public void setReportDir( String reportDir ) { this.reportDir = reportDir; }
+
+    public String getExternalMigratorsDir() { return externalMigratorsDir; }
+    public void setExternalMigratorsDir( String externalMigratorsDir ) { this.externalMigratorsDir = externalMigratorsDir; }
     //</editor-fold>
 
     // JAXB

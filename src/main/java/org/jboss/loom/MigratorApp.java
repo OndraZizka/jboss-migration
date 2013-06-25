@@ -147,6 +147,11 @@ public class MigratorApp {
                 continue;
             }
 
+            if( arg.startsWith("migrators.dir=") || arg.startsWith("migr.dir=") ) {
+                globalConfig.setExternalMigratorsDir( StringUtils.substringAfter(arg, "="));
+                continue;
+            }
+
             
 
             // Module-specific configurations.
