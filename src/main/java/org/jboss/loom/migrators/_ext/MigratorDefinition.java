@@ -10,10 +10,9 @@ import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.eclipse.persistence.oxm.annotations.XmlLocation;
+import org.jboss.loom.migrators.Origin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Locator;
 
 /**
  *
@@ -21,7 +20,7 @@ import org.xml.sax.Locator;
  */
 @XmlRootElement( name="migrator" )
 @XmlAccessorType( XmlAccessType.NONE )
-public class MigratorDefinition extends ContainerOfStackableDefs {
+public class MigratorDefinition extends ContainerOfStackableDefs implements Origin.Wise {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinition.class );
     
     @XmlAttribute
@@ -42,9 +41,11 @@ public class MigratorDefinition extends ContainerOfStackableDefs {
     //List<ActionDef> actions;
     
     //File fileOfOrigin;
+    // @XmlLocation wouldn't work if loaded through Node.
     
-    @XmlLocation Locator location;
-    public Locator getLocation() { return location; }
+    private Origin origin;
+    @Override public Origin getOrigin() { return origin; }
+    @Override public MigratorDefinition setOrigin( Origin origin ) { this.origin = origin; return this; }
 
     
     // === Subelement classes === //
