@@ -110,7 +110,7 @@ public class XmlUtils {
             
             NodeList nodes = (NodeList) xp.evaluate(xpath, doc, XPathConstants.NODESET);
             
-            final Origin orig = new Origin( docFile, xpath );
+            
             
             // Unmarshall
             Unmarshaller unmarshaller = JAXBContext.newInstance(cls).createUnmarshaller();
@@ -121,7 +121,8 @@ public class XmlUtils {
                 
                 // Origin - set File and XPath.
                 if( bean instanceof Origin.Wise ){
-                    ((Origin.Wise) bean).setOrigin( orig ); //getOrigin().setFile( docFile ).setPart( xpath );
+                    final Origin orig = new Origin( docFile, xpath ).setOffset( i );
+                    ((Origin.Wise) bean).setOrigin( orig );
                 }
             }
         }
