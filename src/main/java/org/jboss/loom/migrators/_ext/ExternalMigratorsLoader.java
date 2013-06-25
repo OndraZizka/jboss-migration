@@ -76,9 +76,9 @@ public class ExternalMigratorsLoader {
         List<Exception> problems  = new LinkedList();
         
         // For each *.mig.xml file...
-        for( File xml : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
+        for( File xmlFile : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
             try{
-                List<MigratorDefinition> defs = XmlUtils.unmarshallBeans( xml, "/migration/migrator", MigratorDefinition.class );
+                List<MigratorDefinition> defs = XmlUtils.unmarshallBeans( xmlFile, "/migration/migrator", MigratorDefinition.class );
                 retDefs.addAll( defs );
             }
             catch( Exception ex ){
@@ -108,7 +108,9 @@ public class ExternalMigratorsLoader {
                 Class cls = jaxbClasses.get( className );
                 if( cls == null ){
                     // Use the directory where the definition XML file is from.
-                    File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
+                    log.debug("    Loading JAXB class from dir " + desc.getOrigin() );
+                    //File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
+                    File dir = desc.getOrigin().getFile().getParentFile();
                     final File groovyFile = new File( dir, jaxbClsBean.file.getPath() );
                     cls = loadGroovyClass( groovyFile );
                     if( ! IConfigFragment.class.isAssignableFrom( cls ) ){
@@ -139,8 +141,7 @@ public class ExternalMigratorsLoader {
             GlobalConfiguration globConf
         ) throws MigrationException
     {
-        //List<IMigrator> migrators = new LinkedList();
-        List<Class<? extends DefinitionBasedMigrator>> migClasses = new LinkedList();
+        //List<Class<? extends DefinitionBasedMigrator>> migClasses = new LinkedList();
         Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migrators = new HashMap();
         List<Exception> problems  = new LinkedList();
         
@@ -152,7 +153,7 @@ public class ExternalMigratorsLoader {
                 
                 // Migrator class.
                 Class<? extends DefinitionBasedMigrator> migClass = MigratorSubclassMaker.createClass( desc.name );
-                migClasses.add( migClass );
+                //migClasses.add( migClass );
 
                 // Instance.
                 //final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, gc );
