@@ -7,6 +7,8 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtNewConstructor;
 import javassist.NotFoundException;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.slf4j.Logger;
@@ -29,29 +31,38 @@ public class MigratorSubclassMaker {
         ClassPool pool = ClassPool.getDefault();
         
         // Create the class.
-        CtClass cc = pool.makeClass( fullName );
+        CtClass subClass = pool.makeClass( fullName );
         final CtClass superClass = pool.get( DefinitionBasedMigrator.class.getName() );
-        cc.setSuperclass( superClass );
-        cc.setModifiers( Modifier.PUBLIC );
+        subClass.setSuperclass( superClass );
+        subClass.setModifiers( Modifier.PUBLIC );
         
         // Add a constructor which will call super( ... );
         CtClass[] params = new CtClass[]{
             pool.get( MigratorDefinition.class.getName() ),
             pool.get( GlobalConfiguration.class.getName()) 
         };
-        final CtConstructor ctor = new CtConstructor( params, cc );
+        //final CtConstructor ctor = new CtConstructor( params, cc );
         //ctor.setBody(" super(); ");
-        ctor.setBody( superClass.getDeclaredConstructor( params ), null );
-        cc.addConstructor( ctor );
+        //ctor.setBody( superClass.getDeclaredConstructor( params ), null );
+        final CtConstructor ctor = CtNewConstructor.make( params, null, CtNewConstructor.PASS_PARAMS, null, null, subClass );
+        subClass.addConstructor( ctor );
+        
+        // Add a static field containing the definition. // Nonsense... probably unachievable.
+        /*final CtClass defClass = pool.get( MigratorDefinition.class.getName() );
+        CtField defField = new CtField( defClass, "DEF", subClass );
+        defField.setModifiers( Modifier.STATIC );
+        subClass.addField( CtField.Initializer. );/**/
         
         // Add getter which will return the migrator id (e.g. "datasources")
         
-        return cc.toClass();
+        return subClass.toClass();
     }
 
 
     /**
      *  Instantiates given DefinitionBasedMigrator subclass and initializes it according to given migrator definition.
+     *  @deprecated   Duplicates code in MigratorEngine.java.
+     *                On the other hand, that one doesn't supply migrator definition...
      */
     static DefinitionBasedMigrator instantiate( 
             Class<? extends DefinitionBasedMigrator> migClass, 
