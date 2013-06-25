@@ -38,7 +38,8 @@ public class MigrationExceptions extends MigrationException {
     public static void wrapExceptions( List<Exception> problems, String msg ) throws MigrationException {
         if( !problems.isEmpty() ) {
             if( problems.size() == 1 ) {
-                throw new MigrationException( msg, problems.get( 0 ) );
+                Exception ex2 = problems.get( 0 );
+                throw new MigrationException( msg + ex2.getMessage(), ex2 );
             } else {
                 throw new MigrationExceptions( msg, problems );
             }
