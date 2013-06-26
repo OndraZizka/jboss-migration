@@ -27,6 +27,7 @@ public class MigratorSubclassMaker {
     static Class<? extends DefinitionBasedMigrator> createClass( String fullName )
             throws NotFoundException, CannotCompileException
     {
+        log.debug("Creating class " + fullName);
         ClassPool pool = ClassPool.getDefault();
         
         // Create the class.

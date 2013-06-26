@@ -146,18 +146,19 @@ public class ExternalMigratorsLoader {
         List<Exception> problems  = new LinkedList();
         
         // For each <migrator ...> definition...
-        for( MigratorDefinition desc : defs ) {
+        for( MigratorDefinition migDef : defs ) {
+            log.debug("Instantiating " + migDef);
             try {
                 // JAXB classes.
-                Map<String, Class<? extends IConfigFragment>> jaxbClasses = loadJaxbClasses( desc );
+                Map<String, Class<? extends IConfigFragment>> jaxbClasses = loadJaxbClasses( migDef );
                 
                 // Migrator class.
-                Class<? extends DefinitionBasedMigrator> migClass = MigratorSubclassMaker.createClass( desc.name );
+                Class<? extends DefinitionBasedMigrator> migClass = MigratorSubclassMaker.createClass( migDef.name );
                 //migClasses.add( migClass );
 
                 // Instance.
                 //final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, gc );
-                DefinitionBasedMigrator mig = MigratorSubclassMaker.instantiate( migClass, desc, globConf );
+                DefinitionBasedMigrator mig = MigratorSubclassMaker.instantiate( migClass, migDef, globConf );
                 migrators.put( migClass, mig );
             } catch( Exception ex ) {
                 problems.add( ex );

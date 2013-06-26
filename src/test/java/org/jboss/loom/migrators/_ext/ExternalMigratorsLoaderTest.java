@@ -25,18 +25,18 @@ import org.junit.runner.RunWith;
 @RunWith( Arquillian.class )
 public class ExternalMigratorsLoaderTest {
     
-    private File workDir;
+    private static File workDir;
     
     @BeforeClass
-    private void copyTestExtMigratorFiles() throws IOException {
-        this.workDir = new File("target/extMigrators/");
+    public static void copyTestExtMigratorFiles() throws IOException {
+        workDir = new File("target/extMigrators/");
         FileUtils.forceMkdir( workDir );
         Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
         Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
     }
     
     @AfterClass
-    private void deleteTestExtMigratorFiles() throws IOException {
+    public static void deleteTestExtMigratorFiles() throws IOException {
         FileUtils.forceDelete( workDir );
     }
 
@@ -45,7 +45,7 @@ public class ExternalMigratorsLoaderTest {
         TestUtils.printTestBanner();
         
         Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
-                = new ExternalMigratorsLoader().loadMigrators( this.workDir, new GlobalConfiguration() );
+                = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
         
         for( Map.Entry<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> entry : migs.entrySet() ) {
             Class<? extends DefinitionBasedMigrator> cls = entry.getKey();
@@ -61,7 +61,7 @@ public class ExternalMigratorsLoaderTest {
         Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         
         // Set external migrators dir.
-        conf.getGlobal().setExternalMigratorsDir( this.workDir.getPath() );
+        conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
         
         TestAppConfig.announceMigration( conf );
         ConfigurationValidator.validate( conf );

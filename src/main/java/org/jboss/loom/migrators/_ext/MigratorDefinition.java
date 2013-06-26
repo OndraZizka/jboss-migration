@@ -47,9 +47,17 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     @Override public Origin getOrigin() { return origin; }
     @Override public MigratorDefinition setOrigin( Origin origin ) { this.origin = origin; return this; }
 
+
+    @Override
+    public String toString() {
+        return "MigratorDefinition '"+ name +"' " + origin;
+    }
+
+
+    
+    
     
     // === Subelement classes === //
-    
     
     @XmlRootElement
     @XmlAccessorType( XmlAccessType.NONE )
