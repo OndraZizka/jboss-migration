@@ -24,6 +24,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -32,6 +36,9 @@ import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.Origin;
+import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.tools.report.Reporter;
 import org.slf4j.Logger;
@@ -294,6 +301,26 @@ public class Utils {
         }
         return props;
     }
+
+    
+    
+    public static <T extends Object> void  validate( T object ) throws MigrationException {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Set<ConstraintViolation<T>> valRes = validator.validate( object );
+        if( ! valRes.isEmpty() ){
+            StringBuilder sb = new StringBuilder("Validation failed for: ");
+            if( object instanceof Origin.Wise )
+                sb.append( ((Origin.Wise)object).getOrigin() );
+            else
+                sb.append(object);
+            
+            for( ConstraintViolation<T> fail : valRes) {
+                sb.append("\n  ").append( fail.getMessage() );
+            }
+            throw new MigrationException( sb.toString() );
+        }
+    }// validate()
 
     
     

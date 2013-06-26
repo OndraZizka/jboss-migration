@@ -80,6 +80,11 @@ public class ExternalMigratorsLoader {
             try{
                 List<MigratorDefinition> defs = XmlUtils.unmarshallBeans( xmlFile, "/migration/migrator", MigratorDefinition.class );
                 retDefs.addAll( defs );
+                // Validate
+                for( MigratorDefinition def : defs ) {
+                    try { Utils.validate( def ); } 
+                    catch( MigrationException ex ){ problems.add( ex ); }
+                }
             }
             catch( Exception ex ){
                 problems.add(ex);

@@ -4,6 +4,8 @@ package org.jboss.loom.migrators._ext;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -13,6 +15,7 @@ import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.Origin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +58,6 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     public String toString() {
         return "MigratorDefinition '"+ name +"' " + origin;
     }
-
-
-    void validate() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        validator.validate( this );
-    }
-
 
     
     
