@@ -4,6 +4,9 @@ package org.jboss.loom.migrators._ext;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
@@ -54,6 +57,13 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     }
 
 
+    void validate() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        validator.validate( this );
+    }
+
+
     
     
     
@@ -91,23 +101,23 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     
     @XmlRootElement
     public static class XmlFileQueryDef extends FileQueryBase {
-        public Class jaxbBean;
-        public String xpath;
+        @XmlAttribute public Class jaxbBean;
+        @XmlAttribute public String xpath;
     }
 
     @XmlRootElement
     public static class PropFileQueryDef extends FileQueryBase {
-        public String propNameMask;
+        @XmlAttribute public String propNameMask;
     }
     
     
     private static class FileQueryBase extends QueryBase {
-        public String pathMask;     // Path mask of the files to load.
+        @XmlAttribute public String pathMask;     // Path mask of the files to load.
     }
     
     private static class QueryBase {
-        public String id;           // Id under which the result will be stored.
-        public String subjectLabel; // What's being loaded - for exceptions and logging.
+        @XmlAttribute public String id;           // Id under which the result will be stored.
+        @XmlAttribute public String subjectLabel; // What's being loaded - for exceptions and logging.
     }
     
 }// class
