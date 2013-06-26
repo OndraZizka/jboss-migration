@@ -26,6 +26,9 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ArqTest {
     
+    /**
+     *  Copies mgmt-users.properties with user admin/admin to configuration/ to allow using Web console.
+     */
     //@BeforeClass
     public static void copyMgmtUsersFile( AS7Config as7Config ) throws IOException {
         FileUtils.copyInputStreamToFile(

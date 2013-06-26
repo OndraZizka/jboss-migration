@@ -4,16 +4,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.loom.MigrationEngine;
+import org.jboss.loom.TestAppConfig;
+import org.jboss.loom.TestUtils;
+import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.utils.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  *
  * @author Ondrej Zizka, ozizka at redhat.com
  */
+@RunWith( Arquillian.class )
 public class ExternalMigratorsLoaderTest {
     
     private File workDir;
@@ -31,9 +40,9 @@ public class ExternalMigratorsLoaderTest {
         FileUtils.forceDelete( workDir );
     }
 
-    @Test
+    @Test @RunAsClient
     public void testLoadMigrators() throws Exception {
-        System.out.println( "loadMigrators" );
+        TestUtils.printTestBanner();
         
         Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
                 = new ExternalMigratorsLoader().loadMigrators( this.workDir, new GlobalConfiguration() );
@@ -44,5 +53,21 @@ public class ExternalMigratorsLoaderTest {
             System.out.println( String.format("  Loaded migrator %s: %s", cls.getName(), mig.toString() ) );
         }
     }
+    
+    @Test @RunAsClient
+    public void testExternalMigrator() throws Exception {
+        TestUtils.printTestBanner();
+
+        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
+        
+        // Set external migrators dir.
+        conf.getGlobal().setExternalMigratorsDir( this.workDir.getPath() );
+        
+        TestAppConfig.announceMigration( conf );
+        ConfigurationValidator.validate( conf );
+        MigrationEngine migrator = new MigrationEngine(conf);
+        migrator.doMigration();
+    }
+    
 
 }// class
