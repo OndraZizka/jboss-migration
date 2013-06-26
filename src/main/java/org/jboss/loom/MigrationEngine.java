@@ -105,10 +105,11 @@ public class MigrationEngine {
         // Initialize migrator instances. 
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
                 createJavaMigrators( migratorClasses, config.getGlobal() );
-        
         // Initialize externalized migrators.
-        final File dir = new File(config.getGlobal().getExternalMigratorsDir());
-        migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( dir, config.getGlobal()) );
+        String extMigDir = config.getGlobal().getExternalMigratorsDir();
+        if( extMigDir != null ){
+            migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( new File(extMigDir), config.getGlobal()) );
+        }
         
         this.migrators = new ArrayList(migratorsMap.values());
         
