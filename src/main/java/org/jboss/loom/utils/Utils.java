@@ -84,47 +84,6 @@ public class Utils {
                 "May occur multiple times.");
         System.out.println();
     }
-
-    
-    /**
-     *  TODO: Return a list of files.
-     */
-    public static File lookForJarWithClass( String className, File... dirs ) throws IOException {
-        for( File dir : dirs ) {
-            log.debug("    Looking in " +  dir.getPath() + " for a .jar with: " + className);
-
-            if( ! dir.isDirectory() ){
-                log.trace("    Not a directory: " +  dir.getPath());
-                continue;
-            }
-
-            Collection<File> jarFiles = FileUtils.listFiles(dir, new String[]{"jar"}, true);
-            log.trace("    Found .jar files: " + jarFiles.size());
-
-            String classFilePath = className.replace(".", "/");
-
-            for( File file : jarFiles ) {
-                // Search the contained files for those containing $classFilePath.
-                try( JarFile jarFile = new JarFile(file) ) {
-                    if( containsClass( jarFile, classFilePath ) )
-                        return file;
-                }
-            }
-        }
-        return null;
-    }// lookForJarWithClass()
-
-
-    
-    private static boolean containsClass( JarFile jarFile, String classFilePath ) {
-        final Enumeration<JarEntry> entries = jarFile.entries();
-        while( entries.hasMoreElements() ) {
-            final JarEntry entry = entries.nextElement();
-            if( ( ! entry.isDirectory() ) && entry.getName().contains( classFilePath ))
-                return true;
-        }
-        return false;
-    }
     
 
     
@@ -321,18 +280,5 @@ public class Utils {
             throw new MigrationException( sb.toString() );
         }
     }// validate()
-
-    
-    
-    // ======= Class utils ====== //
-    
-    public static void copyResourceToDir( Class cls, String name, File dir ) throws IOException {
-        String packageDir =  cls.getPackage().getName().replace('.', '/');
-        String path =  "/" + packageDir + "/" + name;
-        InputStream is = GroovyClassLoader.class.getResourceAsStream( path );
-        if( is == null )
-            throw new IllegalArgumentException("Resource not found: " + packageDir);
-        FileUtils.copyInputStreamToFile( is, new File(dir, name) );
-    }
 
 }// class

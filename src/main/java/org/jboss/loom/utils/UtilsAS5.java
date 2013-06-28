@@ -29,7 +29,7 @@ public class UtilsAS5 {
      */
     public static File findJarFileWithClass( String className, String dirAS5, String profileAS5 ) throws FileNotFoundException, IOException {
         
-        File jar = Utils.lookForJarWithClass( className, 
+        File jar = ClassUtils.lookForJarWithClass( className, 
                 Utils.createPath( dirAS5, "server", profileAS5, "lib" ),
                 Utils.createPath( dirAS5, "common/lib" ));
         if( jar != null )
