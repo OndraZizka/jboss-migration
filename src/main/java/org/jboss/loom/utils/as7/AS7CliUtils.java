@@ -59,6 +59,9 @@ public class AS7CliUtils {
         return wasSuccess( res );
     }
 
+    public static boolean exists( String command, ModelControllerClient client ) throws IOException {
+        return exists( parseCommand( command ), client);
+    }
 
     
     public static ModelNode createRemoveCommandForResource( ModelNode resource ) {
