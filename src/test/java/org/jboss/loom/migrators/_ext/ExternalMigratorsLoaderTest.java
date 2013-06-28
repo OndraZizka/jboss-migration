@@ -12,6 +12,7 @@ import org.jboss.loom.TestUtils;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -32,8 +33,8 @@ public class ExternalMigratorsLoaderTest {
     public static void copyTestExtMigratorFiles() throws IOException {
         workDir = new File("target/extMigrators/");
         FileUtils.forceMkdir( workDir );
-        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
-        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
     }
     
     @AfterClass
