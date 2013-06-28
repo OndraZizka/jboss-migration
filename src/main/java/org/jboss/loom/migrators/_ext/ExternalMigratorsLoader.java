@@ -4,6 +4,7 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,11 +12,13 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
 import org.jboss.loom.migrators._ext.MigratorDefinition.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
@@ -117,6 +120,7 @@ public class ExternalMigratorsLoader {
                     //File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
                     File dir = desc.getOrigin().getFile().getParentFile();
                     final File groovyFile = new File( dir, jaxbClsBean.file.getPath() );
+                    log.debug("    Loading JAXB class from " + groovyFile );
                     cls = loadGroovyClass( groovyFile );
                     if( ! IConfigFragment.class.isAssignableFrom( cls ) ){
                         problems.add( new MigrationException("Groovy class from '"+groovyFile.getPath()+
@@ -179,22 +183,32 @@ public class ExternalMigratorsLoader {
      */
     private static Class loadGroovyClass( File file ) throws MigrationException {
         try {
+            GroovyClassLoader gcl = new GroovyClassLoader( ExternalMigratorsLoader.class.getClassLoader() );
+            
+            // Try to add this class' directory on classpath. For the purposes of test runs. Should be conditional?
+            /*File clsFile = ClassUtils.findClassOriginFile( ExternalMigratorsLoader.class );
+            log.debug("This class' file: " + clsFile);
+            if( clsFile != null && clsFile.isFile() && clsFile.getName().endsWith(".class") ){
+                log.info("Adding to GroovyClassLoader's classpath: " + clsFile.getParent() );
+                gcl.addClasspath( clsFile.getParent() );
+            }/*
+            final String cpRoot = ClassUtils.findClassPathRootFor( ExternalMigratorsLoader.class );
+            if( cpRoot != null ){
+                log.info("Adding to GroovyClassLoader's classpath: " + clsFile.getParent() );
+                gcl.addClasspath( cpRoot );
+            }/**/
+            
             //InputStream groovyClassIS = new FileInputStream( file );
+            //Class clazz = gcl.parseClass( groovyClassIS, StringUtils.substringBefore(file.getName(),"."));
             //FileReader fr = new FileReader( file );
             GroovyCodeSource src = new GroovyCodeSource( file );
-            GroovyClassLoader gcl = new GroovyClassLoader();
-            //Class clazz = gcl.parseClass( groovyClassIS, StringUtils.substringBefore(file.getName(),"."));
             Class clazz = gcl.parseClass( src );
             return clazz;
         }
-        catch( IOException ex ){
+        catch( CompilationFailedException | IOException ex ){
             throw new MigrationException("Failed creating class from " + file.getPath() + ":\n    " + ex.getMessage(), ex);
         }
     }
-    
-    
-    
-    
     
     
     // Test
@@ -202,8 +216,8 @@ public class ExternalMigratorsLoader {
         
         File workDir = new File("target/extMigrators/");
         FileUtils.forceMkdir( workDir );
-        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
-        Utils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
         
         new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
     }
