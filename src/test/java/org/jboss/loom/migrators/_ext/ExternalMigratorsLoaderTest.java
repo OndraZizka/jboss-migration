@@ -15,6 +15,7 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.utils.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,6 +41,7 @@ public class ExternalMigratorsLoaderTest {
         FileUtils.forceDelete( workDir );
     }
 
+    @Ignore
     @Test @RunAsClient
     public void testLoadMigrators() throws Exception {
         TestUtils.printTestBanner();
