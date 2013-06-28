@@ -49,12 +49,27 @@ public class CliCommandAction extends AbstractStatefulAction {
     
     
     
-    // script parameter is created text script and cliCommand is script representation in CLI API
+    /**
+     * @param script      Text script 
+     * @param cliCommand  CLI API object, must do the same as text script..
+     */
     public CliCommandAction( Class<? extends IMigrator> fromMigrator, String script, ModelNode cliCommand) {
         super(fromMigrator);
-        //this.cliCommand = scriptAPI;
-        //this.script = script;
         this.command = new BatchedCommandWithAction(this, script, cliCommand);
+    }
+    
+    /**
+     *  ModelNode is created by paring $script.
+     */
+    public CliCommandAction( Class<? extends IMigrator> fromMigrator, String script ) {
+        this( fromMigrator, script, AS7CliUtils.parseCommand( script ) );
+    }
+
+    /**
+     *  Script is created by formatting ModelNode.
+     */
+    public CliCommandAction( Class<? extends IMigrator> fromMigrator, ModelNode cliCommand ) {
+        this( fromMigrator, AS7CliUtils.formatCommand( cliCommand ), cliCommand );
     }
 
 
