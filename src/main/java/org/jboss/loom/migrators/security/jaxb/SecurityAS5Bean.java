@@ -17,25 +17,22 @@ import javax.xml.bind.annotation.*;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "policy")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "policy")
-
 public class SecurityAS5Bean {
 
+    
     @XmlElements(@XmlElement(name = "application-policy", type = ApplicationPolicyBean.class))
     private Set<ApplicationPolicyBean> applicationPolicies;
 
-    public Set<ApplicationPolicyBean> getApplicationPolicies() {
-        return applicationPolicies;
-    }
-
+    
+    
+    // Get/set
+    public Set<ApplicationPolicyBean> getApplicationPolicies() { return applicationPolicies; }
     public void setApplicationPolicies(Collection<ApplicationPolicyBean> applicationPolicies) {
         Set<ApplicationPolicyBean> temp = new HashSet();
         temp.addAll(applicationPolicies);
         this.applicationPolicies = temp;
     }
 
-
-}
+}// class

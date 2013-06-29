@@ -21,38 +21,26 @@ import javax.xml.bind.annotation.*;
 
 public class ModuleOptionAS7Bean {
 
+    
     @XmlAttribute(name = "name")
-    private String moduleOptionName;
+    private String name;
 
     @XmlAttribute(name = "value")
-    private String moduleOptionValue;
+    private String value;
 
 
-    public ModuleOptionAS7Bean() {
-    }
-
+    public ModuleOptionAS7Bean() { }
 
     public ModuleOptionAS7Bean( String moduleOptionName, String moduleOptionValue ) {
-        this.moduleOptionName = moduleOptionName;
-        this.moduleOptionValue = moduleOptionValue;
+        this.name = moduleOptionName;
+        this.value = moduleOptionValue;
     }
 
     
+    // Get/set
+    public String getModuleOptionName() { return name; }
+    public void setModuleOptionName(String moduleOptionName) { this.name = moduleOptionName; }
+    public String getModuleOptionValue() { return value; }
+    public void setModuleOptionValue(String moduleOptionValue) { this.value = moduleOptionValue; }
     
-    
-    public String getModuleOptionName() {
-        return moduleOptionName;
-    }
-
-    public void setModuleOptionName(String moduleOptionName) {
-        this.moduleOptionName = moduleOptionName;
-    }
-
-    public String getModuleOptionValue() {
-        return moduleOptionValue;
-    }
-
-    public void setModuleOptionValue(String moduleOptionValue) {
-        this.moduleOptionValue = moduleOptionValue;
-    }
-}
+}// class

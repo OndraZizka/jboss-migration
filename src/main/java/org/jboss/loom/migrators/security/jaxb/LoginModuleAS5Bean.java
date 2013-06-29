@@ -31,30 +31,19 @@ public class LoginModuleAS5Bean {
 
     @XmlElements(@XmlElement(name = "module-option", type = ModuleOptionAS5Bean.class))
     private Set<ModuleOptionAS5Bean> moduleOptions;
+    
+    
 
-    public String getLoginModule() {
-        return loginModule;
-    }
-
-    public void setLoginModule(String loginModule) {
-        this.loginModule = loginModule;
-    }
-
-    public Set<ModuleOptionAS5Bean> getModuleOptions() {
-        return moduleOptions;
-    }
-
+    // Get/set
+    public String getLoginModule() { return loginModule; }
+    public void setLoginModule(String loginModule) { this.loginModule = loginModule; }
+    public Set<ModuleOptionAS5Bean> getModuleOptions() { return moduleOptions; }
     public void setModuleOptions(Collection<ModuleOptionAS5Bean> moduleOptions) {
         Set<ModuleOptionAS5Bean> temp = new HashSet();
         temp.addAll(moduleOptions);
         this.moduleOptions = temp;
     }
-
-    public String getLoginModuleFlag() {
-        return loginModuleFlag;
-    }
-
-    public void setLoginModuleFlag(String loginModuleFlag) {
-        this.loginModuleFlag = loginModuleFlag;
-    }
-}
+    public String getLoginModuleFlag() { return loginModuleFlag; }
+    public void setLoginModuleFlag(String loginModuleFlag) { this.loginModuleFlag = loginModuleFlag; }
+    
+}// class

@@ -21,25 +21,18 @@ import javax.xml.bind.annotation.*;
 
 public class ModuleOptionAS5Bean {
 
+    
     @XmlValue
     private String moduleValue;
 
     @XmlAttribute(name = "name")
     private String moduleName;
 
-    public String getModuleValue() {
-        return moduleValue;
-    }
-
-    public void setModuleValue(String moduleValue) {
-        this.moduleValue = moduleValue;
-    }
-
-    public String getModuleName() {
-        return moduleName;
-    }
-
-    public void setModuleName(String moduleName) {
-        this.moduleName = moduleName;
-    }
-}
+    
+    // Get/set
+    public String getModuleValue() { return moduleValue; }
+    public void setModuleValue(String moduleValue) { this.moduleValue = moduleValue; }
+    public String getModuleName() { return moduleName; }
+    public void setModuleName(String moduleName) { this.moduleName = moduleName; }
+    
+}// class

@@ -36,42 +36,22 @@ public class LoginModuleAS7Bean {
     @XmlElements(@XmlElement(name = "module-option", type = ModuleOptionAS7Bean.class))
     private Set<ModuleOptionAS7Bean> moduleOptions;
 
-    public String getLoginModuleCode() {
-        return loginModuleCode;
-    }
-
-    public void setLoginModuleCode(String loginModuleCode) {
-        this.loginModuleCode = loginModuleCode;
-    }
-
-    public String getLoginModuleFlag() {
-        return loginModuleFlag;
-    }
-
-    public void setLoginModuleFlag(String loginModuleFlag) {
-        this.loginModuleFlag = loginModuleFlag;
-    }
-
-    public Set<ModuleOptionAS7Bean> getModuleOptions() {
-        return moduleOptions;
-    }
-
+    
+    
+    
+    // Get/set
+    public String getLoginModuleCode() { return loginModuleCode; }
+    public void setLoginModuleCode(String loginModuleCode) { this.loginModuleCode = loginModuleCode; }
+    public String getLoginModuleFlag() { return loginModuleFlag; }
+    public void setLoginModuleFlag(String loginModuleFlag) { this.loginModuleFlag = loginModuleFlag; }
+    public Set<ModuleOptionAS7Bean> getModuleOptions() { return moduleOptions; }
     public void setModuleOptions(Collection<ModuleOptionAS7Bean> moduleOptions) {
         Set<ModuleOptionAS7Bean> temp = new HashSet();
         temp.addAll(moduleOptions);
         this.moduleOptions = temp;
     }
-
-    public String getModule() {
-        return module;
-    }
-
-    public void setModule(String module) {
-        this.module = module;
-    }
-
-    public void setModuleOptions(Set<ModuleOptionAS7Bean> moduleOptions) {
-        this.moduleOptions = moduleOptions;
-    }
-}
-
+    public String getModule() { return module; }
+    public void setModule(String module) { this.module = module; }
+    public void setModuleOptions(Set<ModuleOptionAS7Bean> moduleOptions) { this.moduleOptions = moduleOptions; }
+    
+}// class
