@@ -7,23 +7,18 @@
  */
 package org.jboss.loom.utils;
 
-import groovy.lang.GroovyClassLoader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -38,7 +33,6 @@ import org.jboss.loom.ex.CliScriptException;
 import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.Origin;
-import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.tools.report.Reporter;
 import org.slf4j.Logger;

@@ -8,6 +8,7 @@
 package org.jboss.loom.migrators.security;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -31,11 +32,13 @@ import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
+import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.migrators.security.jaxb.*;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.UtilsAS5;
+import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.as7.CliAddScriptBuilder;
 import org.jboss.loom.utils.as7.CliApiCommandBuilder;
 import org.slf4j.Logger;
@@ -43,6 +46,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Migrator of security subsystem implementing IMigrator
+ * 
+ *  AS 7.2 docs: https://docs.jboss.org/author/display/AS72/Admin+Guide#AdminGuide-ConfigureSecurityRealms
+ * 
+ *  EAP 5 docs:  https://access.redhat.com/site/documentation//en-US/JBoss_Enterprise_Application_Platform/5/html/Security_Guide/index.html
  * 
  * Example AS 5 config:
  * 
@@ -53,6 +60,26 @@ import org.slf4j.LoggerFactory;
                 </login-module>
             </authentication>
         </application-policy>
+
+        <application-policy name="HsqlDbRealm">
+            <authentication>
+                <login-module code="org.jboss.resource.security.ConfiguredIdentityLoginModule" flag="required">
+                    <module-option name="principal">sa</module-option>
+                    <module-option name="userName">sa</module-option>
+                    <module-option name="password"></module-option>
+                    <module-option name="managedConnectionFactoryName">jboss.jca:service=LocalTxCM,name=DefaultDS</module-option>
+                </login-module>
+            </authentication>
+        </application-policy>
+
+ * Example AS 7 config: 
+ * 
+             <security-realm name="ManagementRealm">
+               <plug-ins></plug-ins>
+               <server-identities></server-identities>
+               <authentication></authentication>
+               <authorization></authorization>
+            </security-realm>
  *
  * @author Roman Jakubco
  */
@@ -85,22 +112,27 @@ public class SecurityMigrator extends AbstractMigrator {
      *  Loads the AS 5 data.
      */
     @Override
-    public void loadSourceServerConfig(MigrationContext ctx) throws LoadMigrationException {
+    public void loadSourceServerConfig(MigrationContext ctx) throws MigrationException {
         try {
             File file = new File(getGlobalConfig().getAS5Config().getConfDir(), "login-config.xml");
-            if (!file.canRead()) {
-                throw new LoadMigrationException("Can't read: " + file.getAbsolutePath());
-            }
+            if( ! file.canRead() )
+                throw new LoadMigrationException( "Can't read: " + file.getAbsolutePath() );
 
-            Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
-            SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
+            //Unmarshaller unmarshaller = JAXBContext.newInstance(SecurityAS5Bean.class).createUnmarshaller();
+            //SecurityAS5Bean securityAS5 = (SecurityAS5Bean) unmarshaller.unmarshal(file);
+            //XmlUtils.unmarshallBeans( file, "/policy/application-policy", ApplicationPolicyBean.class );
+            final SecurityAS5Bean securityAS5 = XmlUtils.unmarshallBean( file, SecurityAS5Bean.class );
 
-            MigratorData mData = new MigratorData();
-            mData.getConfigFragments().addAll(securityAS5.getApplicationPolicies());
+            final MigratorData mData = new MigratorData();
+            final Origin origin = new Origin( file );
+            final Set<ApplicationPolicyBean> policies = securityAS5.getApplicationPolicies();
+            for( ApplicationPolicyBean policy : policies )
+                policy.setOrigin( origin );
+            mData.getConfigFragments().addAll( policies);
 
-            ctx.getMigrationData().put(SecurityMigrator.class, mData);
-        } catch (JAXBException e) {
-            throw new LoadMigrationException(e);
+            ctx.getMigrationData().put( SecurityMigrator.class, mData );
+        } catch( Exception ex ) {
+            throw new LoadMigrationException(ex);
         }
     }
 
@@ -114,41 +146,43 @@ public class SecurityMigrator extends AbstractMigrator {
 
         // Config fragments
         for( IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
-            if( fragment instanceof ApplicationPolicyBean) {
-                try {
-                    SecurityDomainBean appPolicy = migrateAppPolicy( (ApplicationPolicyBean) fragment, ctx, resource);
-                    ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
-                } catch (CliScriptException e) {
-                    throw new MigrationException("Migration of application-policy failed: " + e.getMessage(), e);
-                }
-                continue;
+            // Unknown
+            if( ! (fragment instanceof ApplicationPolicyBean) )
+                throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
+            
+            final ApplicationPolicyBean policy = (ApplicationPolicyBean) fragment;
+            log.debug("    Processing policy " + policy);
+            
+            // ApplicationPolicy
+            try {
+                SecurityDomainBean appPolicy = migrateAppPolicy( policy, ctx, resource);
+                ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
+            } catch (CliScriptException e) {
+                throw new MigrationException("Migration of <application-policy> failed: " + e.getMessage(), e);
             }
-            throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
         }
-
     }
 
+    
+    
+    
     /**
-     * Migrates application-policy from AS5 to AS7
-     *
-     * @param appPolicy object representing application-policy
-     * @param ctx       migration context
-     * @return created security-domain
+     * Migrates application-policy from AS5 to AS7.
      */
     public SecurityDomainBean migrateAppPolicy(ApplicationPolicyBean appPolicy, MigrationContext ctx,
                                                SecurityMigResource resource) throws MigrationException{
         Set<LoginModuleAS7Bean> loginModules = new HashSet();
         SecurityDomainBean securityDomain = new SecurityDomainBean();
 
-        securityDomain.setSecurityDomainName(appPolicy.getApplicationPolicyName());
-        securityDomain.setCacheType("default");
-        if (appPolicy.getLoginModules() != null) {
-            for (LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules()) {
+        securityDomain.setSecurityDomainName( appPolicy.getApplicationPolicyName() );
+        securityDomain.setCacheType( "default" );
+        if( appPolicy.getLoginModules() != null ) {
+            for( LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules() ) {
                 loginModules.add( createLoginModule( lmAS5, resource, ctx ) );
             }
         }
 
-        securityDomain.setLoginModules(loginModules);
+        securityDomain.setLoginModules( loginModules );
 
         return securityDomain;
     }
@@ -167,9 +201,10 @@ public class SecurityMigrator extends AbstractMigrator {
         // Code
         String lmName = deriveLoginModuleName( lmAS5.getLoginModule() );
         lmAS7.setLoginModuleCode( lmName );
-        if( lmName.equals( lmAS5.getLoginModule() ) ){
-            ModuleCreationAction action = createModuleActionForLogMod(lmAS7, lmName, resource);
-            if(action != null) ctx.getActions().add( action );
+        if( lmName.equals( lmAS5.getLoginModule() ) ) {
+            ModuleCreationAction action = createModuleActionForLogMod( lmAS7, lmName, resource );
+            if(action != null)
+                ctx.getActions().add( action );
         }
 
         // Module options
@@ -188,7 +223,8 @@ public class SecurityMigrator extends AbstractMigrator {
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
                     if(resource.getFileNames().add(fName)){
                         CopyFileAction action = createCopyActionForFile(resource, fName);
-                        if( action != null) ctx.getActions().add( action );
+                        if( action != null)
+                            ctx.getActions().add( action );
                     }
                     break;
                 default:
@@ -206,11 +242,11 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      * Creates CopyFileAction for File referenced in migrated Module-Options
      *
-     * @param resource helping class containing all resources of the SecurityMigrator
-     * @param fileName  file, which should be copied into AS7
-     * @return  If the file is already set for copying then null else the created CopyFileAction
+     * @param resource  Helper class containing all resources of the SecurityMigrator
+     * @param fileName  File to be copied into AS7
+     * @return  Null if the file is already set for copying; otherwise, the created CopyFileAction
      */
-    private  CopyFileAction createCopyActionForFile(SecurityMigResource resource, String fileName ) {
+    private  CopyFileAction createCopyActionForFile( SecurityMigResource resource, String fileName ) {
 
         if( ! resource.getFileNames().add(fileName) ) return null;
 
@@ -219,41 +255,39 @@ public class SecurityMigrator extends AbstractMigrator {
             // TODO: MIGR-54 The paths in AS 5 config relate to some base dir. Find out which and use that, instead of searching.
             //       Then, create the actions directly in the code creating this "files to copy" collection.
             src = Utils.searchForFile(fileName, getGlobalConfig().getAS5Config().getProfileDir()).iterator().next();
-        } catch( CopyException ex ) {
+        } catch( FileNotFoundException ex ) {
             //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
             // Some files referenced in security may not exist. (?)
             log.warn("Couldn't find file referenced in AS 5 security config: " + fileName);
             return null;
         }
 
-        File target = Utils.createPath(getGlobalConfig().getAS7Config().getConfigDir(), src.getName());
+        File target = Utils.createPath( getGlobalConfig().getAS7Config().getConfigDir(), src.getName() );
         CopyFileAction action = new CopyFileAction( this.getClass(), src, target, CopyFileAction.IfExists.WARN );
 
         return action;
     }
 
     /**
-     * Creates ModuleCreationAction for the custom made class for the Login-Module, which should be deployed as module
+     * Creates ModuleCreationAction for the custom made class for the Login-Module, which should be deployed as module.
      *
-     * @param lmAS7  Login-Module containing this class
-     * @param className custom made class, which should be deployed into AS7
-     * @param resource helping class containing all resources of the SecurityMigrator
-     * @return  null if the JAR file containing the given class is already set for the creation of the module else
-     *          created ModuleCreationAction.
-     * @throws MigrationException
+     * @param lmAS7      Login module containing this class
+     * @param className  Custom made class, which should be deployed into AS7
+     * @param resource   Contains all resources of the SecurityMigrator
+     * @return  null if the JAR file containing the given class is already set for the creation of the module;
+     *          the created ModuleCreationAction otherwise.
      */
-    private ModuleCreationAction createModuleActionForLogMod(LoginModuleAS7Bean lmAS7, String className,
-                                                                    SecurityMigResource resource)
-            throws MigrationException{
+    private ModuleCreationAction createModuleActionForLogMod( LoginModuleAS7Bean lmAS7, String className, SecurityMigResource resource )
+            throws MigrationException {
         File fileJar;
         try {
             fileJar = UtilsAS5.findJarFileWithClass(className, getGlobalConfig().getAS5Config().getDir(),
                     getGlobalConfig().getAS5Config().getProfileName());
-        } catch (IOException ex) {
+        } catch( IOException ex ) {
             throw new MigrationException("Failed finding jar with class " + className + ": " + ex.getMessage(), ex);
         }
 
-        if ( resource.getModules().containsKey(fileJar) ) {
+        if( resource.getModules().containsKey(fileJar) ) {
             lmAS7.setModule( resource.getModules().get(fileJar) );
             return null;
         }
@@ -308,12 +342,7 @@ public class SecurityMigrator extends AbstractMigrator {
     
     
     /**
-     * Creates a list of CliCommandActions for adding a Security-Domain
-     *
-     * @param domain Security-Domain
-     * @return created list containing CliCommandActions for adding the Security-Domain
-     * @throws CliScriptException if required attributes for a creation of the CLI command of the Security-Domain
-     *                            are missing or are empty (security-domain-name)
+     * Creates a list of CliCommandActions for adding a security domain.
      */
     public List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
             throws CliScriptException {
@@ -341,12 +370,12 @@ public class SecurityMigrator extends AbstractMigrator {
         return actions;
     }
 
+    
     /**
      * Creates CliCommandAction for adding a Login-Module of the specific Security-Domain
      *
-     * @param domain Security-Domain containing Login-Module
-     * @param module Login-Module
-     * @return created CliCommandAction for adding the Login-Module
+     * @param domain  Security domain containing a login module.
+     * @param module  Contained login-module.
      */
     public static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module) {
         ModelNode request = new ModelNode();
@@ -358,12 +387,12 @@ public class SecurityMigrator extends AbstractMigrator {
         ModelNode moduleNode = new ModelNode();
         ModelNode list = new ModelNode();
 
-        if (module.getModuleOptions() != null) {
+        if( module.getModuleOptions() != null ) {
             ModelNode optionNode = new ModelNode();
-            for (ModuleOptionAS7Bean option : module.getModuleOptions()) {
-                optionNode.get(option.getModuleOptionName()).set(option.getModuleOptionValue());
+            for( ModuleOptionAS7Bean option : module.getModuleOptions() ) {
+                optionNode.get( option.getModuleOptionName() ).set( option.getModuleOptionValue() );
             }
-            moduleNode.get("module-options").set(optionNode);
+            moduleNode.get( "module-options" ).set( optionNode );
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
@@ -388,53 +417,52 @@ public class SecurityMigrator extends AbstractMigrator {
     private static String createSecurityDomainScript(SecurityDomainBean securityDomain)
             throws CliScriptException {
         String errMsg = " in security-domain must be set.";
-        Utils.throwIfBlank(securityDomain.getSecurityDomainName(), errMsg, "Security name");
+        Utils.throwIfBlank( securityDomain.getSecurityDomainName(), errMsg, "Security name" );
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=");
+        StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain=" );
 
-        resultScript.append(securityDomain.getSecurityDomainName()).append(":add(");
-        builder.addProperty("cache-type", securityDomain.getCacheType());
+        resultScript.append( securityDomain.getSecurityDomainName() ).append( ":add(" );
+        builder.addProperty( "cache-type", securityDomain.getCacheType() );
 
-        resultScript.append(builder.formatAndClearProps()).append(")");
+        resultScript.append( builder.formatAndClearProps() ).append( ")" );
 
         return resultScript.toString();
     }
 
     /**
-     * Creates a CLI script for adding a Login-Module of the specific Security-Domain
+     * Creates a CLI script for adding a login module of the specific Security-Domain
      *
-     * @param domain Security-Domain containing Login-Module
-     * @param module Login-Module
-     * @return created string containing the CLI script for adding the Login-Module
+     * @param domain Security-Domain containing login module
+     * @param module login module
+     * @return created string containing the CLI script for adding the login module
      * 
      * TODO: Rewrite using ModuleNode.
      */
     private static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
-        StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=" +
-                domain.getSecurityDomainName());
-        resultScript.append("/authentication=classic:add(login-modules=[{");
+        StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain="
+                + domain.getSecurityDomainName() );
+        resultScript.append( "/authentication=classic:add(login-modules=[{" );
 
-        if ((module.getLoginModuleCode() != null) && !(module.getLoginModuleCode().isEmpty())) {
-            resultScript.append("\"code\"=>\"").append(module.getLoginModuleCode()).append("\"");
+        if( (module.getLoginModuleCode() != null) && ! module.getLoginModuleCode().isEmpty() ) {
+            resultScript.append("\"code\"=>\"" ).append( module.getLoginModuleCode() ).append("\"");
         }
-        if ((module.getLoginModuleFlag() != null) && !(module.getLoginModuleFlag().isEmpty())) {
-            resultScript.append(", \"flag\"=>\"").append(module.getLoginModuleFlag()).append("\"");
+        if( (module.getLoginModuleFlag() != null) && ! module.getLoginModuleFlag().isEmpty() ) {
+            resultScript.append(", \"flag\"=>\"").append( module.getLoginModuleFlag() ).append("\"");
         }
 
-        if ((module.getModuleOptions() != null) && !(module.getModuleOptions().isEmpty())) {
+        if( (module.getModuleOptions() != null) && ! module.getModuleOptions().isEmpty() ) {
             StringBuilder modulesBuilder = new StringBuilder();
-            for (ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions()) {
-                modulesBuilder.append(", (\"").append(moduleOptionAS7.getModuleOptionName()).append("\"=>");
-                modulesBuilder.append("\"").append(moduleOptionAS7.getModuleOptionValue()).append("\")");
+            for( ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions() ) {
+                modulesBuilder.append(", (\"").append( moduleOptionAS7.getModuleOptionName() ).append("\"=>");
+                modulesBuilder.append("\"").append( moduleOptionAS7.getModuleOptionValue() ).append("\")");
             }
 
             String modules = modulesBuilder.toString().replaceFirst(",", "");
             modules = modules.replaceFirst(" ", "");
 
-            if (!modules.isEmpty()) {
+            if( ! modules.isEmpty() )
                 resultScript.append(", \"module-option\"=>[").append(modules).append("]");
-            }
         }
 
         return resultScript.toString();

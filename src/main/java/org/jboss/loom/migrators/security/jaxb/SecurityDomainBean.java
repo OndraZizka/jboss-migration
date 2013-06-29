@@ -10,6 +10,7 @@ package org.jboss.loom.migrators.security.jaxb;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.*;
 
 /**
@@ -34,6 +35,7 @@ public class SecurityDomainBean {
     @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS7Bean.class))
     private Set<LoginModuleAS7Bean> loginModules;
 
+    @NotNull
     public String getSecurityDomainName() {
         return securityDomainName;
     }
