@@ -7,51 +7,26 @@
  */
 package org.jboss.loom.migrators.security.jaxb;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import javax.xml.bind.annotation.*;
 
 /**
  * JAXB bean for login-module (AS7)
  *
- * @author Roman Jakubco
+ * @author Ondrej Zizka
  */
-
 @XmlRootElement(name = "login-module")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "login-module")
+public class LoginModuleAS7Bean extends LoginModuleBean {
 
-public class LoginModuleAS7Bean {
 
-    @XmlAttribute(name = "code")
-    private String loginModuleCode;
-
-    @XmlAttribute(name = "flag")
-    private String loginModuleFlag;
-
+    // AS 7 specific
     @XmlAttribute(name = "module")
     private String module;
-
-    @XmlElements(@XmlElement(name = "module-option", type = LoginModuleOptionBean.class))
-    private Set<LoginModuleOptionBean> moduleOptions;
-
-    
     
     
     // Get/set
-    public String getLoginModuleCode() { return loginModuleCode; }
-    public void setLoginModuleCode(String loginModuleCode) { this.loginModuleCode = loginModuleCode; }
-    public String getLoginModuleFlag() { return loginModuleFlag; }
-    public void setLoginModuleFlag(String loginModuleFlag) { this.loginModuleFlag = loginModuleFlag; }
-    public Set<LoginModuleOptionBean> getModuleOptions() { return moduleOptions; }
-    public void setModuleOptions(Collection<LoginModuleOptionBean> moduleOptions) {
-        Set<LoginModuleOptionBean> temp = new HashSet();
-        temp.addAll(moduleOptions);
-        this.moduleOptions = temp;
-    }
+    
     public String getModule() { return module; }
     public void setModule(String module) { this.module = module; }
-    public void setModuleOptions(Set<LoginModuleOptionBean> moduleOptions) { this.moduleOptions = moduleOptions; }
     
 }// class

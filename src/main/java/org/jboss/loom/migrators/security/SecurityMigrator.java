@@ -217,12 +217,12 @@ public class SecurityMigrator extends AbstractMigrator {
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
         // Flag
-        lmAS7.setLoginModuleFlag( lmAS5.getLoginModuleFlag() );
+        lmAS7.setFlag( lmAS5.getFlag() );
         
         // Code
-        String lmName = deriveLoginModuleName( lmAS5.getLoginModule() );
-        lmAS7.setLoginModuleCode( lmName );
-        if( lmName.equals( lmAS5.getLoginModule() ) ) {
+        String lmName = deriveLoginModuleName( lmAS5.getCode() );
+        lmAS7.setCode( lmName );
+        if( lmName.equals( lmAS5.getCode() ) ) {
             ModuleCreationAction action = createModuleActionForLogMod( lmAS7, lmName, resource );
             if(action != null)
                 ctx.getActions().add( action );
@@ -230,12 +230,12 @@ public class SecurityMigrator extends AbstractMigrator {
 
         // Module options
         
-        if( lmAS5.getModuleOptions() == null )
+        if( lmAS5.getOptions() == null )
             return lmAS7;
         
         // Can't just copy - we have to take care of specific module options.
         Set<LoginModuleOptionBean> moduleOptions = new HashSet();
-        for( LoginModuleOptionBean moAS5 : lmAS5.getModuleOptions() ){
+        for( LoginModuleOptionBean moAS5 : lmAS5.getOptions() ){
             String value;
             switch( moAS5.getName() ){
                 case "rolesProperties":
@@ -254,7 +254,7 @@ public class SecurityMigrator extends AbstractMigrator {
             }
             moduleOptions.add( new LoginModuleOptionBean( moAS5.getName(), value ) );
         }
-        lmAS7.setModuleOptions(moduleOptions);
+        lmAS7.setOptions(moduleOptions);
 
         return lmAS7;
     }
@@ -407,17 +407,17 @@ public class SecurityMigrator extends AbstractMigrator {
         ModelNode moduleNode = new ModelNode();
         ModelNode list = new ModelNode();
 
-        if( module.getModuleOptions() != null ) {
+        if( module.getOptions() != null ) {
             ModelNode optionNode = new ModelNode();
-            for( LoginModuleOptionBean option : module.getModuleOptions() ) {
+            for( LoginModuleOptionBean option : module.getOptions() ) {
                 optionNode.get( option.getName() ).set( option.getValue() );
             }
             moduleNode.get( "module-options" ).set( optionNode );
         }
 
         CliApiCommandBuilder builder = new CliApiCommandBuilder(moduleNode);
-        builder.addPropertyIfSet("flag", module.getLoginModuleFlag());
-        builder.addPropertyIfSet("code", module.getLoginModuleCode());
+        builder.addPropertyIfSet("flag", module.getFlag());
+        builder.addPropertyIfSet("code", module.getCode());
 
         // Needed for CLI because parameter login-modules requires LIST
         list.add(builder.getCommand());
@@ -465,16 +465,16 @@ public class SecurityMigrator extends AbstractMigrator {
         StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain=" + domain.getSecurityDomainName() );
         resultScript.append("/authentication=classic:add(login-modules=[{");
 
-        if( (module.getLoginModuleCode() != null) && ! module.getLoginModuleCode().isEmpty() ) {
-            resultScript.append("\"code\"=>\"" ).append( module.getLoginModuleCode() ).append("\"");
+        if( (module.getCode() != null) && ! module.getCode().isEmpty() ) {
+            resultScript.append("\"code\"=>\"" ).append( module.getCode() ).append("\"");
         }
-        if( (module.getLoginModuleFlag() != null) && ! module.getLoginModuleFlag().isEmpty() ) {
-            resultScript.append(", \"flag\"=>\"").append( module.getLoginModuleFlag() ).append("\"");
+        if( (module.getFlag() != null) && ! module.getFlag().isEmpty() ) {
+            resultScript.append(", \"flag\"=>\"").append( module.getFlag() ).append("\"");
         }
 
-        if( (module.getModuleOptions() != null) && ! module.getModuleOptions().isEmpty() ) {
+        if( (module.getOptions() != null) && ! module.getOptions().isEmpty() ) {
             StringBuilder sbModules = new StringBuilder();
-            for( LoginModuleOptionBean moduleOptionAS7 : module.getModuleOptions() ) {
+            for( LoginModuleOptionBean moduleOptionAS7 : module.getOptions() ) {
                 sbModules.append(", (\"").append( moduleOptionAS7.getName() ).append("\"=>");
                 sbModules.append("\"").append( moduleOptionAS7.getValue() ).append("\")");
             }

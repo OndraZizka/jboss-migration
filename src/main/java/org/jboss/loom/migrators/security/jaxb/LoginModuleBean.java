@@ -22,26 +22,27 @@ import javax.xml.bind.annotation.*;
 public class LoginModuleBean {
     
     @XmlAttribute(name = "code")
-    private String loginModule;
+    private String code;
 
     @XmlAttribute(name = "flag")
-    private String loginModuleFlag;
+    private String flag;
 
     @XmlElements(@XmlElement(name = "module-option", type = LoginModuleOptionBean.class))
-    private Set<LoginModuleOptionBean> moduleOptions;
+    private Set<LoginModuleOptionBean> options;
     
     
 
     // Get/set
-    public String getLoginModule() { return loginModule; }
-    public void setLoginModule(String loginModule) { this.loginModule = loginModule; }
-    public Set<LoginModuleOptionBean> getModuleOptions() { return moduleOptions; }
-    public void setModuleOptions(Collection<LoginModuleOptionBean> options) {
+    public String getCode() { return code; }
+    public void setCode( String code ) { this.code = code; }
+    public String getFlag() { return flag; }
+    public void setFlag( String flag ) { this.flag = flag; }
+    
+    public Set<LoginModuleOptionBean> getOptions() { return options; }
+    public void setOptions(Collection<LoginModuleOptionBean> options) {
         Set<LoginModuleOptionBean> temp = new HashSet();
         temp.addAll(options);
-        this.moduleOptions = temp;
+        this.options = temp;
     }
-    public String getLoginModuleFlag() { return loginModuleFlag; }
-    public void setLoginModuleFlag(String loginModuleFlag) { this.loginModuleFlag = loginModuleFlag; }
     
 }// class
