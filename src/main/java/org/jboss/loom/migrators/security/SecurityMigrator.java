@@ -198,7 +198,7 @@ public class SecurityMigrator extends AbstractMigrator {
         securityDomain.setSecurityDomainName( appPolicy.getApplicationPolicyName() );
         securityDomain.setCacheType( "default" );
         if( appPolicy.getLoginModules() != null ) {
-            for( LoginModuleAS5Bean lmAS5 : appPolicy.getLoginModules() ) {
+            for( LoginModuleBean lmAS5 : appPolicy.getLoginModules() ) {
                 loginModules.add( createLoginModule( lmAS5, resource, ctx ) );
             }
         }
@@ -212,7 +212,7 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      *  Migrates the given login module.
      */
-    private LoginModuleAS7Bean createLoginModule(LoginModuleAS5Bean lmAS5, SecurityMigResource resource, MigrationContext ctx )
+    private LoginModuleAS7Bean createLoginModule(LoginModuleBean lmAS5, SecurityMigResource resource, MigrationContext ctx )
             throws MigrationException{
         LoginModuleAS7Bean lmAS7 = new LoginModuleAS7Bean();
 
@@ -229,18 +229,18 @@ public class SecurityMigrator extends AbstractMigrator {
         }
 
         // Module options
-        Set<ModuleOptionAS7Bean> moduleOptions = new HashSet();
-
+        
         if( lmAS5.getModuleOptions() == null )
             return lmAS7;
-
-        for( ModuleOptionAS5Bean moAS5 : lmAS5.getModuleOptions() ){
+        
+        // Can't just copy - we have to take care of specific module options.
+        Set<LoginModuleOptionBean> moduleOptions = new HashSet();
+        for( LoginModuleOptionBean moAS5 : lmAS5.getModuleOptions() ){
             String value;
-            // Take care of specific module options.
-            switch( moAS5.getModuleName() ){
+            switch( moAS5.getName() ){
                 case "rolesProperties":
                 case "usersProperties":
-                    String fName = new File( moAS5.getModuleValue() ).getName();
+                    String fName = new File( moAS5.getValue() ).getName();
                     value = AS7_CONFIG_DIR_PLACEHOLDER + "/" + fName;
                     if(resource.getFileNames().add(fName)){
                         CopyFileAction action = createCopyActionForFile(resource, fName);
@@ -249,11 +249,10 @@ public class SecurityMigrator extends AbstractMigrator {
                     }
                     break;
                 default:
-                    value = moAS5.getModuleValue();
+                    value = moAS5.getValue();
                     break;
             }
-            ModuleOptionAS7Bean moAS7 = new ModuleOptionAS7Bean( moAS5.getModuleName(), value );
-            moduleOptions.add( moAS7 );
+            moduleOptions.add( new LoginModuleOptionBean( moAS5.getName(), value ) );
         }
         lmAS7.setModuleOptions(moduleOptions);
 
@@ -410,8 +409,8 @@ public class SecurityMigrator extends AbstractMigrator {
 
         if( module.getModuleOptions() != null ) {
             ModelNode optionNode = new ModelNode();
-            for( ModuleOptionAS7Bean option : module.getModuleOptions() ) {
-                optionNode.get( option.getModuleOptionName() ).set( option.getModuleOptionValue() );
+            for( LoginModuleOptionBean option : module.getModuleOptions() ) {
+                optionNode.get( option.getName() ).set( option.getValue() );
             }
             moduleNode.get( "module-options" ).set( optionNode );
         }
@@ -475,9 +474,9 @@ public class SecurityMigrator extends AbstractMigrator {
 
         if( (module.getModuleOptions() != null) && ! module.getModuleOptions().isEmpty() ) {
             StringBuilder sbModules = new StringBuilder();
-            for( ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions() ) {
-                sbModules.append(", (\"").append( moduleOptionAS7.getModuleOptionName() ).append("\"=>");
-                sbModules.append("\"").append( moduleOptionAS7.getModuleOptionValue() ).append("\")");
+            for( LoginModuleOptionBean moduleOptionAS7 : module.getModuleOptions() ) {
+                sbModules.append(", (\"").append( moduleOptionAS7.getName() ).append("\"=>");
+                sbModules.append("\"").append( moduleOptionAS7.getValue() ).append("\")");
             }
 
             String modules = sbModules.toString().replaceFirst(",", "").replaceFirst(" ", "");

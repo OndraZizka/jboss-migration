@@ -32,8 +32,8 @@ public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyB
     private String applicationPolicyName;
 
     @XmlElementWrapper(name = "authentication")
-    @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS5Bean.class))
-    private Set<LoginModuleAS5Bean> loginModules;
+    @XmlElements(@XmlElement(name = "login-module", type = LoginModuleBean.class))
+    private Set<LoginModuleBean> loginModules;
 
     
     // Get / set
@@ -41,9 +41,9 @@ public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyB
     public String getApplicationPolicyName() { return applicationPolicyName; }
     public void setApplicationPolicyName(String applicationPolicyName) { this.applicationPolicyName = applicationPolicyName; }
     
-    public Set<LoginModuleAS5Bean> getLoginModules() { return loginModules; }
-    public void setLoginModules(Collection<LoginModuleAS5Bean> loginModules) {
-        Set<LoginModuleAS5Bean> temp = new HashSet();
+    public Set<LoginModuleBean> getLoginModules() { return loginModules; }
+    public void setLoginModules(Collection<LoginModuleBean> loginModules) {
+        Set<LoginModuleBean> temp = new HashSet();
         temp.addAll(loginModules);
         this.loginModules = temp;
     }

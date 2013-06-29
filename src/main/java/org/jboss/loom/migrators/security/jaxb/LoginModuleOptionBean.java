@@ -10,25 +10,32 @@ package org.jboss.loom.migrators.security.jaxb;
 import javax.xml.bind.annotation.*;
 
 /**
- * JAXB bean for module-option (AS5)
+ * JAXB bean for module-option (AS7)
  *
  * @author Roman Jakubco
  */
 @XmlRootElement(name = "module-option")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ModuleOptionAS5Bean {
-    
-    @XmlValue
-    private String moduleValue;
+public class LoginModuleOptionBean {
 
     @XmlAttribute(name = "name")
-    private String moduleName;
+    public String getName() { return name; }
+    public void setName( String name ) { this.name = name; }
+    private String name;
 
     
-    // Get/set
-    public String getModuleValue() { return moduleValue; }
-    public void setModuleValue(String moduleValue) { this.moduleValue = moduleValue; }
-    public String getModuleName() { return moduleName; }
-    public void setModuleName(String moduleName) { this.moduleName = moduleName; }
+    @XmlValue //  AS 7
+    //@XmlAttribute(name = "value") // AS 5
+    public String getValue() { return value; }
+    public void setValue( String value ) { this.value = value; }
+    private String value;
+
+
+    public LoginModuleOptionBean() { }
+
+    public LoginModuleOptionBean( String name, String value ) {
+        this.name = name;
+        this.value = value;
+    }
     
 }// class
