@@ -60,7 +60,7 @@ public class AS7CliUtils {
     }
 
     public static boolean exists( String command, ModelControllerClient client ) throws IOException {
-        return exists( parseCommand( command ), client);
+        return exists( parseCommand( command, false ), client);
     }
 
     
@@ -256,8 +256,11 @@ public class AS7CliUtils {
      *  TODO: Support nested params.
      */
     public static ModelNode parseCommand( String command ) {
+       return parseCommand( command, true );
+    }
+    public static ModelNode parseCommand( String command, boolean needOp ) {
         String[] parts = StringUtils.split( command, ':' );
-        if( parts.length < 2 )  throw new IllegalArgumentException("Missing CLI command operation: " + command);
+        if( needOp && parts.length < 2 )  throw new IllegalArgumentException("Missing CLI command operation: " + command);
         String addr = parts[0];
         
         ModelNode query = new ModelNode();
@@ -269,6 +272,9 @@ public class AS7CliUtils {
             if( partsSegment.length != 2 )  throw new IllegalArgumentException("Wrong addr segment format - need '=': " + command);
             query.get(ClientConstants.OP_ADDR).add( partsSegment[0], partsSegment[1] );
         }
+        
+        // No op?
+        if( parts.length < 2 )  return query;
         
         // Op
         String[] partsOp = StringUtils.split( parts[1], '(' );
