@@ -40,6 +40,8 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.migrators.security.SecurityMigrator;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.UtilsAS5;
@@ -163,6 +165,11 @@ public class DatasourceMigrator extends AbstractMigrator {
                 
                 AbstractDatasourceAS7Bean dsBean = migrateDatasouceAS5( dsBeanAS5 );
                 dsBean.setDriver( driverName );
+                
+                
+                // Check if sec domain exists or SecurityMigrator created an action for that realm.
+                checkIfRealmExistsOrIsBeingCreated( dsBeanAS5, ctx );
+                
 
                 // Creating the datasource resource.
                 if( fragment instanceof DatasourceAS5Bean ) {
@@ -699,6 +706,34 @@ public class DatasourceMigrator extends AbstractMigrator {
         Utils.throwIfBlank(datasource.getPoolName(), errMsg, "Pool-name");
         Utils.throwIfBlank(datasource.getJndiName(), errMsg, "Jndi-name");
         Utils.throwIfBlank(datasource.getDriver(), errMsg, "Driver name");
+    }
+
+
+    private boolean isSecurityDomainExists( final AbstractDatasourceAS5Bean dsBeanAS5, ModelControllerClient client ) throws CliScriptException {
+        String cmd = "/subsystem=security/security-domain=" + dsBeanAS5.getSecurityDomain();
+        try {
+            return AS7CliUtils.exists( cmd, client );
+        } catch( IOException ex ){
+            //log.warn("Failed checking for existence of: " + cmd, ex );
+            throw new CliScriptException("Failed checking for existence of: " + cmd, ex );
+        }
+    }
+
+
+    /**
+     *  Check if sec domain exists or SecurityMigrator created an action for that realm.
+     */
+    private void checkIfRealmExistsOrIsBeingCreated( final AbstractDatasourceAS5Bean dsBeanAS5, MigrationContext ctx ) throws CliScriptException, MigrationException {
+        boolean secDomainExists = isSecurityDomainExists( dsBeanAS5, ctx.getAS7Client() );
+        if( ! secDomainExists ){
+            try {
+                ((SecurityMigrator.Data)ctx.getMigrationData().get( SecurityMigrator.class ))
+                    .getSecurityDomain( dsBeanAS5.getSecurityDomain() );
+            } catch( MigrationException ex ){
+                throw new MigrationException("Datasource '"+dsBeanAS5.getJndiName()
+                    +"' refers to unknown <application-policy>:\n    " + ex.getMessage(), ex );
+            }
+        }
     }
     
 }// class
