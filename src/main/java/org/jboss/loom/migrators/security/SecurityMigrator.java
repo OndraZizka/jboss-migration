@@ -10,13 +10,12 @@ package org.jboss.loom.migrators.security;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
@@ -28,7 +27,6 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.CliScriptException;
-import org.jboss.loom.ex.CopyException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.AbstractMigrator;
@@ -90,18 +88,36 @@ import org.slf4j.LoggerFactory;
 public class SecurityMigrator extends AbstractMigrator {
     private static final Logger log = LoggerFactory.getLogger(SecurityMigrator.class);
 
+    @Override protected String getConfigPropertyModuleName() { return "security"; }
+    
+
     private static final String AS7_CONFIG_DIR_PLACEHOLDER = "${jboss.server.config.dir}";
     
     
-    // Files which must be copied into AS7
-
-    //private Set<CopyFileAction> copyActions; // not used, TODO
-
-
-    @Override
-    protected String getConfigPropertyModuleName() {
-        return "security";
+    /**
+     *  Data of SecurityMigrator.
+     */
+    public class Data extends MigratorData {
+        /** For other migrators to look up. */
+        private Map<String, SecurityDomainBean> nameToSecDomainMap;
+        private Set<ApplicationPolicyBean> policies;
+        
+        @Override public <T extends IConfigFragment> List<T> getConfigFragments() {
+            return new ArrayList( policies );
+        }
+        
+        public SecurityDomainBean findSecurityDomain( String name ) {
+            return nameToSecDomainMap.get( name );
+        }
+        
+        public SecurityDomainBean getSecurityDomain( String name ) throws MigrationException {
+            SecurityDomainBean sd = findSecurityDomain( name );
+            if( sd == null)
+                throw new MigrationException("Application policy (security domain) '"+name+"' not found in login-config.xml.");
+            return sd;
+        }
     }
+
 
 
     public SecurityMigrator(GlobalConfiguration globalConfig) {
@@ -123,13 +139,12 @@ public class SecurityMigrator extends AbstractMigrator {
             //XmlUtils.unmarshallBeans( file, "/policy/application-policy", ApplicationPolicyBean.class );
             final SecurityAS5Bean securityAS5 = XmlUtils.unmarshallBean( file, SecurityAS5Bean.class );
 
-            final MigratorData mData = new MigratorData();
+            final Data mData = new Data();
             final Origin origin = new Origin( file );
-            final Set<ApplicationPolicyBean> policies = securityAS5.getApplicationPolicies();
-            for( ApplicationPolicyBean policy : policies )
+            mData.policies = securityAS5.getApplicationPolicies();
+            for( ApplicationPolicyBean policy : mData.policies )
                 policy.setOrigin( origin );
-            mData.getConfigFragments().addAll( policies);
-
+            
             ctx.getMigrationData().put( SecurityMigrator.class, mData );
         } catch( Exception ex ) {
             throw new LoadMigrationException(ex);
@@ -143,9 +158,11 @@ public class SecurityMigrator extends AbstractMigrator {
     @Override
     public void createActions(MigrationContext ctx) throws MigrationException {
         SecurityMigResource resource = new SecurityMigResource();
+        
+        Data data = (Data) ctx.getMigrationData().get(SecurityMigrator.class);
 
         // Config fragments
-        for( IConfigFragment fragment : ctx.getMigrationData().get(SecurityMigrator.class).getConfigFragments()) {
+        for( IConfigFragment fragment : data.getConfigFragments()) {
             // Unknown
             if( ! (fragment instanceof ApplicationPolicyBean) )
                 throw new MigrationException("Config fragment unrecognized by " + this.getClass().getSimpleName() + ": " + fragment);
@@ -155,10 +172,13 @@ public class SecurityMigrator extends AbstractMigrator {
             
             // ApplicationPolicy
             try {
-                SecurityDomainBean appPolicy = migrateAppPolicy( policy, ctx, resource);
-                ctx.getActions().addAll( createSecurityDomainCliAction(appPolicy));
-            } catch (CliScriptException e) {
-                throw new MigrationException("Migration of <application-policy> failed: " + e.getMessage(), e);
+                SecurityDomainBean secDomain = migrateAppPolicy( policy, ctx, resource);
+                final List<CliCommandAction> actions = createSecurityDomainCliActions( secDomain );
+                if( ! actions.isEmpty() )
+                    data.nameToSecDomainMap.put( secDomain.getSecurityDomainName(), secDomain );
+                ctx.getActions().addAll( actions );
+            } catch (CliScriptException ex) {
+                throw new MigrationException("Migration of <application-policy> failed: " + ex.getMessage(), ex);
             }
         }
     }
@@ -344,7 +364,7 @@ public class SecurityMigrator extends AbstractMigrator {
     /**
      * Creates a list of CliCommandActions for adding a security domain.
      */
-    public List<CliCommandAction> createSecurityDomainCliAction(SecurityDomainBean domain)
+    private List<CliCommandAction> createSecurityDomainCliActions(SecurityDomainBean domain)
             throws CliScriptException {
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank(domain.getSecurityDomainName(), errMsg, "Security name");
@@ -377,7 +397,7 @@ public class SecurityMigrator extends AbstractMigrator {
      * @param domain  Security domain containing a login module.
      * @param module  Contained login-module.
      */
-    public static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module) {
+    private static CliCommandAction createLoginModuleCliAction(SecurityDomainBean domain, LoginModuleAS7Bean module) {
         ModelNode request = new ModelNode();
         request.get(ClientConstants.OP).set(ClientConstants.ADD);
         request.get(ClientConstants.OP_ADDR).add("subsystem", "security");
@@ -416,16 +436,17 @@ public class SecurityMigrator extends AbstractMigrator {
      */
     private static String createSecurityDomainScript(SecurityDomainBean securityDomain)
             throws CliScriptException {
+        
         String errMsg = " in security-domain must be set.";
         Utils.throwIfBlank( securityDomain.getSecurityDomainName(), errMsg, "Security name" );
 
         CliAddScriptBuilder builder = new CliAddScriptBuilder();
-        StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain=" );
+        StringBuilder resultScript = new StringBuilder("/subsystem=security/security-domain=");
 
-        resultScript.append( securityDomain.getSecurityDomainName() ).append( ":add(" );
-        builder.addProperty( "cache-type", securityDomain.getCacheType() );
+        resultScript.append( securityDomain.getSecurityDomainName() ).append(":add(");
+        builder.addProperty("cache-type", securityDomain.getCacheType() );
 
-        resultScript.append( builder.formatAndClearProps() ).append( ")" );
+        resultScript.append( builder.formatAndClearProps() ).append(")");
 
         return resultScript.toString();
     }
@@ -440,9 +461,9 @@ public class SecurityMigrator extends AbstractMigrator {
      * TODO: Rewrite using ModuleNode.
      */
     private static String createLoginModuleScript(SecurityDomainBean domain, LoginModuleAS7Bean module) {
-        StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain="
-                + domain.getSecurityDomainName() );
-        resultScript.append( "/authentication=classic:add(login-modules=[{" );
+        
+        StringBuilder resultScript = new StringBuilder( "/subsystem=security/security-domain=" + domain.getSecurityDomainName() );
+        resultScript.append("/authentication=classic:add(login-modules=[{");
 
         if( (module.getLoginModuleCode() != null) && ! module.getLoginModuleCode().isEmpty() ) {
             resultScript.append("\"code\"=>\"" ).append( module.getLoginModuleCode() ).append("\"");
@@ -452,15 +473,13 @@ public class SecurityMigrator extends AbstractMigrator {
         }
 
         if( (module.getModuleOptions() != null) && ! module.getModuleOptions().isEmpty() ) {
-            StringBuilder modulesBuilder = new StringBuilder();
+            StringBuilder sbModules = new StringBuilder();
             for( ModuleOptionAS7Bean moduleOptionAS7 : module.getModuleOptions() ) {
-                modulesBuilder.append(", (\"").append( moduleOptionAS7.getModuleOptionName() ).append("\"=>");
-                modulesBuilder.append("\"").append( moduleOptionAS7.getModuleOptionValue() ).append("\")");
+                sbModules.append(", (\"").append( moduleOptionAS7.getModuleOptionName() ).append("\"=>");
+                sbModules.append("\"").append( moduleOptionAS7.getModuleOptionValue() ).append("\")");
             }
 
-            String modules = modulesBuilder.toString().replaceFirst(",", "");
-            modules = modules.replaceFirst(" ", "");
-
+            String modules = sbModules.toString().replaceFirst(",", "").replaceFirst(" ", "");
             if( ! modules.isEmpty() )
                 resultScript.append(", \"module-option\"=>[").append(modules).append("]");
         }
