@@ -211,7 +211,7 @@ public class ServerMigrator extends AbstractMigrator {
         File src;
         try {
             src = Utils.searchForFile(fName, as5profileDir).iterator().next();
-        } catch( CopyException ex ) {
+        } catch( FileNotFoundException ex ) {
             //throw new ActionException("Failed copying a security file: " + ex.getMessage(), ex);
             // Some files referenced in security may not exist. (?)
             log.warn("Couldn't find file referenced in AS 5 server config: " + fName);
