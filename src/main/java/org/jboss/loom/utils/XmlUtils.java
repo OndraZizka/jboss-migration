@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -57,6 +59,18 @@ public class XmlUtils {
         // JDK way: Marshaller mar = JAXBContext.newInstance(MigrationReportJaxbBean.class).createMarshaller();
         
         return jc.createMarshaller();
+    }
+    
+    /**
+     *  Convenience - calls the override with must = true.
+     */
+    public static <T> T unmarshallBean( File xmlFile, Class<T> cls ) throws MigrationException {
+        try {
+            Unmarshaller unmarshaller = JAXBContext.newInstance(cls).createUnmarshaller();
+            return (T) unmarshaller.unmarshal(xmlFile);
+        } catch( JAXBException ex ) {
+            throw new MigrationException("Failed unmarshalling "+xmlFile+" to "+cls.getSimpleName()+": " + ex.getMessage(), ex);
+        }
     }
     
     /**
