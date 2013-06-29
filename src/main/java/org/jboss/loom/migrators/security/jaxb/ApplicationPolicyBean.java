@@ -26,7 +26,6 @@ import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 @XmlRootElement(name = "application-policy")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "application-policy")
-
 public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyBean> implements IConfigFragment {
 
     @XmlAttribute(name = "name")
@@ -36,18 +35,13 @@ public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyB
     @XmlElements(@XmlElement(name = "login-module", type = LoginModuleAS5Bean.class))
     private Set<LoginModuleAS5Bean> loginModules;
 
-    public String getApplicationPolicyName() {
-        return applicationPolicyName;
-    }
-
-    public void setApplicationPolicyName(String applicationPolicyName) {
-        this.applicationPolicyName = applicationPolicyName;
-    }
-
-    public Set<LoginModuleAS5Bean> getLoginModules() {
-        return loginModules;
-    }
-
+    
+    // Get / set
+    
+    public String getApplicationPolicyName() { return applicationPolicyName; }
+    public void setApplicationPolicyName(String applicationPolicyName) { this.applicationPolicyName = applicationPolicyName; }
+    
+    public Set<LoginModuleAS5Bean> getLoginModules() { return loginModules; }
     public void setLoginModules(Collection<LoginModuleAS5Bean> loginModules) {
         Set<LoginModuleAS5Bean> temp = new HashSet();
         temp.addAll(loginModules);
