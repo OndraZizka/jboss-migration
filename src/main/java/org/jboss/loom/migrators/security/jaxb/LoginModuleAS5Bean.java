@@ -17,12 +17,10 @@ import javax.xml.bind.annotation.*;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "login-module")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "login-module")
-
 public class LoginModuleAS5Bean {
+    
     @XmlAttribute(name = "code")
     private String loginModule;
 

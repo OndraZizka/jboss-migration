@@ -21,7 +21,6 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement(name = "security-domain")
 @XmlAccessorType(XmlAccessType.NONE)
 public class SecurityDomainBean {
-
     
     @XmlAttribute(name = "name")
     private String securityDomainName;

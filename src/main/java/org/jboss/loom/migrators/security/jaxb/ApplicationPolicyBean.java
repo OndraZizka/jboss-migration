@@ -47,5 +47,6 @@ public class ApplicationPolicyBean extends OriginWiseJaxbBase<ApplicationPolicyB
         temp.addAll(loginModules);
         this.loginModules = temp;
     }
-}
+    
+}// class
 

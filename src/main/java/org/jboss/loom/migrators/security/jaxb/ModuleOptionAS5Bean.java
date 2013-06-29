@@ -14,13 +14,9 @@ import javax.xml.bind.annotation.*;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "module-option")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "module-option")
-
 public class ModuleOptionAS5Bean {
-
     
     @XmlValue
     private String moduleValue;

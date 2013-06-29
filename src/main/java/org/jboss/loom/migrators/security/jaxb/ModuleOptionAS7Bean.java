@@ -14,14 +14,10 @@ import javax.xml.bind.annotation.*;
  *
  * @author Roman Jakubco
  */
-
 @XmlRootElement(name = "module-option")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "module-option")
-
 public class ModuleOptionAS7Bean {
 
-    
     @XmlAttribute(name = "name")
     private String name;
 

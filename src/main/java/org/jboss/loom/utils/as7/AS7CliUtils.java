@@ -59,6 +59,7 @@ public class AS7CliUtils {
         return wasSuccess( res );
     }
 
+    /** Parses the command string into ModalNode and calls the sister method. */
     public static boolean exists( String command, ModelControllerClient client ) throws IOException {
         return exists( parseCommand( command, false ), client);
     }
