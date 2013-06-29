@@ -91,12 +91,12 @@ public class Utils {
      *  Searches a file of given name under given directory tree.
      *  @throws  CopyException if nothing found.
      */
-    public static Collection<File> searchForFile(String fileName, File dir) throws CopyException {
+    public static Collection<File> searchForFile(String fileName, File dir) throws FileNotFoundException {
 
         IOFileFilter nff = new NameFileFilter(fileName);
         Collection<File> found = FileUtils.listFiles(dir, nff, FileFilterUtils.trueFileFilter());
         if( found.isEmpty() ) {
-            throw new CopyException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
+            throw new FileNotFoundException("File '" + fileName + "' was not found in " + dir.getAbsolutePath());
         }
         return found;
     }
