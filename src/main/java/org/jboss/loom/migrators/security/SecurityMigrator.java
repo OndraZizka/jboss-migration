@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,7 +100,7 @@ public class SecurityMigrator extends AbstractMigrator {
      */
     public class Data extends MigratorData {
         /** For other migrators to look up. */
-        private Map<String, SecurityDomainBean> nameToSecDomainMap;
+        private Map<String, SecurityDomainBean> nameToSecDomainMap = new HashMap();
         private Set<ApplicationPolicyBean> policies;
         
         @Override public <T extends IConfigFragment> List<T> getConfigFragments() {
