@@ -61,6 +61,7 @@ public class ExternalMigratorsLoaderTest {
         TestUtils.printTestBanner();
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );        
         
         // Set external migrators dir.
         conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
