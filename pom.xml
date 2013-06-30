@@ -21,6 +21,9 @@
         
         <!-- User input defaults -->
         <download>eap6</download> <!-- "as7" or "eap6" -->
+        <surefire.debug.port></surefire.debug.port>
+        <surefire.debug.args></surefire.debug.args> <!-- Not used now, kept for Arq-launched AS. -->
+        <surefire.system.args>${surefire.debug.args}</surefire.system.args>
         
         <!-- Build flow control -->
         <as.jvm.args></as.jvm.args>
@@ -60,10 +63,19 @@
                 <version>2.2.1</version>
                 <executions> <execution> <id>src-jar</id> <goals> <goal>jar</goal> </goals> </execution> </executions>
             </plugin>
+            <!-- Surefire -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.14</version>
+                <version>2.15</version>
                 <configuration>
+                    <!--
+                    <redirectTestOutputToFile>${testLogToFile}</redirectTestOutputToFile>
+                    <argLine>${surefire.system.args}</argLine>
+                    -->
+                    <!--<forkMode>always</forkMode> <!- - For for each test class. Deprecated. -->
+                    <forkCount>1</forkCount> <!-- For for each test class. -->
+                    <reuseForks>false</reuseForks>
+                    <debugForkedProcess>${surefire.system.args}</debugForkedProcess>
                     <systemPropertyVariables>
                         <arq.as.jvm.args>${as.jvm.args}</arq.as.jvm.args>
                     </systemPropertyVariables>
@@ -317,6 +329,16 @@
                 </plugins>
             </build>
         </profile>
+        
+        <!-- Debugging profile. -->
+        <profile> <id>debug</id>
+            <activation><property><name>debug</name></property></activation>
+            <properties>
+                <surefire.debug.port>4000</surefire.debug.port>
+                <surefire.debug.args>-agentlib:jdwp=transport=dt_socket,address=${surefire.debug.port},server=y,suspend=y</surefire.debug.args>
+            </properties>
+        </profile>
+        
     </profiles>
 
     <dependencies>

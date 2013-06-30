@@ -13,7 +13,6 @@ import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.utils.ClassUtils;
-import org.jboss.loom.utils.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
