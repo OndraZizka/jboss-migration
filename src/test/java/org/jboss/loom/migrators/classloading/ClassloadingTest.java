@@ -67,7 +67,7 @@ public class ClassloadingTest {
         if( as7Dir != null )  // AS 7.1.1 doesn't define it.
             conf.getGlobal().getAS7Config().setDir( as7Dir );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         
         ConfigurationValidator.validate( conf );
         

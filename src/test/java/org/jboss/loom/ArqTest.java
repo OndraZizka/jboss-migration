@@ -27,17 +27,6 @@ import org.junit.runner.RunWith;
 public class ArqTest {
     
     /**
-     *  Copies mgmt-users.properties with user admin/admin to configuration/ to allow using Web console.
-     */
-    //@BeforeClass
-    public static void copyMgmtUsersFile( AS7Config as7Config ) throws IOException {
-        FileUtils.copyInputStreamToFile(
-            ArqTest.class.getResourceAsStream("/org/jboss/loom/mgmt-users.properties"),
-            new File( as7Config.getConfigDir() + "/mgmt-users.properties")
-        );
-    }
-    
-    /**
      * Test of doMigration method, of class MigratorEngine.
      */
     @Test @Category( AS.class )
@@ -62,9 +51,9 @@ public class ArqTest {
         */
         
         
-        updateAS7ConfAsPerServerMgmtInfo( as7Config );
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( as7Config );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
@@ -73,10 +62,10 @@ public class ArqTest {
     
     private void runEap520( String profile ) throws Exception {
         Configuration conf = TestAppConfig.createTestConfig_EAP_520(profile);
-        updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
-        copyMgmtUsersFile( conf.getGlobal().getAS7Config() );
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
+        TestUtils.copyMgmtUsersFile( conf.getGlobal().getAS7Config() );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
@@ -138,9 +127,9 @@ public class ArqTest {
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         conf.getGlobal().setDryRun( true );
-        updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
@@ -156,33 +145,12 @@ public class ArqTest {
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
         System.setProperty("JBOSS_HOME", "/foo/bar");
-        updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
     }
-    
-    
-    
-    
-    
-    // -- Util methods --
-    
-    private void updateAS7ConfAsPerServerMgmtInfo( AS7Config conf ) throws UnknownHostException, MigrationException {
-        ModelControllerClient as7client = ModelControllerClient.Factory.create(conf.getHost(), conf.getManagementPort());
-        updateAS7ConfAsPerServerMgmtInfo( conf, as7client );
-    }
-    
-    private void updateAS7ConfAsPerServerMgmtInfo( AS7Config conf, ModelControllerClient as7client ) throws UnknownHostException, MigrationException {
-        
-        // Query for the server path.
-        String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
-        if( as7Dir != null )  // AS 7.1.1 doesn't define it.
-            conf.setDir( as7Dir );
-    }
-    
-    
         
 }// class

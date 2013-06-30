@@ -65,7 +65,7 @@ public class ExternalMigratorsLoaderTest {
         // Set external migrators dir.
         conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
         
-        TestAppConfig.announceMigration( conf );
+        TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();

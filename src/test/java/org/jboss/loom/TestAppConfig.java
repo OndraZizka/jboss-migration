@@ -2,9 +2,13 @@ package org.jboss.loom;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.loom.conf.AS7Config;
 import org.jboss.loom.conf.Configuration;
+import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 
 /**
  *  Base class for tests - provides util methods.
@@ -42,21 +46,18 @@ public class TestAppConfig {
     }
 
     
-    public static void announceMigration( Configuration conf ){
-        String testMethod = getCallingMethodName(1);
-        String msg = "\n"
-                + "\n==== " + testMethod + "() " + StringUtils.repeat("=", 94 - 8 - testMethod.length())
-                + "\n  Migrating "
-                + "\n    " + conf.getGlobal().getAS5Config().getDir() + " | " + conf.getGlobal().getAS5Config().getProfileName()
-                + "\n  to "
-                + "\n    " + conf.getGlobal().getAS7Config().getDir() + " | " + conf.getGlobal().getAS7Config().getConfigPath()
-                + "\n==============================================================================================\n";
-        System.out.println( msg );
+
+    // -- Util methods --
+    public static void updateAS7ConfAsPerServerMgmtInfo( AS7Config conf ) throws UnknownHostException, MigrationException {
+        ModelControllerClient as7client = ModelControllerClient.Factory.create( conf.getHost(), conf.getManagementPort() );
+        updateAS7ConfAsPerServerMgmtInfo( conf, as7client );
     }
-    
-    public static String getCallingMethodName( int skipLevels ){
-        StackTraceElement ste = Thread.currentThread().getStackTrace()[2+skipLevels];
-        return StringUtils.substringAfterLast(ste.getClassName(),".") + "." + ste.getMethodName();
+
+    public static void updateAS7ConfAsPerServerMgmtInfo( AS7Config conf, ModelControllerClient as7client ) throws UnknownHostException, MigrationException {
+        String as7Dir = AS7CliUtils.queryServerHomeDir( as7client );
+        if( as7Dir != null ) {
+            conf.setDir( as7Dir );
+        }
     }
     
 }// class
