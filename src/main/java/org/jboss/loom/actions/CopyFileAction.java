@@ -27,7 +27,7 @@ public class CopyFileAction extends FileAbstractAction {
     private static final Logger log = LoggerFactory.getLogger(CopyFileAction.class);
 
     private boolean overwrite;
-    
+   
     public enum IfExists {
         OVERWRITE, SKIP, WARN, FAIL
     }
@@ -61,13 +61,13 @@ public class CopyFileAction extends FileAbstractAction {
     @Override
     public void preValidate() throws MigrationException {
         if( ! src.exists() && failIfNotExist )
-            throw new ActionException(this, "File to copy doesn't exist: " + src.getPath());
+            throw new ActionException(this, "File to "+verb().toLowerCase()+" doesn't exist: " + src.getPath());
         if( ! dest.exists() )
             return;
         switch( this.ifExists ){
             case OVERWRITE: return;
-            case FAIL: throw new ActionException(this, "Copy destination exists, overwrite not allowed: " + dest.getAbsolutePath());
-            case WARN: log.warn("Copy destination exists, skipping: " + dest.getAbsolutePath()); return;
+            case FAIL: throw new ActionException(this, ""+verb()+" destination exists, overwrite not allowed: " + dest.getAbsolutePath());
+            case WARN: log.warn(""+verb()+" destination exists, skipping: " + dest.getAbsolutePath()); return;
             case SKIP: return;
         }
     }
@@ -78,15 +78,21 @@ public class CopyFileAction extends FileAbstractAction {
         if( dest.exists() && this.ifExists == IfExists.SKIP )
             return;
         try {
-            if( src.isDirectory() )
-                FileUtils.copyDirectory( src, dest );
-            else //if( src.isFile() )
-                FileUtils.copyFile( src, dest );
-            
+            doPerform();
             setState(State.DONE);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new ActionException(this, "Copying failed: " + ex.getMessage(), ex);
         }
     }
 
+    /**
+     * Overridable - does the actual file operation.
+     */
+    protected void doPerform() throws Exception {
+        if( src.isDirectory() )
+            FileUtils.copyDirectory( src, dest );
+        else //if( src.isFile() )
+            FileUtils.copyFile( src, dest );
+    }
+    
 }// class

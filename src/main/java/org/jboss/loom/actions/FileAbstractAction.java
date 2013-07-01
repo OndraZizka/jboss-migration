@@ -18,8 +18,9 @@ import org.jboss.loom.spi.ann.Property;
 import org.jboss.loom.utils.Utils;
 
 /**
- *
- * @author Ondrej Zizka, ozizka at redhat.com
+ *  Base for file-based operations, like copying files, merging properties, or XSLT transformations.
+ * 
+ *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public abstract class FileAbstractAction extends AbstractStatefulAction {
     
