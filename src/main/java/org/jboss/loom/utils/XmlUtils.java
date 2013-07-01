@@ -1,6 +1,7 @@
 package org.jboss.loom.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -252,23 +254,35 @@ public class XmlUtils {
     /**
      * Saves given XML Document into given File.
      */
-    public static File transformDocToFile( Document doc, File file ) throws TransformerException {
-        return transformDocToFile( doc, file, null );
+    public static File transformDocToFile( Document srcDoc, File dest ) throws TransformerException {
+        return transformDocToFile( srcDoc, dest, null );
     }
     
     /**
      * Transforms given Document into given File, using given XSLT.
      * @param xsltIS may be null -> just saves.
      */
-    public static File transformDocToFile( Document doc, File file, InputStream xsltIS ) throws TransformerException {
+    public static File transformDocToFile( Document srcDoc, File dest, InputStream xsltIS ) throws TransformerException {
+        Transformer transformer = createTransformer( xsltIS );
+        transformer.transform( new DOMSource(srcDoc), new StreamResult(dest) );
+        return dest;
+    }
+    
+    public static File transform( File src, File dest, InputStream xsltIS ) throws TransformerException {
+        Transformer transformer = createTransformer( xsltIS );
+        transformer.transform( new StreamSource( src ), new StreamResult(dest) );
+        return dest;
+    }
+    
+    private static Transformer createTransformer( InputStream xsltIS ) throws TransformerConfigurationException {
         //final TransformerFactory tf = TransformerFactory.newInstance();
         final TransformerFactory tf = new net.sf.saxon.TransformerFactoryImpl(); // XSLT 2.0
         
         final Transformer transformer = xsltIS == null ? tf.newTransformer() : tf.newTransformer( new StreamSource( xsltIS ) );
         transformer.setOutputProperty( OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        transformer.transform( new DOMSource(doc), new StreamResult(file) );
-        return file;
+        
+        return transformer;
     }
     
     /**
