@@ -2,7 +2,6 @@ package org.jboss.loom.migrators._ext;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.jboss.loom.actions.IMigrationAction;
@@ -13,12 +12,21 @@ import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition.XmlFileQueryDef;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
+import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ *  Migrator which obeys the rules externalized to .mig.xml file ("migrator definitions").
+ *  This class serves as a base class for Javassist-created subclasses; purpose:
+ * 
+ *    * Differentiate migrators created from different .mig.xml files (<migrator name="...">).
+ *    * Allow to further subclass by a Groovy script.
+ * 
+ *  See the docs at https://github.com/OndraZizka/jboss-migration/wiki/Migrator-Definition-Rules .
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrator {
@@ -28,7 +36,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     
     private MigratorDefinition descriptor;
     
-    private List<Class> jaxbClasses = new LinkedList();
+    private Map<String, Class<? extends IConfigFragment>> jaxbClasses = new HashMap();
     
     private File baseDir;
     
@@ -63,14 +71,42 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     }
 
 
+    /**
+     *  Callback to load source server config.
+     */
     @Override
     public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
-        
+
+        // XML queries
         for( MigratorDefinition.XmlFileQueryDef query : this.descriptor.xmlQueries ) {
+            Utils.validate( query );
+            
+            Class<? extends IConfigFragment> jaxbCls = this.jaxbClasses.get( query.jaxbBeanAlias );
+            if( null == jaxbCls )
+                throw new MigrationException("Can't find JAXB class '"+query.jaxbBeanAlias+"' used in " + this.descriptor);
+            
+            final IExprLangEvaluator.IVariablesProvider varProvider = new IExprLangEvaluator.IVariablesProvider() {
+                @Override public Object getVariable( String name ) {
+                    return "TODO: Create a Context-based IVariablesProvider.";
+                }
+            };
+            
+            // TODO: Evaluate EL in these. 
+            // Or - should we do it in ExternalMigratorsLoader?
+            final IExprLangEvaluator.JuelCustomResolverEvaluator evtor = new IExprLangEvaluator.JuelCustomResolverEvaluator(varProvider);
+            final String pathMask = query.pathMask; // evtor.evaluateEL(query.pathMask); 
+            final String xpath = query.xpath;
+            final String subjectLabel = query.subjectLabel;
+            
             List<IConfigFragment> conf = XmlUtils.readXmlConfigFiles(
-                    new File("."), query.pathMask, query.xpath, query.jaxbBean, query.subjectLabel);
+                    new File("."), pathMask, xpath, jaxbCls, subjectLabel);
+            
             this.loads.put( query.id, new ConfigLoadResult( query, conf ) );
         }
+        
+        // Property queries
+        
+        // File list queries
     }
     
     ConfigLoadResult getQueryResultByName( String name ){
@@ -80,7 +116,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     
 
     /**
-     *  Creates actions based on the .mig.xml descriptor using MigratorDescriptorProcessor.
+     *  Callback to create actions based on the .mig.xml descriptor using MigratorDescriptorProcessor.
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
@@ -92,10 +128,10 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
 
     
     // Get/set
-    public void setJaxbClasses( List<Class> jaxbClasses ) { this.jaxbClasses = jaxbClasses; }
+    public void setJaxbClasses( Map<String, Class<? extends IConfigFragment>> jaxbClasses ) { this.jaxbClasses = jaxbClasses; }
 
-    DefinitionBasedMigrator addJaxbClass( Class cls ) {
-        this.jaxbClasses.add( cls );
+    DefinitionBasedMigrator addJaxbClass( String name, Class<? extends IConfigFragment> cls ) {
+        this.jaxbClasses.put( name, cls );
         return this;
     }
 

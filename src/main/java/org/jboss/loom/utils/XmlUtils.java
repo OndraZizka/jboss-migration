@@ -192,7 +192,7 @@ public class XmlUtils {
         }
     }
 
-    public static <T> List<T> readXmlConfigFiles( File baseDir, String filesPattern, String xpath, Class<T> cls, String confAreaDesc ) throws MigrationException{
+    public static <T> List<T> readXmlConfigFiles( File baseDir, String filesPattern, String xpath, Class<? extends T> cls, String confAreaDesc ) throws MigrationException{
         if( ! baseDir.exists() )
             return Collections.EMPTY_LIST;
             

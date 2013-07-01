@@ -269,7 +269,7 @@ public class Utils {
                 sb.append(object);
             
             for( ConstraintViolation<T> fail : valRes) {
-                sb.append("\n  ").append( fail.getMessage() );
+                sb.append("\n      ").append( fail.getPropertyPath() ).append(" ").append( fail.getMessage() );
             }
             throw new MigrationException( sb.toString() );
         }

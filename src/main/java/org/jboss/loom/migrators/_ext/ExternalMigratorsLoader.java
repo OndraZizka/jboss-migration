@@ -4,8 +4,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,7 +110,7 @@ public class ExternalMigratorsLoader {
         for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
             try {
                 // Look up in the map:  "TestJaxbBean" -> class
-                String className = StringUtils.substringAfter( jaxbClsBean.file.getName(), "." );
+                String className = StringUtils.removeEnd( jaxbClsBean.file.getName(), ".groovy" );
                 Class cls = jaxbClasses.get( className );
                 if( cls == null ){
                     // Use the directory where the definition XML file is from.
@@ -166,8 +164,9 @@ public class ExternalMigratorsLoader {
                 //migClasses.add( migClass );
 
                 // Instance.
-                //final DefinitionBasedMigrator mig = DefinitionBasedMigrator.from( desc, gc );
                 DefinitionBasedMigrator mig = MigratorSubclassMaker.instantiate( migClass, migDef, globConf );
+                mig.setJaxbClasses( jaxbClasses );
+                
                 migrators.put( migClass, mig );
             } catch( Exception ex ) {
                 problems.add( ex );
@@ -220,15 +219,6 @@ public class ExternalMigratorsLoader {
         ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
         
         new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
-    }
-
-
-    private static List<File> extractGrovyFilePaths( File baseDir, List<JaxbClassDef> jaxbBeansClasses ) {
-        List<File> ret = new ArrayList(jaxbBeansClasses.size());
-        for( JaxbClassDef bean : jaxbBeansClasses) {
-            ret.add( new File( baseDir, bean.file.getPath() ) );
-        }
-        return ret;
     }
 
 }// class

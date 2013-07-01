@@ -4,18 +4,14 @@ package org.jboss.loom.migrators._ext;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.jboss.loom.ex.MigrationException;
+import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.loom.migrators.Origin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +46,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     // @XmlLocation wouldn't work if loaded through Node.
     
     private Origin origin;
+    @NotNull
     @Override public Origin getOrigin() { return origin; }
     @Override public MigratorDefinition setOrigin( Origin origin ) { this.origin = origin; return this; }
 
@@ -70,6 +67,8 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         @XmlAttribute(name = "file")
         //@XmlJavaTypeAdapter( StringToFileAdapter.class )
         public File file;
+
+        @Override public String toString() { return "JaxbClassDef{ " + file + " }"; }
     }
     
 
@@ -86,17 +85,18 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     @XmlRootElement
     public static class ForEachDef extends ContainerOfStackableDefs {
         
-        @XmlAttribute(name = "query")
+        @NotBlank @XmlAttribute(name = "query")
         public String queryName;
         
-        @XmlAttribute(name = "var")
+        @NotBlank @XmlAttribute(name = "var")
         public String variableName;
     }
 
     
     @XmlRootElement
     public static class XmlFileQueryDef extends FileQueryBase {
-        @XmlAttribute public Class jaxbBean;
+        @NotNull
+        @XmlAttribute(name = "jaxbBean") public String jaxbBeanAlias;
         @XmlAttribute public String xpath;
     }
 
@@ -107,12 +107,12 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     
     
     private static class FileQueryBase extends QueryBase {
-        @XmlAttribute public String pathMask;     // Path mask of the files to load.
+        @NotBlank @XmlAttribute public String pathMask;     // Path mask of the files to load.
     }
     
     private static class QueryBase {
-        @XmlAttribute public String id;           // Id under which the result will be stored.
-        @XmlAttribute public String subjectLabel; // What's being loaded - for exceptions and logging.
+        @NotBlank @XmlAttribute public String id;           // Id under which the result will be stored.
+        @NotBlank @XmlAttribute public String subjectLabel; // What's being loaded - for exceptions and logging.
     }
     
 }// class
