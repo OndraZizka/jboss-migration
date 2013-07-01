@@ -75,7 +75,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
      *  Callback to load source server config.
      */
     @Override
-    public void loadSourceServerConfig( MigrationContext ctx ) throws MigrationException {
+    public void loadSourceServerConfig( final MigrationContext ctx ) throws MigrationException {
 
         // XML queries
         for( MigratorDefinition.XmlFileQueryDef query : this.descriptor.xmlQueries ) {
@@ -85,9 +85,16 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             if( null == jaxbCls )
                 throw new MigrationException("Can't find JAXB class '"+query.jaxbBeanAlias+"' used in " + this.descriptor);
             
+            // Create a Context-based IVariablesProvider.
+            // TODO: Move somewhere else.
             final IExprLangEvaluator.IVariablesProvider varProvider = new IExprLangEvaluator.IVariablesProvider() {
                 @Override public Object getVariable( String name ) {
-                    return "TODO: Create a Context-based IVariablesProvider.";
+                    switch( name ) {
+                        case "srcServer": return ctx.getConf().getGlobal().getAS5Config();
+                        case "destServer":
+                        case "targServer": return ctx.getConf().getGlobal().getAS7Config();
+                    }
+                    return "";
                 }
             };
             
