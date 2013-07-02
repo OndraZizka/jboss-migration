@@ -3,8 +3,13 @@
     
     <migrator name="MailExtMigrator">
         
+        <!-- Declare the JAXB classes. May also use Bean Validation and @Property annotations. -->
         <jaxbBean file="TestJaxbBean.groovy"/>
         
+        <!-- Define a query of type XML, which returns a collection of JAXB beans.
+             Queries are performed during the `loadSourceServerConfig()` phase.
+             EL resolved in: pathMask, xpath, subjectLabel.
+        -->
         <xmlQuery id="mailServices"
             pathMask="${srcServer.dir}/server/${srcServer.profile}/deploy/mail-service.xml"
             jaxbBean="TestJaxbBean"
@@ -12,15 +17,33 @@
             subjectLabel="Mail Service config"
         />
         
+        <!-- Iterate over the results of the above query. 
+             For each iteration, the current item is accessible in EL as `${it}`. -->
         <forEach query="mailServices" var="it">
-            <action type="cli" script="/subsystem=mail/service=foo:add(name=bar,boo=baz)">
+            <!-- Create an action of type CLI.
+                 Actions are created during `prepareActions()` phase; then performed during `performActions()` phase.
+                 EL resolved in: script.
+            -->
+            <action type="cli" var="addAction" script="/subsystem=mail/service=foo:add(name=bar,boo=baz)">
+                <!-- Only create the action for items which conform to this boolean Groovy expression. -->
                 <filter>
                     //! "smtp.nosuchhost.nosuchdomain.com".equals( it.getSmtpHost() )
                     it.getSmtpHost() != "smtp.nosuchhost.nosuchdomain.com"
                 </filter>
+                <!-- Define parameters for the CLI action.
+                <forEach query="...">
+                    <param name="${...}" value="${...}"/>
+                </forEach>-->
             </action>
         </forEach>
+
+        <!-- Example XSLT transformation of a file. -->
+        <action type="xslt" var="addAction" pathMask="${srcServer.dir}/server/${srcServer.profile}/conf/cache-config.xml"
+            xslt="JBossCache3_Infinispan4.xslt" dest="${destServer.configDir}">
+        </action>
         
+        <!-- Manual actions serve for noticing the user that some manual intervention after the migration is necessary.
+             Currently, mostly used by placeholder migrator implementations. -->
         <action type="manual">
             <warning>MailService beans migration is not yet supported.</warning>
             <forEach query="mailServices">
