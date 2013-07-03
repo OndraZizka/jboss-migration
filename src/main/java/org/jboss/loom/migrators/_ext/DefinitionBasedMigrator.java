@@ -142,7 +142,9 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
         return this;
     }
 
-    
+    public static Logger getName() { return name; }
+    public MigratorDefinition getDescriptor() { return descriptor; }
+
     
     // Struct
     static class ConfigLoadResult {
