@@ -1,6 +1,5 @@
 package org.jboss.loom.migrators._ext;
 
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ *  JAXB class for *.mig.xml files.
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement( name="migrator" )

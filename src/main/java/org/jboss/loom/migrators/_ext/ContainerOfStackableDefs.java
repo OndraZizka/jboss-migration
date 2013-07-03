@@ -1,6 +1,5 @@
 package org.jboss.loom.migrators._ext;
 
-
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
