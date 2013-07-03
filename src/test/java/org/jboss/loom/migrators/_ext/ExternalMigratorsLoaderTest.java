@@ -20,8 +20,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- *
- * @author Ondrej Zizka, ozizka at redhat.com
+ *  Tests the external migrator loader.
+ * 
+ *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @RunWith( Arquillian.class )
 public class ExternalMigratorsLoaderTest {
