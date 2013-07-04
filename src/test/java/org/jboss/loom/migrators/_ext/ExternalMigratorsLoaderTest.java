@@ -1,6 +1,5 @@
 package org.jboss.loom.migrators._ext;
 
-import java.util.Map;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.loom.MigrationEngine;
@@ -8,8 +7,6 @@ import org.jboss.loom.TestAppConfig;
 import org.jboss.loom.TestUtils;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.ConfigurationValidator;
-import org.jboss.loom.conf.GlobalConfiguration;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
