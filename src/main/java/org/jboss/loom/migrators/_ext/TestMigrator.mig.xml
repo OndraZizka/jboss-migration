@@ -24,7 +24,7 @@
                  Actions are created during `prepareActions()` phase; then performed during `performActions()` phase.
                  EL resolved in: script.
             -->
-            <action type="cli" var="addAction" script="/subsystem=mail/service=foo:add(name=bar,boo=baz)">
+            <action type="cli" var="addAction" command="/subsystem=mail/service=foo:add(name=bar,boo=baz)">
                 <!-- Only create the action for items which conform to this boolean Groovy expression. -->
                 <filter>
                     //! "smtp.nosuchhost.nosuchdomain.com".equals( it.getSmtpHost() )

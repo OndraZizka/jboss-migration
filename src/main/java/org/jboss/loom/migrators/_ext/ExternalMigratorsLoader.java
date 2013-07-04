@@ -91,8 +91,8 @@ public class ExternalMigratorsLoader {
                 problems.add(ex);
             }
         }
-        String msg = "Errors occured when reading migrator descriptors from " + dir + ": ";
-        MigrationExceptions.wrapExceptions( problems, null );
+        String msg = "Errors occured when reading migrator descriptors from " + dir + ":\n    ";
+        MigrationExceptions.wrapExceptions( problems, msg );
         return retDefs;
     }
     
