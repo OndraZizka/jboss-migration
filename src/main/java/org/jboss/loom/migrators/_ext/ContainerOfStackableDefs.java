@@ -3,6 +3,7 @@ package org.jboss.loom.migrators._ext;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
 import org.eclipse.persistence.oxm.annotations.XmlLocation;
 import org.xml.sax.Locator;
 
@@ -11,6 +12,7 @@ import org.xml.sax.Locator;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
+@XmlDiscriminatorNode("@type")
 public class ContainerOfStackableDefs {
 
     @XmlElement

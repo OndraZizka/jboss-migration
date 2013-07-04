@@ -39,7 +39,10 @@ public class MigrationExceptions extends MigrationException {
         if( !problems.isEmpty() ) {
             if( problems.size() == 1 ) {
                 Exception ex2 = problems.get( 0 );
-                throw new MigrationException( msg + ex2.getMessage(), ex2 );
+                if( ex2 instanceof NullPointerException )
+                    throw new MigrationException( msg + "NullPointerException", ex2 );
+                else
+                    throw new MigrationException( msg + ex2.getMessage(), ex2 );
             } else {
                 throw new MigrationExceptions( msg, problems );
             }

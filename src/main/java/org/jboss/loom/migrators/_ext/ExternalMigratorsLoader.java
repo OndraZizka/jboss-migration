@@ -110,14 +110,14 @@ public class ExternalMigratorsLoader {
         for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
             try {
                 // Look up in the map:  "TestJaxbBean" -> class
-                String className = StringUtils.removeEnd( jaxbClsBean.file.getName(), ".groovy" );
+                String className = StringUtils.removeEnd( jaxbClsBean.getFile().getName(), ".groovy" );
                 Class cls = jaxbClasses.get( className );
                 if( cls == null ){
                     // Use the directory where the definition XML file is from.
                     log.debug("    Loading JAXB class from dir " + desc.getOrigin() );
                     //File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
                     File dir = desc.getOrigin().getFile().getParentFile();
-                    final File groovyFile = new File( dir, jaxbClsBean.file.getPath() );
+                    final File groovyFile = new File( dir, jaxbClsBean.getFile().getPath() );
                     log.debug("    Loading JAXB class from " + groovyFile );
                     cls = loadGroovyClass( groovyFile );
                     if( ! IConfigFragment.class.isAssignableFrom( cls ) ){

@@ -35,6 +35,5 @@ public class ExternalMigratorsLoaderTest extends ExternalMigratorsTestEnv {
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
     }
-    
 
 }// class

@@ -109,7 +109,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         if( cont.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : cont.actionDefs ) {
             IMigrationAction action;
-            switch( actionDef.type ){
+            switch( actionDef.typeVal ){
                 case "manual":
                     action = new ManualAction();
                     // warning
@@ -127,7 +127,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                     action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
                     break;
                 default: 
-                    throw new MigrationException("Unsupported action type '" + actionDef.type + "' in " + cont.location.getSystemId());
+                    throw new MigrationException("Unsupported action type '" + actionDef.typeVal + "' in " + cont.location.getSystemId());
             }
             
             // Recurse

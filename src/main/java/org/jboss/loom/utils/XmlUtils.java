@@ -49,16 +49,19 @@ public class XmlUtils {
      *  Creates this app's standard marshaller.
      *  TODO: Use it in methods below.
      */
-    public static Marshaller createMarshaller( Class cls ) throws JAXBException {
+    public static JAXBContext createJaxbContext( Class cls ) throws JAXBException {
         Map<String, Object> props = new HashMap();
         props.put( Marshaller.JAXB_FORMATTED_OUTPUT, true );
         props.put( Marshaller.JAXB_ENCODING, "UTF-8");
         //marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.jboss.org/schema/swanloom.xsd swanloom.xsd");
-        JAXBContext jc = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[]{cls}, props);
-        
+        JAXBContext jaxbCtx = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[]{cls}, props);
+        return jaxbCtx;
         // JDK way: Marshaller mar = JAXBContext.newInstance(MigrationReportJaxbBean.class).createMarshaller();
         
-        return jc.createMarshaller();
+    }
+    
+    public static Marshaller createMarshaller( Class cls ) throws JAXBException {
+        return createJaxbContext( cls ).createMarshaller();
     }
     
     /**
@@ -127,7 +130,9 @@ public class XmlUtils {
             
             
             // Unmarshall
-            Unmarshaller unmarshaller = JAXBContext.newInstance(cls).createUnmarshaller();
+            //JAXBContext.newInstance(cls).createUnmarshaller();
+            //Unmarshaller unmarshaller = org.eclipse.persistence.jaxb.JAXBContext.newInstance(cls).createUnmarshaller();
+            Unmarshaller unmarshaller = createJaxbContext( cls ).createUnmarshaller();
             for( int i = 0; i < nodes.getLength(); i++ ) {
                 Node node = nodes.item( i );
                 T bean = (T) unmarshaller.unmarshal(node);
