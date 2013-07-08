@@ -56,14 +56,28 @@ public class ClassUtils {
 
 
     // ======= Class utils ====== //
-    public static File copyResourceToDir( Class cls, String name, File dir ) throws IOException {
+    
+    /**
+     * Copies content of the resource <code>path</code> to a same-named file in <code>dir</code>. 
+     * The directories up to <code>dir</code>  will be created if they don't already exist.
+     * The file will be overwritten if it already exists.
+     *  <br/><br/>
+     *  <p>
+     *    com.foo.Bar + "my/File.xml" -->  resource path is "/com/foo/Bar/my/File.xml"
+     *  </p>
+     *  
+     * @param cls   resPath will be relative to this class' package directory.
+     * @param resPath Path to the resource, relative to class'es "directory".
+     * @param dir  Directory to copy to.
+     */
+    public static File copyResourceToDir( Class cls, String resPath, File dir ) throws IOException {
         String packageDir = cls.getPackage().getName().replace( '.', '/' );
-        String path = "/" + packageDir + "/" + name;
+        String path = "/" + packageDir + "/" + resPath;
         InputStream is = cls.getResourceAsStream( path );
         if( is == null ) {
             throw new IllegalArgumentException( "Resource not found: " + packageDir );
         }
-        File file = new File( dir, name );
+        File file = new File( dir, resPath );
         FileUtils.copyInputStreamToFile( is, file );
         return file;
     }
