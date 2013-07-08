@@ -67,12 +67,17 @@ public class ClassUtils {
      *  </p>
      *  
      * @param cls   resPath will be relative to this class' package directory.
+     *              Can be null, in which case "" is used as prefix and ClassUtils' classloader is used.
      * @param resPath Path to the resource, relative to class'es "directory".
      * @param dir  Directory to copy to.
      */
     public static File copyResourceToDir( Class cls, String resPath, File dir ) throws IOException {
-        String packageDir = cls.getPackage().getName().replace( '.', '/' );
-        String path = "/" + packageDir + "/" + resPath;
+        String packageDir = cls == null ? "" : "/" + cls.getPackage().getName().replace( '.', '/' );
+        String path = packageDir + "/" + resPath;
+        
+        if( cls == null )
+            cls = ClassUtils.class;
+            
         InputStream is = cls.getResourceAsStream( path );
         if( is == null ) {
             throw new IllegalArgumentException( "Resource not found: " + path );
