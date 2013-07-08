@@ -75,7 +75,7 @@ public class ClassUtils {
         String path = "/" + packageDir + "/" + resPath;
         InputStream is = cls.getResourceAsStream( path );
         if( is == null ) {
-            throw new IllegalArgumentException( "Resource not found: " + packageDir );
+            throw new IllegalArgumentException( "Resource not found: " + path );
         }
         File file = new File( dir, resPath );
         FileUtils.copyInputStreamToFile( is, file );
