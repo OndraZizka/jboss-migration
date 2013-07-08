@@ -56,14 +56,16 @@ public class ClassUtils {
 
 
     // ======= Class utils ====== //
-    public static void copyResourceToDir( Class cls, String name, File dir ) throws IOException {
+    public static File copyResourceToDir( Class cls, String name, File dir ) throws IOException {
         String packageDir = cls.getPackage().getName().replace( '.', '/' );
         String path = "/" + packageDir + "/" + name;
         InputStream is = cls.getResourceAsStream( path );
         if( is == null ) {
             throw new IllegalArgumentException( "Resource not found: " + packageDir );
         }
-        FileUtils.copyInputStreamToFile( is, new File( dir, name ) );
+        File file = new File( dir, name );
+        FileUtils.copyInputStreamToFile( is, file );
+        return file;
     }
 
 
