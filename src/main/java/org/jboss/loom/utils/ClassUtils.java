@@ -1,6 +1,5 @@
 package org.jboss.loom.utils;
 
-import groovy.lang.GroovyClassLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +10,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.loom.migrators._ext.ExternalMigratorsLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +44,7 @@ public class ClassUtils {
         return null;
     }
     
-    public static String findClassPathRootFor( Class<ExternalMigratorsLoader> cls ) {
+    public static String findClassPathRootFor( Class cls ) {
         File clsFile = findClassOriginFile( cls );
         log.debug("Class' file: " + clsFile);
         if( clsFile == null )  return null;
@@ -61,7 +59,7 @@ public class ClassUtils {
     public static void copyResourceToDir( Class cls, String name, File dir ) throws IOException {
         String packageDir = cls.getPackage().getName().replace( '.', '/' );
         String path = "/" + packageDir + "/" + name;
-        InputStream is = GroovyClassLoader.class.getResourceAsStream( path );
+        InputStream is = cls.getResourceAsStream( path );
         if( is == null ) {
             throw new IllegalArgumentException( "Resource not found: " + packageDir );
         }
