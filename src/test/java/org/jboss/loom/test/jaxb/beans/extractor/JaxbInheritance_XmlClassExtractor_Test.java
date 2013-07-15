@@ -28,7 +28,7 @@ public class JaxbInheritance_XmlClassExtractor_Test {
 
 
     private String getXml() {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root> <sub disc=\"foo\"/> <sub disc=\"bar\"/> </root>";
+        return "<?xml version='1.0' encoding='UTF-8'?>\n<root> <sub disc='foo'/> <sub disc='bar'/> </root>";
     }
 
 }// class

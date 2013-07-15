@@ -19,7 +19,7 @@ public class JaxbInheritance_outerClasses_Test {
                 .createUnmarshaller();
         org.jboss.loom.test.jaxb.beans.disc.Root root = (org.jboss.loom.test.jaxb.beans.disc.Root)
             marshaller.unmarshal( new StringReader(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><sub disc=\"foo\"/><sub disc=\"bar\"/></root>") );
+                "<?xml version='1.0' encoding='UTF-8'?>\n<root><sub disc='foo'/><sub disc='bar'/></root>") );
 
         Assert.assertEquals("MOXy is used", org.eclipse.persistence.jaxb.JAXBUnmarshaller.class, marshaller.getClass() );
         Assert.assertEquals("base elements go into subclasses", SubFoo.class, root.getSubs().get(0).getClass() );

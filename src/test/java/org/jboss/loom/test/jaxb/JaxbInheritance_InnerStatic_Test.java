@@ -25,7 +25,7 @@ public class JaxbInheritance_InnerStatic_Test {
     public void testUnmarshall() throws JAXBException{
         final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
         Root root = (Root) marshaller.unmarshal( new StringReader(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><sub disc=\"foo\"/><sub disc=\"bar\"/></root>") );
+                "<?xml version='1.0' encoding='UTF-8'?>\n<root><sub disc='foo'/><sub disc='bar'/></root>") );
 
         Assert.assertEquals("MOXy is used", org.eclipse.persistence.jaxb.JAXBUnmarshaller.class, marshaller.getClass() );
         Assert.assertEquals("base elements go into subclasses", DiscFoo.class, root.subs.get(0).getClass() );
