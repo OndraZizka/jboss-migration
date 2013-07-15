@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.disc;
+package org.jboss.loom.test.jaxb.discOuter;
 
 import java.io.StringReader;
 import javax.xml.bind.JAXBException;
@@ -15,10 +15,8 @@ import org.junit.Test;
 public class JaxbInheritance_outerClasses_Test {    
     @Test
     public void testUnmarshall() throws JAXBException{
-        final Unmarshaller marshaller = XmlUtils.createJaxbContext( org.jboss.loom.test.jaxb.beans.disc.Root.class)
-                .createUnmarshaller();
-        org.jboss.loom.test.jaxb.beans.disc.Root root = (org.jboss.loom.test.jaxb.beans.disc.Root)
-            marshaller.unmarshal( new StringReader(
+        final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
+        Root root = (Root) marshaller.unmarshal( new StringReader(
                 "<?xml version='1.0' encoding='UTF-8'?>\n<root><sub disc='foo'/><sub disc='bar'/></root>") );
 
         Assert.assertEquals("MOXy is used", org.eclipse.persistence.jaxb.JAXBUnmarshaller.class, marshaller.getClass() );

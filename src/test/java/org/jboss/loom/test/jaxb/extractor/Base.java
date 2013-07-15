@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractor;
+package org.jboss.loom.test.jaxb.extractor;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.eclipse.persistence.oxm.annotations.XmlClassExtractor;

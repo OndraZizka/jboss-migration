@@ -1,14 +1,12 @@
-package org.jboss.loom.test.jaxb.beans.disc;
+package org.jboss.loom.test.jaxb.extractor;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 /**
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement
-@XmlDiscriminatorValue("foo")
 public class SubFoo extends Base {
 
     

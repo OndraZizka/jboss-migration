@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractorInner;
+package org.jboss.loom.test.jaxb.extractor;
 
 import org.eclipse.persistence.descriptors.ClassExtractor;
 import org.eclipse.persistence.sessions.Record;
@@ -14,12 +14,12 @@ public class BaseClassExtractor extends ClassExtractor {
     public Class extractClassFromRow( Record rec, Session session ) {
         
         if( rec.get("@disc").equals("foo") )
-                return JaxbInheritance_XmlClassExtractor_Test.SubFoo.class;
+                return SubFoo.class;
         
         if( rec.get("@disc").equals("bar") )
-                return JaxbInheritance_XmlClassExtractor_Test.SubBar.class;
+                return SubBar.class;
         
-        return JaxbInheritance_XmlClassExtractor_Test.Base.class;
+        return Base.class;
     }
 
 }// class

@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractor;
+package org.jboss.loom.test.jaxb.extractor;
 
 import java.io.StringReader;
 import javax.xml.bind.JAXBException;

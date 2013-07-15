@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.disc;
+package org.jboss.loom.test.jaxb.discOuter;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;

@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractor;
+package org.jboss.loom.test.jaxb.discOuter;
 
 
 import java.util.List;

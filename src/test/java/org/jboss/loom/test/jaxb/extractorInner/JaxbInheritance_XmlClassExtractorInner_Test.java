@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractorInner;
+package org.jboss.loom.test.jaxb.extractorInner;
 
 import java.io.StringReader;
 import java.util.List;
@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.eclipse.persistence.oxm.annotations.XmlClassExtractor;
-import org.jboss.loom.test.jaxb.beans.extractor.BaseClassExtractor;
+import org.jboss.loom.test.jaxb.extractor.BaseClassExtractor;
 import org.jboss.loom.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import org.junit.Test;
  *  @author Ondrej Zizka, ozizka at redhat.com
  *  @see  http://blog.bdoughan.com/2012/02/jaxb-and-inheritance-eclipselink-moxy.html
  */
-public class JaxbInheritance_XmlClassExtractor_Test {
+public class JaxbInheritance_XmlClassExtractorInner_Test {
     @Test
     public void testUnmarshall() throws JAXBException{
         final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
@@ -54,9 +54,9 @@ public class JaxbInheritance_XmlClassExtractor_Test {
     public static abstract class Base {}
 
     @XmlRootElement
-    public static class SubFoo {}
+    public static class SubFoo extends Base {}
 
     @XmlRootElement
-    public static class SubBar {}
+    public static class SubBar extends Base {}
 
 }// class

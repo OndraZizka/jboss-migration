@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.beans.extractor;
+package org.jboss.loom.test.jaxb.extractor;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement
-public class SubFoo extends Base {
+public class SubBar extends Base{
 
-    
+
 }// class
