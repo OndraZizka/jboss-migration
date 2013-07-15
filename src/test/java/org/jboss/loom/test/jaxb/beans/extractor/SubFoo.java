@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement
-public class SubFoo {
+public class SubFoo extends Base {
 
     
 }// class

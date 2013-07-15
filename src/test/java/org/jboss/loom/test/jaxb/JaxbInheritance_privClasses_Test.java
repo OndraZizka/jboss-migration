@@ -57,7 +57,7 @@ class Root {
 class Base {}
 
 @XmlRootElement @XmlDiscriminatorValue("foo")
-class DiscFoo {}
+class DiscFoo extends Base {}
 
 @XmlRootElement @XmlDiscriminatorValue("bar")
-class DiscBar {}
+class DiscBar extends Base {}

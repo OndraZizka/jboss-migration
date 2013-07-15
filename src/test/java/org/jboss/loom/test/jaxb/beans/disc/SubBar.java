@@ -9,7 +9,7 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
  */
 @XmlRootElement
 @XmlDiscriminatorValue("foo")
-public class SubBar {
+public class SubBar extends Base {
 
 
 }// class

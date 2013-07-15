@@ -46,9 +46,9 @@ public class JaxbInheritance_InnerStatic_Test {
     public static class Base {}
 
     @XmlRootElement @XmlDiscriminatorValue("foo")
-    public static class DiscFoo {}
+    public static class DiscFoo extends Base {}
 
     @XmlRootElement @XmlDiscriminatorValue("bar")
-    public static class DiscBar {}
+    public static class DiscBar extends Base {}
 
 }
