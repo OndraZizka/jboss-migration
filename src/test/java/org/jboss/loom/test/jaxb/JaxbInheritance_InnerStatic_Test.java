@@ -4,6 +4,8 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -25,6 +27,7 @@ public class JaxbInheritance_InnerStatic_Test {
         Root root = (Root) marshaller.unmarshal( new StringReader(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><sub disc=\"foo\"/><sub disc=\"bar\"/></root>") );
 
+        Assert.assertEquals("MOXy is used", org.eclipse.persistence.jaxb.JAXBUnmarshaller.class, marshaller.getClass() );
         Assert.assertEquals("base elements go into subclasses", DiscFoo.class, root.subs.get(0).getClass() );
         Assert.assertEquals("base elements go into subclasses", DiscBar.class, root.subs.get(1).getClass() );
     }
@@ -32,6 +35,7 @@ public class JaxbInheritance_InnerStatic_Test {
     // --- JAXB Beans ---
     
     @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class Root {
         @XmlElement(name = "sub")
         List<Base> subs;
@@ -39,7 +43,7 @@ public class JaxbInheritance_InnerStatic_Test {
 
     @XmlDiscriminatorNode("@disc")
     @XmlSeeAlso({DiscFoo.class, DiscBar.class})
-    public static abstract class Base {}
+    public static class Base {}
 
     @XmlRootElement @XmlDiscriminatorValue("foo")
     public static class DiscFoo {}

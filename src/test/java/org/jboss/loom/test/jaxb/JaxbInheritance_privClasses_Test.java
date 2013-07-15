@@ -4,6 +4,8 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -12,8 +14,6 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.jboss.loom.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-
 
 /**
  *  JAXB inheritance with MOXy, over attributes, with private classes for beans.
@@ -26,15 +26,14 @@ public class JaxbInheritance_privClasses_Test {
         final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
         Root root = (Root) marshaller.unmarshal( new StringReader(getXml()) );
         
+        Assert.assertEquals("MOXy is used", org.eclipse.persistence.jaxb.JAXBUnmarshaller.class, marshaller.getClass() );
         Assert.assertNotNull("extracted some sub elements", root.subs.size() );
         Assert.assertEquals("2 sub elements", 2, root.subs.size() );
 
         //boolean rightClass = (DiscFoo.class.isAssignableFrom( root.subs.get(0).getClass() ));
-        //Assert.assertTrue( "base elements go into subclasses", rightClass );
         Assert.assertEquals("base elements go into subclasses", DiscFoo.class, root.subs.get(0).getClass() );
         
         //rightClass = (DiscBar.class.isAssignableFrom( root.subs.get(1).getClass() ));
-        //Assert.assertTrue( "base elements go into subclasses", rightClass );
         Assert.assertEquals("base elements go into subclasses", DiscBar.class, root.subs.get(1).getClass() );
     }
 
@@ -47,6 +46,7 @@ public class JaxbInheritance_privClasses_Test {
 // --- JAXB Beans ---
 
 @XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 class Root {
     @XmlElement(name = "sub")
     List<Base> subs;
