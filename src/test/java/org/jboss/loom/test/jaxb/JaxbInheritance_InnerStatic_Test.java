@@ -13,25 +13,24 @@ import org.jboss.loom.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 /**
- *
- * @author Ondrej Zizka, ozizka at redhat.com
+ *  JAXB inheritance with MOXy, over attributes, with inner static classes for beans.
+ * 
+ *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class JaxbInheritance2Test {    
+public class JaxbInheritance_InnerStatic_Test {    
     @Test
     public void testUnmarshall() throws JAXBException{
         final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
         Root root = (Root) marshaller.unmarshal( new StringReader(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><sub disc=\"foo\"/><sub disc=\"bar\"/></root>") );
 
-        boolean rightClass = (DiscFoo.class.isAssignableFrom( root.subs.get(0).getClass() ));
-        Assert.assertTrue( "base elements go into subclasses", rightClass );
-
-        rightClass = (DiscBar.class.isAssignableFrom( root.subs.get(1).getClass() ));
-        Assert.assertTrue( "base elements go into subclasses", rightClass );
+        Assert.assertEquals("base elements go into subclasses", DiscFoo.class, root.subs.get(0).getClass() );
+        Assert.assertEquals("base elements go into subclasses", DiscBar.class, root.subs.get(1).getClass() );
     }
-
+    
+    // --- JAXB Beans ---
+    
     @XmlRootElement
     public static class Root {
         @XmlElement(name = "sub")

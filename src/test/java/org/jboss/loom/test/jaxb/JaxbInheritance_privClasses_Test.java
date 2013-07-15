@@ -12,24 +12,30 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.jboss.loom.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.xnio.streams.ReaderInputStream;
+
 
 
 /**
+ *  JAXB inheritance with MOXy, over attributes, with private classes for beans.
  *
- * @author Ondrej Zizka, ozizka at redhat.com
+ *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class JaxbInheritanceTest {    
+public class JaxbInheritance_privClasses_Test {    
     @Test
     public void testUnmarshall() throws JAXBException{
         final Unmarshaller marshaller = XmlUtils.createJaxbContext(Root.class).createUnmarshaller();
         Root root = (Root) marshaller.unmarshal( new StringReader(getXml()) );
-
-        boolean rightClass = (DiscFoo.class.isAssignableFrom( root.subs.get(0).getClass() ));
-        Assert.assertTrue( "base elements go into subclasses", rightClass );
         
-        rightClass = (DiscBar.class.isAssignableFrom( root.subs.get(1).getClass() ));
-        Assert.assertTrue( "base elements go into subclasses", rightClass );
+        Assert.assertNotNull("extracted some sub elements", root.subs.size() );
+        Assert.assertEquals("2 sub elements", 2, root.subs.size() );
+
+        //boolean rightClass = (DiscFoo.class.isAssignableFrom( root.subs.get(0).getClass() ));
+        //Assert.assertTrue( "base elements go into subclasses", rightClass );
+        Assert.assertEquals("base elements go into subclasses", DiscFoo.class, root.subs.get(0).getClass() );
+        
+        //rightClass = (DiscBar.class.isAssignableFrom( root.subs.get(1).getClass() ));
+        //Assert.assertTrue( "base elements go into subclasses", rightClass );
+        Assert.assertEquals("base elements go into subclasses", DiscBar.class, root.subs.get(1).getClass() );
     }
 
 
@@ -37,6 +43,8 @@ public class JaxbInheritanceTest {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><sub disc=\"foo\"/><sub disc=\"bar\"/></root>";
     }
 }
+
+// --- JAXB Beans ---
 
 @XmlRootElement
 class Root {
