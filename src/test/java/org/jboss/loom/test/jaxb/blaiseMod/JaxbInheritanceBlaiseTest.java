@@ -1,4 +1,4 @@
-package org.jboss.loom.test.jaxb.blaise;
+package org.jboss.loom.test.jaxb.blaiseMod;
 
 import java.io.StringReader;
 import javax.xml.bind.JAXBException;
@@ -29,9 +29,9 @@ public class JaxbInheritanceBlaiseTest {
         return
             "<?xml version='1.0' encoding='UTF-8'?>\n" +
             "<customer>\n" +
-            "    <contact-method number='555-1111'/>\n" +
-            "    <contact-method street='1 A St' city='Any Town'/>\n" +
-            "    <contact-method number='555-2222'/>\n" +
+            "    <contact-method disc='phone'   number='555-1111'/>\n" +
+            "    <contact-method disc='address' street='1 A St' city='Any Town'/>\n" +
+            "    <contact-method disc='phone'   number='555-2222'/>\n" +
             "</customer>";
     }
 
