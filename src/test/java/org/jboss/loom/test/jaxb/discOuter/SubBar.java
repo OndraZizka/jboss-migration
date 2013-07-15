@@ -8,7 +8,7 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement
-@XmlDiscriminatorValue("foo")
+@XmlDiscriminatorValue("bar")
 public class SubBar extends Base {
 
 
