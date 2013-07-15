@@ -11,7 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ *  Reads the externalized migrator definition.
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ExternalMigratorsDefReadTest extends ExternalMigratorsTestEnv {
@@ -21,18 +22,24 @@ public class ExternalMigratorsDefReadTest extends ExternalMigratorsTestEnv {
     public void testLoadMigrators() throws Exception {
         TestUtils.printTestBanner();
         
-        Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
-                = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
-        
-        Assert.assertEquals("1 migrator was loaded", 1, migs.size() );
-        
-        for( Map.Entry<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> entry : migs.entrySet() ) {
-            Class<? extends DefinitionBasedMigrator> cls = entry.getKey();
-            DefinitionBasedMigrator mig = entry.getValue();
-            System.out.println( String.format("  Loaded migrator %s: %s", cls.getName(), mig.toString() ) );
-            for( MigratorDefinition.ActionDef actDef : mig.getDescriptor().actionDefs ) {
-                System.out.println( String.format("    ActionDef: " + actDef.toString()) );
+        try {
+            Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
+                    = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
+
+            Assert.assertEquals("1 migrator was loaded", 1, migs.size() );
+
+            for( Map.Entry<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> entry : migs.entrySet() ) {
+                Class<? extends DefinitionBasedMigrator> cls = entry.getKey();
+                DefinitionBasedMigrator mig = entry.getValue();
+                System.out.println( String.format("  Loaded migrator %s: %s", cls.getName(), mig.toString() ) );
+                for( MigratorDefinition.ActionDef actDef : mig.getDescriptor().actionDefs ) {
+                    System.out.println( String.format("    ActionDef: " + actDef.toString()) );
+                }
             }
+        }
+        catch( Throwable ex ){
+            ex.printStackTrace();
+            throw ex;
         }
     }
     

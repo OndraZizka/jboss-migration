@@ -12,13 +12,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
-import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.loom.migrators.Origin;
-import org.jboss.loom.tools.report.adapters.StringToFileAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +78,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
 
     //@XmlRootElement
     //@XmlDiscriminatorNode("@type") // moved to ContainerOfStackableDefs
-    @XmlSeeAlso({ CliActionDef.class, ModuleActionDef.class, CopyActionDef.class, XsltActionDef.class })
+    @XmlSeeAlso({ CliActionDef.class, ModuleActionDef.class, CopyActionDef.class, XsltActionDef.class, ManualActionDef.class })
     public static class ActionDef extends ContainerOfStackableDefs {
         //@XmlAttribute
         //@XmlReadOnly
