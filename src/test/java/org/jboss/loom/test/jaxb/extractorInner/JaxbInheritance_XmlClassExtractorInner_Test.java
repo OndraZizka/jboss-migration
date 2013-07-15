@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.eclipse.persistence.oxm.annotations.XmlClassExtractor;
-import org.jboss.loom.test.jaxb.extractor.BaseClassExtractor;
 import org.jboss.loom.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.Test;
