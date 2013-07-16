@@ -82,17 +82,13 @@ public class MigrationEngine {
      */
     private void init() throws MigrationException {
         
-        // Find IMigrator implementations.
-        List<Class<? extends IMigrator>> migratorClasses = MigratorsInstantiator.findMigratorClasses();
-
-        // Initialize migrator instances. 
-        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = 
-                MigratorsInstantiator.createJavaMigrators( migratorClasses, config.getGlobal() );
+        // Initialize the static java migrators.
+        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = MigratorsInstantiator.findAndInstantiateStaticMigratorClasses( this.config );
         
-        // Initialize externalized migrators.
+        // Initialize the externalized migrators.
         String extMigDir = config.getGlobal().getExternalMigratorsDir();
         if( extMigDir != null ){
-            migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( new File(extMigDir), config.getGlobal()) );
+            migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( new File(extMigDir), this.config.getGlobal()) );
         }
         
         this.migrators = new ArrayList(migratorsMap.values());
@@ -108,7 +104,6 @@ public class MigrationEngine {
                 mig.examineConfigProperty( moduleOption );
             }
         }
-        
     }// init()
     
     

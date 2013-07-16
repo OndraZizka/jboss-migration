@@ -3,12 +3,14 @@ package org.jboss.loom;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.jboss.loom.actions.review.BeansXmlReview;
 import org.jboss.loom.actions.review.IActionReview;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.InitMigratorsExceptions;
 import org.jboss.loom.ex.MigrationException;
@@ -34,6 +36,34 @@ import org.slf4j.LoggerFactory;
  */
 public class MigratorsInstantiator {
     private static final Logger log = LoggerFactory.getLogger( MigratorsInstantiator.class );
+
+
+    /**
+     *  Finds the static java Migrator classes, filters them according to the config, and returns instantiated migrators.
+     */
+    static Map<Class<? extends IMigrator>, IMigrator> findAndInstantiateStaticMigratorClasses( Configuration config ) 
+            throws InitMigratorsExceptions, MigrationException 
+    {
+        // Find IMigrator implementations.
+        List<Class<? extends IMigrator>> migratorClasses = MigratorsInstantiator.findMigratorClasses();
+        
+        
+        // Filter based on $config.
+        List<String> onlyMigrators = config.getGlobal().getOnlyMigrators();
+        
+        for( Iterator<Class<? extends IMigrator>> it = migratorClasses.iterator(); it.hasNext(); ) {
+            Class<? extends IMigrator> cls = it.next();
+            for( String name : onlyMigrators ) {
+                if( cls.getSimpleName().equals( name ) )
+                    it.remove();
+            }
+        }
+        
+        // Initialize migrator instances.
+        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = createJavaMigrators( migratorClasses, config.getGlobal() );
+        return migratorsMap;
+    }
+
     
     
     /**
@@ -41,16 +71,15 @@ public class MigratorsInstantiator {
      */
     static Map<Class<? extends IMigrator>, IMigrator> createJavaMigrators(
             List<Class<? extends IMigrator>> migratorClasses,
-            GlobalConfiguration globalConfig
-    ) throws InitMigratorsExceptions, MigrationException {
+            GlobalConfiguration globalConfig)
+                throws InitMigratorsExceptions, MigrationException 
+    {
         
         Map<Class<? extends IMigrator>, IMigrator> migs = new LinkedHashMap();
         List<Exception> exs  = new LinkedList<>();
         
         for( Class<? extends IMigrator> cls : migratorClasses ){
             try {
-                //IMigrator mig = cls.newInstance();
-                //GlobalConfiguration globalConfig, MultiValueMap config
                 Constructor<? extends IMigrator> ctor = cls.getConstructor(GlobalConfiguration.class);
                 IMigrator mig = ctor.newInstance(globalConfig);
                 migs.put(cls, mig);
@@ -67,9 +96,6 @@ public class MigratorsInstantiator {
             }
         }
         
-        /*if( ! exs.isEmpty() ){
-            throw new InitMigratorsExceptions(exs);
-        }*/
         MigrationExceptions.wrapExceptions( exs, "Failed processing migrator definitions. ");
         
         return migs;
