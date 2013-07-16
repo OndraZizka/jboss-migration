@@ -209,16 +209,4 @@ public class ExternalMigratorsLoader {
         }
     }
     
-    
-    // Test
-    public static void main( String[] args ) throws Exception {
-        
-        File workDir = new File("target/extMigrators/");
-        FileUtils.forceMkdir( workDir );
-        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
-        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
-        
-        new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
-    }
-
 }// class

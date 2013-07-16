@@ -1,39 +1,41 @@
 package org.jboss.loom.migrators._ext;
 
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.loom.MigrationEngine;
-import org.jboss.loom.TestAppConfig;
-import org.jboss.loom.TestUtils;
-import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.conf.ConfigurationValidator;
-import org.junit.Ignore;
+import java.io.File;
+import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.utils.ClassUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.Assert.*;
 
 /**
- *  Tests the external migrator loader.
- * 
- *  @author Ondrej Zizka, ozizka at redhat.com
+ *
+ * @author Ondrej Zizka, ozizka at redhat.com
  */
-@RunWith( Arquillian.class )
-public class ExternalMigratorsLoaderTest extends ExternalMigratorsTestEnv {
-
-    @Ignore
-    @Test @RunAsClient
-    public void testExternalMigrator() throws Exception {
-        TestUtils.printTestBanner();
-
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
-        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );        
-        
-        // Set external migrators dir.
-        conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
-        
-        TestUtils.announceMigration( conf );
-        ConfigurationValidator.validate( conf );
-        MigrationEngine migrator = new MigrationEngine(conf);
-        migrator.doMigration();
+public class ExternalMigratorsLoaderTest {
+    
+    public ExternalMigratorsLoaderTest() {
     }
 
-}// class
+    @Test
+    public void testLoadTestMigrator() throws Throwable {
+        try {
+            File workDir = new File("target/extMigrators/");
+            FileUtils.forceMkdir( workDir );
+            ClassUtils.copyResourceToDir( ExternalMigratorsLoaderTest.class, "res/TestMigrator.mig.xml", workDir );
+            ClassUtils.copyResourceToDir( ExternalMigratorsLoaderTest.class, "res/TestJaxbBean.groovy",  workDir );
+            
+            Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
+                    = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
+            
+            assertEquals("1 migrator loaded", 1, migs.size());
+            DefinitionBasedMigrator mig = migs.values().iterator().next();
+            assertEquals("1 migrator loaded", "MailExtMigrator", mig.getClass().getName());
+        }
+        catch( Throwable ex ){
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+    
+}
