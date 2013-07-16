@@ -14,7 +14,7 @@
         <version>10</version>
     </parent>
     
-    <name>JBoss AS 5 to 7 Config Migration</name>
+    <name>JBoss EAP 5 to 6 Config Migration</name>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
