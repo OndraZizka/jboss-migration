@@ -23,8 +23,8 @@ public class ExternalMigratorsTestEnv {
     public static void copyTestExtMigratorFiles() throws IOException {
         workDir = new File("target/extMigrators/");
         FileUtils.forceMkdir( workDir );
-        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestMigrator.mig.xml", workDir );
-        ClassUtils.copyResourceToDir( ExternalMigratorsLoader.class, "TestJaxbBean.groovy",  workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsTestEnv.class, "res/TestMigrator.mig.xml", workDir );
+        ClassUtils.copyResourceToDir( ExternalMigratorsTestEnv.class, "res/TestJaxbBean.groovy",  workDir );
     }
     
     @AfterClass
