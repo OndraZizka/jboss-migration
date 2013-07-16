@@ -8,6 +8,8 @@
 package org.jboss.loom.conf;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -42,6 +44,9 @@ public class GlobalConfiguration {
 
     private boolean isTestRun = false;
     
+    // This is rather for test purposes. If null, all are used.
+    private List<String> onlyMigrators = new LinkedList();
+    
     private String reportDir = "MigrationReport";
     
     private String externalMigratorsDir;
@@ -71,6 +76,9 @@ public class GlobalConfiguration {
 
     public String getExternalMigratorsDir() { return externalMigratorsDir; }
     public void setExternalMigratorsDir( String externalMigratorsDir ) { this.externalMigratorsDir = externalMigratorsDir; }
+
+    public List<String> getOnlyMigrators() { return onlyMigrators; }
+    public List<String> addOnlyMigrator( String name ) { onlyMigrators.add(name); return onlyMigrators; }
     //</editor-fold>
 
     // JAXB

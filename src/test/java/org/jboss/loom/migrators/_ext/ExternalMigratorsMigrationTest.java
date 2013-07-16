@@ -25,13 +25,16 @@ public class ExternalMigratorsMigrationTest extends ExternalMigratorsTestEnv {
         TestUtils.printTestBanner();
 
         Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
-        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );        
+        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
         
         // Set external migrators dir.
         conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
+        conf.getGlobal().addOnlyMigrator("MailExtMigrator");
         
         TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
+        
+        // Migrate.
         MigrationEngine migrator = new MigrationEngine(conf);
         migrator.doMigration();
     }
