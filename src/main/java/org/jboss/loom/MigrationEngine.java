@@ -82,8 +82,10 @@ public class MigrationEngine {
      */
     private void init() throws MigrationException {
         
+        
         // Initialize the static java migrators.
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = MigratorsInstantiator.findAndInstantiateStaticMigratorClasses( this.config );
+        
         
         // Initialize the externalized migrators.
         String extMigDir = config.getGlobal().getExternalMigratorsDir();
