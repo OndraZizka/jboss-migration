@@ -146,7 +146,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         @NotBlank @XmlAttribute(name = "var")
         public String variableName;
 
-        @Override public String toString() { return "forEach " + variableName + " in " + queryName; }
+        @Override public String toString() { return "forEach $" + variableName + " in $" + queryName; }
     }
 
     
