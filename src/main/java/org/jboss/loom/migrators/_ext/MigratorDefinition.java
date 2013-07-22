@@ -123,6 +123,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     @XmlRootElement
     @XmlDiscriminatorValue("copy")
     public static class CopyActionDef extends FileBasedActionDef {
+        @Override public String toString() { return "Copy from " + this.pathMask + " to " + this.dest; }
     }
 
     @XmlRootElement
@@ -130,6 +131,8 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     public static class XsltActionDef extends FileBasedActionDef {
         /** XSLT template path. */
         @XmlAttribute public String xslt;
+        
+        @Override public String toString() { return "XSLT from " + this.pathMask + " to " + this.dest + " using " + xslt; }
     }
     
     
@@ -142,6 +145,8 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         
         @NotBlank @XmlAttribute(name = "var")
         public String variableName;
+
+        @Override public String toString() { return "forEach " + variableName + " in " + queryName; }
     }
 
     
@@ -150,11 +155,15 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         @NotNull
         @XmlAttribute(name = "jaxbBean") public String jaxbBeanAlias;
         @XmlAttribute public String xpath;
+        
+        @Override public String toString() { return "XPath $" + jaxbBeanAlias + " from files " + this.pathMask + " " + xpath; }
     }
 
     @XmlRootElement
     public static class PropFileQueryDef extends FileQueryBase {
         @XmlAttribute public String propNameMask;
+        
+        @Override public String toString() { return "Property " + propNameMask + " from files " + this.pathMask; }
     }
     
     
