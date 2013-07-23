@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="XsltTestMigrator">
+        
+        <action type="xslt" src="src.xml" dest="dest.xml" xslt="tpl.xsl"/>
+        
+    </migrator>
+    
+</migration>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="XsltTestMigrator">
+        
+        <action type="manual">
+            <warning>Don't panic!</warning>
+        </action>
+        
+    </migrator>
+    
+</migration>

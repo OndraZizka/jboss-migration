@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="XsltTestMigrator">
+        
+        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        
+    </migrator>
+    
+</migration>

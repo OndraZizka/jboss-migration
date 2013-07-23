@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="XsltTestMigrator">
+        
+        <action type="copy" src="src.xml" dest="destCopyFile.xml"/>
+        
+        <action type="copy" src="existingDir" dest="existingDir"/>
+        
+        <action type="copy" src="existingDir" dest="nonExistentDir"/>
+        
+    </migrator>
+    
+</migration>
