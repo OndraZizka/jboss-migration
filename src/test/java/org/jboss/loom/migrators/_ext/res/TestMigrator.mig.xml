@@ -11,11 +11,22 @@
              EL resolved in: pathMask, xpath, subjectLabel.
         -->
         <xmlQuery id="mailServices"
-            pathMask="${srcServer.dir}/server/${srcServer.profile}/deploy/mail-service.xml"
-            jaxbBean="TestJaxbBean"
-            xpath="/server/mbean[@code='org.jboss.mail.MailService']"
             subjectLabel="Mail Service config"
+            
+            pathMask="${srcServer.dir}/server/${srcServer.profile}/deploy/mail-service.xml"
+            xpath="/server/mbean[@code='org.jboss.mail.MailService']"
+            jaxbBean="TestJaxbBean"
         />
+        
+        
+        <!-- Example XSLT transformation of a file. -->
+        <action type="xslt" var="addAction" 
+            pathMask="${srcServer.dir}/server/${srcServer.profile}/conf/cache-config.xml"
+            xslt="JBossCache3_Infinispan4.xslt"
+            dest="${destServer.configDir}">
+        </action>
+        
+        
         
         <!-- Iterate over the results of the above query. 
              For each iteration, the current item is accessible in EL as `${it}`. -->
@@ -37,10 +48,6 @@
             </action>
         </forEach>
 
-        <!-- Example XSLT transformation of a file. -->
-        <action type="xslt" var="addAction" pathMask="${srcServer.dir}/server/${srcServer.profile}/conf/cache-config.xml"
-            xslt="JBossCache3_Infinispan4.xslt" dest="${destServer.configDir}">
-        </action>
         
         <!-- Manual actions serve for noticing the user that some manual intervention after the migration is necessary.
              Currently, mostly used by placeholder migrator implementations. -->
