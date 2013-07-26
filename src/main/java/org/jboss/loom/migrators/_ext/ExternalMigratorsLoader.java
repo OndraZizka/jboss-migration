@@ -117,6 +117,7 @@ public class ExternalMigratorsLoader {
         List<Exception> problems  = new LinkedList();
         
         // JAXB class...
+        if( desc.jaxbBeansClasses != null )
         for( JaxbClassDef jaxbClsBean : desc.jaxbBeansClasses ) {
             try {
                 // Look up in the map:  "TestJaxbBean" -> class
