@@ -78,6 +78,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
     public void loadSourceServerConfig( final MigrationContext ctx ) throws MigrationException {
 
         // XML queries
+        if( this.descriptor.xmlQueries != null )
         for( MigratorDefinition.XmlFileQueryDef query : this.descriptor.xmlQueries ) {
             Utils.validate( query );
             
