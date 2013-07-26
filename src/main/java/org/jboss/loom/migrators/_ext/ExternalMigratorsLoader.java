@@ -5,6 +5,7 @@ import groovy.lang.GroovyCodeSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,9 +15,9 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
+import org.jboss.loom.migrators.IMigratorFilter;
 import org.jboss.loom.migrators._ext.MigratorDefinition.JaxbClassDef;
 import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.slf4j.Logger;
@@ -49,9 +50,20 @@ public class ExternalMigratorsLoader {
      *  3) Creates the classes of the Migrators.
      *  4) Instantiates the classes and returns the list of instances.
      */
-    public Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> loadMigrators( File dir, GlobalConfiguration globConf ) throws MigrationException {
+    public Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> loadMigrators(
+            File dir, IMigratorFilter filter, GlobalConfiguration globConf ) throws MigrationException 
+    {
         // Read the definitions from the XML files.
         this.descriptors = loadMigratorDefinitions( dir, globConf );
+        
+        // Filter out those which we don't want.
+        // This should be done through some callback to unify for both migrator loaders.
+        if( globConf.getOnlyMigrators() != null  &&  ! globConf.getOnlyMigrators().isEmpty() )
+        for( Iterator<MigratorDefinition> it = descriptors.iterator(); it.hasNext(); ) {
+            if( ! filter.filterDefinition( it.next() ) )
+                it.remove();
+        }
+        
         
         // Load the Groovy classes referenced in these definitions.
         //this.fragmentJaxbClasses = loadJaxbClasses( this.descriptors );

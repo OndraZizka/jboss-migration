@@ -60,7 +60,9 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     }
 
     
-    
+    // Get/set
+    public String getName() { return name; }
+   
     
     // === Subelement classes === //
     

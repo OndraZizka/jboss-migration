@@ -29,6 +29,7 @@ import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.CliBatchException;
 import org.jboss.loom.ex.LoadMigrationException;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators.IMigratorFilter;
 import org.jboss.loom.migrators._ext.ExternalMigratorsLoader;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
@@ -82,6 +83,9 @@ public class MigrationEngine {
      */
     private void init() throws MigrationException {
         
+        // Migrators filter.
+        IMigratorFilter filter = new IMigratorFilter.ByNames( this.config.getGlobal().getOnlyMigrators() );
+        
         
         // Initialize the static java migrators.
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = MigratorsInstantiator.findAndInstantiateStaticMigratorClasses( this.config );
@@ -90,7 +94,9 @@ public class MigrationEngine {
         // Initialize the externalized migrators.
         String extMigDir = config.getGlobal().getExternalMigratorsDir();
         if( extMigDir != null ){
-            migratorsMap.putAll( new ExternalMigratorsLoader().loadMigrators( new File(extMigDir), this.config.getGlobal()) );
+            migratorsMap.putAll( 
+                new ExternalMigratorsLoader().loadMigrators( new File(extMigDir), filter, this.config.getGlobal() )
+            );
         }
         
         this.migrators = new ArrayList(migratorsMap.values());
