@@ -288,6 +288,11 @@ public class MigrationEngine {
     private void performActions() throws MigrationException {
         log.debug("======== performActions() ========");
         
+        if( ctx.getActions().isEmpty() ){
+            log.info("No actions to run.");
+            return;
+        }
+        
         boolean dryRun = config.getGlobal().isDryRun();
         if(dryRun)
             log.info("\n** This is a DRY RUN, operations are not really performed, only prepared and listed. **\n");
@@ -325,6 +330,11 @@ public class MigrationEngine {
         }
         
         /// DEBUG: Dump created CLI operations
+        if( ctx.getBatch().getCommands().isEmpty() ){
+            log.info("No CLI operations to perform.");
+            return;
+        }
+        
         log.debug(dryPrefix + "Management operations in batch:");
         int i = 1;
         for( BatchedCommand command : ctx.getBatch().getCommands() ){
