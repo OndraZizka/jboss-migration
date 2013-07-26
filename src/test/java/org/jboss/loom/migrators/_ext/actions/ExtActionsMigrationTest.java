@@ -6,10 +6,15 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.validation.constraints.AssertTrue;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.migrators._ext.*;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.as.arquillian.container.ManagementClient;
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.dmr.ModelNode;
 import org.jboss.loom.MigrationEngine;
 import org.jboss.loom.TestAppConfig;
 import org.jboss.loom.TestUtils;
@@ -17,6 +22,7 @@ import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.conf.ConfigurationValidator;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.utils.ClassUtils;
+import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,13 +38,21 @@ import org.slf4j.LoggerFactory;
 public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     private static final Logger log = LoggerFactory.getLogger( ExtActionsMigrationTest.class );
     
+    @ArquillianResource
+    private ManagementClient mc;
 
     @Test
     public void testCliAction() throws Exception {
         TestUtils.printTestBanner();
         doTest( "CliActionTest", null, DirPreparation.NOOP );
-        // TODO: Check the system property - /system-property=foo:read-resource
+        
+        // Check the system property - /system-property=foo:read-resource
+        final ModelControllerClient mcc = ModelControllerClient.Factory.create( mc.getMgmtAddress(), mc.getMgmtPort());
         // { "outcome" => "success", "result" => {"value" => "bar"} }
+        ModelNode res = AS7CliUtils.executeRequest("/system-property=foo:read-resource", mcc);
+        log.info("/system-property=foo:read-resource: " + res.toString());
+        Assert.assertTrue("/system-property=foo:read-resource went OK", AS7CliUtils.wasSuccess(res) );
+        //AS7CliUtils.exists("/system-property=foo", mcc);
     }
     
     
@@ -50,7 +64,10 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     @Test @RunAsClient
     public void testCopyAction() throws Exception {
         TestUtils.printTestBanner();
-        doTest( "CopyActionTest", null, new DirPreparation() {
+        
+        File dir = Files.createTempDirectory("ExtMigr-xslt-").toFile();
+        
+        doTest( "CopyActionTest", dir, new DirPreparation() {
             @Override public void prepareDir( File dir ) throws IOException {
                 // 1
                 FileUtils.touch( new File( dir, "src.file"));
@@ -60,6 +77,17 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
                 // 3 - ^^^ is reused
             }
         } );
+        
+        // Check
+        // 1
+        File file = new File(dir, "destCopy.file");
+        Assert.assertTrue("destCopy.file was copied", file.exists() );
+        // 2
+        file = new File(dir, "destExistingDir/srcExistingDir/src.file");
+        Assert.assertTrue("destExistingDir was copied", file.exists() );
+        // 3
+        file = new File(dir, "destExistingDir/nonExistentDir/src.file");
+        Assert.assertTrue("destExistingDir was copied", new File(dir, "nonExistentDir/src.file").exists() );
     }
     
     @Test @RunAsClient
