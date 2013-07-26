@@ -170,7 +170,7 @@
                     <plugin>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>
-                            <execution> <id>as-dist.download</id> <phase>process-test-resources</phase>
+                            <execution> <id>as-dist.download</id> <phase>generate-test-resources</phase>
                                 <goals> <goal>get</goal> </goals>
                                 <configuration>
                                     <artifact>org.jboss.as:jboss-as-dist:${as.download.version}:zip</artifact>
@@ -184,7 +184,7 @@
                         <version>1.7</version>
                         <executions>
                             <execution>  <id>as-dist.unzip</id>
-                                <phase>process-test-resources</phase>
+                                <phase>generate-test-resources</phase>
                                 <goals> <goal>run</goal> </goals>
                                 <configuration>
                                     <target>
