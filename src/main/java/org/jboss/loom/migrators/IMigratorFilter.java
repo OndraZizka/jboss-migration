@@ -21,6 +21,15 @@ public interface IMigratorFilter {
     
     
     /**
+     *  Takes any migrator.
+     */
+    public static class All implements IMigratorFilter {
+        @Override public boolean filterDefinition( MigratorDefinition def ) { return true; }
+        @Override public boolean filterInstance( IMigrator def ) { return true; }
+    }
+    
+        
+    /**
      *  Looks for an exact match in the set of names it keeps.
      *  Only works with definitions; returns true for all instances.
      */
