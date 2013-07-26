@@ -341,7 +341,7 @@ public class MigrationEngine {
             log.debug("    " + i++ + ": " + command.getCommand());
         }
 
-        // Execution
+        // CLI batch execution.
         log.debug(dryPrefix + "Executing CLI batch:");
         try {
             if( ! dryRun )
