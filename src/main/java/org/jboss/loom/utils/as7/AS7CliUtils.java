@@ -96,6 +96,17 @@ public class AS7CliUtils {
         }
     }
     
+
+    /**
+     *  Executes CLI request.
+     */
+    public static ModelNode executeRequest( String cmd, ModelControllerClient mcc ) throws IOException {
+        ModelNode node = parseCommand( cmd, true );
+        return mcc.execute( node );
+    }
+        
+    
+    
     /**
      *  Safely closes closeable resource (a CLI connection in our case).
      */
@@ -449,5 +460,5 @@ public class AS7CliUtils {
         }
         return null;
     }
-        
+
 }// class
