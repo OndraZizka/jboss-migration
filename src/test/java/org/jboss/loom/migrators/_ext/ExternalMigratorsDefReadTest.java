@@ -4,6 +4,7 @@ package org.jboss.loom.migrators._ext;
 import java.util.Map;
 import org.jboss.loom.TestUtils;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.migrators.IMigratorFilter;
 import static org.jboss.loom.migrators._ext.ExternalMigratorsTestEnv.workDir;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class ExternalMigratorsDefReadTest extends ExternalMigratorsTestEnv {
         
         try {
             Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
-                    = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
+                = new ExternalMigratorsLoader().loadMigrators( workDir, new IMigratorFilter.All(), new GlobalConfiguration() );
 
             Assert.assertEquals("1 migrator was loaded", 1, migs.size() );
 

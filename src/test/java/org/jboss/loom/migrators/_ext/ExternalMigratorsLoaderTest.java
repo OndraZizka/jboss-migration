@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.migrators.IMigratorFilter;
 import org.jboss.loom.utils.ClassUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -26,7 +27,7 @@ public class ExternalMigratorsLoaderTest {
             ClassUtils.copyResourceToDir( ExternalMigratorsLoaderTest.class, "res/TestJaxbBean.groovy",  workDir );
             
             Map<Class<? extends DefinitionBasedMigrator>, DefinitionBasedMigrator> migs
-                    = new ExternalMigratorsLoader().loadMigrators( workDir, new GlobalConfiguration() );
+                = new ExternalMigratorsLoader().loadMigrators( workDir, new IMigratorFilter.All(), new GlobalConfiguration() );
             
             assertEquals("1 migrator loaded", 1, migs.size());
             DefinitionBasedMigrator mig = migs.values().iterator().next();
