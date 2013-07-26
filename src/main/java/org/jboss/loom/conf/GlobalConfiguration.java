@@ -7,9 +7,11 @@
  */
 package org.jboss.loom.conf;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -18,11 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * Class for storing global information needed for migration. Like dir of AS7, AS5, and profiles
  * <p/>
  * With regard of possibility to migrate from other vendors' AS,
- * split to AS 7 config class, and then 1 class per server (AS 5, WebLogic, ...).
- *
- * @author Roman Jakubco
- * 
- * TODO: Move source and dest dir, and other general info, to this class.
+ * split to AS 7 config class, and then have 1 class per server (AS 5, WebLogic, ...).
  */
 @XmlRootElement(name="global")
 public class GlobalConfiguration {
@@ -51,6 +49,11 @@ public class GlobalConfiguration {
     
     private String externalMigratorsDir;
 
+    // User vars - accessible in EL's and Groovy scripts.
+    private Map<String, String> userVars = new HashMap();
+
+    
+    
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
     public AS7Config getAS7Config() { return as7Config; }
@@ -79,6 +82,10 @@ public class GlobalConfiguration {
 
     public List<String> getOnlyMigrators() { return onlyMigrators; }
     public List<String> addOnlyMigrator( String name ) { onlyMigrators.add(name); return onlyMigrators; }
+
+    public Map<String, String> getUserVars() { return userVars; }
+    public String getUserVar( String name) { return userVars.get(name); }
+    public void setUserVar( String name, String val ) { this.userVars.put( name, val ); }
     //</editor-fold>
 
     // JAXB

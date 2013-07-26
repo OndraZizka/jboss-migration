@@ -2,17 +2,22 @@ package org.jboss.loom.migrators._ext;
 
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.actions.ManualAction;
+import org.jboss.loom.actions.ModuleCreationAction;
+import org.jboss.loom.actions.XsltAction;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.XmlUtils;
@@ -115,17 +120,40 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                     // warning
                     // forEach
                     break;
-                case "copy": 
-                    String src = actionDef.attribs.get("src");
+                case "copy": {
+                    String src  = actionDef.attribs.get("src");
                     String dest = actionDef.attribs.get("dest");
-                    CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf("ifExists");
+                    String ifExistsS = actionDef.attribs.get("ifExists");
+                    CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
                     action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
-                    break;
-                case "cli": 
+                } break;
+                case "xslt": {
+                    String srcS      = actionDef.attribs.get("src");
+                    String destS     = actionDef.attribs.get("dest");
+                    String xsltS     = actionDef.attribs.get("xlst");
+                    
+                    File src      = new File( srcS );
+                    File dest     = new File( destS );
+                    File xslt     = new File( xsltS );
+                    
+                    String ifExistsS = actionDef.attribs.get("ifExists");
+                    CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
+                    boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
+                    action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
+                }   break;
+                case "cli": {
                     String cliScript = actionDef.attribs.get("cliScript");
                     ModelNode modelNode = ModelNode.fromString( cliScript );
                     action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
-                    break;
+                } break;
+                case "module": {
+                    String name = actionDef.attribs.get("name");
+                    String jarS = actionDef.attribs.get("jar");
+                    File jar     = new File( jarS );
+                    String[] deps = parseDeps( actionDef.attribs.get("deps") );
+                    Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
+                    action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
+                } break;
                 default: 
                     throw new MigrationException("Unsupported action type '" + actionDef.typeVal + "' in " + cont.location.getSystemId());
             }
@@ -139,6 +167,23 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         }
         return actions;
     }// process();
+
+
+    /**
+     *  Parses syntax "foo ?bar baz" into String[]{"foo", null, "bar", "baz"}.
+     *  (? and null means that the following dep is optional.)
+     */
+    private String[] parseDeps( String str ) {
+        List<String> deps = new LinkedList();
+        for( String name : StringUtils.split(str) ){
+            if( name.charAt(0) == '?' ){
+                deps.add( null );
+                name = name.substring(1);
+            }
+            deps.add( name );
+        }
+        return deps.toArray( new String[deps.size()] );
+    }
     
     
 
