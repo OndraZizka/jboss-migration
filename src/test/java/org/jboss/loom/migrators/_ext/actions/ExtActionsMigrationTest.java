@@ -6,13 +6,10 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.validation.constraints.AssertTrue;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.migrators._ext.*;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.MigrationEngine;
@@ -40,18 +37,11 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     
     //@ArquillianResource private ManagementClient mc; // ARQ-1443
 
-    @Test
-    public void testCliAction() throws Exception {
+
+    @Test @RunAsClient
+    public void testManualAction() throws Exception {
         TestUtils.printTestBanner();
-        doTest( "CliActionTest", null, DirPreparation.NOOP );
-        
-        // Check the system property - /system-property=foo:read-resource
-        final ModelControllerClient mcc = ModelControllerClient.Factory.create("localhost", 9999);
-        // { "outcome" => "success", "result" => {"value" => "bar"} }
-        ModelNode res = AS7CliUtils.executeRequest("/system-property=foo:read-resource", mcc);
-        log.info("/system-property=foo:read-resource: " + res.toString());
-        Assert.assertTrue("/system-property=foo:read-resource went OK", AS7CliUtils.wasSuccess(res) );
-        //AS7CliUtils.exists("/system-property=foo", mcc);
+        doTest( "ManualActionTest", null, DirPreparation.NOOP );
     }
     
     
@@ -89,27 +79,6 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         Assert.assertTrue("destExistingDir was copied", new File(dir, "nonExistentDir/src.file").exists() );
     }
     
-    @Test @RunAsClient
-    public void testManualAction() throws Exception {
-        TestUtils.printTestBanner();
-        doTest( "ManualActionTest", null, DirPreparation.NOOP );
-    }
-    
-    /**
-     *     <action type="module" name="org.jboss.windride.test" jar="test.jar"/>
-     */
-    @Test
-    public void testModuleAction() throws Exception {
-        TestUtils.printTestBanner();
-        doTest( "ModuleCreationActionTest", null, new DirPreparation() {
-            @Override public void prepareDir( File dir ) throws IOException {
-                // 1
-                FileUtils.touch( new File( dir, "test.jar"));
-            }
-        } );
-        // TODO: Check that module was created and loaded.
-    }
-    
     /**
      *   <action type="xslt" src="src.xml" dest="dest.xml" xslt="XsltStyleSheet.xsl"/>
      */
@@ -129,6 +98,37 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         
         // Check the result
         Assert.assertTrue("Result contains '<b/>'.", FileUtils.readFileToString( new File(dir, "dest.xml") ).contains("<b/>") );
+    }
+    
+    
+    
+    @Test
+    public void testCliAction() throws Exception {
+        TestUtils.printTestBanner();
+        doTest( "CliActionTest", null, DirPreparation.NOOP );
+        
+        // Check the system property - /system-property=foo:read-resource
+        final ModelControllerClient mcc = ModelControllerClient.Factory.create("localhost", 9999);
+        // { "outcome" => "success", "result" => {"value" => "bar"} }
+        ModelNode res = AS7CliUtils.executeRequest("/system-property=foo:read-resource", mcc);
+        log.info("/system-property=foo:read-resource: " + res.toString());
+        Assert.assertTrue("/system-property=foo:read-resource went OK", AS7CliUtils.wasSuccess(res) );
+        //AS7CliUtils.exists("/system-property=foo", mcc);
+    }
+    
+    /**
+     *     <action type="module" name="org.jboss.windride.test" jar="test.jar"/>
+     */
+    @Test
+    public void testModuleAction() throws Exception {
+        TestUtils.printTestBanner();
+        doTest( "ModuleCreationActionTest", null, new DirPreparation() {
+            @Override public void prepareDir( File dir ) throws IOException {
+                // 1
+                FileUtils.touch( new File( dir, "test.jar"));
+            }
+        } );
+        // TODO: Check that module was created and loaded.
     }
     
     
