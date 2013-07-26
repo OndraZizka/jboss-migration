@@ -138,7 +138,7 @@ public class AS7CliUtils {
         throw new CliBatchException(msg, node);
     }
     
-    private static boolean wasSuccess( ModelNode node ) {
+    public static boolean wasSuccess( ModelNode node ) {
         return ClientConstants.SUCCESS.equals( node.get(ClientConstants.OUTCOME).asString() );
     }
     
