@@ -3,6 +3,7 @@ package org.jboss.loom.migrators._ext;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -10,6 +11,7 @@ import javassist.CtConstructor;
 import javassist.CtNewConstructor;
 import javassist.NotFoundException;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ex.MigrationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +27,23 @@ public class MigratorSubclassMaker {
 
     
     static Class<? extends DefinitionBasedMigrator> createClass( String fullName )
-            throws NotFoundException, CannotCompileException
+            throws NotFoundException, CannotCompileException, MigrationException
     {
         log.debug("Creating class " + fullName);
         ClassPool pool = ClassPool.getDefault();
+        
+        // Check if the class already exists.
+        URL cls = pool.find( fullName );
+        if( cls != null ){
+            throw new MigrationException("Class already exists: " + fullName + "\n    Maybe you already have a migrator of that name?");
+        }
+        try {
+            Class.forName( fullName );
+            throw new MigrationException("Class already exists: " + fullName + "\n    Maybe you already have a migrator of that name?");
+        } catch ( ClassNotFoundException ex ){
+            // ok
+        }
+        
         
         // Create the class.
         CtClass subClass = pool.makeClass( fullName );
