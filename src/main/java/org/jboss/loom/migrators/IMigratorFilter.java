@@ -17,6 +17,8 @@ public interface IMigratorFilter {
     boolean filterDefinition( MigratorDefinition def );
     
     boolean filterInstance( IMigrator def );
+
+    public boolean filterClass( Class<? extends IMigrator> next );
     
     
     
@@ -26,6 +28,7 @@ public interface IMigratorFilter {
     public static class All implements IMigratorFilter {
         @Override public boolean filterDefinition( MigratorDefinition def ) { return true; }
         @Override public boolean filterInstance( IMigrator def ) { return true; }
+        @Override public boolean filterClass( Class<? extends IMigrator> next ) { return true; }
     }
     
         
@@ -49,6 +52,11 @@ public interface IMigratorFilter {
         @Override
         public boolean filterDefinition( MigratorDefinition def ) {
             return names.contains( def.getName() );
+        }
+
+        @Override
+        public boolean filterClass( Class<? extends IMigrator> migCls ) {
+            return names.contains( migCls.getName() );
         }
 
         @Override

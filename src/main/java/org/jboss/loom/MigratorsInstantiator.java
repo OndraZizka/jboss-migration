@@ -15,6 +15,8 @@ import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ex.InitMigratorsExceptions;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
+import org.jboss.loom.migrators.IMigratorFilter;
+import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.connectionFactories.ResAdapterMigrator;
 import org.jboss.loom.migrators.dataSources.DatasourceMigrator;
@@ -41,7 +43,7 @@ public class MigratorsInstantiator {
     /**
      *  Finds the static java Migrator classes, filters them according to the config, and returns instantiated migrators.
      */
-    static Map<Class<? extends IMigrator>, IMigrator> findAndInstantiateStaticMigratorClasses( Configuration config ) 
+    static Map<Class<? extends IMigrator>, IMigrator> findAndInstantiateStaticMigratorClasses( IMigratorFilter filter, Configuration config ) 
             throws InitMigratorsExceptions, MigrationException 
     {
         // Find IMigrator implementations.
@@ -49,15 +51,22 @@ public class MigratorsInstantiator {
         
         
         // Filter based on $config.
-        List<String> onlyMigrators = config.getGlobal().getOnlyMigrators();
-        
+        /*List<String> onlyMigrators = config.getGlobal().getOnlyMigrators();
         for( Iterator<Class<? extends IMigrator>> it = migratorClasses.iterator(); it.hasNext(); ) {
             Class<? extends IMigrator> cls = it.next();
             for( String name : onlyMigrators ) {
-                if( cls.getSimpleName().equals( name ) )
+                if( ! cls.getSimpleName().equals( name ) )
                     it.remove();
             }
+        }*/
+        
+        // Filter out based on given filter.
+        for( Iterator<Class<? extends IMigrator>> it = migratorClasses.iterator(); it.hasNext(); ) {
+            if( ! filter.filterClass( it.next() ) )
+                it.remove();
         }
+        
+        
         
         // Initialize migrator instances.
         Map<Class<? extends IMigrator>, IMigrator> migratorsMap = createJavaMigrators( migratorClasses, config.getGlobal() );

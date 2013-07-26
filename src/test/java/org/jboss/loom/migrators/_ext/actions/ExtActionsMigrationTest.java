@@ -38,8 +38,7 @@ import org.slf4j.LoggerFactory;
 public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     private static final Logger log = LoggerFactory.getLogger( ExtActionsMigrationTest.class );
     
-    @ArquillianResource
-    private ManagementClient mc;
+    //@ArquillianResource private ManagementClient mc; // ARQ-1443
 
     @Test
     public void testCliAction() throws Exception {
@@ -47,7 +46,7 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         doTest( "CliActionTest", null, DirPreparation.NOOP );
         
         // Check the system property - /system-property=foo:read-resource
-        final ModelControllerClient mcc = ModelControllerClient.Factory.create( mc.getMgmtAddress(), mc.getMgmtPort());
+        final ModelControllerClient mcc = ModelControllerClient.Factory.create("localhost", 9999);
         // { "outcome" => "success", "result" => {"value" => "bar"} }
         ModelNode res = AS7CliUtils.executeRequest("/system-property=foo:read-resource", mcc);
         log.info("/system-property=foo:read-resource: " + res.toString());
@@ -145,6 +144,7 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
             dir = createDirWithExtMigratorFile( migName );
         prep.prepareDir( dir );
         Configuration conf = createSingleExtMigTestConf( migName );
+        conf.getGlobal().setExternalMigratorsDir( dir.getPath() );
         
         TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );

@@ -88,7 +88,7 @@ public class MigrationEngine {
         
         
         // Initialize the static java migrators.
-        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = MigratorsInstantiator.findAndInstantiateStaticMigratorClasses( this.config );
+        Map<Class<? extends IMigrator>, IMigrator> migratorsMap = MigratorsInstantiator.findAndInstantiateStaticMigratorClasses( filter, this.config );
         
         
         // Initialize the externalized migrators.

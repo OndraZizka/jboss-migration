@@ -57,8 +57,6 @@ public class ExternalMigratorsLoader {
         this.descriptors = loadMigratorDefinitions( dir, globConf );
         
         // Filter out those which we don't want.
-        // This should be done through some callback to unify for both migrator loaders.
-        if( globConf.getOnlyMigrators() != null  &&  ! globConf.getOnlyMigrators().isEmpty() )
         for( Iterator<MigratorDefinition> it = descriptors.iterator(); it.hasNext(); ) {
             if( ! filter.filterDefinition( it.next() ) )
                 it.remove();
