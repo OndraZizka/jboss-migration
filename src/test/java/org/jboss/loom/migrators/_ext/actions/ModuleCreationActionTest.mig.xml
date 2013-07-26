@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ModuleCreationActionTest">
         
-        <action type="module" name="org.jboss.windride.test" jar="testModule.jar"/>
+        <action type="module" name="org.jboss.windride.test" jar="test.jar"/>
         
     </migrator>
     

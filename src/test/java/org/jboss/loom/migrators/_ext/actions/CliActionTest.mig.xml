@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="CliActionTest">
         
+        <!--
         <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        -->
+        <action type="cli" command="/system-property=foo:add(value=bar)"/>
         
     </migrator>
     
