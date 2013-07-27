@@ -91,7 +91,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
      *  Recursively processes the .mig.xml descriptor into Actions.
      *  TODO: Could be better to put the stack manipulation to the beginning and end of the method.
      */
-    List<IMigrationAction> processChildren( ContainerOfStackableDefs cont ) throws MigrationException {
+    private List<IMigrationAction> processChildren( ContainerOfStackableDefs cont ) throws MigrationException {
         
         List<IMigrationAction> actions = new LinkedList();
         
@@ -103,7 +103,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             if( null == queryResult )
                 throw new MigrationException("Query '"+forEachDef.queryName+"' not found. Needed at " + XmlUtils.formatLocation(forEachDef.location));
             
-            ForEachContext forEachContext = new ForEachContext(forEachDef);
+            ForEachContext forEachContext = new ForEachContext( forEachDef, this );
             this.stack.push( forEachContext );
             
             // For each item in query result...
@@ -249,7 +249,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     /**
      *  Action context - delegates actions and warnings to the referenced action.
      */
-    public class ActionContext implements ProcessingStackItem, HasActions, HasWarnings {
+    public static class ActionContext implements ProcessingStackItem, HasActions, HasWarnings {
         
         private IMigrationAction action;
         public ActionContext( IMigrationAction action ) {
@@ -276,17 +276,20 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     /**
      *  ForEachContext passes most additions etc to the parent element.
      */
-    class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings, Iterable<IConfigFragment> {
+    static class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings, Iterable<IConfigFragment> {
         
         private final MigratorDefinition.ForEachDef def;
+        private final MigratorDefinitionProcessor processor;
+        
         private final Iterator<IConfigFragment> it;
         private IConfigFragment current = null;
         
-        ForEachContext( MigratorDefinition.ForEachDef forEachDef ) {
+        ForEachContext( MigratorDefinition.ForEachDef forEachDef, MigratorDefinitionProcessor processor ) {
             this.def = forEachDef;
+            this.processor = processor;
 
             // Initialize the iterator.
-            DefinitionBasedMigrator.ConfigLoadResult queryResult = MigratorDefinitionProcessor.this.dbm.getQueryResultByName( this.def.queryName );
+            DefinitionBasedMigrator.ConfigLoadResult queryResult = processor.dbm.getQueryResultByName( this.def.queryName );
             this.it = queryResult.configFragments.iterator();
         }
 
@@ -310,7 +313,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         @Override
         public void addAction( IMigrationAction action ) {
-            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
+            ProcessingStackItem top = processor.stack.peek();
             if( ! (top instanceof HasActions))
                 throw new IllegalArgumentException("It's not possible to add actions to " + top);
             ((HasActions)top).addAction( action );
@@ -318,7 +321,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
 
 
         @Override public List<IMigrationAction> getActions() {
-            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
+            ProcessingStackItem top = processor.stack.peek();
             if( ! (top instanceof HasActions))
                 throw new IllegalArgumentException("Doesn't have actions: " + top);
             return ((HasActions)top).getActions();
@@ -327,7 +330,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
 
         @Override
         public void addWarning( String warn ) {
-            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
+            ProcessingStackItem top = processor.stack.peek();
             if( ! (top instanceof HasWarnings))
                 throw new IllegalArgumentException("It's not possible to add warnings to " + top);
             ((HasWarnings)top).addWarning( warn );
@@ -336,7 +339,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
 
         @Override
         public List<String> getWarnings() {
-            ProcessingStackItem top = MigratorDefinitionProcessor.this.stack.peek();
+            ProcessingStackItem top = processor.stack.peek();
             if( ! (top instanceof HasWarnings))
                 throw new IllegalArgumentException("Doesn't have warnings: " + top);
             return ((HasWarnings)top).getWarnings();
