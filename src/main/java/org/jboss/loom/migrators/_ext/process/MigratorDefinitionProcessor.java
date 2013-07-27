@@ -114,6 +114,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         }
         
         // Action definitions.
+        // TODO: Currently, actions processing is hard-coded. This needs to be brought to meta-data.
         if( cont.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : cont.getActionDefs() ) {
             IMigrationAction action;
