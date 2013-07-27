@@ -27,9 +27,9 @@ public class ContainerOfStackableDefs {
     @XmlElement(name = "forEach")
     List<MigratorDefinition.ForEachDef> forEachDefs;
 
-    @XmlLocation
-    @XmlTransient
-    public Locator location;
+    //@XmlLocation
+    //@XmlTransient
+    //public Locator location;
     
     public boolean hasForEachDefs(){ return forEachDefs != null && ! forEachDefs.isEmpty(); }
     public List<MigratorDefinition.ForEachDef> getForEachDefs() { return forEachDefs; }
