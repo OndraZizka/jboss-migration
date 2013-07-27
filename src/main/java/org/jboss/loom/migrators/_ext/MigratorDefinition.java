@@ -13,10 +13,9 @@ import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.loom.migrators.Origin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *  JAXB class for *.mig.xml files.
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 @XmlRootElement( name="migrator" )
 @XmlAccessorType( XmlAccessType.NONE )
 public class MigratorDefinition extends ContainerOfStackableDefs implements Origin.Wise {
-    private static final Logger log = LoggerFactory.getLogger( MigratorDefinition.class );
     
     @XmlAttribute
     String name;
@@ -82,8 +80,8 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     //@XmlDiscriminatorNode("@type") // moved to ContainerOfStackableDefs
     @XmlSeeAlso({ CliActionDef.class, ModuleActionDef.class, CopyActionDef.class, XsltActionDef.class, ManualActionDef.class })
     public static class ActionDef extends ContainerOfStackableDefs {
-        //@XmlAttribute
-        //@XmlReadOnly
+        @XmlAttribute
+        @XmlReadOnly
         public String typeVal;
         
         //public List<PropertyBean> properties;
