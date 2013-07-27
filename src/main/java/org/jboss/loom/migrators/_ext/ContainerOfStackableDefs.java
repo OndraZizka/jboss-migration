@@ -29,9 +29,12 @@ public class ContainerOfStackableDefs {
 
     @XmlLocation
     @XmlTransient
-    Locator location;
+    public Locator location;
     
-    boolean hasForEachDefs(){ return forEachDefs != null && forEachDefs.isEmpty(); }
-    boolean hasActionDefs(){ return actionDefs != null && actionDefs.isEmpty(); };    
+    public boolean hasForEachDefs(){ return forEachDefs != null && forEachDefs.isEmpty(); }
+    public List<MigratorDefinition.ForEachDef> getForEachDefs() { return forEachDefs; }
+    
+    public boolean hasActionDefs(){ return actionDefs != null && actionDefs.isEmpty(); };    
+    public List<MigratorDefinition.ActionDef> getActionDefs() { return actionDefs; }
 
 }// class

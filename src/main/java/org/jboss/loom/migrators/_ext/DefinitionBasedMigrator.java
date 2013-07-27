@@ -1,5 +1,6 @@
 package org.jboss.loom.migrators._ext;
 
+import org.jboss.loom.migrators._ext.process.MigratorDefinitionProcessor;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -116,8 +117,9 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
         
         // File list queries
     }
+
     
-    ConfigLoadResult getQueryResultByName( String name ){
+    public ConfigLoadResult getQueryResultByName( String name ){
         return this.loads.get( name );
     }
     
@@ -128,7 +130,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
      */
     @Override
     public void createActions( MigrationContext ctx ) throws MigrationException {
-        List<IMigrationAction> actions = new MigratorDefinitionProcessor(this).processChildren( this.descriptor );
+        List<IMigrationAction> actions = new MigratorDefinitionProcessor(this).process( this.descriptor );
         for( IMigrationAction iMigrationAction : actions ) {
             ctx.getActions().add( iMigrationAction );
         }
@@ -148,7 +150,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
 
     
     // Struct
-    static class ConfigLoadResult {
+    public static class ConfigLoadResult {
         public XmlFileQueryDef descriptor;
         public List<IConfigFragment> configFragments;
 

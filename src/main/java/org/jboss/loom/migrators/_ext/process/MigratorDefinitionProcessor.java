@@ -1,4 +1,4 @@
-package org.jboss.loom.migrators._ext;
+package org.jboss.loom.migrators._ext.process;
 
 
 import java.io.File;
@@ -19,6 +19,9 @@ import org.jboss.loom.actions.ModuleCreationAction;
 import org.jboss.loom.actions.XsltAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators._ext.ContainerOfStackableDefs;
+import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
+import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
@@ -59,7 +62,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
 
 
-    MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
+    public MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
         this.stack.push( (ProcessingStackItem) new RootContext().setVariable("mig", dbm).setVariable("conf", dbm.getConfig()));
         this.dbm = dbm;
     }
@@ -79,6 +82,10 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         return null;
     }
 
+    
+    public List<IMigrationAction> process( MigratorDefinition cont ) throws MigrationException {
+        return this.processChildren( cont );
+    }
 
     /**
      *  Recursively processes the .mig.xml descriptor into Actions.
@@ -90,7 +97,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         // ForEach defs.
         if( cont.hasForEachDefs() )
-        for( MigratorDefinition.ForEachDef forEachDef : cont.forEachDefs ) {
+        for( MigratorDefinition.ForEachDef forEachDef : cont.getForEachDefs() ) {
             
             DefinitionBasedMigrator.ConfigLoadResult queryResult = this.dbm.getQueryResultByName( forEachDef.queryName ); 
             if( null == queryResult )
@@ -112,7 +119,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         // Action definitions.
         if( cont.hasActionDefs() )
-        for( MigratorDefinition.ActionDef actionDef : cont.actionDefs ) {
+        for( MigratorDefinition.ActionDef actionDef : cont.getActionDefs() ) {
             IMigrationAction action;
             switch( actionDef.typeVal ){
                 case "manual":
