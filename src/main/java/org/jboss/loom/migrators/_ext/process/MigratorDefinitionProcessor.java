@@ -2,12 +2,8 @@ package org.jboss.loom.migrators._ext.process;
 
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
@@ -55,9 +51,9 @@ import org.slf4j.LoggerFactory;
 public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariablesProvider {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
     
-    private Stack<ProcessingStackItem> stack = new Stack();
+    final Stack<ProcessingStackItem> stack = new Stack();
     
-    private final DefinitionBasedMigrator dbm;
+    final DefinitionBasedMigrator dbm;
     
     private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
 
@@ -192,174 +188,4 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         return deps.toArray( new String[deps.size()] );
     }
     
-    
-
-    /**
-     *  Interface for context. Maybe should be named ProcessingContext or so.
-     */
-    public static interface ProcessingStackItem {
-        //Map<String, Object> getVariables();
-        
-        /**
-         *  Through this method, contexts may provide variables to XSLT, JAXB and Groovy.
-         *  Variables will be visible in $this context and all children contexts.
-         */
-        Object getVariable( String name );
-    }
-    
-    public static interface HasWarnings {
-        void addWarning( String warn );
-        List<String> getWarnings();
-    }
-    
-    public static interface HasActions {
-        void addAction( IMigrationAction action );
-        List<IMigrationAction> getActions();
-    }
-    
-    
-    
-    /**
-     *  Root context to collect the actions to.
-     */
-    public static class RootContext extends Variables implements ProcessingStackItem, HasActions, HasWarnings {
-        
-        private List<IMigrationAction> actions = new LinkedList();
-        private List<String> warnings = new LinkedList();
-        @Override public void addAction( IMigrationAction action ) { this.actions.add( action ); }
-        @Override public List<IMigrationAction> getActions() { return actions; }
-        @Override public void addWarning( String warn ) { this.warnings.add( warn ); }
-        @Override public List<String> getWarnings() { return warnings; }
-        
-        /**  Returns a ManualAction with warnings of the root context, or null if there were no warnings. */
-        ManualAction convertWarningsToManualAction(){
-            if( this.warnings.isEmpty() )
-                return null;
-            ManualAction action = new ManualAction();
-            for( String warn : this.warnings ) {
-                action.addWarning( warn );
-            }
-            return action;
-        }
-        
-        @Override public Object getVariable( String name ){ return this.getVariable( name ); }
-    }
-
-    
-    /**
-     *  Action context - delegates actions and warnings to the referenced action.
-     */
-    public static class ActionContext implements ProcessingStackItem, HasActions, HasWarnings {
-        
-        private IMigrationAction action;
-        public ActionContext( IMigrationAction action ) {
-            this.action = action;
-        }
-        
-        @Override public void addAction( IMigrationAction action ) {
-            action.addDependency( action );
-        }
-        
-        @Override public List<IMigrationAction> getActions() { return action.getDependencies(); }
-        
-        @Override public void addWarning( String warn ) {
-            action.getWarnings().add( warn );
-        }
-
-        @Override public List<String> getWarnings() { return action.getWarnings(); }
-
-        //@Override public Map<String, Object> getVariables() { return null; }
-        @Override public Object getVariable( String name ){ return null; }
-    }
-    
-    
-    /**
-     *  ForEachContext passes most additions etc to the parent element.
-     */
-    static class ForEachContext implements ProcessingStackItem, HasActions, HasWarnings, Iterable<IConfigFragment> {
-        
-        private final MigratorDefinition.ForEachDef def;
-        private final MigratorDefinitionProcessor processor;
-        
-        private final Iterator<IConfigFragment> it;
-        private IConfigFragment current = null;
-        
-        ForEachContext( MigratorDefinition.ForEachDef forEachDef, MigratorDefinitionProcessor processor ) {
-            this.def = forEachDef;
-            this.processor = processor;
-
-            // Initialize the iterator.
-            DefinitionBasedMigrator.ConfigLoadResult queryResult = processor.dbm.getQueryResultByName( this.def.queryName );
-            this.it = queryResult.configFragments.iterator();
-        }
-
-        // Iterator delegation.
-        @Override
-        public Iterator<IConfigFragment> iterator() {
-            return new Iterator<IConfigFragment>() {
-                @Override public boolean hasNext() { return it.hasNext(); }
-                @Override public IConfigFragment next() { ForEachContext.this.current = it.next(); return ForEachContext.this.current; }
-                @Override public void remove() { throw new UnsupportedOperationException("Remove not supported."); }
-            };
-        }
-        
-        // getVariable()
-        @Override public Object getVariable( String name ) {
-            if( ! def.variableName.equals( name ) )  return null;
-            return this.current;
-        }
-
-        
-        
-        @Override
-        public void addAction( IMigrationAction action ) {
-            ProcessingStackItem top = processor.stack.peek();
-            if( ! (top instanceof HasActions))
-                throw new IllegalArgumentException("It's not possible to add actions to " + top);
-            ((HasActions)top).addAction( action );
-        }
-
-
-        @Override public List<IMigrationAction> getActions() {
-            ProcessingStackItem top = processor.stack.peek();
-            if( ! (top instanceof HasActions))
-                throw new IllegalArgumentException("Doesn't have actions: " + top);
-            return ((HasActions)top).getActions();
-        }
-
-
-        @Override
-        public void addWarning( String warn ) {
-            ProcessingStackItem top = processor.stack.peek();
-            if( ! (top instanceof HasWarnings))
-                throw new IllegalArgumentException("It's not possible to add warnings to " + top);
-            ((HasWarnings)top).addWarning( warn );
-        }
-
-
-        @Override
-        public List<String> getWarnings() {
-            ProcessingStackItem top = processor.stack.peek();
-            if( ! (top instanceof HasWarnings))
-                throw new IllegalArgumentException("Doesn't have warnings: " + top);
-            return ((HasWarnings)top).getWarnings();
-        }
-    }
-    
-    
-    /**
-     *  Base class for stackable contexts which have variables map. Currently only RootContext.
-     */
-    private static class Variables {
-        private Map<String, Object> variables;
-        public Map<String, Object> getVariables() {
-            return this.variables;
-        }
-        public Variables setVariable( String name, Object value ){
-            if( this.variables == null ) this.variables = new HashMap();
-            this.variables.put( name, value );
-            return this;
-        }
-    }
-
 }// class
