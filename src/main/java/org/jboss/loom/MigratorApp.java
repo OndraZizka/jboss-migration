@@ -151,6 +151,16 @@ public class MigratorApp {
                 continue;
             }
 
+            // User variables available in EL and Groovy in external migrators.
+            if (arg.startsWith("userVar.")) {
+                
+                // --userVar.<property.name>=<value>
+                String rest = StringUtils.substringAfter(arg, ".");
+                String name = StringUtils.substringBefore(rest, "=");
+                String value = StringUtils.substringAfter(rest, "=");
+                
+                globalConfig.getUserVars().put( name, value );
+            }
             
 
             // Module-specific configurations.
