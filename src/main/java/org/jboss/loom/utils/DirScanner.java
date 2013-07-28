@@ -7,7 +7,10 @@ import java.util.List;
 import org.apache.tools.ant.DirectoryScanner;
 
 /**
- *
+ *  Usage:
+ * 
+ *    <pre><code>files = new DirScanner("** /foo/*.bar").list( baseDir );</code></pre>
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class DirScanner {
