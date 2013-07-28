@@ -25,7 +25,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
         this.def = forEachDef;
         this.processor = processor;
         // Initialize the iterator.
-        DefinitionBasedMigrator.ConfigLoadResult queryResult = processor.dbm.getQueryResultByName( this.def.queryName );
+        DefinitionBasedMigrator.ConfigLoadResult queryResult = processor.defBasedMig.getQueryResultByName( this.def.queryName );
         this.it = queryResult.configFragments.iterator();
     }
 

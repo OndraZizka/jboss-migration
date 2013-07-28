@@ -4,6 +4,7 @@ package org.jboss.loom.migrators._ext.process;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
@@ -51,16 +52,33 @@ import org.slf4j.LoggerFactory;
 public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariablesProvider {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
     
+    // Input stuff
+    
+    /**  The migrator instance whose definition we are processing. */
+    final DefinitionBasedMigrator defBasedMig;
+    
+    
+    // Work stuff
+    
+    /** Stack of nested constructs - forEach, action etc. */
     final Stack<ProcessingStackItem> stack = new Stack();
     
-    final DefinitionBasedMigrator dbm;
+    //final Map<Class<? extends MigratorDefinition.ActionDef>, ActionDefHandler> handlers; // TBD.
     
+    
+    // Services
+    
+    /** Resolver of all ${...} expressions. Based on this processor's current stack. */
     private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
 
 
     public MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
-        this.stack.push( (ProcessingStackItem) new RootContext().setVariable("mig", dbm).setVariable("conf", dbm.getConfig()));
-        this.dbm = dbm;
+        this.stack.push( (ProcessingStackItem) new RootContext()
+                .setVariable("mig", dbm)
+                .setVariable("conf", dbm.getConfig()));
+        this.defBasedMig = dbm;
+        
+        
     }
     
     
@@ -69,7 +87,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
      *  I decided to prefer this method over recursive calls down the stack, using parentContext reference,
      *  because this way I have more control. Could become handy later.
      */
-    public Object getVariable( String name ){
+    @Override public Object getVariable( String name ){
         for( ProcessingStackItem context : stack ) {
             Object var = context.getVariable( name );
             if( var != null )
@@ -79,8 +97,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }
 
     
-    public List<IMigrationAction> process( MigratorDefinition cont ) throws MigrationException {
-        return this.processChildren( cont );
+    public List<IMigrationAction> process( MigratorDefinition migDef ) throws MigrationException {
+        return this.processChildren( migDef );
     }
 
     /**
@@ -95,9 +113,10 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         if( cont.hasForEachDefs() )
         for( MigratorDefinition.ForEachDef forEachDef : cont.getForEachDefs() ) {
             
-            DefinitionBasedMigrator.ConfigLoadResult queryResult = this.dbm.getQueryResultByName( forEachDef.queryName ); 
+            DefinitionBasedMigrator.ConfigLoadResult queryResult = this.defBasedMig.getQueryResultByName( forEachDef.queryName ); 
             if( null == queryResult )
-                throw new MigrationException("Query '"+forEachDef.queryName+"' not found. Needed at " + XmlUtils.formatLocation(forEachDef.location));
+                throw new MigrationException("Query '"+forEachDef.queryName+"' not found. "
+                        /*+ "Needed at " + XmlUtils.formatLocation(forEachDef.location) */ );
             
             ForEachContext forEachContext = new ForEachContext( forEachDef, this );
             this.stack.push( forEachContext );
@@ -117,50 +136,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         // TODO: Currently, actions processing is hard-coded. This needs to be brought to meta-data.
         if( cont.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : cont.getActionDefs() ) {
-            IMigrationAction action;
-            switch( actionDef.typeVal ){
-                case "manual":
-                    action = new ManualAction();
-                    // warning
-                    // forEach
-                    break;
-                case "copy": {
-                    String src  = actionDef.attribs.get("src");
-                    String dest = actionDef.attribs.get("dest");
-                    String ifExistsS = actionDef.attribs.get("ifExists");
-                    CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
-                    action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
-                } break;
-                case "xslt": {
-                    String srcS      = actionDef.attribs.get("src");
-                    String destS     = actionDef.attribs.get("dest");
-                    String xsltS     = actionDef.attribs.get("xlst");
-                    
-                    File src      = new File( srcS );
-                    File dest     = new File( destS );
-                    File xslt     = new File( xsltS );
-                    
-                    String ifExistsS = actionDef.attribs.get("ifExists");
-                    CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
-                    boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
-                    action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
-                }   break;
-                case "cli": {
-                    String cliScript = actionDef.attribs.get("cliScript");
-                    ModelNode modelNode = ModelNode.fromString( cliScript );
-                    action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
-                } break;
-                case "module": {
-                    String name = actionDef.attribs.get("name");
-                    String jarS = actionDef.attribs.get("jar");
-                    File jar     = new File( jarS );
-                    String[] deps = parseDeps( actionDef.attribs.get("deps") );
-                    Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
-                    action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
-                } break;
-                default: 
-                    throw new MigrationException("Unsupported action type '" + actionDef.typeVal + "' in " + cont.location.getSystemId());
-            }
+            IMigrationAction action = createActionFromDef( actionDef );
             
             // Recurse
             this.stack.push( new ActionContext( action ) );
@@ -173,11 +149,77 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }// process();
 
 
+    
+    /**
+     *  Creates an action according to the definition, which is a subclass of ActionDef.
+     * @param actionDef
+     * @return 
+     */
+    private IMigrationAction createActionFromDef( MigratorDefinition.ActionDef actionDef ) throws MigrationException {
+        
+        IMigrationAction action;
+        
+        // TODO: Switch by subclass.
+        switch( actionDef.typeVal ){
+            case "manual":
+                action = new ManualAction();
+                // warning
+                // forEach
+                break;
+            case "copy": {
+                String src  = actionDef.attribs.get("src");
+                String dest = actionDef.attribs.get("dest");
+                String ifExistsS = actionDef.attribs.get("ifExists");
+                // TODO: EL
+
+                CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
+                action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
+            } break;
+            case "xslt": {
+                String srcS      = actionDef.attribs.get("src");
+                String destS     = actionDef.attribs.get("dest");
+                String xsltS     = actionDef.attribs.get("xlst");
+
+                File src      = new File( srcS );
+                File dest     = new File( destS );
+                File xslt     = new File( xsltS );
+                // TODO: EL
+
+                String ifExistsS = actionDef.attribs.get("ifExists");
+                CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
+                boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
+                action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
+            }   break;
+            case "cli": {
+                String cliScript = actionDef.attribs.get("cliScript");
+                // TODO: EL
+                ModelNode modelNode = ModelNode.fromString( cliScript );
+                action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
+            } break;
+            case "module": {
+                String name = actionDef.attribs.get("name");
+                String jarS = actionDef.attribs.get("jar");
+                File jar     = new File( jarS );
+                String[] deps = parseDeps( actionDef.attribs.get("deps") );
+                Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
+                action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
+            } break;
+            default: 
+                throw new MigrationException("Unsupported action type '" + actionDef.typeVal 
+                        /*+ "' in " + cont.location.getSystemId() */ );
+        }
+        
+        return action;
+    }
+
+    
+    
+    
     /**
      *  Parses syntax "foo ?bar baz" into String[]{"foo", null, "bar", "baz"}.
      *  (? and null means that the following dep is optional.)
      */
-    private String[] parseDeps( String str ) {
+    private static String[] parseDeps( String str ) {
         List<String> deps = new LinkedList();
         for( String name : StringUtils.split(str) ){
             if( name.charAt(0) == '?' ){
@@ -188,5 +230,5 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         }
         return deps.toArray( new String[deps.size()] );
     }
-    
+
 }// class
