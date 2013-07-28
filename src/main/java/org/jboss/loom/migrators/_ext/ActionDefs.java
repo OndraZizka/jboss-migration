@@ -30,15 +30,19 @@ public class ActionDefs {
     @XmlRootElement
     @XmlDiscriminatorValue("module")
     public static class ModuleActionDef extends MigratorDefinition.ActionDef {
+        
         /** Module name, eg "com.mysql.jdbc.driver". EL. */
         @XmlAttribute public String name;
+        
         /** Path to a .jar file of the module. EL. */
-        @XmlAttribute public String jarPath;
+        @XmlAttribute(name = "jar") public String jarPath;
+        
         /** List of dependencies. EL. */
-        @XmlAttribute @XmlList List<String> deps;
+        @XmlAttribute @XmlList public List<String> deps;
     }
 
     public static class FileBasedActionDef extends MigratorDefinition.ActionDef {
+        
         /** Path mask. Ant-like wildcards, EL. */
         @XmlAttribute public String pathMask;
         

@@ -3,7 +3,7 @@
     
     <migrator name="XsltActionTest">
         
-        <action type="xslt" src="src.xml" dest="dest.xml" xslt="XsltStyleSheet.xsl"/>
+        <action type="xslt" pathMask="src.xml" dest="dest.xml" xslt="XsltStyleSheet.xsl"/>
         
     </migrator>
     
