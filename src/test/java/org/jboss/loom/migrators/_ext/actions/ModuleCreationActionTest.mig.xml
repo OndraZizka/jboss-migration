@@ -3,7 +3,9 @@
     
     <migrator name="ModuleCreationActionTest">
         
-        <action type="module" name="org.jboss.windride.test" jar="test.jar"/>
+        <action type="module" name="org.jboss.windride.testBasic" jar="test.jar"/>
+        <action type="module" name="org.jboss.windride.testDeps" jar="test.jar" deps="org.jboss.as.foo org.jboss.as.foo"/>
+        <action type="module" name="org.jboss.windride.testIfExists" jar="test.jar" ifExists="FAIL"/>
         
     </migrator>
     
