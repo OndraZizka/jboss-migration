@@ -44,6 +44,9 @@ public class ActionDefs {
         
         /** Where to store the result. May be a dir or a file. EL. */
         @XmlAttribute public String dest;
+        
+        /** What to do if the destination file already exists. */
+        @XmlAttribute public String ifExists;
     }
 
     
