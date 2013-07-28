@@ -18,6 +18,7 @@ import org.jboss.loom.ex.MigrationException;
  *  TBC: This concept has very narrow usage, or is inefficient.
  *       Fore example this one - if CopyAction uses Ant pathMask, it would have to scan all that files.
  *       Could it hook at different level? E.g. to some "onCopyFileToDeployments" event?
+ *       Or should it be entirely left up to migrators?
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
