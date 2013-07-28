@@ -9,12 +9,15 @@ package org.jboss.loom.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.spi.ann.Property;
+import org.jboss.loom.utils.DirScanner;
 import org.jboss.loom.utils.Utils;
 
 /**
@@ -24,7 +27,13 @@ import org.jboss.loom.utils.Utils;
  */
 public abstract class FileAbstractAction extends AbstractStatefulAction {
     
+    // First alternative: exact file.
     protected File src;
+    
+    // Second alternative: 
+    protected String pathMask; // What to look for - Ant-style path mask.
+    protected File baseDir;    // Where to look for.    
+    
     protected File dest;
     protected boolean failIfNotExist = true;
     private File temp;
@@ -60,8 +69,13 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
 
     @Override
     public void preValidate() throws MigrationException {
-        if ( ! src.exists() && failIfNotExist )
-            throw new ActionException(this, "File to "+ verb().toLowerCase() +" doesn't exist: " + src.getPath());
+        if( src != null ){
+            if ( ! src.exists() && failIfNotExist )
+                throw new ActionException(this, "File to "+ verb().toLowerCase() +" doesn't exist: " + src.getPath());
+        }
+        else if( this.pathMask == null ){
+            throw new ActionException( this, "Neither src nor pathMask is set.");
+        }
     }
 
 
@@ -162,6 +176,23 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     @Property(name = "dest", style = "code", label = "To")
     public File getDest() {
         return dest;
+    }
+
+    
+    /**
+     *  Finds files according to this.pathMask and this.baseDir.
+     */
+    public List<File> findFilesForPattern() throws IOException {
+        List<File> files = new DirScanner( this.pathMask ).list( this.baseDir );
+        return files;
+    }
+    
+    /**
+     *  If $src is defined, returns that. Else returns findFilesForPattern().
+     */
+    public List<File> getFiles() throws IOException {
+        if( this.src != null ) return Arrays.asList(this.src);
+        else return findFilesForPattern();
     }
     
 }

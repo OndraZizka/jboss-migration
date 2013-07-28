@@ -3,6 +3,8 @@ package org.jboss.loom.actions;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
 import javax.xml.transform.TransformerException;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.spi.IMigrator;
@@ -53,8 +55,16 @@ public class XsltAction extends CopyFileAction implements IMigrationAction {
     /**
      *  Does the actual XSLT transformation.
      */
-    @Override public void doPerform() throws TransformerException, FileNotFoundException {
-        XmlUtils.transform( this.src, this.dest, new FileInputStream( this.xsltFile ));
+    @Override public void doPerform() throws TransformerException, FileNotFoundException, IOException {
+        
+        final List<File> files = this.getFiles();
+        
+        if( files.isEmpty() )
+            this.getWarnings().add("No file found for pattern '"+this.pathMask+"' in " + this.baseDir);
+        else
+            for( File f : files ){
+                XmlUtils.transform( this.src, this.dest, new FileInputStream( this.xsltFile )); 
+            }
     }
 
 }// class

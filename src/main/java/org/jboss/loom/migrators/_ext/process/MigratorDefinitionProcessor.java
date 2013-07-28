@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.actions.CliCommandAction;
@@ -19,10 +18,17 @@ import org.jboss.loom.actions.XsltAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators._ext.ActionDefs;
+import org.jboss.loom.migrators._ext.ActionDefs.CliActionDef;
+import org.jboss.loom.migrators._ext.ActionDefs.CopyActionDef;
+import org.jboss.loom.migrators._ext.ActionDefs.ManualActionDef;
+import org.jboss.loom.migrators._ext.ActionDefs.ModuleActionDef;
+import org.jboss.loom.migrators._ext.ActionDefs.XsltActionDef;
 import org.jboss.loom.migrators._ext.ContainerOfStackableDefs;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.DirScanner;
+import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.jboss.loom.utils.el.IExprLangEvaluator.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
@@ -88,11 +94,17 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
 
 
-    public MigratorDefinitionProcessor( DefinitionBasedMigrator dbm ) {
+    public MigratorDefinitionProcessor( DefinitionBasedMigrator defBasedMig ) {
         this.stack.push( (ProcessingStackItem) new RootContext()
-                .setVariable("mig", dbm)
-                .setVariable("conf", dbm.getConfig()));
-        this.defBasedMig = dbm;
+            .setVariable("mig", defBasedMig)
+            // Shorthands
+            .setVariable("conf", defBasedMig.getConfig()) 
+            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile())
+            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile())
+            // Others
+            .setVariable("workdir", new File("."))
+        );
+        this.defBasedMig = defBasedMig;
     }
     
     
@@ -173,6 +185,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         IMigrationAction action;
         
+        File defOriginFile = this.defBasedMig.getDescriptor().getOrigin().getFile();
+        
         // Switch by subclass.
         /*Class<? extends IActionDefHandler> handlerClass = handlers.get( actionDef.getClass() );
         if( handlerClass == null )
@@ -189,55 +203,58 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         
         if( actionDef instanceof ActionDefs.ManualActionDef ){
-                action = new ManualAction();
-                // warning
-                // forEach
+            ManualActionDef def = (ManualActionDef) actionDef;
+            action = new ManualAction();
+            // Warning(s)
+            action.getWarnings().add( def.warning );
         }
         else if( actionDef instanceof ActionDefs.CopyActionDef ){
-                String src  = actionDef.attribs.get("src");
-                String dest = actionDef.attribs.get("dest");
-                String ifExistsS = actionDef.attribs.get("ifExists");
-                // TODO: EL
-
-                CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
-                action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
+            CopyActionDef def = (CopyActionDef) actionDef;
+            // TODO: EL
+            // Relative paths in mig defs refer to it's originating dir.
+            
+            CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( def.ifExists );
+            action = new CopyFileAction( DefinitionBasedMigrator.class, new File(def.pathMask), new File(def.dest), ifExists ); 
         } 
         else if( actionDef instanceof ActionDefs.XsltActionDef ){
-                String srcS      = actionDef.attribs.get("src");
-                String destS     = actionDef.attribs.get("dest");
-                String xsltS     = actionDef.attribs.get("xlst");
+            XsltActionDef def = (XsltActionDef) actionDef;
+             
+            File src      = new File( def.pathMask );
+            File dest     = new File( def.dest );
+            File xslt     = new File( def.xslt );
+            // TODO: EL
 
-                File src      = new File( srcS );
-                File dest     = new File( destS );
-                File xslt     = new File( xsltS );
-                // TODO: EL
-
-                String ifExistsS = actionDef.attribs.get("ifExists");
-                CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
-                boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
-                action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
+            String ifExistsS = actionDef.attribs.get("ifExists");
+            CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
+            boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
+            action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
         } 
         else if( actionDef instanceof ActionDefs.CliActionDef ){
-                String cliScript = actionDef.attribs.get("cliScript");
-                // TODO: EL
-                ModelNode modelNode = ModelNode.fromString( cliScript );
-                action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
+            CliActionDef def = (CliActionDef) actionDef;
+
+            String cliScript = actionDef.attribs.get("cliScript");
+            // TODO: EL
+            ModelNode modelNode = ModelNode.fromString( cliScript );
+            action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
         } 
         else if( actionDef instanceof ActionDefs.ModuleActionDef ){
-                String name = actionDef.attribs.get("name");
-                String jarS = actionDef.attribs.get("jar");
-                File jar     = new File( jarS );
-                String[] deps = parseDeps( actionDef.attribs.get("deps") );
-                Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
-                action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
+            ModuleActionDef def = (ModuleActionDef) actionDef;
+
+            String name = actionDef.attribs.get("name");
+            String jarS = actionDef.attribs.get("jar");
+            File jar     = new File( jarS );
+            String[] deps = parseDeps( actionDef.attribs.get("deps") );
+            Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
+            action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
         } 
         else{
-                throw new MigrationException("Unsupported action type '" + actionDef.typeVal 
-                        /*+ "' in " + cont.location.getSystemId() */ );
+            throw new MigrationException("Unsupported action type '" + actionDef.typeVal 
+                    /*+ "' in " + cont.location.getSystemId() */ );
         }
         
         return action;
-    }
+        
+    }// createActionFromDef()
 
     
     public static interface IActionDefHandler {

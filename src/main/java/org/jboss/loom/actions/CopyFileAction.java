@@ -8,7 +8,7 @@
 package org.jboss.loom.actions;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.ex.ActionException;
 import org.jboss.loom.ex.MigrationException;
@@ -57,7 +57,7 @@ public class CopyFileAction extends FileAbstractAction {
     }
     
     
-
+    
     @Override
     public void preValidate() throws MigrationException {
         if( ! src.exists() && failIfNotExist )
@@ -87,12 +87,21 @@ public class CopyFileAction extends FileAbstractAction {
 
     /**
      * Overridable - does the actual file operation.
+     * Handles both alternatives: a single File, or pathMask + baseDir.
      */
     protected void doPerform() throws Exception {
-        if( src.isDirectory() )
-            FileUtils.copyDirectory( src, dest );
-        else //if( src.isFile() )
-            FileUtils.copyFile( src, dest );
+        
+        final List<File> files = this.getFiles();
+        
+        if( files.isEmpty() )
+            this.getWarnings().add("No file found for pattern '"+this.pathMask+"' in " + this.baseDir);
+        else
+            for( File f : files ){
+                if( src.isDirectory() )
+                    FileUtils.copyDirectory( src, dest );
+                else //if( src.isFile() )
+                    FileUtils.copyFile( src, dest );
+            }
     }
     
 }// class
