@@ -2,10 +2,12 @@ package org.jboss.loom.migrators._ext.process;
 
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.actions.CliCommandAction;
@@ -16,11 +18,11 @@ import org.jboss.loom.actions.ModuleCreationAction;
 import org.jboss.loom.actions.XsltAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators._ext.ActionDefs;
 import org.jboss.loom.migrators._ext.ContainerOfStackableDefs;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
-import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.jboss.loom.utils.el.IExprLangEvaluator.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
@@ -51,6 +53,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariablesProvider {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
+
     
     // Input stuff
     
@@ -63,7 +66,20 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     /** Stack of nested constructs - forEach, action etc. */
     final Stack<ProcessingStackItem> stack = new Stack();
     
-    //final Map<Class<? extends MigratorDefinition.ActionDef>, ActionDefHandler> handlers; // TBD.
+    /**  Currently built statically, but eventually impls will come from Groovy classes as well.  */
+    static final Map<Class<? extends MigratorDefinition.ActionDef>, Class<? extends IActionDefHandler>> handlers;
+    static {
+        handlers = findActionDefHandlers(); // TBD: This should be done in the MigrationEngine or so.
+    }
+    private static Map<Class<? extends MigratorDefinition.ActionDef>, Class<? extends IActionDefHandler>> findActionDefHandlers() {
+        final HashMap handlers = new HashMap();
+        handlers.put( ActionDefs.CliActionDef.class, null);
+        handlers.put( ActionDefs.ModuleActionDef.class, null);
+        handlers.put( ActionDefs.CopyActionDef.class, null);
+        handlers.put( ActionDefs.XsltActionDef.class, null);
+        handlers.put( ActionDefs.ManualActionDef.class, null);
+        return handlers;
+    }
     
     
     // Services
@@ -77,8 +93,6 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                 .setVariable("mig", dbm)
                 .setVariable("conf", dbm.getConfig()));
         this.defBasedMig = dbm;
-        
-        
     }
     
     
@@ -160,7 +174,19 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         IMigrationAction action;
         
         // Switch by subclass.
-        //if( actionDef instanceof MigratorDefinition.ManualActionDef )
+        /*Class<? extends IActionDefHandler> handlerClass = handlers.get( actionDef.getClass() );
+        if( handlerClass == null )
+            throw new MigrationException("No action handler defined for " + actionDef.getClass().getName() );
+        
+        IMigrationAction createAction;
+        try {
+            createAction = handlerClass.newInstance().setDefBasedMig(this.defBasedMig).createAction( actionDef );
+            return createAction;
+        } catch( InstantiationException | IllegalAccessException ex ) {
+            throw new MigrationException("Failed instantiating " + actionDef.getClass().getName() );
+        }*/
+        // TBD: Create the built-in handlers.
+        
         
         switch( actionDef.typeVal ){
             case "manual":
@@ -215,6 +241,14 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }
 
     
+    public static interface IActionDefHandler {
+        /** Just stores the value, instead of a constructor. */
+        IActionDefHandler setDefBasedMig( DefinitionBasedMigrator mig );
+        
+        /** Creates the action based on given definition. */
+        IMigrationAction createAction( MigratorDefinition.ActionDef actionDef );
+    }
+
     
     
     /**
