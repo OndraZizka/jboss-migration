@@ -39,6 +39,9 @@ public class ActionDefs {
         
         /** List of dependencies. EL. */
         @XmlAttribute @XmlList public List<String> deps;
+        
+        /** What to do if the destination file already exists. */
+        @XmlAttribute public String ifExists;
     }
 
     public static class FileBasedActionDef extends MigratorDefinition.ActionDef {
