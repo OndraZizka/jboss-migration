@@ -65,8 +65,10 @@ public class CopyFileAction extends FileAbstractAction {
     
     @Override
     public void preValidate() throws MigrationException {
-        if( ! src.exists() && failIfNotExist )
+        if( src != null && ! src.exists() && failIfNotExist )
             throw new ActionException(this, "File to "+verb().toLowerCase()+" doesn't exist: " + src.getPath());
+        if( baseDir != null && ! baseDir.exists() && failIfNotExist )
+            throw new ActionException(this, "Base dir to "+verb().toLowerCase()+" from doesn't exist: " + baseDir.getPath());
         if( ! dest.exists() )
             return;
         switch( this.ifExists ){
