@@ -188,13 +188,12 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         // TBD: Create the built-in handlers.
         
         
-        switch( actionDef.typeVal ){
-            case "manual":
+        if( actionDef instanceof ActionDefs.ManualActionDef ){
                 action = new ManualAction();
                 // warning
                 // forEach
-                break;
-            case "copy": {
+        }
+        else if( actionDef instanceof ActionDefs.CopyActionDef ){
                 String src  = actionDef.attribs.get("src");
                 String dest = actionDef.attribs.get("dest");
                 String ifExistsS = actionDef.attribs.get("ifExists");
@@ -202,8 +201,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
 
                 CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
                 action = new CopyFileAction( DefinitionBasedMigrator.class, new File(src), new File(dest), ifExists ); 
-            } break;
-            case "xslt": {
+        } 
+        else if( actionDef instanceof ActionDefs.XsltActionDef ){
                 String srcS      = actionDef.attribs.get("src");
                 String destS     = actionDef.attribs.get("dest");
                 String xsltS     = actionDef.attribs.get("xlst");
@@ -217,22 +216,22 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                 CopyFileAction.IfExists ifExists = CopyFileAction.IfExists.valueOf( ifExistsS );
                 boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
                 action = new XsltAction( DefinitionBasedMigrator.class, src, xslt, dest, ifExists, failIfExists ); 
-            }   break;
-            case "cli": {
+        } 
+        else if( actionDef instanceof ActionDefs.CliActionDef ){
                 String cliScript = actionDef.attribs.get("cliScript");
                 // TODO: EL
                 ModelNode modelNode = ModelNode.fromString( cliScript );
                 action = new CliCommandAction( DefinitionBasedMigrator.class, cliScript, modelNode ); 
-            } break;
-            case "module": {
+        } 
+        else if( actionDef instanceof ActionDefs.ModuleActionDef ){
                 String name = actionDef.attribs.get("name");
                 String jarS = actionDef.attribs.get("jar");
                 File jar     = new File( jarS );
                 String[] deps = parseDeps( actionDef.attribs.get("deps") );
                 Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
                 action = new ModuleCreationAction( DefinitionBasedMigrator.class, name, deps, jar, ifExists );
-            } break;
-            default: 
+        } 
+        else{
                 throw new MigrationException("Unsupported action type '" + actionDef.typeVal 
                         /*+ "' in " + cont.location.getSystemId() */ );
         }
