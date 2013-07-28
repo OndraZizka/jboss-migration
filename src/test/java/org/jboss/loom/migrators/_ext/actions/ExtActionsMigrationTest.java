@@ -54,7 +54,8 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     public void testCopyAction() throws Exception {
         TestUtils.printTestBanner();
         
-        File dir = Files.createTempDirectory("ExtMigr-xslt-").toFile();
+        File dir = Files.createTempDirectory("ExtMigr-copy-").toFile();
+        
         
         doTest( "CopyActionTest", dir, new DirPreparation() {
             @Override public void prepareDir( File dir ) throws IOException {
@@ -140,9 +141,17 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         System.out.println( "---  "   + migName +   "  ---" );
         System.out.println( "-----------------------------" );
         
+        // Create temp dir if not given.
         if( dir == null )
-            dir = createDirWithExtMigratorFile( migName );
+            dir = Files.createTempDirectory("ExtMigr-" + migName + "-").toFile();
+        
+        // Put the .mig.xml in the dir.
+        putMigratorFile( migName, dir );
+        
+        // Callback
         prep.prepareDir( dir );
+        
+        // Migration Configuration
         Configuration conf = createSingleExtMigTestConf( migName );
         conf.getGlobal().setExternalMigratorsDir( dir.getPath() );
         
@@ -155,11 +164,9 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
     }
 
 
-    private File createDirWithExtMigratorFile( String name ) throws IOException {
+    private static void putMigratorFile( String name, File dir ) throws IOException {
         String file = name + ".mig.xml";
-        Path dir = Files.createTempDirectory("ExtMigr-" + name + "-");
-        ClassUtils.copyResourceToDir( getClass(), file, dir.toFile() );
-        return dir.toFile();
+        ClassUtils.copyResourceToDir( ExtActionsMigrationTest.class, file, dir );
     }
 
 
