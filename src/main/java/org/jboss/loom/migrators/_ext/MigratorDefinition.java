@@ -9,13 +9,12 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.loom.migrators.Origin;
+import org.jboss.loom.migrators._ext.ActionDefs.*;
 
 /**
  *  JAXB class for *.mig.xml files.
@@ -87,52 +86,6 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         //public List<PropertyBean> properties;
         //@XmlAnyAttribute
         public Map<String, String> attribs = new HashMap();
-    }
-    
-    @XmlRootElement
-    @XmlDiscriminatorValue("cli")
-    public static class CliActionDef extends ActionDef {
-        /** CLI command. EL. */
-        @XmlAttribute public String command;
-    }
-
-    @XmlRootElement
-    @XmlDiscriminatorValue("manual")
-    public static class ManualActionDef extends ActionDef {
-    }
-
-    @XmlRootElement
-    @XmlDiscriminatorValue("module")
-    public static class ModuleActionDef extends ActionDef {
-        /** Module name, eg "com.mysql.jdbc.driver". EL. */
-        @XmlAttribute public String name;
-        /** Path to a .jar file of the module. EL. */
-        @XmlAttribute public String jarPath;
-        /** List of dependencies. EL. */
-        @XmlAttribute @XmlList List<String> deps;
-    }
-
-    public static class FileBasedActionDef extends ActionDef {
-        /** Path mask. Ant-like wildcards, EL. */
-        @XmlAttribute public String pathMask;
-        
-        /** Where to store the result. May be a dir or a file. EL. */
-        @XmlAttribute public String dest;
-    }
-
-    @XmlRootElement
-    @XmlDiscriminatorValue("copy")
-    public static class CopyActionDef extends FileBasedActionDef {
-        @Override public String toString() { return "Copy from " + this.pathMask + " to " + this.dest; }
-    }
-
-    @XmlRootElement
-    @XmlDiscriminatorValue("xslt")
-    public static class XsltActionDef extends FileBasedActionDef {
-        /** XSLT template path. */
-        @XmlAttribute public String xslt;
-        
-        @Override public String toString() { return "XSLT from " + this.pathMask + " to " + this.dest + " using " + xslt; }
     }
     
     

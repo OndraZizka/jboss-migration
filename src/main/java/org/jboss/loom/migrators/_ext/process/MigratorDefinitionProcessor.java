@@ -159,7 +159,9 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         IMigrationAction action;
         
-        // TODO: Switch by subclass.
+        // Switch by subclass.
+        //if( actionDef instanceof MigratorDefinition.ManualActionDef )
+        
         switch( actionDef.typeVal ){
             case "manual":
                 action = new ManualAction();
