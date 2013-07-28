@@ -15,15 +15,24 @@ import org.jboss.loom.ex.MigrationException;
 /**
  *  TODO: Check each <bean class="...">. If the class is org.jboss.*, WARN.
  * 
+ *  TBC: This concept has very narrow usage, or is inefficient.
+ *       Fore example this one - if CopyAction uses Ant pathMask, it would have to scan all that files.
+ *       Could it hook at different level? E.g. to some "onCopyFileToDeployments" event?
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class BeansXmlReview extends ActionReviewBase {    
     
     @Override
     public void review( IMigrationAction action ) throws MigrationException {
+        
         // Only accept CopyActions with -beans.xml
         if( ! ( action instanceof CopyFileAction ) )  return;
         CopyFileAction ca = (CopyFileAction) action;
+
+        // It may have Ant-like $pathMaks instead of $src.
+        if( ca.getSrc() == null ) return;
+        
         String fName = ca.getSrc().getName();
         if( ! fName.endsWith("-beans.xml")) return;
         
@@ -32,9 +41,9 @@ public class BeansXmlReview extends ActionReviewBase {
         for( Bean bean : beans ) {
             if( bean.cls.startsWith("org.jboss.")){
                 action.getWarnings().add("A bean in " + fName + " uses org.jboss.* class: " + bean.cls + "\n"
-                        + "Using MBeans is only supported as a legacy technology.\n"
-                        + "Server boot may fail with ClassNotFoundException.\n"
-                        + "Consult server documentation about classloading and modules.");
+                    + "Using MBeans is only supported as a legacy technology.\n"
+                    + "Server boot may fail with ClassNotFoundException.\n"
+                    + "Consult server documentation about classloading and modules.");
             }
         }
     }
