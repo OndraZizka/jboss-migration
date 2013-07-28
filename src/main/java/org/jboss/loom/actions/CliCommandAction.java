@@ -52,6 +52,7 @@ public class CliCommandAction extends AbstractStatefulAction {
     /**
      * @param script      Text script 
      * @param cliCommand  CLI API object, must do the same as text script..
+     * @deprecated  Use either String-only or ModalNode-only constructors - they will convert the other one.
      */
     public CliCommandAction( Class<? extends IMigrator> fromMigrator, String script, ModelNode cliCommand) {
         super(fromMigrator);
