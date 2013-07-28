@@ -46,6 +46,11 @@ public class CopyFileAction extends FileAbstractAction {
         this.ifExists = ifExists;
     }
 
+    public CopyFileAction(Class<? extends IMigrator> fromMigrator, String pathMask, File baseDir, File dest, IfExists ifExists, boolean failIfNotExist) {
+        super( fromMigrator, pathMask, baseDir, dest, failIfNotExist );
+        this.ifExists = ifExists;
+    }
+
     
     @Override protected String verb() {
         return "Copy";

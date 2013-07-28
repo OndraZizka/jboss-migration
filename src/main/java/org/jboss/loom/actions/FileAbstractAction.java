@@ -66,6 +66,15 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
         this.failIfNotExist = failIfNotExist;
     }
     
+    public FileAbstractAction(Class<? extends IMigrator> fromMigrator, String pathMask, File baseDir, File dest, boolean failIfNotExist) {
+        super(fromMigrator);
+        this.src = null;
+        this.baseDir = baseDir;
+        this.pathMask = pathMask;
+        this.dest = dest;
+        this.failIfNotExist = failIfNotExist;
+    }
+    
 
     @Override
     public void preValidate() throws MigrationException {

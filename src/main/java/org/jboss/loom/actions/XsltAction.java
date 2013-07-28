@@ -38,6 +38,11 @@ public class XsltAction extends CopyFileAction implements IMigrationAction {
         this.xsltFile = xsltFile;
     }
     
+    public XsltAction( Class<? extends IMigrator> fromMigrator, String pathMask, File baseDir, File xsltFile, File dest, IfExists ifExists, boolean failIfNotExist ) {
+        super( fromMigrator, pathMask, baseDir, dest, ifExists, failIfNotExist );
+        this.xsltFile = xsltFile;
+    }
+    
     
     // Overrides
     
