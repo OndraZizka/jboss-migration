@@ -111,11 +111,11 @@ public class CopyFileAction extends FileAbstractAction {
         }
 
         // Transform all files.
-        for( File f : files ){
-            if( src.isDirectory() )
-                FileUtils.copyDirectory( src, dest );
+        for( File file : files ){
+            if( file.isDirectory() )
+                FileUtils.copyDirectory( file, dest );
             else //if( src.isFile() )
-                FileUtils.copyFile( src, dest );
+                FileUtils.copyFile( file, dest );
         }
     }
     

@@ -3,8 +3,8 @@
     
     <migrator name="XsltActionTest">
         
-        <action type="xslt" pathMask="src.xml" dest="destBasic.xml" xslt="XsltStyleSheet.xsl"/>
-        <action type="xslt" pathMask="src.xml" dest="destIfExists.xml" xslt="XsltStyleSheet.xsl" ifExists="FAIL"/>
+        <action type="xslt" src="src.xml" dest="destBasic.xml" xslt="XsltStyleSheet.xsl"/>
+        <action type="xslt" src="src.xml" dest="destIfExists.xml" xslt="XsltStyleSheet.xsl" ifExists="FAIL"/>
         
     </migrator>
     

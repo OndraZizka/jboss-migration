@@ -47,7 +47,7 @@ public class ActionDefs {
     public static class FileBasedActionDef extends MigratorDefinition.ActionDef {
         
         /** Path mask. Ant-like wildcards, EL. */
-        @XmlAttribute public String pathMask;
+        @XmlAttribute(name = "src") public String pathMask;
         
         /** Where to store the result. May be a dir or a file. EL. */
         @XmlAttribute public String dest;

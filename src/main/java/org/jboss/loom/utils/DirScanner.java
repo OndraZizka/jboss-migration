@@ -25,20 +25,26 @@ public class DirScanner {
     }
 
     public List<String> list( File dirToScan ) throws IOException {
+        return this.list( dirToScan, true );
+    }
+    
+    public List<String> list( File dirToScan, boolean dirsToo ) throws IOException {
         if( dirToScan == null )
             throw new IllegalArgumentException("dirToScan can't be null.");
 
         DirectoryScanner ds = new DirectoryScanner();
         String[] includes = { this.pattern };
-        //String[] excludes = {"modules\\*\\**"};
         ds.setIncludes(includes);
-        //ds.setExcludes(excludes);
         ds.setBasedir( dirToScan );
-        //ds.setCaseSensitive(true);
         ds.scan();
 
-        String[] matches = ds.getIncludedFiles();
-        return Arrays.asList( matches );
+        // Files
+        List<String> list = Arrays.asList( ds.getIncludedFiles() );
+        // Dirs
+        if( dirsToo )
+            list.addAll( Arrays.asList( ds.getIncludedDirectories() ) );
+        
+        return list;
     }
     
     public List<File> listAsFiles( File dirToScan ) throws IOException {
