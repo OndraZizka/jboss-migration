@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.11.0-SNAPSHOT</version>
+    <version>0.11.0</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -21,12 +19,12 @@
         
         <!-- User input defaults -->
         <download>eap6</download> <!-- "as7" or "eap6" -->
-        <surefire.debug.port></surefire.debug.port>
-        <surefire.debug.args></surefire.debug.args> <!-- Not used now, kept for Arq-launched AS. -->
+        <surefire.debug.port />
+        <surefire.debug.args /> <!-- Not used now, kept for Arq-launched AS. -->
         <surefire.system.args>${surefire.debug.args}</surefire.system.args>
         
         <!-- Build flow control -->
-        <as.jvm.args></as.jvm.args>
+        <as.jvm.args />
         <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
     </properties>
     
@@ -189,7 +187,7 @@
                                 <configuration>
                                     <target>
                                         <unzip src="target/jboss-as-dist-${as.download.version}.zip" dest="target/as-dist">
-                                            <cutdirsmapper dirs="1"/>
+                                            <cutdirsmapper dirs="1" />
                                         </unzip>
                                     </target>
                                 </configuration>
@@ -559,7 +557,8 @@
         <url>https://github.com/OndraZizka/jboss-migration</url>
         <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
         <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
-    </scm>
+      <tag>AsMigrator-0.11.0</tag>
+  </scm>
     <developers>
         <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
         <developer> <id>rsearls</id> <name>Rebecca Searls</name> <organization>Red Hat / JBoss</organization> </developer>
