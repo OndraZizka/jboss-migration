@@ -45,7 +45,7 @@ public class DirScanner {
         List<String> matches = this.list( dirToScan );
         List<File> files = new ArrayList(matches.size());
         for( String path : matches ) {
-            files.add( new File( path ) );
+            files.add( new File( dirToScan, path ) );
         }
         return files;
     }
