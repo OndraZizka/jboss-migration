@@ -43,8 +43,8 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     public String toDescription() {
         return this.verb() + " file, " + addToDescription()
                 + (this.failIfNotExist ? "" : "don't ") + "fail if exists,"
-                + "\n    from " + this.src.getPath()
-                + "\n      to " + this.dest.getPath();
+                + "\n    from " + (this.src != null ? this.src.getPath() : this.pathMask )
+                + "\n      to " + (this.dest == null ? "null" : this.dest.getPath());
     }
     
     protected abstract String verb();
