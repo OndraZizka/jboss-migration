@@ -53,7 +53,7 @@ public class XmlUtils {
         Map<String, Object> props = new HashMap();
         props.put( Marshaller.JAXB_FORMATTED_OUTPUT, true );
         props.put( Marshaller.JAXB_ENCODING, "UTF-8");
-        //marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.jboss.org/schema/swanloom.xsd swanloom.xsd");
+        //marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.jboss.org/schema/as-migration.xsd as-migration.xsd");
         JAXBContext jaxbCtx = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[]{cls}, props);
         return jaxbCtx;
         // JDK way: Marshaller mar = JAXBContext.newInstance(MigrationReportJaxbBean.class).createMarshaller();
