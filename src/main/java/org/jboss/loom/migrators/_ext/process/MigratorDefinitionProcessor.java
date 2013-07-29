@@ -216,13 +216,13 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             CopyFileAction.IfExists ifExists = def_.ifExists == null 
                     ? CopyFileAction.IfExists.FAIL
                     : CopyFileAction.IfExists.valueOf( def_.ifExists );
-            File dest = new File( def_.dest );
+            File dest = new File( baseDir, def_.dest );
             
             // Subtypes
             if( actionDef instanceof ActionDefs.CopyActionDef ){
                 CopyActionDef def = (CopyActionDef) actionDef;
                 //action = new CopyFileAction( DefinitionBasedMigrator.class, new File(def.pathMask), new File(def.dest), ifExists ); 
-                action = new CopyFileAction( DefinitionBasedMigrator.class, def.pathMask, baseDir, new File(def.dest), ifExists, false ); 
+                action = new CopyFileAction( DefinitionBasedMigrator.class, def.pathMask, baseDir, dest, ifExists, false ); 
             } 
             else if( actionDef instanceof ActionDefs.XsltActionDef ){
                 XsltActionDef def = (XsltActionDef) actionDef;

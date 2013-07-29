@@ -78,6 +78,7 @@ public class XsltAction extends CopyFileAction implements IMigrationAction {
         // Transform all files.
         final FileInputStream xsltIS = new FileInputStream( this.xsltFile );
         for( File file : files ){
+            log.debug("Transforming " + file + " to " + this.dest + " using " + xsltFile);
             XmlUtils.transform( file, this.dest, xsltIS );
         }
     }

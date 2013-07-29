@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.migrators._ext.*;
 import org.jboss.arquillian.container.test.api.RunAsClient;
