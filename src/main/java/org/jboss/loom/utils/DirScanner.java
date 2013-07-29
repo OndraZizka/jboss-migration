@@ -38,21 +38,30 @@ public class DirScanner {
         ds.setBasedir( dirToScan );
         ds.scan();
 
+        List<String> list = new ArrayList( ds.getIncludedFilesCount() + (dirsToo ? ds.getIncludedDirsCount() : 0) );
+        
         // Files
-        List<String> list = Arrays.asList( ds.getIncludedFiles() );
+        list.addAll( Arrays.asList( ds.getIncludedFiles() ) );
+        
         // Dirs
-        if( dirsToo )
-            list.addAll( Arrays.asList( ds.getIncludedDirectories() ) );
+        if( dirsToo ){
+            final String[] dirs = ds.getIncludedDirectories();
+            list.addAll( Arrays.asList( dirs ) );
+        }
         
         return list;
     }
     
     public List<File> listAsFiles( File dirToScan ) throws IOException {
+        
         List<String> matches = this.list( dirToScan );
+        
         List<File> files = new ArrayList(matches.size());
+        
         for( String path : matches ) {
             files.add( new File( dirToScan, path ) );
         }
+        
         return files;
     }
 

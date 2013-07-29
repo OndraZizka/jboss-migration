@@ -72,7 +72,8 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         File file = new File(dir, "destCopy.file");
         Assert.assertTrue("src.file was copied to destCopy.file ", file.exists() );
         // 2
-        file = new File(dir, "destExistingDir/srcExistingDir/src.file");
+        //file = new File(dir, "destExistingDir/srcExistingDir/src.file");
+        file = new File(dir, "destExistingDir/src.file");
         Assert.assertTrue("srcExistingDir was copied under destExistingDir", file.exists() );
         // 3
         file = new File(dir, "nonExistentDir/src.file");

@@ -113,9 +113,9 @@ public class CopyFileAction extends FileAbstractAction {
         // Transform all files.
         for( File file : files ){
             if( file.isDirectory() )
-                FileUtils.copyDirectory( file, dest );
+                FileUtils.copyDirectory( file, this.dest );
             else //if( src.isFile() )
-                FileUtils.copyFile( file, dest );
+                FileUtils.copyFile( file, this.dest );
         }
     }
     
