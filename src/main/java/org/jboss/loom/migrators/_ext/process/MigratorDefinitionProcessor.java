@@ -229,7 +229,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             } 
             else if( actionDef instanceof ActionDefs.XsltActionDef ){
                 XsltActionDef def = (XsltActionDef) actionDef;
-                File xslt  = new File( def.xslt );
+                File xslt  = new File( baseDir, def.xslt );
                 //boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
                 action = new XsltAction( DefinitionBasedMigrator.class, def.pathMask, baseDir, xslt, dest, ifExists, false ); 
             }
