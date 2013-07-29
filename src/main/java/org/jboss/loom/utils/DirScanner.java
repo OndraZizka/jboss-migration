@@ -3,6 +3,7 @@ package org.jboss.loom.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.tools.ant.DirectoryScanner;
 
@@ -23,7 +24,7 @@ public class DirScanner {
         this.pattern = pattern;
     }
 
-    public List<File> list( File dirToScan ) throws IOException {
+    public List<String> list( File dirToScan ) throws IOException {
         if( dirToScan == null )
             throw new IllegalArgumentException("dirToScan can't be null.");
 
@@ -37,9 +38,14 @@ public class DirScanner {
         ds.scan();
 
         String[] matches = ds.getIncludedFiles();
-        List<File> files = new ArrayList(matches.length);
-        for (int i = 0; i < matches.length; i++) {
-            files.add( new File(matches[i]) );
+        return Arrays.asList( matches );
+    }
+    
+    public List<File> listAsFiles( File dirToScan ) throws IOException {
+        List<String> matches = this.list( dirToScan );
+        List<File> files = new ArrayList(matches.size());
+        for( String path : matches ) {
+            files.add( new File( path ) );
         }
         return files;
     }
