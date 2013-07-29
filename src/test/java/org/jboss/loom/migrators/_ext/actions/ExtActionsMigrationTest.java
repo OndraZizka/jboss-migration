@@ -98,7 +98,11 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         } );
         
         // Check the result
-        Assert.assertTrue("Result contains '<b/>'.", FileUtils.readFileToString( new File(dir, "dest.xml") ).contains("<b/>") );
+        for( String fName : new String[]{"destBasic.xml", "destIfExists.xml"} ){
+            final File res = new File( dir, fName);
+            Assert.assertTrue("XSLT result file exists.", res.exists() );
+            Assert.assertTrue("Result contains '<b/>'.", FileUtils.readFileToString(res).contains("<b/>") );
+        }
     }
     
     
