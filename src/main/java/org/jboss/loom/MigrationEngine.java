@@ -321,7 +321,7 @@ public class MigrationEngine {
             action.setMigrationContext(ctx); // Again. To be sure.
             
             // On dry run, CliCommandActions can still be performed as they only add to the batch.
-            if( (action instanceof CliCommandAction) ||  ! dryRun )
+            if( ! dryRun  ||  (action instanceof CliCommandAction) )
                 try {
                     action.perform();
                 } catch( ActionException ex ){
