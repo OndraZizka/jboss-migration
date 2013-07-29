@@ -10,6 +10,7 @@ package org.jboss.loom.actions;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.io.FileUtils;
@@ -191,7 +192,10 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     /**
      *  Finds files according to this.pathMask and this.baseDir.
      */
-    public List<File> findFilesForPattern() throws IOException {
+    private List<File> findFilesForPattern() throws IOException {
+        if( this.pathMask == null )
+            throw new IllegalStateException("pathMask is null in " + this.toDescription() );
+        
         List<File> files = new DirScanner( this.pathMask ).list( this.baseDir );
         return files;
     }
@@ -200,8 +204,12 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
      *  If $src is defined, returns that. Else returns findFilesForPattern().
      */
     public List<File> getFiles() throws IOException {
-        if( this.src != null ) return Arrays.asList(this.src);
-        else return findFilesForPattern();
+        if( this.src != null )
+            return Arrays.asList(this.src);
+        else if( this.pathMask != null )
+            return findFilesForPattern();
+        else
+            return Collections.EMPTY_LIST;
     }
     
 }
