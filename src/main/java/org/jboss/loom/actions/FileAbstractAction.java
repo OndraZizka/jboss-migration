@@ -86,6 +86,10 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
         else if( this.pathMask == null ){
             throw new ActionException( this, "Neither src nor pathMask is set.");
         }
+        // Copy multiple files to a file?
+        else {
+            // We would have to scan for the files now.
+        }
     }
 
 
