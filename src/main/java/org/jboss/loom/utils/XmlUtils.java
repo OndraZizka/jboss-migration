@@ -206,7 +206,7 @@ public class XmlUtils {
         List<File> files;
         try {
             //files = new PatternDirWalker( filesPattern ).list( baseDir );
-            files = new DirScanner( filesPattern ).list( baseDir );
+            files = new DirScanner( filesPattern ).listAsFiles( baseDir );
         } catch( IOException ex ) {
             throw new MigrationException("Failed finding files matching '"+filesPattern+"' in " + baseDir + ":\n  " + ex.getMessage(), ex);
         }

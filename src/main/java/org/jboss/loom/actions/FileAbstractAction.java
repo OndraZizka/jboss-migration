@@ -43,7 +43,7 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
     @Override
     public String toDescription() {
         return this.verb() + " file, " + addToDescription()
-                + (this.failIfNotExist ? "" : "don't ") + "fail if exists,"
+                + (this.failIfNotExist ? "" : " don't") + " fail if exists,"
                 + "\n    from " + (this.src != null ? this.src.getPath() : this.pathMask )
                 + "\n      to " + (this.dest == null ? "null" : this.dest.getPath());
     }
@@ -200,7 +200,7 @@ public abstract class FileAbstractAction extends AbstractStatefulAction {
         if( this.pathMask == null )
             throw new IllegalStateException("pathMask is null in " + this.toDescription() );
         
-        List<File> files = new DirScanner( this.pathMask ).list( this.baseDir );
+        List<File> files = new DirScanner( this.pathMask ).listAsFiles( this.baseDir );
         return files;
     }
     
