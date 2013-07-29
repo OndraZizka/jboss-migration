@@ -18,10 +18,14 @@ public class DirScanner {
     private String pattern;
     
     public DirScanner( String pattern ) {
+        if( pattern == null )
+            throw new IllegalArgumentException("pattern can't be null.");
         this.pattern = pattern;
     }
 
     public List<File> list( File dirToScan ) throws IOException {
+        if( dirToScan == null )
+            throw new IllegalArgumentException("dirToScan can't be null.");
 
         DirectoryScanner ds = new DirectoryScanner();
         String[] includes = { this.pattern };
