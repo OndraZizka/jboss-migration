@@ -100,15 +100,23 @@ public class CopyFileAction extends FileAbstractAction {
         
         final List<File> files = this.getFiles();
         
-        if( files.isEmpty() )
+        if( files.isEmpty() ){
             this.getWarnings().add("No file found for pattern '"+this.pathMask+"' in " + this.baseDir);
-        else
-            for( File f : files ){
-                if( src.isDirectory() )
-                    FileUtils.copyDirectory( src, dest );
-                else //if( src.isFile() )
-                    FileUtils.copyFile( src, dest );
-            }
+            return;
+        }
+        
+        // Copying more files to one?
+        if( files.size() > 1  &&  this.dest.exists()  &&  ! this.dest.isDirectory() ){
+            throw new ActionException( this, "Trying to copy multiple files into a file.");
+        }
+
+        // Transform all files.
+        for( File f : files ){
+            if( src.isDirectory() )
+                FileUtils.copyDirectory( src, dest );
+            else //if( src.isFile() )
+                FileUtils.copyFile( src, dest );
+        }
     }
     
 }// class

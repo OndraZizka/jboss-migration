@@ -67,18 +67,18 @@ public class XsltAction extends CopyFileAction implements IMigrationAction {
         
         if( files.isEmpty() ){
             this.getWarnings().add("No file found for pattern '"+this.pathMask+"' in " + this.baseDir);
+            return;
         }
-        else {
-            // Copying more files to one?
-            if( files.size() > 1  &&  this.dest.exists()  &&  ! this.dest.isDirectory() ){
-                throw new ActionException( this, "Trying to copy multiple files into a file.");
-            }
 
-            // Transform all files.
-            final FileInputStream xsltIS = new FileInputStream( this.xsltFile );
-            for( File file : files ){
-                XmlUtils.transform( file, this.dest, xsltIS );
-            }
+        // Copying more files to one?
+        if( files.size() > 1  &&  this.dest.exists()  &&  ! this.dest.isDirectory() ){
+            throw new ActionException( this, "Trying to transform multiple files into a file.");
+        }
+
+        // Transform all files.
+        final FileInputStream xsltIS = new FileInputStream( this.xsltFile );
+        for( File file : files ){
+            XmlUtils.transform( file, this.dest, xsltIS );
         }
     }
 
