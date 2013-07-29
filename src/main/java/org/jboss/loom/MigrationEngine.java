@@ -238,14 +238,21 @@ public class MigrationEngine {
         } catch (JAXBException e) {
             throw new MigrationException(e);
         }
-        // TODO: Additional logic to filter out duplicated file copying etc.
+        
+        // Set migration context to all actions (don't rely on migrators to do that).
+        for( IMigrationAction action : this.ctx.getActions() ) {
+            action.setMigrationContext( ctx );
+        }
     }
     
 
     /*
-     *  ------------ Actions methods. ----------------
+     *  -------------- Actions methods. --------------
      */
     
+    /**
+     *  TODO: Additional logic to filter out duplicated file copying etc.
+     */
     private void reviewActions() throws MigrationException {
         log.debug("======== reviewActions() ========");
         List<IMigrationAction> actions = ctx.getActions();
