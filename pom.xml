@@ -557,8 +557,8 @@
     <licenses> <license> <name>GPL3</name> <url>http://www.gnu.org/licenses/gpl.html</url> </license> </licenses>
     <scm>
         <url>https://github.com/OndraZizka/jboss-migration</url>
-        <connection>git://github.com/OndraZizka/jboss-migration.git</connection>
-        <developerConnection>git@github.com:OndraZizka/jboss-migration.git</developerConnection>
+        <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
+        <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
     </scm>
     <developers>
         <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
