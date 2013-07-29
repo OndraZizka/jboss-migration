@@ -71,13 +71,13 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         // Check
         // 1
         File file = new File(dir, "destCopy.file");
-        Assert.assertTrue("destCopy.file was copied", file.exists() );
+        Assert.assertTrue("src.file was copied to destCopy.file ", file.exists() );
         // 2
         file = new File(dir, "destExistingDir/srcExistingDir/src.file");
-        Assert.assertTrue("destExistingDir was copied", file.exists() );
+        Assert.assertTrue("srcExistingDir was copied under destExistingDir", file.exists() );
         // 3
-        file = new File(dir, "destExistingDir/nonExistentDir/src.file");
-        Assert.assertTrue("destExistingDir was copied", new File(dir, "nonExistentDir/src.file").exists() );
+        file = new File(dir, "nonExistentDir/src.file");
+        Assert.assertTrue("srcExistingDir  was copied as nonExistentDir", file.exists() );
     }
     
     /**
