@@ -245,11 +245,16 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         else if( actionDef instanceof ActionDefs.ModuleActionDef ){
             ModuleActionDef def = (ModuleActionDef) actionDef;
 
-            File jar     = new File( def.jarPath );
-            //String[] deps = parseDeps( actionDef.attribs.get("deps") );
-            String[] deps = def.deps.toArray( new String[def.deps.size()] );
+            File jar     = new File( baseDir, def.jarPath );
             
-            Configuration.IfExists ifExists = Configuration.IfExists.valueOf("ifExists");
+            //String[] deps = parseDeps( actionDef.attribs.get("deps") );
+            String[] deps = ( def.deps == null )
+                    ? new String[0]
+                    : def.deps.toArray( new String[def.deps.size()] );
+            
+            Configuration.IfExists ifExists = def.ifExists == null 
+                    ? Configuration.IfExists.FAIL
+                    : Configuration.IfExists.valueOf( def.ifExists );
             action = new ModuleCreationAction( DefinitionBasedMigrator.class, def.name, deps, jar, ifExists );
         } 
         else{
