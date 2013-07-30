@@ -65,11 +65,11 @@ public class UsersFileBuilder {
     
     public void write() throws IOException {
         File file = Utils.createPath( this.asConfig.getConfigDir(), this.fileName );
-        FileWriter fw = new FileWriter( file );
-        for( UserRecord userRecord : userRecords ) {
-            fw.write( userRecord.getLine() );
+        try( FileWriter fw = new FileWriter( file ) ) {
+            for( UserRecord userRecord : userRecords ) {
+                fw.write( userRecord.getLine() );
+            }
         }
-        fw.close();
     }
     
 
