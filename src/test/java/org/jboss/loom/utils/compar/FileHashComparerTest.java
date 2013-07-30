@@ -58,9 +58,9 @@ public class FileHashComparerTest {
         File hashes = new File("testdata/utils/crc32hashes.txt");
         Map<String, Long> result = FileHashComparer.readHashes( hashes );
         
-        assertEquals( new Long(0xf735fe81L), result.get(STR_ORACLE_DS) );
-        assertEquals( new Long(0x10000000L), result.get(STR_DATASOURCES) );
-        assertEquals( new Long(0x20000000L), result.get(STR_NON_EXISTENT) );
+        assertEquals( Long.valueOf(0xf735fe81L), result.get(STR_ORACLE_DS) );
+        assertEquals( Long.valueOf(0x10000000L), result.get(STR_DATASOURCES) );
+        assertEquals( Long.valueOf(0x20000000L), result.get(STR_NON_EXISTENT) );
     }
     
 }
