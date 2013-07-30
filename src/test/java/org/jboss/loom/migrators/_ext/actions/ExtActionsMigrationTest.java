@@ -3,7 +3,6 @@ package org.jboss.loom.migrators._ext.actions;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
 import org.jboss.loom.migrators._ext.*;
@@ -11,12 +10,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
-import org.jboss.loom.MigrationEngine;
-import org.jboss.loom.TestAppConfig;
 import org.jboss.loom.TestUtils;
-import org.jboss.loom.conf.Configuration;
-import org.jboss.loom.conf.ConfigurationValidator;
-import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.junit.Assert;
@@ -31,7 +25,7 @@ import org.slf4j.LoggerFactory;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @RunWith( Arquillian.class )
-public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
+public class ExtActionsMigrationTest extends ExtMigrationTestBase {
     private static final Logger log = LoggerFactory.getLogger( ExtActionsMigrationTest.class );
     
     //@ArquillianResource private ManagementClient mc; // ARQ-1443
@@ -136,60 +130,4 @@ public class ExtActionsMigrationTest extends ExternalMigratorsTestEnv {
         // TODO: Check that module was created and loaded.
     }
     
-    
-    /**
-     *  Test itself
-     */
-    private void doTest( String migName, File dir, DirPreparation prep ) throws IOException, UnknownHostException, MigrationException, Exception {
-        System.out.println( "-----------------------------" );
-        System.out.println( "---  "   + migName +   "  ---" );
-        System.out.println( "-----------------------------" );
-        
-        // Create temp dir if not given.
-        if( dir == null )
-            dir = Files.createTempDirectory("ExtMigr-" + migName + "-").toFile();
-        
-        // Put the .mig.xml in the dir.
-        putMigratorFile( migName, dir );
-        
-        // Callback
-        prep.prepareDir( dir );
-        
-        // Migration Configuration
-        Configuration conf = createSingleExtMigTestConf( migName );
-        conf.getGlobal().setExternalMigratorsDir( dir.getPath() );
-        
-        TestUtils.announceMigration( conf );
-        ConfigurationValidator.validate( conf );
-        
-        // Migrate.
-        MigrationEngine migrator = new MigrationEngine(conf);
-        migrator.doMigration();
-    }
-
-
-    private static void putMigratorFile( String name, File dir ) throws IOException {
-        String file = name + ".mig.xml";
-        ClassUtils.copyResourceToDir( ExtActionsMigrationTest.class, file, dir );
-    }
-
-
-    private Configuration createSingleExtMigTestConf( String migName ) throws IOException, UnknownHostException, MigrationException {
-        Configuration conf = TestAppConfig.createTestConfig_EAP_520("production");
-        TestAppConfig.updateAS7ConfAsPerServerMgmtInfo( conf.getGlobal().getAS7Config() );
-        
-        // Set external migrators dir.
-        conf.getGlobal().setExternalMigratorsDir( workDir.getPath() );
-        conf.getGlobal().addOnlyMigrator( migName );
-        return conf;
-    }
-    
 }// class
-
-interface DirPreparation {
-    void prepareDir( File dir ) throws Exception;
-    
-    static DirPreparation NOOP = new DirPreparation() {
-        @Override public void prepareDir( File dir ) { }
-    };
-}
