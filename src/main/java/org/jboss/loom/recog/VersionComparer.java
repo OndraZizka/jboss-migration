@@ -202,7 +202,7 @@ public final class VersionComparer {
  
      private static boolean doCompareVersions( String v1, String v2, int expectedSignum ){
           int compared = VersionComparer.compareVersions(v1, v2);
-          log.info( String.format("Comparing versions:  %s  and  %s  produces:  %d, expected: %d\n", v1, v2, compared, expectedSignum ) );
+          log.info( String.format("Comparing versions:  %s  and  %s  produces:  %d, expected: %d%n", v1, v2, compared, expectedSignum ) );
           return Integer.signum(expectedSignum) == Integer.signum( compared );
      }
      
