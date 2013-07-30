@@ -1,5 +1,6 @@
 package org.jboss.loom.actions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,7 +21,7 @@ public class ActionDependencySorter {
         return ret;
     }
     
-    static class DepComparator implements Comparator<IMigrationAction> {
+    static class DepComparator implements Comparator<IMigrationAction>, Serializable {
         @Override
         public int compare( IMigrationAction o1, IMigrationAction o2 ) {
             try {
