@@ -125,7 +125,7 @@ public class JBossAS5ServerType implements IServerType, HasHashes {
         for( HashFile hashFile : HASH_FILES ) {
             if( hashFile.version.equals(ver) ){
                 String path = HASH_FILES_PATH + hashFile.fName;
-                InputStream is = this.getClass().getResourceAsStream(path);
+                InputStream is = JBossAS5ServerType.class.getResourceAsStream(path);
                 if( is != null ) return is;
                 throw new IllegalStateException("Hash file not found on classpath: " + path);
             }
