@@ -13,7 +13,7 @@ import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.lang.StringUtils;
 
 /**
- *  Not finished, I used Ant's org.apache.tools.ant.DirectoryScanner instead.
+ *  @deprecated  Not finished, I used Ant's org.apache.tools.ant.DirectoryScanner instead.
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
