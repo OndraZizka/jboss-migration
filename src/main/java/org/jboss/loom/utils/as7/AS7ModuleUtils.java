@@ -16,6 +16,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,6 +47,7 @@ public class AS7ModuleUtils {
      * Creates module.xml.
      */
     public static void createModuleXML_FreeMarker( ModuleXmlInfo moduleInfo, File modFile ) throws MigrationException {
+        Writer out = null;
         try {
             Configuration cfg = new Configuration();
             cfg.setClassForTemplateLoading( AS7ModuleUtils.class, "/org/jboss/loom/utils/as7/" );
@@ -53,11 +56,13 @@ public class AS7ModuleUtils {
             
             Template temp = cfg.getTemplate("module.xml.freemarker");
 
-            Writer out = new FileWriter( modFile );
+            out = new FileWriter( modFile );
             temp.process( null, out );
             out.close();
         } catch( TemplateException  | IOException ex ) {
             throw new MigrationException("Failed creating " + modFile.getPath() + ": " + ex.getMessage(), ex);
+        } finally {
+            if( out != null ) try { out.close(); } catch( IOException ex ) { }
         }
     }
     
