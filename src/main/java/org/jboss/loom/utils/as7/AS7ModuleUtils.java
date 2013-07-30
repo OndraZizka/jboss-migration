@@ -47,7 +47,7 @@ public class AS7ModuleUtils {
      * Creates module.xml.
      */
     public static void createModuleXML_FreeMarker( ModuleXmlInfo moduleInfo, File modFile ) throws MigrationException {
-        Writer out = null;
+        //Writer out = null;
         try {
             Configuration cfg = new Configuration();
             cfg.setClassForTemplateLoading( AS7ModuleUtils.class, "/org/jboss/loom/utils/as7/" );
@@ -56,13 +56,11 @@ public class AS7ModuleUtils {
             
             Template temp = cfg.getTemplate("module.xml.freemarker");
 
-            out = new FileWriter( modFile );
-            temp.process( null, out );
-            out.close();
+            try( Writer out = new FileWriter( modFile ) ){
+                temp.process( null, out );
+            }
         } catch( TemplateException  | IOException ex ) {
             throw new MigrationException("Failed creating " + modFile.getPath() + ": " + ex.getMessage(), ex);
-        } finally {
-            if( out != null ) try { out.close(); } catch( IOException ex ) { }
         }
     }
     
