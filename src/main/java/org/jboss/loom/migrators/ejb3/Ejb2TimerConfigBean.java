@@ -20,8 +20,8 @@ import org.jboss.loom.migrators.MBeanJaxbBase;
 @XmlRootElement(name = "mbean")
 public class Ejb2TimerConfigBean extends MBeanJaxbBase<Ejb2TimerConfigBean> {
     
-    @XmlPath("attribute[@name='TimerIdGeneratorClassName']/text()")   private String TimerIdGeneratorClassName; // org.jboss.ejb.txtimer.BigIntegerTimerIdGenerator
-    @XmlPath("attribute[@name='TimedObjectInvokerClassName']/text()") private String TimedObjectInvokerClassName; // org.jboss.ejb.txtimer.TimedObjectInvokerImpl
+    @XmlPath("attribute[@name='TimerIdGeneratorClassName']/text()")   private String timerIdGeneratorClassName; // org.jboss.ejb.txtimer.BigIntegerTimerIdGenerator
+    @XmlPath("attribute[@name='TimedObjectInvokerClassName']/text()") private String timedObjectInvokerClassName; // org.jboss.ejb.txtimer.TimedObjectInvokerImpl
     
     @XmlPath("attribute[@name='RetryPolicy']/text()")
     public String getRetryPolicy() { return RetryPolicy; }
@@ -33,10 +33,10 @@ public class Ejb2TimerConfigBean extends MBeanJaxbBase<Ejb2TimerConfigBean> {
     public void setPersistencePolicy( String PersistencePolicy ) { this.PersistencePolicy = PersistencePolicy; }
     private String PersistencePolicy; // jboss.ejb:service=EJBTimerService,persistencePolicy=database
     
-    public String getTimerIdGeneratorClassName() { return TimerIdGeneratorClassName; }
-    public void setTimerIdGeneratorClassName( String TimerIdGeneratorClassName ) { this.TimerIdGeneratorClassName = TimerIdGeneratorClassName; }
-    public String getTimedObjectInvokerClassName() { return TimedObjectInvokerClassName; }
-    public void setTimedObjectInvokerClassName( String TimedObjectInvokerClassName ) { this.TimedObjectInvokerClassName = TimedObjectInvokerClassName; }
+    public String getTimerIdGeneratorClassName() { return timerIdGeneratorClassName; }
+    public void setTimerIdGeneratorClassName( String TimerIdGeneratorClassName ) { this.timerIdGeneratorClassName = TimerIdGeneratorClassName; }
+    public String getTimedObjectInvokerClassName() { return timedObjectInvokerClassName; }
+    public void setTimedObjectInvokerClassName( String TimedObjectInvokerClassName ) { this.timedObjectInvokerClassName = TimedObjectInvokerClassName; }
     
 
 }// class
