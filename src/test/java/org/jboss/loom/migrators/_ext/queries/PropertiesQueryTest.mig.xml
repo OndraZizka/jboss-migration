@@ -3,7 +3,7 @@
     
     <migrator name="XsltTestMigrator">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        <xmlQuery pathMask="foo.xml" id="foo" query="/a/b[@name='bar']"/>
         
     </migrator>
     

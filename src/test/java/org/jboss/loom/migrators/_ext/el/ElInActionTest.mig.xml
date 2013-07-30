@@ -3,7 +3,9 @@
     
     <migrator name="XsltTestMigrator">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        <action type="copy" src="src.file" dest="${workdir}/dest.file"/>
+        
+        <action type="copy" src="$[srcServer.dir}/src.file" dest="${destServer.dir}/dest.file"/>
         
     </migrator>
     

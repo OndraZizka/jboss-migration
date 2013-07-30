@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<a>
+    <foo name="foo1" value="fooValue">
+        
+    </foo> 
+    
+    <bar name="bar1">
+        <value>barValue</value>
+    </bar> 
+</a>

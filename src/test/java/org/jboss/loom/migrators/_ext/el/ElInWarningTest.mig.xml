@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+    
+    <migrator name="XsltTestMigrator">
+        
+        <action type="manual" var="action">
+            <warning>${workdir}</warning>
+            <warning>${srcServer.dir}</warning>
+            <warning>${destServer.dir}</warning>
+            <warning>${action.class.name}</warning>
+        </action>
+        
+    </migrator>
+    
+</migration>

@@ -3,7 +3,9 @@
     
     <migrator name="XsltTestMigrator">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="FooBean"/>
+        
+        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" jaxbBean="BarBean"/>
         
     </migrator>
     
