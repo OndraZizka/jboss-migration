@@ -158,7 +158,7 @@ public class JBossAS5ServerType implements IServerType, HasHashes {
         try {
             return FileHashComparer.compareHashesAndDir( hashFile, serverRootDir, null );
         } catch( Exception ex ) {
-            String msg = String.format("Failed comparing hashes of %s against dir %s:\n    ",  this.format(version), serverRootDir);
+            String msg = String.format("Failed comparing hashes of %s against dir %s:%n    ",  this.format(version), serverRootDir);
             throw new MigrationException( msg + ex.getMessage(), ex);
         }
     }
