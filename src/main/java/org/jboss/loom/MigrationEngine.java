@@ -65,12 +65,15 @@ public class MigrationEngine {
     private List<IMigrator> migrators;
     
     
-
+    
     public MigrationEngine( Configuration config ) throws MigrationException {
         this.config = config;
         this.init();
         this.resetContext( config );
     }
+
+
+    public MigrationContext getContext() { return ctx; }
     
     /**  Creates a brand new fresh clear context. */
     private void resetContext( Configuration config ) {
