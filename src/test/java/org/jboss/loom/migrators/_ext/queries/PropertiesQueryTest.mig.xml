@@ -3,7 +3,13 @@
     
     <migrator name="XsltTestMigrator">
         
-        <xmlQuery pathMask="foo.xml" id="foo" query="/a/b[@name='bar']"/>
+        <propQuery pathMask="PropertiesQueryTest.properties" id="foo" propNameMask="foo"/>
+        
+        <propQuery pathMask="PropertiesQueryTest.properties" id="barAndBaz" propNameMask="ba*"/>
+        
+        <action type="manual">
+            <warning>foo=${foo[0]} bar=${barAndBaz[0]} baz=${barAndBaz[1]}</warning>
+        </action>
         
     </migrator>
     

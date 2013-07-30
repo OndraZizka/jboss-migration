@@ -3,9 +3,13 @@
     
     <migrator name="XsltTestMigrator">
         
-        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="FooBean"/>
+        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="AttrBean"/>
         
-        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" jaxbBean="BarBean"/>
+        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" jaxbBean="ElmBean"/>
+        
+        <action type="manual">
+            <warning>${foo[0]} ${bar[0]}</warning>
+        </action>
         
     </migrator>
     

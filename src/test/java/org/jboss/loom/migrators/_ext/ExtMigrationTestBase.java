@@ -30,7 +30,7 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
     /**
      *  Test itself
      */
-    protected void doTest( String migName, File dir, DirPreparation prep ) throws IOException, UnknownHostException, MigrationException, Exception {
+    protected MigrationEngine doTest( String migName, File dir, DirPreparation prep ) throws IOException, UnknownHostException, MigrationException, Exception {
         System.out.println( "-----------------------------" );
         System.out.println( "---  "   + migName +   "  ---" );
         System.out.println( "-----------------------------" );
@@ -53,8 +53,9 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
         ConfigurationValidator.validate( conf );
         
         // Migrate.
-        MigrationEngine migrator = new MigrationEngine(conf);
-        migrator.doMigration();
+        MigrationEngine migEngine = new MigrationEngine(conf);
+        migEngine.doMigration();
+        return migEngine;
     }
 
 
