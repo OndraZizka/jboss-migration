@@ -24,14 +24,14 @@ public class Ejb2TimerConfigBean extends MBeanJaxbBase<Ejb2TimerConfigBean> {
     @XmlPath("attribute[@name='TimedObjectInvokerClassName']/text()") private String timedObjectInvokerClassName; // org.jboss.ejb.txtimer.TimedObjectInvokerImpl
     
     @XmlPath("attribute[@name='RetryPolicy']/text()")
-    public String getRetryPolicy() { return RetryPolicy; }
-    public void setRetryPolicy( String RetryPolicy ) { this.RetryPolicy = RetryPolicy; }
-    private String RetryPolicy; // jboss.ejb:service=EJBTimerService,retryPolicy=fixedDelay
+    public String getRetryPolicy() { return retryPolicy; }
+    public void setRetryPolicy( String RetryPolicy ) { this.retryPolicy = RetryPolicy; }
+    private String retryPolicy; // jboss.ejb:service=EJBTimerService,retryPolicy=fixedDelay
     
     @XmlPath("attribute[@name='PersistencePolicy']/text()")           
-    public String getPersistencePolicy() { return PersistencePolicy; }
-    public void setPersistencePolicy( String PersistencePolicy ) { this.PersistencePolicy = PersistencePolicy; }
-    private String PersistencePolicy; // jboss.ejb:service=EJBTimerService,persistencePolicy=database
+    public String getPersistencePolicy() { return persistencePolicy; }
+    public void setPersistencePolicy( String PersistencePolicy ) { this.persistencePolicy = PersistencePolicy; }
+    private String persistencePolicy; // jboss.ejb:service=EJBTimerService,persistencePolicy=database
     
     public String getTimerIdGeneratorClassName() { return timerIdGeneratorClassName; }
     public void setTimerIdGeneratorClassName( String TimerIdGeneratorClassName ) { this.timerIdGeneratorClassName = TimerIdGeneratorClassName; }
