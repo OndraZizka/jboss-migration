@@ -57,8 +57,9 @@ public class Configuration {
     private MultiValueMap getForMigrator(Class<? extends IMigrator> migratorClass) {
         //return moduleConfigs.get(migrator);
         
+        /*
         MultiValueMap map = new MultiValueMap();
-        /*IMigrator mig = ...  // or migratorClass.getMethod("", parameterTypes);
+        IMigrator mig = ...  // or migratorClass.getMethod("", parameterTypes);
                 
         for( ModuleSpecificProperty prop : moduleConfigs ){
             if( 0 != mig.examineConfigProperty(prop) )
