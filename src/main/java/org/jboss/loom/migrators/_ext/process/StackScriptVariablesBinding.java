@@ -3,13 +3,14 @@ package org.jboss.loom.migrators._ext.process;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import javax.script.Bindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *  Variables stack based binding for JSR-223 Scripting API.
+ *  That binding extends Map<String, Object>.
+ *  This one is read only, so it throws for all methods except get-related.
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
@@ -17,10 +18,10 @@ public class StackScriptVariablesBinding implements Bindings {
     private static final Logger log = LoggerFactory.getLogger( StackScriptVariablesBinding.class );
     
     
-    private final Stack<ProcessingStackItem> stack;
+    private final ContextsStack stack;
 
 
-    StackScriptVariablesBinding( Stack<ProcessingStackItem> stack ) {
+    StackScriptVariablesBinding( ContextsStack stack ) {
         this.stack = stack;
     }
 

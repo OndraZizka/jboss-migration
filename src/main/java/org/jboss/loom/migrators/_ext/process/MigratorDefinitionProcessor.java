@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariablesProvider {
+public class MigratorDefinitionProcessor {
     private static final Logger log = LoggerFactory.getLogger( MigratorDefinitionProcessor.class );
 
     
@@ -66,8 +66,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     // Work stuff
     
     /** Stack of nested constructs - forEach, action etc. */
-    private final Stack<ProcessingStackItem> stack = new Stack();
-    public Stack<ProcessingStackItem> getStack() { return stack; }
+    private final ContextsStack stack = new ContextsStack();
+    public ContextsStack getStack() { return stack; }
 
     /**  Currently built statically, but eventually impls will come from Groovy classes as well.  */
     static final Map<Class<? extends MigratorDefinition.ActionDef>, Class<? extends IActionDefHandler>> handlers;
@@ -88,7 +88,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     // Services
     
     /** Resolver of all ${...} expressions. Based on this processor's current stack. */
-    private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this );
+    private JuelCustomResolverEvaluator eval = new JuelCustomResolverEvaluator( this.stack );
 
 
     public MigratorDefinitionProcessor( DefinitionBasedMigrator defBasedMig ) {
@@ -104,19 +104,6 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }
     
     
-    /**
-     *  Look up the top-most variable on the stack. Return null if not found.
-     *  I decided to prefer this method over recursive calls down the stack, using parentContext reference,
-     *  because this way I have more control. Could become handy later.
-     */
-    @Override public Object getVariable( String name ){
-        for( ProcessingStackItem context : getStack() ) {
-            Object var = context.getVariable( name );
-            if( var != null )
-                return var;
-        }
-        return null;
-    }
 
     
     /**

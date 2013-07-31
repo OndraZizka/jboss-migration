@@ -2,7 +2,6 @@ package org.jboss.loom.migrators._ext.process;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
-import java.util.Stack;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -22,7 +21,7 @@ public class GroovyScriptUtils {
      *  Evaluates the given expression with given variables to a boolean.
      *  Proprietary Groovy way. Needs a passive variables map.
      */
-    static boolean evaluateGroovyExpressionToBool( String script, Stack<ProcessingStackItem> stack ) {
+    static boolean evaluateGroovyExpressionToBool( String script, ContextsStack stack ) {
         final GroovyShell gsh = new GroovyShell( new Binding(){
             
         });
@@ -41,7 +40,7 @@ public class GroovyScriptUtils {
 
 
     // JSR-223 way
-    static boolean evaluateGroovyExpressionToBool2( String script, Stack<ProcessingStackItem> stack ) {
+    static boolean evaluateGroovyExpressionToBool2( String script, ContextsStack stack ) {
         ScriptEngineManager scMgr = new ScriptEngineManager();
         ScriptEngine engine = scMgr.getEngineByName( "groovy" );
         Object res;
