@@ -96,8 +96,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             .setVariable("mig", defBasedMig)
             // Shorthands
             .setVariable("conf", defBasedMig.getConfig()) 
-            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile())
-            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile())
+            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile())
             // Others
             .setVariable("workdir", new File("."))
         );
