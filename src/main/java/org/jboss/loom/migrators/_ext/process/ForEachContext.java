@@ -61,7 +61,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
 
     @Override
     public void addAction( IMigrationAction action ) {
-        ProcessingStackItem top = processor.stack.peek();
+        ProcessingStackItem top = processor.getStack().peek();
         if( !(top instanceof Has.Actions) ) {
             throw new IllegalArgumentException( "It's not possible to add actions to " + top );
         }
@@ -71,7 +71,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
 
     @Override
     public List<IMigrationAction> getActions() {
-        ProcessingStackItem top = processor.stack.peek();
+        ProcessingStackItem top = processor.getStack().peek();
         if( !(top instanceof Has.Actions) ) {
             throw new IllegalArgumentException( "Doesn't have actions: " + top );
         }
@@ -81,7 +81,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
 
     @Override
     public void addWarning( String warn ) {
-        ProcessingStackItem top = processor.stack.peek();
+        ProcessingStackItem top = processor.getStack().peek();
         if( !(top instanceof Has.Warnings) ) {
             throw new IllegalArgumentException( "It's not possible to add warnings to " + top );
         }
@@ -91,7 +91,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
 
     @Override
     public List<String> getWarnings() {
-        ProcessingStackItem top = processor.stack.peek();
+        ProcessingStackItem top = processor.getStack().peek();
         if( !(top instanceof Has.Warnings) ) {
             throw new IllegalArgumentException( "Doesn't have warnings: " + top );
         }

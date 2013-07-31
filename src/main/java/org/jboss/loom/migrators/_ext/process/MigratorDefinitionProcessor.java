@@ -1,18 +1,12 @@
 package org.jboss.loom.migrators._ext.process;
 
 
-import groovy.lang.GroovyShell;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.logging.Level;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.IMigrationAction;
@@ -72,8 +66,9 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     // Work stuff
     
     /** Stack of nested constructs - forEach, action etc. */
-    final Stack<ProcessingStackItem> stack = new Stack();
-    
+    private final Stack<ProcessingStackItem> stack = new Stack();
+    public Stack<ProcessingStackItem> getStack() { return stack; }
+
     /**  Currently built statically, but eventually impls will come from Groovy classes as well.  */
     static final Map<Class<? extends MigratorDefinition.ActionDef>, Class<? extends IActionDefHandler>> handlers;
     static {
@@ -115,7 +110,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
      *  because this way I have more control. Could become handy later.
      */
     @Override public Object getVariable( String name ){
-        for( ProcessingStackItem context : stack ) {
+        for( ProcessingStackItem context : getStack() ) {
             Object var = context.getVariable( name );
             if( var != null )
                 return var;
@@ -156,7 +151,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                         /*+ "Needed at " + XmlUtils.formatLocation(forEachDef.location) */ );
             
             ForEachContext forEachContext = new ForEachContext( forEachDef, this );
-            this.stack.push( forEachContext );
+            this.getStack().push( forEachContext );
             
             // For each item in query result...
             //for( IConfigFragment configFragment : queryResult.configFragments ) {
@@ -166,7 +161,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                 // Recurse.
                 this.processChildren( forEachDef );
             }
-            this.stack.pop();
+            this.getStack().pop();
         }
         
         // Action definitions.
@@ -176,9 +171,9 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             IMigrationAction action = createActionFromDef( actionDef );
             
             // Recurse
-            this.stack.push( new ActionContext( action ) );
+            this.getStack().push( new ActionContext( action ) );
             this.processChildren( actionDef );
-            this.stack.pop();
+            this.getStack().pop();
             
             actions.add( action );
         }
@@ -298,8 +293,8 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         return action;
         
     }// createActionFromDef()
-    
-    
+
+
     
     public static interface IActionDefHandler {
         /** Just stores the value, instead of a constructor. */
