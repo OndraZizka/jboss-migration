@@ -88,8 +88,9 @@ public class AS7CliUtils {
         }
         catch (IOException ex) {
             // Specific problem on Roman's PC. Need to connect two times.
-            final ModelNode response = client.execute(new OperationBuilder(request).build());
-            throwIfFailure( response );
+            //final ModelNode response = client.execute(new OperationBuilder(request).build());
+            //throwIfFailure( response );
+            throw ex;
         }
         finally {
             safeClose(client);
