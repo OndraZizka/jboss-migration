@@ -223,16 +223,6 @@ public class XmlUtils {
     }
 
     
-    
-    public static void main( String[] args ) throws MigrationException {
-        List<MailServiceBean> beans = unmarshallBeans( 
-            new File("/home/ondra/work/AS/Migration/git-repo/testdata/as5configs/01_510all/server/all/deploy/mail-service.xml"), 
-            "/server/mbean[@code='org.jboss.mail.MailService']", MailServiceBean.class);
-        for( MailServiceBean ms : beans) {
-            System.out.println( ms.getJndiName() );
-        }
-    }
-
 
     /**
      * Creates a new default document builder.
