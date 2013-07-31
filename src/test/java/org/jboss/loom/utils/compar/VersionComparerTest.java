@@ -26,7 +26,7 @@ public class VersionComparerTest {
         Assert.assertTrue( doCompareVersions("2.4.CR1", "2.4.0.GA", -1) );
         Assert.assertTrue( doCompareVersions("2.4.CR1", "2.4.0", -1) );
         Assert.assertTrue( doCompareVersions("2.0.0.0", "2.0.0.SNAPSHOT", 1) );
-        Assert.assertTrue( doCompareVersions("2.0.0.1", "2.0.0.SNAPSHOT", -1) );
+        Assert.assertTrue( doCompareVersions("2.0.0.1", "2.0.0.SNAPSHOT", 1) );
         Assert.assertTrue( doCompareVersions("2.0.0.1", "2.0.0.SP2", 1) );
         Assert.assertTrue( doCompareVersions("2.0.0.1", "2.0.SP2", 1) );
         //System.out.println("Test " + (succ ? "PASSED" : "FAILED") ) );
