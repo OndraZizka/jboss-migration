@@ -1177,7 +1177,6 @@ public class LoggingMigrator extends AbstractMigrator {
         String errMsg = " in root-logger must be set.";
         Utils.throwIfBlank(rootLogger.getRootLoggerLevel(), errMsg, "Level");
 
-        CliAddScriptBuilder builder = new CliAddScriptBuilder();
         StringBuilder resultScript = new StringBuilder();
 
         // TODO: Is filter attribute even existing in CLI and JBoss conf? Because it is impossible to set filter via CLI
