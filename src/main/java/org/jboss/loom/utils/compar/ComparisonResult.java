@@ -129,8 +129,12 @@ public class ComparisonResult {
     @XmlElementWrapper(name = "matches")
     @XmlElement(name="match")
     private List<Match> getMatchesAsList(){
+        if( this.matches == null )
+            //throw new IllegalStateException("Matches were not set yet.");
+            return null;
+        
         final LinkedList<Match> matchesList = new LinkedList();
-        for( Map.Entry<Path, FileHashComparer.MatchResult> entry : matches.entrySet() ) {
+        for( Map.Entry<Path, FileHashComparer.MatchResult> entry : this.matches.entrySet() ) {
             matchesList.add( new Match( entry.getKey().toString(),  entry.getValue().name() ) );
         }
         return matchesList;
