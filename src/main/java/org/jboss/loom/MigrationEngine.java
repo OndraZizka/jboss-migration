@@ -234,12 +234,12 @@ public class MigrationEngine {
                 
         // Call all migrators to create their actions.
         try {
-            for (IMigrator mig : this.migrators) {
+            for( IMigrator mig : this.migrators ) {
                 log.debug("    Preparing actions with " + mig.getClass().getSimpleName());
                 mig.createActions(this.ctx);
             }
-        } catch (JAXBException e) {
-            throw new MigrationException(e);
+        } catch( Exception ex ){
+            throw new MigrationException(ex);
         }
         
         // Set migration context to all actions (don't rely on migrators to do that).
