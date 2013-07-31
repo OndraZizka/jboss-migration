@@ -3,12 +3,23 @@
     
     <migrator name="XmlQueryTest">
         
-        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="AttrBean"/>
+        <jaxbBean file="AttrBean.groovy"/>
+
+        <!-- Attribute -->
+        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" 
+                  jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
-        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" jaxbBean="ElmBean"/>
+        <!-- Attribute - Groovy JAXB bean -->        
+        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="AttrBean"/>
         
+        
+        <!-- Element -->
+        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" 
+                  jaxbBean="org.jboss.loom.migrators._ext.queries.ElmBean"/>
+        
+        <!-- Dummy action to get the output. -->
         <action type="manual">
-            <warning>${foo[0]} ${bar[0]}</warning>
+            <warning>${goo[0]} ${foo[0]} ${bar[0]}</warning>
         </action>
         
     </migrator>
