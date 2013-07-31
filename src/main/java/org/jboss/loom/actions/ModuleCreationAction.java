@@ -83,9 +83,13 @@ public class ModuleCreationAction extends AbstractStatefulAction implements Seri
                 case SKIP:
                     log.debug("Module directory for "+this.moduleName+" already exists, skipping: " + dir);
                     break;
+                case GUI:
+                    log.warn("GUI not supported yet to decide IfExists for "+this.moduleName+" dir: " + dir);
+                case OVERWRITE:
+                    break;
             }
         }
-    }
+    }// preValidate()
 
 
     @Override
