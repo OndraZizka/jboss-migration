@@ -55,7 +55,7 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         
         final String warn = warnings.get(0);
         for( String str : new String[]{
-            "workdir=" + new File(".").toString(),
+            "workdir=" + new File(".").getAbsolutePath(),
             "srcServer.dir=" + migEngine.getConfig().getGlobal().getSourceServerDir(),
             "destServer.dir=" + migEngine.getConfig().getGlobal().getTargetServerDir(),
             "action.class.name=" + "ManualAction",
@@ -64,7 +64,5 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
             Assert.assertTrue("Warning contains " + str, warn.contains(str));
         }
     }
-    
-
 
 }// class

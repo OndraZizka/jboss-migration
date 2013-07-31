@@ -1,13 +1,18 @@
 package org.jboss.loom.migrators._ext.process;
 
 
+import groovy.lang.GroovyShell;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import org.apache.commons.lang.StringUtils;
+import java.util.logging.Level;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.loom.actions.CliCommandAction;
 import org.jboss.loom.actions.CopyFileAction;
 import org.jboss.loom.actions.IMigrationAction;
@@ -135,6 +140,12 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         List<IMigrationAction> actions = new LinkedList();
         
+        // Filter.
+        if( cont.filter != null ){
+            if( ! GroovyScriptUtils.evaluateGroovyExpressionToBool( cont.filter, this.stack ) )
+                return actions;
+        }
+        
         // ForEach defs.
         if( cont.hasForEachDefs() )
         for( MigratorDefinition.ForEachDef forEachDef : cont.getForEachDefs() ) {
@@ -171,6 +182,16 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             
             actions.add( action );
         }
+        
+        // Warnings
+        if( cont.warning != null ){
+            if( ! (cont instanceof Has.Warnings) )
+                throw new IllegalArgumentException("This context can't have warnings: " + cont.getClass());
+            
+            String warnStr = this.eval.evaluateEL( cont.warning ); // EL
+            ((Has.Warnings) cont).addWarning( warnStr );
+        }
+            
         return actions;
     }// process();
 
@@ -277,7 +298,7 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         return action;
         
     }// createActionFromDef()
-
+    
     
     
     public static interface IActionDefHandler {
