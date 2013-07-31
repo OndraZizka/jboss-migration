@@ -31,7 +31,6 @@ public class StandaloneDeploymentScannerAction extends ManualAction {
     List<StandaloneDeploymentScannerType> dList = new LinkedList();
     File destFile;
     Document destDoc;
-    Document rootNodeBackup = null;
 
     public StandaloneDeploymentScannerAction(File destFile, Document destDoc) {
         this.destFile = destFile;
