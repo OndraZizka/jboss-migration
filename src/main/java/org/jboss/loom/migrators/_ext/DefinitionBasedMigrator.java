@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
@@ -84,8 +85,17 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             Utils.validate( query );
             
             Class<? extends IConfigFragment> jaxbCls = this.jaxbClasses.get( query.jaxbBeanAlias );
-            if( null == jaxbCls )
-                throw new MigrationException("Can't find JAXB class '"+query.jaxbBeanAlias+"' used in " + this.descriptor);
+            if( null == jaxbCls ){
+                try {
+                    jaxbCls = (Class<? extends IConfigFragment>) this.getClass().getClassLoader().loadClass( query.jaxbBeanAlias );
+                } catch( ClassNotFoundException ex ) {
+                    throw new MigrationException("Can't load JAXB class '"+query.jaxbBeanAlias
+                            + "'\n    used in " + this.descriptor + ":\n    " + ex.getMessage() );
+                }
+                if( null == jaxbCls )
+                    throw new MigrationException("Can't find JAXB class '"+query.jaxbBeanAlias
+                            + "'\n    used in " + this.descriptor);
+            }
             
             // Create a Context-based IVariablesProvider.
             // TODO: Move somewhere else.
