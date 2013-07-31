@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="XmlQueryTestMigrator">
         
         <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="AttrBean"/>
         
