@@ -130,7 +130,6 @@ public class ComparisonResult {
     @XmlElement(name="match")
     private List<Match> getMatchesAsList(){
         if( this.matches == null )
-            //throw new IllegalStateException("Matches were not set yet.");
             return null;
         
         final LinkedList<Match> matchesList = new LinkedList();
