@@ -34,21 +34,15 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
     @Override
     public Iterator<IConfigFragment> iterator() {
         return new Iterator<IConfigFragment>() {
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
+            
+            @Override public boolean hasNext() { return it.hasNext(); }
 
-
-            @Override
-            public IConfigFragment next() {
+            @Override public IConfigFragment next() {
                 ForEachContext.this.current = it.next();
                 return ForEachContext.this.current;
             }
 
-
-            @Override
-            public void remove() {
+            @Override public void remove() {
                 throw new UnsupportedOperationException( "Remove not supported." );
             }
         };
