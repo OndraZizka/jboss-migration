@@ -61,6 +61,8 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     public String getName() { return name; }
    
     
+    
+    
     // === Subelement classes === //
     
     @XmlRootElement
