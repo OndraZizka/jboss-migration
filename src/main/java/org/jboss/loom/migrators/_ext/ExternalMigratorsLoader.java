@@ -131,6 +131,9 @@ public class ExternalMigratorsLoader {
                     //File dir = new File( desc.getLocation().getSystemId() ).getParentFile();
                     File dir = desc.getOrigin().getFile().getParentFile();
                     final File groovyFile = new File( dir, jaxbClsBean.getFile().getPath() );
+                    if( ! groovyFile.exists() )
+                        throw new MigrationException("Groovy file for JAXB class not found: " + groovyFile);
+                    
                     log.debug("    Loading JAXB class from " + groovyFile );
                     cls = loadGroovyClass( groovyFile );
                     if( ! IConfigFragment.class.isAssignableFrom( cls ) ){
