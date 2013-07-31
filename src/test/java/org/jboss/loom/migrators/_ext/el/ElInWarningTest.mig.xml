@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ElInWarningTest">
         
         <action type="manual" var="action">
-            <warning>${workdir}</warning>
-            <warning>${srcServer.dir}</warning>
-            <warning>${destServer.dir}</warning>
-            <warning>${action.class.name}</warning>
+            <!--
+            <warning>workdir=${workdir}</warning>
+            <warning>srcServer.dir=${srcServer.dir}</warning>
+            <warning>destServer.dir=${destServer.dir}</warning>
+            <warning>action.class.name=${action.class.name}</warning>
+            <warning>userVarTest=${userVarTest}</warning>
+            -->
+            <warning>
+                workdir=${workdir} 
+                srcServer.dir=${srcServer.dir}
+                destServer.dir=${destServer.dir}
+                action.class.name=${action.class.name}
+                userVarTest=${userVarTest}
+            </warning>
         </action>
         
     </migrator>

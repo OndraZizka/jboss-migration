@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ElInQueryTest">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+        <!-- Attribute - Groovy JAXB bean -->        
+        <xmlQuery id="goo" subjectLabel="userVarTest=${userVarTest}" pathMask="${userVarTest}.xml" xpath="/a/foo[@name='${userVarTest}']"
+                  jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
+        
+        
+        <!-- Dummy action to get the output. -->
+        <action type="manual">
+            <warning>goo=${goo[0]}</warning>
+        </action>
         
     </migrator>
     

@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ElInActionTest">
         
-        <action type="copy" src="src.file" dest="${workdir}/dest.file"/>
+        <!-- Attribute - Groovy JAXB bean -->        
+        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
+                  jaxbBean="AttrBeanGroovy"/>
         
-        <action type="copy" src="$[srcServer.dir}/src.file" dest="${destServer.dir}/dest.file"/>
+        
+        <!-- Dummy action to get the output. -->
+        <action type="manual">
+            <warning>goo=${goo[0]} foo=${foo[0]} bar=${bar[0]}</warning>
+        </action>
         
     </migrator>
     
