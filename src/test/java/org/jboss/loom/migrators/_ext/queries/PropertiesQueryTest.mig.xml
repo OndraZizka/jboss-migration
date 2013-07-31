@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="PropertiesQueryTestMigrator">
+    <migrator name="PropertiesQueryTest">
         
         <propQuery pathMask="PropertiesQueryTest.properties" id="foo" propNameMask="foo"/>
         
