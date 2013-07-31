@@ -180,6 +180,9 @@ public final class VersionComparer {
  
  
  
+     /**
+      *  Test.
+      */
      public static void main( String[] arge ){
  
           boolean succ = true;
@@ -196,7 +199,7 @@ public final class VersionComparer {
           succ &= doCompareVersions("2.0.0.1", "2.0.0.SNAPSHOT", -1);
           succ &= doCompareVersions("2.0.0.1", "2.0.0.SP2", 1);
           succ &= doCompareVersions("2.0.0.1", "2.0.SP2", 1);
-          
+          System.out.println("Test " + (succ ? "PASSED" : "FAILED") );
      }
  
  
