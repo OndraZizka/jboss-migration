@@ -119,10 +119,14 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }
 
     
+    /**
+     *  Public method for the root class.
+     */
     public List<IMigrationAction> process( MigratorDefinition migDef ) throws MigrationException {
         return this.processChildren( migDef );
     }
 
+    
     /**
      *  Recursively processes the .mig.xml descriptor into Actions.
      *  TODO: Could be better to put the stack manipulation to the beginning and end of the method.
@@ -174,8 +178,6 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     
     /**
      *  Creates an action according to the definition, which is a subclass of ActionDef.
-     * @param actionDef
-     * @return 
      */
     private IMigrationAction createActionFromDef( MigratorDefinition.ActionDef actionDef ) throws MigrationException {
         
@@ -202,12 +204,16 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
         
         // TODO: EL
         
+        // ManualAction
         if( actionDef instanceof ActionDefs.ManualActionDef ){
             ManualActionDef def = (ManualActionDef) actionDef;
             action = new ManualAction();
             // Warning(s)
             action.getWarnings().add( def.warning );
         }
+
+        
+        // FileBasedAction
         else if( actionDef instanceof ActionDefs.FileBasedActionDef ){
             
             // Common for FileBasedActionDef
@@ -231,13 +237,19 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
             }
             else throw new IllegalStateException("Unexpected subclass: " + actionDef.getClass() );
         }
+        
+        
+        // CliAction
         else if( actionDef instanceof ActionDefs.CliActionDef ){
             CliActionDef def = (CliActionDef) actionDef;
 
             //ModelNode modelNode = ModelNode.fromString( def.command );
             //action = new CliCommandAction( DefinitionBasedMigrator.class, def.command, modelNode ); 
             action = new CliCommandAction( DefinitionBasedMigrator.class, def.command ); 
-        } 
+        }
+        
+        
+        // ModuleAction
         else if( actionDef instanceof ActionDefs.ModuleActionDef ){
             ModuleActionDef def = (ModuleActionDef) actionDef;
 
@@ -252,16 +264,21 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
                     ? Configuration.IfExists.FAIL
                     : Configuration.IfExists.valueOf( def.ifExists );
             action = new ModuleCreationAction( DefinitionBasedMigrator.class, def.name, deps, jar, ifExists );
-        } 
+        }
+        
+        
+        // ...unknown.
         else{
             throw new MigrationException("Unsupported action type '" + actionDef.typeVal 
                     /*+ "' in " + cont.location.getSystemId() */ );
         }
         
+        
         return action;
         
     }// createActionFromDef()
 
+    
     
     public static interface IActionDefHandler {
         /** Just stores the value, instead of a constructor. */
@@ -272,21 +289,5 @@ public class MigratorDefinitionProcessor implements IExprLangEvaluator.IVariable
     }
 
     
-    
-    /**
-     *  Parses syntax "foo ?bar baz" into String[]{"foo", null, "bar", "baz"}.
-     *  (? and null means that the following dep is optional.)
-     */
-    private static String[] parseDeps( String str ) {
-        List<String> deps = new LinkedList();
-        for( String name : StringUtils.split(str) ){
-            if( name.charAt(0) == '?' ){
-                deps.add( null );
-                name = name.substring(1);
-            }
-            deps.add( name );
-        }
-        return deps.toArray( new String[deps.size()] );
-    }
 
 }// class

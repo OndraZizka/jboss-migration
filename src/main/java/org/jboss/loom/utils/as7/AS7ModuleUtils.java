@@ -16,6 +16,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import java.io.Writer;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -121,6 +123,22 @@ public class AS7ModuleUtils {
         return doc;
     }
 
+    
+    /**
+     *  Parses syntax "foo ?bar baz" into String[]{"foo", null, "bar", "baz"}.
+     *  (? and null means that the following dep is optional.)
+     */
+    private static String[] parseDeps( String str ) {
+        List<String> deps = new LinkedList();
+        for( String name : StringUtils.split(str) ){
+            if( name.charAt(0) == '?' ){
+                deps.add( null );
+                name = name.substring(1);
+            }
+            deps.add( name );
+        }
+        return deps.toArray( new String[deps.size()] );
+    }
 
 
     public static File transformDocToFile(Document doc, File file) throws TransformerException {
