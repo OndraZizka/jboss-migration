@@ -84,9 +84,9 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
         
         doTest( "XsltActionTest", dir, new DirPreparation() {
             @Override public void prepareDir( File dir_ ) throws IOException {
-                FileWriter fw = new FileWriter( new File( dir_, "src.xml") );
-                fw.write("<?xml version='1.0' ?><a/>");
-                fw.close();
+                try( FileWriter fw = new FileWriter( new File( dir_, "src.xml") ) ){
+                    fw.write("<?xml version='1.0' ?><a/>");
+                }
                 ClassUtils.copyResourceToDir( getClass(), "XsltStyleSheet.xsl", dir_ );
             }
         } );
