@@ -60,7 +60,7 @@ public class ComparisonResult {
 
 
     public int getCountTotal() {
-        return this.matches.size();
+        return this.getCountMatches() + this.getCountMismatches() + this.getCountMisses();
     }
 
     public int getCountMatches() {
