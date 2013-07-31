@@ -74,6 +74,9 @@ public class MigrationEngine {
 
 
     public MigrationContext getContext() { return ctx; }
+
+    public Configuration getConfig() { return config; }
+    
     
     /**  Creates a brand new fresh clear context. */
     private void resetContext( Configuration config ) {
