@@ -86,7 +86,8 @@ public class MigrationEngine {
      *  No time to make it neatly so it's a bit procedural.
      */
     private void init() throws MigrationException {
-        
+        log.debug("======== init() ========");
+
         // Migrators filter.
         IMigratorFilter filter = new IMigratorFilter.ByNames( this.config.getGlobal().getOnlyMigrators() );
         

@@ -88,6 +88,8 @@ public class ExternalMigratorsLoader {
         
         // For each *.mig.xml file...
         for( File xmlFile : FileUtils.listFiles( dir, new String[]{"mig.xml"}, true ) ){
+            log.debug("    Loading definition from " + xmlFile);
+
             try{
                 List<MigratorDefinition> defs = XmlUtils.unmarshallBeans( xmlFile, "/migration/migrator", MigratorDefinition.class );
                 retDefs.addAll( defs );
