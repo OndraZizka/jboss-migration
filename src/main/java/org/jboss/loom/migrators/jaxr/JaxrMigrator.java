@@ -97,7 +97,7 @@ public class JaxrMigrator extends AbstractMigrator implements IMigrator {
         // TODO
         for( IConfigFragment fra : data.getConfigFragments() ) {
             if( ! (fra instanceof JaxrConfigBean) )  continue;
-            JaxrConfigBean bean = (JaxrConfigBean) fra;
+            //JaxrConfigBean bean = (JaxrConfigBean) fra;
             // ...
         }
     }
