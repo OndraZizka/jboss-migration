@@ -1,6 +1,5 @@
 package org.jboss.loom.migrators._ext.process;
 
-
 import java.util.Stack;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.slf4j.Logger;
