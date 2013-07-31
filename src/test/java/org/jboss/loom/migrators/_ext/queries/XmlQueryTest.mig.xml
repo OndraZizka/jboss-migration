@@ -10,7 +10,8 @@
                   jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
         <!-- Attribute - Groovy JAXB bean -->        
-        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" jaxbBean="AttrBean"/>
+        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
+                  jaxbBean="AttrBean"/>
         
         
         <!-- Element -->
@@ -19,7 +20,7 @@
         
         <!-- Dummy action to get the output. -->
         <action type="manual">
-            <warning>${goo[0]} ${foo[0]} ${bar[0]}</warning>
+            <warning>goo=${goo[0]} foo=${foo[0]} bar=${bar[0]}</warning>
         </action>
         
     </migrator>

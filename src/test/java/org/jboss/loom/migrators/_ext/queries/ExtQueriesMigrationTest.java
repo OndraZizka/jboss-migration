@@ -43,6 +43,7 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         doTest( "XmlQueryTest", null, new DirPreparation() {
             @Override public void prepareDir( File dir ) throws Exception {
                 ClassUtils.copyResourceToDir( this.getClass(), "XmlQueryTest.xml", dir );
+                ClassUtils.copyResourceToDir( this.getClass(), "AttrBean.groovy", dir );
             }
         } );
         
