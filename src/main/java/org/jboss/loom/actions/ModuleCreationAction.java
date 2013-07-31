@@ -9,6 +9,7 @@ package org.jboss.loom.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author Ondrej Zizka, ozizka at redhat.com
  */
 @ActionDescriptor( header = "EAP 6 module creation")
-public class ModuleCreationAction extends AbstractStatefulAction {
+public class ModuleCreationAction extends AbstractStatefulAction implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(ModuleCreationAction.class);
     
     private static final String MODULE_XML_FNAME = "module.xml";
