@@ -3,7 +3,7 @@
     
     <migrator name="XmlQueryTest">
         
-        <jaxbBean file="AttrBean.groovy"/>
+        <jaxbBean file="AttrBeanGroovy.groovy"/>
 
         <!-- Attribute -->
         <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" 
@@ -11,7 +11,7 @@
         
         <!-- Attribute - Groovy JAXB bean -->        
         <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
-                  jaxbBean="AttrBean"/>
+                  jaxbBean="AttrBeanGroovy"/>
         
         
         <!-- Element -->
