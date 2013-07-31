@@ -53,9 +53,14 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
         ConfigurationValidator.validate( conf );
         
         // Migrate.
-        MigrationEngine migEngine = new MigrationEngine(conf);
-        migEngine.doMigration();
-        return migEngine;
+        try {
+            MigrationEngine migEngine = new MigrationEngine(conf);
+            migEngine.doMigration();
+            return migEngine;
+        } catch ( Throwable ex ){
+            ex.printStackTrace();
+            throw ex;
+        }
     }
 
 
