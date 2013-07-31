@@ -295,7 +295,6 @@ public class MigrationEngine {
     /**
      *  Performs the actions.
      *  Should do all the active steps: File manipulation, AS CLI commands etc.
-     * @throws MigrationException 
      */
     private void performActions() throws MigrationException {
         log.debug("======== performActions() ========");
