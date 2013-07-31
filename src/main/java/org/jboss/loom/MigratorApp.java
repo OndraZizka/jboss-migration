@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * Main class of the application.
  * Contains app-specific code, like arguments parsing, instantiating the Migrator etc.
  *
- * @author Roman Jakubco
+ * @author Ondrej Zizka
  */
 public class MigratorApp {
     

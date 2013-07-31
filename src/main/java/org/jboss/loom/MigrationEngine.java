@@ -52,7 +52,7 @@ import org.xml.sax.SAXException;
  *  TODO: Perhaps leave init() and doMigration() in here 
  *        and separate the other methods to a MigrationService{} ?
  *
- *  @author Roman Jakubco
+ *  @author Ondrej Zizka
  */
 public class MigrationEngine {
     private static final Logger log = LoggerFactory.getLogger(MigrationEngine.class);
