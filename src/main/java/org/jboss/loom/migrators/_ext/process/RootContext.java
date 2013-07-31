@@ -24,7 +24,7 @@ class RootContext extends Variables implements ProcessingStackItem, Has.Actions,
 
     @Override public List<String> getWarnings() { return warnings; }
 
-    @Override public Object getVariable( String name ) { return this.getVariable( name ); }
+    @Override public Object getVariable( String name ) { return this.getVariables().get( name ); }
 
 
     /**  Returns a ManualAction with warnings of the root context, or null if there were no warnings. */
