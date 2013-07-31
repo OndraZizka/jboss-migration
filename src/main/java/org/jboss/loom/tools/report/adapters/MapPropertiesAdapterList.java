@@ -13,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ *  Adapts Map<String, String> to List<MapPropertiesAdapterList.Property>.
+ *  Doesn't use java.util.Properties as it works with Objects.
+ * 
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class MapPropertiesAdapterList extends XmlAdapter<List<MapPropertiesAdapterList.Property>, Map<String,String>> {
@@ -35,10 +37,10 @@ public class MapPropertiesAdapterList extends XmlAdapter<List<MapPropertiesAdapt
     @XmlRootElement
     @XmlAccessorType( XmlAccessType.NONE )
     public static final class Property {
-        @XmlAttribute
-        public String name = "foo";
-        @XmlAttribute
-        public String value = "bar";
+        
+        @XmlAttribute public String name;
+        
+        @XmlAttribute public String value;
 
         public Property() {
         }
