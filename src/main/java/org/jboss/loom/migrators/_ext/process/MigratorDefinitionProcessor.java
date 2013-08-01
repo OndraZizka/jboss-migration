@@ -207,7 +207,7 @@ public class MigratorDefinitionProcessor {
             ManualActionDef def = (ManualActionDef) actionDef;
             action = new ManualAction();
             // Warning(s)
-            action.getWarnings().add( def.warning );
+            //action.getWarnings().add( def.warning ); // Done through context after EL resolving.
         }
 
         
