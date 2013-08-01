@@ -95,7 +95,7 @@ public class GlobalConfiguration {
     public String getTargetServerDir(){ return as7Config.getDir(); }
 
     // Aliases. They will replace those which the call.
-    public AS5Config getSourceServer(){ return getAS5Config(); }
-    public AS7Config getTargetServer(){ return getAS7Config(); }
+    public AS5Config getSourceServerConf(){ return getAS5Config(); }
+    public AS7Config getTargetServerConf(){ return getAS7Config(); }
 
 }// class
