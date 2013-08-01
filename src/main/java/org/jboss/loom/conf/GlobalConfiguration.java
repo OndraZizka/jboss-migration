@@ -56,9 +56,11 @@ public class GlobalConfiguration {
     
     
     //<editor-fold defaultstate="collapsed" desc="get/set">
+    @Deprecated // Use getTargetServer()
     public AS7Config getAS7Config() { return as7Config; }
     //public void setAS7Config(AS7Config as7Config) { this.as7Config = as7Config; }
 
+    @Deprecated // Use getSourceServer()
     public AS5Config getAS5Config() { return as5config; }
     //public void setAS5Config(As5Config as5config) { this.as5config = as5config; }
 
@@ -89,12 +91,11 @@ public class GlobalConfiguration {
     //</editor-fold>
 
     // JAXB
-    public String getSourceServerDir(){
-        return as5config.getDir();
-    }
+    public String getSourceServerDir(){ return as5config.getDir(); }
+    public String getTargetServerDir(){ return as7Config.getDir(); }
 
-    public String getTargetServerDir(){
-        return as7Config.getDir();
-    }
+    // Aliases. They will replace those which the call.
+    public AS5Config getSourceServer(){ return getAS5Config(); }
+    public AS7Config getTargetServer(){ return getAS7Config(); }
 
 }// class
