@@ -116,19 +116,19 @@ public class MigratorDefinitionProcessor {
      *  Recursively processes the .mig.xml descriptor into Actions.
      *  TODO: Could be better to put the stack manipulation to the beginning and end of the method.
      */
-    private List<IMigrationAction> processChildren( ContainerOfStackableDefs cont ) throws MigrationException {
+    private List<IMigrationAction> processChildren( ContainerOfStackableDefs defContainer ) throws MigrationException {
         
         List<IMigrationAction> actions = new LinkedList();
         
         // Filter.
-        if( cont.filter != null ){
-            if( ! GroovyScriptUtils.evaluateGroovyExpressionToBool( cont.filter, this.stack ) )
+        if( defContainer.filter != null ){
+            if( ! GroovyScriptUtils.evaluateGroovyExpressionToBool( defContainer.filter, this.stack ) )
                 return actions;
         }
         
         // ForEach defs.
-        if( cont.hasForEachDefs() )
-        for( MigratorDefinition.ForEachDef forEachDef : cont.getForEachDefs() ) {
+        if( defContainer.hasForEachDefs() )
+        for( MigratorDefinition.ForEachDef forEachDef : defContainer.getForEachDefs() ) {
             
             DefinitionBasedMigrator.ConfigLoadResult queryResult = this.defBasedMig.getQueryResultByName( forEachDef.queryName ); 
             if( null == queryResult )
@@ -151,8 +151,8 @@ public class MigratorDefinitionProcessor {
         
         // Action definitions.
         // TODO: Currently, actions processing is hard-coded. This needs to be brought to meta-data.
-        if( cont.hasActionDefs() )
-        for( MigratorDefinition.ActionDef actionDef : cont.getActionDefs() ) {
+        if( defContainer.hasActionDefs() )
+        for( MigratorDefinition.ActionDef actionDef : defContainer.getActionDefs() ) {
             IMigrationAction action = createActionFromDef( actionDef );
             
             // Recurse
@@ -164,12 +164,12 @@ public class MigratorDefinitionProcessor {
         }
         
         // Warnings
-        if( cont.warning != null ){
-            if( ! (cont instanceof Has.Warnings) )
-                throw new IllegalArgumentException("This context can't have warnings: " + cont.getClass());
+        if( defContainer.warning != null ){
+            if( ! (defContainer instanceof Has.Warnings) )
+                throw new IllegalArgumentException("This context can't have warnings: " + defContainer.getClass().getSimpleName());
             
-            String warnStr = this.eval.evaluateEL( cont.warning ); // EL
-            ((Has.Warnings) cont).addWarning( warnStr );
+            String warnStr = this.eval.evaluateEL( defContainer.warning ); // EL
+            ((Has.Warnings) defContainer).addWarning( warnStr );
         }
             
         return actions;
