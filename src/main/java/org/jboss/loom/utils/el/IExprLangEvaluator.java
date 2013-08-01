@@ -153,11 +153,17 @@ public interface IExprLangEvaluator {
         }
         
         
-        public String evaluateEL( String expr ) {
+        // TODO: Move ELContext anonymous innter class to normal outer; don't create it for every call.
+        @Override public String evaluateEL( String expr ) {
     
-            //ELResolver resolver;
+            // CompositeELResolver allows to resolve from multiple sources.
+            
             final CompositeELResolver resolver = new CompositeELResolver();
+            // Here I want to use Map to be able to add some values, e.g. from user input.
             resolver.add(new MapELResolver() );
+            
+            // BeanELDefaultStringResolver is my implementation which returns "" if it can't find given variable
+            // (instead of throwing an exception).
             resolver.add(new BeanELDefaultStringResolver("") );
             
             
@@ -169,20 +175,11 @@ public interface IExprLangEvaluator {
                 @Override public FunctionMapper getFunctionMapper() { return THROW_MAPPER; }
 
                 @Override public VariableMapper getVariableMapper() {
-                    /*return new VariableMapper() {
-                        @Override public ValueExpression resolveVariable( String variable ) {
-                            return JUEL_FACTORY.createValueExpression( properties.get( variable ), Object.class );
-                        }
-                        @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
-                            throw new UnsupportedOperationException( "Read-only, can't set: " + variable );
-                        }
-                    };*/
-                    return new ProvidedVariableMapper( varProvider );
-                    
+                    return new ProvidedVariableMapper( JuelCustomResolverEvaluator.this.varProvider );
                 }
             };
             
-            ValueExpression valueExpr = JUEL_FACTORY.createValueExpression(context, expr, String.class);
+            ValueExpression valueExpr = JUEL_FACTORY.createValueExpression( context, expr, String.class );
             try {
                 return (String) valueExpr.getValue(context);
             }
@@ -199,8 +196,15 @@ public interface IExprLangEvaluator {
         T getVariable( String name );
     }
     
-    public class ProvidedVariableMapper extends VariableMapper {
+    
+    /**
+     *  Delegates the variable resolving to an IVariablesProvider provided to the constructor.
+     *  Read-only.
+     */
+    public class ProvidedVariableMapper extends javax.el.VariableMapper {
+        
         private final IVariablesProvider<Object> provider;
+        
         public ProvidedVariableMapper( IVariablesProvider<Object> provider ) {
             this.provider = provider;
         }
@@ -214,7 +218,9 @@ public interface IExprLangEvaluator {
     };
     
 
-    
+    /**
+     *  Throws UnsupportedOperationException for any call.
+     */
     static final FunctionMapper THROW_MAPPER = 
             new FunctionMapper() {
                 @Override public Method resolveFunction( String prefix, String localName ) {
