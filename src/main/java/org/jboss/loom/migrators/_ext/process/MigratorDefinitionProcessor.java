@@ -165,11 +165,8 @@ public class MigratorDefinitionProcessor {
         
         // Warnings
         if( defContainer.warning != null ){
-            if( ! (defContainer instanceof Has.Warnings) )
-                throw new IllegalArgumentException("This context can't have warnings: " + defContainer.getClass().getSimpleName());
-            
             String warnStr = this.eval.evaluateEL( defContainer.warning ); // EL
-            ((Has.Warnings) defContainer).addWarning( warnStr );
+            this.getStack().addWarning( warnStr );
         }
             
         return actions;
@@ -281,6 +278,9 @@ public class MigratorDefinitionProcessor {
 
 
     
+    /**
+     *  Will be used for handlers created out of the code in createActionFromDef().
+     */
     public static interface IActionDefHandler {
         /** Just stores the value, instead of a constructor. */
         IActionDefHandler setDefBasedMig( DefinitionBasedMigrator mig );

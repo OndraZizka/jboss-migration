@@ -31,16 +31,40 @@ public class ContextsStack  implements IExprLangEvaluator.IVariablesProvider {
     
 
     // --- Delegations. ---
-    public ProcessingStackItem push( ProcessingStackItem item ) {
-        return stack.push( item );
+    public ProcessingStackItem push( ProcessingStackItem item ) { return stack.push( item ); }
+    public synchronized ProcessingStackItem pop() { return stack.pop(); }
+    public synchronized ProcessingStackItem peek() { return stack.peek(); }
+
+    
+    /**
+     *  Adds a warning to the nearest context able to take it (most likely, an Action).
+     * 
+     *  @throws IllegalArgumentException  If none of parent items can have warnings.
+     */
+    void addWarning( String warnStr ) throws IllegalArgumentException {
+        
+        for( int i = this.stack.size()-1; i >= 0; i-- ) {  // Could use Guava's Lists.reverse() view.
+            ProcessingStackItem item = this.stack.get( i );
+            if( ! (item instanceof Has.Warnings ) )
+                continue;
+            
+            ((Has.Warnings)item).addWarning( warnStr );
+            return;
+        }
+        
+        throw new IllegalArgumentException("None of parent items can have warnings.\n    Current position: " + this.formatCurrentPosition());
     }
 
-    public synchronized ProcessingStackItem pop() {
-        return stack.pop();
-    }
 
-    public synchronized ProcessingStackItem peek() {
-        return stack.peek();
+    /**
+     *  Formats a string representing the current stack.
+     */
+    private String formatCurrentPosition() {
+        StringBuilder sb = new StringBuilder();
+        for( ProcessingStackItem item : stack ) {
+            sb.append("    ").append(item);
+        }
+        return sb.toString();
     }
     
 }// class
