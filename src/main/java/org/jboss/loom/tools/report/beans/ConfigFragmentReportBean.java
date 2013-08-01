@@ -13,7 +13,7 @@ import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.ann.ConfigPartDescriptor;
 import org.jboss.loom.tools.report.adapters.MapPropertiesAdapter;
 import org.jboss.loom.utils.Utils;
-import org.jboss.loom.utils.el.IExprLangEvaluator;
+import org.jboss.loom.utils.el.SimpleEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +82,7 @@ public class ConfigFragmentReportBean {
         if( properties == null || properties.isEmpty() )  return name;
         
         try {
-            return new IExprLangEvaluator.SimpleEvaluator(this.properties).evaluateEL( name );
+            return new SimpleEvaluator(this.properties).evaluateEL( name );
         } catch (Exception ex ){
             return name;
         }

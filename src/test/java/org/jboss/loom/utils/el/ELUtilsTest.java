@@ -27,18 +27,18 @@ public class ELUtilsTest {
 
     @Test public void testSimpleEvaluator() {
         System.out.println( "SimpleEvaluator" );
-        doTestBean( new IExprLangEvaluator.SimpleEvaluator(PERSON_MAP_01) );
+        doTestBean( new SimpleEvaluator(PERSON_MAP_01) );
     }
 
 
     @Test public void testSimpleEvaluator2() {
         System.out.println( "SimpleEvaluator2" );
-        doTestSimple( new IExprLangEvaluator.SimpleEvaluator(PERSON_MAP_01) );
+        doTestSimple( new SimpleEvaluator(PERSON_MAP_01) );
     }
     
     @Test public void testJuelCustomResolverEvaluator() {
         System.out.println("JuelCustomResolverEvaluator");
-        doTestBean( new IExprLangEvaluator.JuelCustomResolverEvaluator(PERSON_MAP_01_VAR_PROVIDER) );
+        doTestBean( new JuelCustomResolverEvaluator(PERSON_MAP_01_VAR_PROVIDER) );
     }
     
     

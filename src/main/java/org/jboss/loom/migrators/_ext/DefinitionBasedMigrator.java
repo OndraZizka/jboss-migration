@@ -17,6 +17,7 @@ import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
+import org.jboss.loom.utils.el.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             
             // TODO: Evaluate EL in these. 
             // Or - should we do it in ExternalMigratorsLoader?
-            final IExprLangEvaluator.JuelCustomResolverEvaluator evtor = new IExprLangEvaluator.JuelCustomResolverEvaluator(varProvider);
+            final JuelCustomResolverEvaluator evtor = new JuelCustomResolverEvaluator(varProvider);
             final String pathMask = query.pathMask; // evtor.evaluateEL(query.pathMask); 
             final String xpath = query.xpath;
             final String subjectLabel = query.subjectLabel;
