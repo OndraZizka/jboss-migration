@@ -93,7 +93,10 @@ public class MigratorDefinitionProcessor {
         this.stack.push( (ProcessingStackItem) new RootContext()
             .setVariable("mig", defBasedMig)
             // Shorthands
-            .setVariable("conf", defBasedMig.getConfig()) 
+            .setVariable("conf", defBasedMig.getGlobalConfig()) 
+            .setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf()) 
+            .setVariable("destServer", defBasedMig.getGlobalConfig().getTargetServerConf()) 
+            .setVariable("migDef", defBasedMig.getDescriptor())
             .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile())
             // Others
             .setVariable("workdir", new File("."))
