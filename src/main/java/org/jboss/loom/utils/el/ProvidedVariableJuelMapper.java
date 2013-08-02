@@ -19,8 +19,9 @@ public class ProvidedVariableJuelMapper extends javax.el.VariableMapper {
     }
     
 
-    @Override public ValueExpression resolveVariable( String variable ) {
-        return JUEL_FACTORY.createValueExpression( this.provider.getVariable( variable ), Object.class );
+    @Override public ValueExpression resolveVariable( String varName ) {
+        final Object var = this.provider.getVariable( varName );
+        return JUEL_FACTORY.createValueExpression( var, Object.class );
     }
     
     @Override public ValueExpression setVariable( String variable, ValueExpression expression ) {
