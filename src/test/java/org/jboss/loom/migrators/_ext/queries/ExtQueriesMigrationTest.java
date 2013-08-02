@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.loom.MigrationEngine;
 import org.jboss.loom.TestUtils;
 import org.jboss.loom.actions.IMigrationAction;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.ClassUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,11 +41,12 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         TestUtils.printTestBanner();
         
         MigrationEngine migEngine = 
-        doTest( "XmlQueryTest", null, new DirPreparation() {
+        doTest( "XmlQueryTest", null, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws Exception {
                 ClassUtils.copyResourceToDir( this.getClass(), "XmlQueryTest.xml", dir );
                 ClassUtils.copyResourceToDir( this.getClass(), "AttrBeanGroovy.groovy", dir );
             }
+            @Override public void prepareConfig( Configuration conf ) throws Exception { }
         } );
         
         
@@ -67,10 +69,11 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         TestUtils.printTestBanner();
         
         MigrationEngine migEngine = 
-        doTest( "PropertiesQueryTest", null, new DirPreparation() {
+        doTest( "PropertiesQueryTest", null, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws Exception {
                 ClassUtils.copyResourceToDir( this.getClass(), "PropertiesQueryTest.properties", dir );
             }
+            @Override public void prepareConfig( Configuration conf ) throws Exception { }
         } );
         
         final List<IMigrationAction> actions = migEngine.getContext().getActions();

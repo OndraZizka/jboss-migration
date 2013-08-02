@@ -12,7 +12,7 @@
             <warning>userVarTest=${userVarTest}</warning>
             -->
             <warning>
-                workdir=${workdir} 
+                workdir=${workdir.absolutePath} 
                 srcServer.dir=${srcServer.dir}
                 destServer.dir=${destServer.dir}
                 action.class.name=${action.class.name}

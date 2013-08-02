@@ -30,7 +30,7 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
     /**
      *  Test itself
      */
-    protected MigrationEngine doTest( String migName, File dir, DirPreparation prep ) throws IOException, UnknownHostException, MigrationException, Exception {
+    protected MigrationEngine doTest( String migName, File dir, TestPreparation prep ) throws IOException, UnknownHostException, MigrationException, Exception {
         System.out.println( "-----------------------------" );
         System.out.println( "---  "   + migName +   "  ---" );
         System.out.println( "-----------------------------" );
@@ -48,6 +48,9 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
         // Migration Configuration
         Configuration conf = createSingleExtMigTestConf( migName );
         conf.getGlobal().setExternalMigratorsDir( dir.getPath() );
+        
+        // Callback
+        prep.prepareConfig( conf );
         
         TestUtils.announceMigration( conf );
         ConfigurationValidator.validate( conf );
@@ -85,11 +88,13 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
     /**
      *  The intent was to share one preparation for multiple tests, but that doesn't happen much.
      */
-    public interface DirPreparation {
+    public interface TestPreparation {
         void prepareDir( File dir ) throws Exception;
+        void prepareConfig( Configuration conf ) throws Exception;
 
-        static DirPreparation NOOP = new DirPreparation() {
+        static TestPreparation NOOP = new TestPreparation() {
             @Override public void prepareDir( File dir ) { }
+            @Override public void prepareConfig( Configuration conf ) { }
         };
     }    
     

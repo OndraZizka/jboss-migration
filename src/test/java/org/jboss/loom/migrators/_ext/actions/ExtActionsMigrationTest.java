@@ -11,6 +11,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.loom.TestUtils;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.ClassUtils;
 import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.junit.Assert;
@@ -34,7 +35,7 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
     @Test @RunAsClient
     public void testManualAction() throws Exception {
         TestUtils.printTestBanner();
-        doTest( "ManualActionTest", null, DirPreparation.NOOP );
+        doTest( "ManualActionTest", null, TestPreparation.NOOP );
     }
     
     
@@ -50,7 +51,7 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
         File dir = Files.createTempDirectory("ExtMigr-copy-").toFile();
         
         
-        doTest( "CopyActionTest", dir, new DirPreparation() {
+        doTest( "CopyActionTest", dir, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws IOException {
                 // 1
                 FileUtils.touch( new File( dir, "src.file"));
@@ -59,6 +60,7 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
                 FileUtils.touch( new File( dir, "srcExistingDir/src.file"));
                 // 3 - ^^^ is reused
             }
+            @Override public void prepareConfig( Configuration conf ) throws Exception { }
         } );
         
         // Check
@@ -82,13 +84,14 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
         TestUtils.printTestBanner();
         File dir = Files.createTempDirectory("ExtMigr-xslt-").toFile();
         
-        doTest( "XsltActionTest", dir, new DirPreparation() {
+        doTest( "XsltActionTest", dir, new TestPreparation() {
             @Override public void prepareDir( File dir_ ) throws IOException {
                 try( FileWriter fw = new FileWriter( new File( dir_, "src.xml") ) ){
                     fw.write("<?xml version='1.0' ?><a/>");
                 }
                 ClassUtils.copyResourceToDir( getClass(), "XsltStyleSheet.xsl", dir_ );
             }
+            @Override public void prepareConfig( Configuration conf ) throws Exception { }
         } );
         
         // Check the result
@@ -104,7 +107,7 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
     @Test
     public void testCliAction() throws Exception {
         TestUtils.printTestBanner();
-        doTest( "CliActionTest", null, DirPreparation.NOOP );
+        doTest( "CliActionTest", null, TestPreparation.NOOP );
         
         // Check the system property - /system-property=foo:read-resource
         final ModelControllerClient mcc = ModelControllerClient.Factory.create("localhost", 9999);
@@ -121,11 +124,12 @@ public class ExtActionsMigrationTest extends ExtMigrationTestBase {
     @Test
     public void testModuleAction() throws Exception {
         TestUtils.printTestBanner();
-        doTest( "ModuleCreationActionTest", null, new DirPreparation() {
+        doTest( "ModuleCreationActionTest", null, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws IOException {
                 // 1
                 FileUtils.touch( new File( dir, "test.jar"));
             }
+            @Override public void prepareConfig( Configuration conf ) throws Exception { }
         } );
         // TODO: Check that module was created and loaded.
     }

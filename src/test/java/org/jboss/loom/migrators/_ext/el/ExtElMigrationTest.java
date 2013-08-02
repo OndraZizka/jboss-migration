@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.loom.MigrationEngine;
 import org.jboss.loom.TestUtils;
 import org.jboss.loom.actions.IMigrationAction;
+import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.ClassUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,9 +42,12 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         TestUtils.printTestBanner();
         
         MigrationEngine migEngine = 
-        doTest( "ElInWarningTest", null, new DirPreparation() {
+        doTest( "ElInWarningTest", null, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws Exception {
                 ClassUtils.copyResourceToDir( this.getClass(), "userVarTest.xml", dir );
+            }
+            @Override public void prepareConfig( Configuration conf ) throws Exception {
+                conf.getGlobal().setUserVar("userVarTest", "userVarTest");
             }
         } );
         
@@ -54,6 +58,8 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         Assert.assertEquals("1 warning in action", 1, warnings.size());
         
         final String warn = warnings.get(0);
+        System.out.println("The warning produced: " + warn );
+        
         for( String str : new String[]{
             "workdir=" + new File(".").getAbsolutePath(),
             "srcServer.dir=" + migEngine.getConfig().getGlobal().getSourceServerDir(),

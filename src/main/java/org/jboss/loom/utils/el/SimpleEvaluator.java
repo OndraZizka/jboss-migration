@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 /**
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
+ *  @deprecated 
  */
 public class SimpleEvaluator implements IExprLangEvaluator {
     private static final Logger log = LoggerFactory.getLogger( SimpleEvaluator.class );
