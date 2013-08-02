@@ -40,21 +40,10 @@ public class AS5Config {
 
 
     //<editor-fold defaultstate="collapsed" desc="get/set">
-    public String getDir() {
-        return as5dir;
-    }
-
-    public void setDir(String as5dir) {
-        this.as5dir = as5dir;
-    }
-
-    public String getProfileName() {
-        return as5profileName;
-    }
-
-    public void setProfileName(String profileName) {
-        this.as5profileName = profileName;
-    }
+    public String getDir() { return as5dir; }
+    public void setDir(String as5dir) { this.as5dir = as5dir; }
+    public String getProfileName() { return as5profileName; }
+    public void setProfileName(String profileName) { this.as5profileName = profileName; }
     //</editor-fold>
 
 }// class
