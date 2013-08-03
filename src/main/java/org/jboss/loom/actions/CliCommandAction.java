@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class CliCommandAction extends AbstractStatefulAction {
     private static final Logger log = LoggerFactory.getLogger(CliCommandAction.class);
     
+    
     /** Management API command to perform. */
     private BatchedCommandWithAction command;
     

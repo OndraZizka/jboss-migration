@@ -2,10 +2,8 @@ package org.jboss.loom.migrators._ext;
 
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
-import org.eclipse.persistence.oxm.annotations.XmlLocation;
-import org.xml.sax.Locator;
+import org.jboss.loom.utils.el.EL;
 
 /**
  *  Serves as a common base for all stackable items which contain each other.
@@ -18,18 +16,21 @@ public class ContainerOfStackableDefs {
     @XmlElement
     public String filter;   // A Groovy expression to filter the items.
 
-    @XmlElement
+    @EL @XmlElement
     public String warning;  // Warning to add to the current action.
 
+    
     @XmlElement(name = "action")
     List<MigratorDefinition.ActionDef> actionDefs;
 
     @XmlElement(name = "forEach")
     List<MigratorDefinition.ForEachDef> forEachDefs;
 
+    
     //@XmlLocation
     //@XmlTransient
     //public Locator location;
+
     
     public boolean hasForEachDefs(){ return forEachDefs != null && ! forEachDefs.isEmpty(); }
     public List<MigratorDefinition.ForEachDef> getForEachDefs() { return forEachDefs; }

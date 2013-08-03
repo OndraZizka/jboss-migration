@@ -5,12 +5,12 @@
         
         <!-- Attribute - Groovy JAXB bean -->        
         <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
-                  jaxbBean="AttrBeanGroovy"/>
+                  jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
         
         <!-- Dummy action to get the output. -->
-        <action type="manual">
-            <warning>goo=${goo[0]} foo=${foo[0]} bar=${bar[0]}</warning>
+        <action type="cli" command="/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest})">
+            <warning>command=${action.command.command}</warning>
         </action>
         
     </migrator>

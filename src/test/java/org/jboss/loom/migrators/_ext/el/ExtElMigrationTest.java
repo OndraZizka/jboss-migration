@@ -11,6 +11,7 @@ import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.ClassUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
                 userVarTest=${userVarTest}
             </warning>
      */
+    @Ignore
     @Test @RunAsClient
     public void testElInWarning() throws Exception {
         TestUtils.printTestBanner();
@@ -68,6 +70,41 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
             "userVarTest=userVarTest"
         }){
             Assert.assertTrue("Warning contains " + str, warn.contains(str));
+        }
+    }
+    
+    
+    /**
+     */
+    @Test @RunAsClient
+    public void testElInAction() throws Exception {
+        TestUtils.printTestBanner();
+        
+        MigrationEngine migEngine = 
+        doTest( "ElInActionTest", null, new TestPreparation() {
+            @Override public void prepareDir( File dir ) throws Exception {
+                ClassUtils.copyResourceToDir( this.getClass(), "userVarTest.xml", dir );
+            }
+            @Override public void prepareConfig( Configuration conf ) throws Exception {
+                conf.getGlobal().setUserVar("userVarTest", "userVarTest");
+            }
+        } );
+        
+        final List<IMigrationAction> actions = migEngine.getContext().getActions();
+        
+        Assert.assertEquals("1 action created", 1, actions.size());
+        final List<String> warnings = migEngine.getContext().getActions().get(0).getWarnings();
+        Assert.assertEquals("1 warning in action", 1, warnings.size());
+        
+        final String warn = warnings.get(0);
+        System.out.println("The warning produced: " + warn );
+        
+        //command=BatchedCommandWithAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); action: CliCommandAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); ifExists=WARN, todo=null}}
+        for( String str : new String[]{
+            "command=" + "/system-property=foo:add(goo=fooValue, action=CliAction, userVarTest=userVarTest)"
+        }){
+            //Assert.assertTrue("Warning contains " + str, warn.contains(str));
+            Assert.assertEquals("Warning equals ", str, warn);
         }
     }
 

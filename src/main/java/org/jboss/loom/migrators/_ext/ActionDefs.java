@@ -14,11 +14,11 @@ import org.jboss.loom.utils.el.EL;
  */
 public class ActionDefs {
 
-    @EL @XmlRootElement
+    @XmlRootElement
     @XmlDiscriminatorValue("cli")
     public static class CliActionDef extends MigratorDefinition.ActionDef {
         /** CLI command. EL. */
-        @XmlAttribute public String command;
+        @EL @XmlAttribute public String command;
     }
 
     
