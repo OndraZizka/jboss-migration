@@ -90,17 +90,23 @@ public class MigratorDefinitionProcessor {
 
 
     public MigratorDefinitionProcessor( DefinitionBasedMigrator defBasedMig ) {
-        this.stack.push( (ProcessingStackItem) new RootContext()
-            .setVariable("mig", defBasedMig)
-            // Shorthands
-            .setVariable("conf", defBasedMig.getGlobalConfig()) 
-            .setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf()) 
-            .setVariable("destServer", defBasedMig.getGlobalConfig().getTargetServerConf()) 
-            .setVariable("migDef", defBasedMig.getDescriptor())
-            .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile())
-            // Others
-            .setVariable("workdir", new File("."))
-        );
+        final Variables rootCtx = new RootContext()
+        .setVariable("mig", defBasedMig)
+        // Shorthands
+        .setVariable("conf", defBasedMig.getGlobalConfig()) 
+        .setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf()) 
+        .setVariable("destServer", defBasedMig.getGlobalConfig().getTargetServerConf()) 
+        .setVariable("migDef", defBasedMig.getDescriptor())
+        .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile())
+        // Others
+        .setVariable("workdir", new File("."));
+        
+        // User variables
+        for( Map.Entry<String, String> entry : defBasedMig.getGlobalConfig().getUserVars().entrySet() ){
+            rootCtx.setVariable( entry.getKey(), entry.getValue() );
+        }
+
+        this.stack.push( (ProcessingStackItem) rootCtx );
         this.defBasedMig = defBasedMig;
     }
     
@@ -159,7 +165,7 @@ public class MigratorDefinitionProcessor {
             IMigrationAction action = createActionFromDef( actionDef );
             
             // Recurse
-            this.getStack().push( new ActionContext( action ) );
+            this.getStack().push( new ActionContext( action, actionDef.varName ) );
             this.processChildren( actionDef );
             this.getStack().pop();
             

@@ -81,9 +81,13 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     //@XmlDiscriminatorNode("@type") // moved to ContainerOfStackableDefs
     @XmlSeeAlso({ CliActionDef.class, ModuleActionDef.class, CopyActionDef.class, XsltActionDef.class, ManualActionDef.class })
     public static class ActionDef extends ContainerOfStackableDefs {
+        
         @XmlAttribute
         @XmlReadOnly
         public String typeVal;
+
+        @XmlAttribute(name = "var")
+        public String varName;
         
         //public List<PropertyBean> properties;
         //@XmlAnyAttribute

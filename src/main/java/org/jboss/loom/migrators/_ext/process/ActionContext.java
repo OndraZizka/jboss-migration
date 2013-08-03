@@ -8,10 +8,13 @@ import org.jboss.loom.actions.IMigrationAction;
  */
 class ActionContext implements ProcessingStackItem, Has.Actions, Has.Warnings {
     IMigrationAction action;
+    
+    private String varName;
 
 
-    public ActionContext( IMigrationAction action ) {
+    public ActionContext( IMigrationAction action, String varName ) {
         this.action = action;
+        this.varName = varName == null ? "action" : varName.trim();
     }
 
 
@@ -39,7 +42,7 @@ class ActionContext implements ProcessingStackItem, Has.Actions, Has.Warnings {
     //@Override public Map<String, Object> getVariables() { return null; }
     @Override
     public Object getVariable( String name ) {
-        return null;
+        return this.varName.equals( name ) ? action : null;
     }
 
 }// class

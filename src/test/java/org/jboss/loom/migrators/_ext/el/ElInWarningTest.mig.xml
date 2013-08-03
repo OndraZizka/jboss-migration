@@ -15,7 +15,7 @@
                 workdir=${workdir.absolutePath} 
                 srcServer.dir=${srcServer.dir}
                 destServer.dir=${destServer.dir}
-                action.class.name=${action.class.name}
+                action.class.simpleName=${action.class.simpleName}
                 userVarTest=${userVarTest}
             </warning>
         </action>
