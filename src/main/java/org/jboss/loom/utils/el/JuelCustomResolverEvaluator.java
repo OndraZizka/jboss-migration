@@ -27,6 +27,8 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
     // TODO: Move ELContext anonymous innter class to normal outer; don't create it for every call.
     @Override
     public String evaluateEL( String expr ) {
+        if( expr == null )
+            throw new IllegalArgumentException("The expression param is null.");
         
         // CompositeELResolver allows to resolve from multiple sources.
         final CompositeELResolver resolver = new CompositeELResolver();
@@ -37,7 +39,7 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
         
         // BeanELDefaultStringResolver is my implementation which returns "" if it can't find given variable
         // (instead of throwing an exception).
-        resolver.add( new BeanELDefaultStringResolver( "" ) );
+        resolver.add( new BeanELDefaultStringResolver("") );
         
         //de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
         ELContext elCtx = new ELContext() {
@@ -50,10 +52,12 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
             }
         };
         
-        ValueExpression valueExpr = JUEL_FACTORY.createValueExpression( elCtx, expr, String.class );
         try {
+            ValueExpression valueExpr = JUEL_FACTORY.createValueExpression( elCtx, expr, String.class );
             return (String) valueExpr.getValue( elCtx );
         } catch( javax.el.PropertyNotFoundException ex ) {
+            throw new IllegalArgumentException( "Can't eval '" + expr + "':\n    " + ex.getMessage(), ex );
+        } catch( Throwable ex ) {
             throw new IllegalArgumentException( "Can't eval '" + expr + "':\n    " + ex.getMessage(), ex );
         }
     }
