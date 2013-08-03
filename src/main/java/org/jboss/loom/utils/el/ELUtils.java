@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 public class ELUtils {
-    private static final Logger log = LoggerFactory.getLogger( ELUtils.class );
+    //private static final Logger log = LoggerFactory.getLogger( ELUtils.class );
 
 
     public static void evaluateObjectMembersEL( Object obj, JuelCustomResolverEvaluator eval, EL.ResolvingStage stage ) {
