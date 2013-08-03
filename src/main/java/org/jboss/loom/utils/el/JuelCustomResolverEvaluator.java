@@ -6,6 +6,7 @@ import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.el.ExpressionFactory;
 import javax.el.FunctionMapper;
+import javax.el.ListELResolver;
 import javax.el.MapELResolver;
 import javax.el.ValueExpression;
 import javax.el.VariableMapper;
@@ -32,6 +33,7 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
         
         // Here I want to use Map to be able to add some values, e.g. from user input.
         resolver.add( new MapELResolver() );
+        resolver.add( new ListELResolver() );
         
         // BeanELDefaultStringResolver is my implementation which returns "" if it can't find given variable
         // (instead of throwing an exception).

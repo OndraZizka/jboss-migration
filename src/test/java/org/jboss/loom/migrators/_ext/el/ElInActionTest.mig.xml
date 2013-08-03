@@ -12,7 +12,7 @@
         
         
         <!-- Dummy action to get the output. -->
-        <action type="cli" command="/system-property=foo:add(goo=${goo[0].value}, userVarTest=${userVarTest})">
+        <action type="cli" command="/system-property=foo:add(goo=${goo.configFragments[0].value}, userVarTest=${userVarTest})">
             <warning>command=${action.command.command}</warning>
         </action>
         

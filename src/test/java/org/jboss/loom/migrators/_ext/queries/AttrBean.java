@@ -14,6 +14,9 @@ public class AttrBean implements IConfigFragment {
     @XmlAttribute public String name;
     
     @XmlAttribute public String value;
-    
+
+
+    public String getName() { return name; }
+    public String getValue() { return value; }
 
 }// class

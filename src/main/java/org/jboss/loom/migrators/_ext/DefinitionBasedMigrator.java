@@ -184,6 +184,8 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             this.descriptor = descriptor;
             this.configFragments = conf;
         }
+
+        public List<IConfigFragment> getConfigFragments() { return configFragments; }
     }
 
 }// class
