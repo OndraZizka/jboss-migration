@@ -6,21 +6,31 @@
         <jaxbBean file="AttrBeanGroovy.groovy"/>
 
         <!-- Attribute -->
-        <xmlQuery id="foo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']" 
+        <xmlQuery id="foo" subjectLabel="Config of foo's"
+                  baseDir="${migDefDir}"
+                  pathMask="xmlQueryTest.xml"
+                  xpath="/a/foo[@name='foo1']" 
                   jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
-        <!-- Attribute - Groovy JAXB bean -->        
-        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
+        <!-- Attribute - Groovy JAXB bean -->
+        <xmlQuery id="goo" subjectLabel="Config of foo's"
+                  baseDir="${migDefDir}"
+                  pathMask="xmlQueryTest.xml"
+                  xpath="/a/foo[@name='foo1']"
                   jaxbBean="AttrBeanGroovy"/>
+                  
         
         
         <!-- Element -->
-        <xmlQuery id="bar" subjectLabel="Config of bar's" pathMask="foo.xml" xpath="/a/bar[@name='bar1']" 
+        <xmlQuery id="bar" subjectLabel="Config of bar's"
+                  baseDir="${migDefDir}"
+                  pathMask="xmlQueryTest.xml"
+                  xpath="/a/bar[@name='bar1']" 
                   jaxbBean="org.jboss.loom.migrators._ext.queries.ElmBean"/>
         
         <!-- Dummy action to get the output. -->
         <action type="manual">
-            <warning>goo=${goo[0]} foo=${foo[0]} bar=${bar[0]}</warning>
+            <warning>foo=${foo.configFragments[0].value} goo=${goo.configFragments[0].value} bar=${bar.configFragments[0].value}</warning>
         </action>
         
     </migrator>

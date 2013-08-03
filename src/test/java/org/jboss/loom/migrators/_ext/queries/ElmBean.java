@@ -8,14 +8,17 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-@XmlRootElement
+@XmlRootElement(name = "bar")
 public class ElmBean {
 
     @XmlAttribute public String name;
     
     //@XmlElement
-    @XmlPath("value/text()")
+    @XmlPath("/value/text()")
     public String value;
-    
+
+
+    public String getName() { return name; }
+    public String getValue() { return value; }
 
 }// class

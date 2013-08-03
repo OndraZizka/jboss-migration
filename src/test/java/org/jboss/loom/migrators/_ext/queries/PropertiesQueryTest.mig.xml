@@ -8,7 +8,7 @@
         <propQuery pathMask="PropertiesQueryTest.properties" id="barAndBaz" propNameMask="ba*"/>
         
         <action type="manual">
-            <warning>foo=${foo[0]} bar=${barAndBaz[0]} baz=${barAndBaz[1]}</warning>
+            <warning>foo=${foo[0]} bar=${barAndBaz.configFragments[0]} baz=${barAndBaz.configFragments[1]}</warning>
         </action>
         
     </migrator>

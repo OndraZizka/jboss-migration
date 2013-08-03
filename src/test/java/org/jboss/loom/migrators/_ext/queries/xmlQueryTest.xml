@@ -2,9 +2,9 @@
 <a>
     <foo name="foo1" value="fooValue">
         
-    </foo> 
+    </foo>
     
     <bar name="bar1">
         <value>barValue</value>
-    </bar> 
+    </bar>
 </a>

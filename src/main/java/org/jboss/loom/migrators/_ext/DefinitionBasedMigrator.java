@@ -129,10 +129,13 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             
             ELUtils.evaluateObjectMembersEL( query, evtor, null );
             
-            List<IConfigFragment> confItems = XmlUtils.readXmlConfigFiles(
+            if( query.baseDir == null )
+                query.baseDir = "."; // Probably should be srcServer.dir.
+            
+            List<IConfigFragment> confFragments = XmlUtils.readXmlConfigFiles(
                     new File(query.baseDir), query.pathMask, query.xpath, jaxbCls, query.subjectLabel);
             
-            this.loads.put( query.id, new ConfigLoadResult( query, confItems ) );
+            this.loads.put( query.id, new ConfigLoadResult( query, confFragments ) );
         }
         
         // Property queries

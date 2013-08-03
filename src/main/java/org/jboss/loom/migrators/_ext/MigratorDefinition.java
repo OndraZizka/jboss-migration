@@ -119,7 +119,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         
         @EL @XmlAttribute public String xpath;
         
-        @Override public String toString() { return "XPath $" + jaxbBeanAlias + " from files " + this.pathMask + " " + xpath; }
+        @Override public String toString() { return "Unmarshall $" + jaxbBeanAlias + " from files " + this.pathMask + ": " + xpath; }
     }
 
     @XmlRootElement

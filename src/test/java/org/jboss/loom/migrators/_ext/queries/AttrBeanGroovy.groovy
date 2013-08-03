@@ -8,12 +8,12 @@ import org.jboss.loom.spi.IConfigFragment;
  *
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
-@XmlRootElement
+@XmlRootElement(name="foo")
 public class AttrBeanGroovy implements IConfigFragment {
 
-    @XmlAttribute public String name;
+    @XmlAttribute String name;
     
-    @XmlAttribute public String value;
+    @XmlAttribute String value;
     
 
 }// class

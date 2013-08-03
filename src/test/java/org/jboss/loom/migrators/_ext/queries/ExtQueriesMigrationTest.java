@@ -11,6 +11,7 @@ import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.conf.Configuration;
 import org.jboss.loom.utils.ClassUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         MigrationEngine migEngine = 
         doTest( "XmlQueryTest", null, new TestPreparation() {
             @Override public void prepareDir( File dir ) throws Exception {
-                ClassUtils.copyResourceToDir( this.getClass(), "XmlQueryTest.xml", dir );
+                ClassUtils.copyResourceToDir( this.getClass(), "xmlQueryTest.xml", dir );
                 ClassUtils.copyResourceToDir( this.getClass(), "AttrBeanGroovy.groovy", dir );
             }
             @Override public void prepareConfig( Configuration conf ) throws Exception { }
@@ -55,15 +56,19 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         Assert.assertEquals("1 action created", 1, actions.size());
         final List<String> warnings = migEngine.getContext().getActions().get(0).getWarnings();
         Assert.assertEquals("1 warning in action", 1, warnings.size());
-        Assert.assertTrue("Warning contains fooValue", warnings.get(0).contains("fooValue"));
-        Assert.assertTrue("Warning contains barValue", warnings.get(0).contains("barValue"));
+        final String warn = warnings.get(0);
+        System.out.println("The warning produced:\n    " + warn );
+        Assert.assertTrue("Warning contains fooValue", warn.contains("fooValue"));
+        Assert.assertTrue("Warning contains barValue", warn.contains("barValue"));
     }
+    
     
     /**
         foo=bar
         bar=baz
         baz=212
      */
+    @Ignore("Not implemented yet.")
     @Test @RunAsClient
     public void testPropsQuery() throws Exception {
         TestUtils.printTestBanner();
@@ -81,9 +86,11 @@ public class ExtQueriesMigrationTest extends ExtMigrationTestBase {
         Assert.assertEquals("1 action created", 1, actions.size());
         final List<String> warnings = migEngine.getContext().getActions().get(0).getWarnings();
         Assert.assertEquals("1 warning in action", 1, warnings.size());
-        Assert.assertTrue("Warning contains foo=bar", warnings.get(0).contains("foo=bar"));
-        Assert.assertTrue("Warning contains bar=baz", warnings.get(0).contains("bar=baz"));
-        Assert.assertTrue("Warning contains baz=212", warnings.get(0).contains("baz=212"));
+        final String warn = warnings.get(0);
+        System.out.println("The warning produced:\n    " + warn );
+        Assert.assertTrue("Warning contains foo=bar", warn.contains("foo=bar"));
+        Assert.assertTrue("Warning contains bar=baz", warn.contains("bar=baz"));
+        Assert.assertTrue("Warning contains baz=212", warn.contains("baz=212"));
     }
 
 }// class

@@ -60,7 +60,7 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         Assert.assertEquals("1 warning in action", 1, warnings.size());
         
         final String warn = warnings.get(0);
-        System.out.println("The warning produced: " + warn );
+        System.out.println("The warning produced:\n    " + warn );
         
         for( String str : new String[]{
             "workdir=" + new File(".").getAbsolutePath(),
@@ -97,7 +97,7 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         Assert.assertEquals("1 warning in action", 1, warnings.size());
         
         final String warn = warnings.get(0);
-        System.out.println("The warning produced: " + warn );
+        System.out.println("The warning produced:\n    " + warn );
         
         //command=BatchedCommandWithAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); action: CliCommandAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); ifExists=WARN, todo=null}}
         for( String str : new String[]{
