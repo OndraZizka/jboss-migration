@@ -16,7 +16,8 @@ public class ContainerOfStackableDefs {
     @XmlElement
     public String filter;   // A Groovy expression to filter the items.
 
-    @EL @XmlElement
+    @EL(stage = EL.ResolvingStage.BEFORE_CHILDREN)
+    @XmlElement
     public String warning;  // Warning to add to the current action.
 
     

@@ -24,6 +24,7 @@ import org.jboss.loom.migrators._ext.ContainerOfStackableDefs;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.el.EL;
 import org.jboss.loom.utils.el.ELUtils;
 import org.jboss.loom.utils.el.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
@@ -97,6 +98,8 @@ public class MigratorDefinitionProcessor {
         final Variables rootCtx = new RootContext();
         // This migrator
         rootCtx.setVariable("mig", defBasedMig);
+        
+        // TODO: Extract the following to a context shared across migrators. MIGR-151
         // Shorthands
         rootCtx.setVariable("conf", defBasedMig.getGlobalConfig());
         rootCtx.setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf());
@@ -107,6 +110,7 @@ public class MigratorDefinitionProcessor {
         rootCtx.setVariable("workdir", new File("."));
         
         // Queries - they should be used by forEach, but this could be handy e.g. to get # of matches for reporting.
+        // They are loaded in DefinitionBasedMigrator#loadSourceServerConfig(). Maybe it should move here?
         for( Map.Entry<String, DefinitionBasedMigrator.ConfigLoadResult> entry : this.defBasedMig.getQueryResults().entrySet() ) {
             rootCtx.setVariable( entry.getKey(), entry.getValue() );
         }
@@ -173,7 +177,7 @@ public class MigratorDefinitionProcessor {
         for( MigratorDefinition.ActionDef actionDef : defContainer.getActionDefs() ) {
             
             // Evaluate the EL-enabled attributes.
-            ELUtils.evaulateObjectMembersEL( actionDef, this.eval );
+            ELUtils.evaluateObjectMembersEL( actionDef, this.eval, EL.ResolvingStage.CREATION );
             
             // Create the action.
             IMigrationAction action = createActionFromDef( actionDef );

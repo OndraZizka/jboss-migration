@@ -113,9 +113,11 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     
     @XmlRootElement
     public static class XmlFileQueryDef extends FileQueryBase {
-        @EL @NotNull
-        @XmlAttribute(name = "jaxbBean") public String jaxbBeanAlias;
-        @XmlAttribute public String xpath;
+        
+        @NotNull
+        @EL @XmlAttribute(name = "jaxbBean") public String jaxbBeanAlias;
+        
+        @EL @XmlAttribute public String xpath;
         
         @Override public String toString() { return "XPath $" + jaxbBeanAlias + " from files " + this.pathMask + " " + xpath; }
     }
@@ -129,6 +131,9 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     
     
     private static class FileQueryBase extends QueryBase {
+        
+        @EL           @XmlAttribute public String baseDir;     // What the pathMask is relative to.
+        
         @EL @NotBlank @XmlAttribute public String pathMask;     // Path mask of the files to load.
     }
     

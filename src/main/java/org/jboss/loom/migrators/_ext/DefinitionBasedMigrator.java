@@ -15,6 +15,7 @@ import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
+import org.jboss.loom.utils.el.ELUtils;
 import org.jboss.loom.utils.el.IExprLangEvaluator;
 import org.jboss.loom.utils.el.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
@@ -75,6 +76,9 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
 
     /**
      *  Callback to load source server config.
+     * 
+     *  TODO: Move to MigratorDefinitionProcessor. MIGR-150, MIGR-149
+     *  TODO: Use the same element for all types, or at least process them in a generic way, like actions.
      */
     @Override
     public void loadSourceServerConfig( final MigrationContext ctx ) throws MigrationException {
@@ -98,13 +102,18 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             }
             
             // Create a Context-based IVariablesProvider.
-            // TODO: Move somewhere else.
+            // TODO: Move to MigratorDefinitionProcessor. MIGR-150
             final IExprLangEvaluator.IVariablesProvider varProvider = new IExprLangEvaluator.IVariablesProvider() {
                 @Override public Object getVariable( String name ) {
                     switch( name ) {
                         case "srcServer": return ctx.getConf().getGlobal().getAS5Config();
                         case "destServer":
                         case "targServer": return ctx.getConf().getGlobal().getAS7Config();
+                        case "migDefDir":  
+                            File dir = DefinitionBasedMigrator.this.descriptor.getOrigin().getFile().getParentFile();
+                            return dir;
+                            //return PathUtils.relativize( new File("."), dir );
+                            //return new File(".").getAbsoluteFile().toPath().relativize( dir.getAbsoluteFile().toPath() ).toFile();
                     }
                     return "";
                 }
@@ -113,14 +122,17 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
             // TODO: Evaluate EL in these. 
             // Or - should we do it in ExternalMigratorsLoader?
             final JuelCustomResolverEvaluator evtor = new JuelCustomResolverEvaluator(varProvider);
-            final String pathMask = query.pathMask; // evtor.evaluateEL(query.pathMask); 
-            final String xpath = query.xpath;
-            final String subjectLabel = query.subjectLabel;
             
-            List<IConfigFragment> conf = XmlUtils.readXmlConfigFiles(
-                    new File("."), pathMask, xpath, jaxbCls, subjectLabel);
+            //final String pathMask = evtor.evaluateEL(query.pathMask); 
+            //final String xpath = query.xpath;
+            //final String subjectLabel = query.subjectLabel;
             
-            this.loads.put( query.id, new ConfigLoadResult( query, conf ) );
+            ELUtils.evaluateObjectMembersEL( query, evtor, null );
+            
+            List<IConfigFragment> confItems = XmlUtils.readXmlConfigFiles(
+                    new File(query.baseDir), query.pathMask, query.xpath, jaxbCls, query.subjectLabel);
+            
+            this.loads.put( query.id, new ConfigLoadResult( query, confItems ) );
         }
         
         // Property queries

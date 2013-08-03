@@ -4,13 +4,16 @@
     <migrator name="ElInQueryTest">
         
         <!-- Attribute - Groovy JAXB bean -->        
-        <xmlQuery id="goo" subjectLabel="userVarTest=${userVarTest}" pathMask="${userVarTest}.xml" xpath="/a/foo[@name='${userVarTest}']"
+        <xmlQuery id="goo" subjectLabel="userVarTest=${userVarTest}"
+                  baseDir = "${migDefDir}"
+                  pathMask="${userVarTest}.xml"
+                  xpath="/a/foo[@name='${userVarTest}']"
                   jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
         
         <!-- Dummy action to get the output. -->
         <action type="manual">
-            <warning>goo=${goo[0]}</warning>
+            <warning>goo=${goo[0].value}</warning>
         </action>
         
     </migrator>

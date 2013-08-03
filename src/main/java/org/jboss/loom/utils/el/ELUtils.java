@@ -13,7 +13,7 @@ public class ELUtils {
     private static final Logger log = LoggerFactory.getLogger( ELUtils.class );
 
 
-    public static void evaluateObjectMembersEL( Object obj, JuelCustomResolverEvaluator eval ) {
+    public static void evaluateObjectMembersEL( Object obj, JuelCustomResolverEvaluator eval, EL.ResolvingStage stage ) {
         
         Class curClass = obj.getClass();
         while( curClass != null  &&  ! Object.class.equals( curClass ) ){
@@ -21,10 +21,14 @@ public class ELUtils {
                 //if( ! fld.getType().equals( String.class ))
                 if( ! String.class.isAssignableFrom(  fld.getType() ) )
                     continue;
-                if( null == fld.getAnnotation( EL.class ))
+                final EL ann = fld.getAnnotation( EL.class );
+                if( null == ann )
+                    continue;
+                if( stage != null  &&  ann.stage() != stage )
                     continue;
 
                 try {
+                    fld.setAccessible( true );
                     String orig = (String) fld.get( obj );
                     String res = eval.evaluateEL( orig );
                     fld.set( obj, res );
