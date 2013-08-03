@@ -91,24 +91,32 @@ public class MigratorDefinitionProcessor {
 
 
     public MigratorDefinitionProcessor( DefinitionBasedMigrator defBasedMig ) {
-        final Variables rootCtx = new RootContext()
-        .setVariable("mig", defBasedMig)
+        
+        this.defBasedMig = defBasedMig;
+        
+        final Variables rootCtx = new RootContext();
+        // This migrator
+        rootCtx.setVariable("mig", defBasedMig);
         // Shorthands
-        .setVariable("conf", defBasedMig.getGlobalConfig()) 
-        .setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf()) 
-        .setVariable("destServer", defBasedMig.getGlobalConfig().getTargetServerConf()) 
-        .setVariable("migDef", defBasedMig.getDescriptor())
-        .setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile())
+        rootCtx.setVariable("conf", defBasedMig.getGlobalConfig());
+        rootCtx.setVariable("srcServer", defBasedMig.getGlobalConfig().getSourceServerConf());
+        rootCtx.setVariable("destServer", defBasedMig.getGlobalConfig().getTargetServerConf());
+        rootCtx.setVariable("migDef", defBasedMig.getDescriptor());
+        rootCtx.setVariable("migDefDir", defBasedMig.getDescriptor().getOrigin().getFile().getParentFile());
         // Others
-        .setVariable("workdir", new File("."));
+        rootCtx.setVariable("workdir", new File("."));
+        
+        // Queries - they should be used by forEach, but this could be handy e.g. to get # of matches for reporting.
+        for( Map.Entry<String, DefinitionBasedMigrator.ConfigLoadResult> entry : this.defBasedMig.getQueryResults().entrySet() ) {
+            rootCtx.setVariable( entry.getKey(), entry.getValue() );
+        }
         
         // User variables
-        for( Map.Entry<String, String> entry : defBasedMig.getGlobalConfig().getUserVars().entrySet() ){
+        for( Map.Entry<String, String> entry : this.defBasedMig.getGlobalConfig().getUserVars().entrySet() ){
             rootCtx.setVariable( entry.getKey(), entry.getValue() );
         }
 
         this.stack.push( (ProcessingStackItem) rootCtx );
-        this.defBasedMig = defBasedMig;
     }
     
     
@@ -180,7 +188,8 @@ public class MigratorDefinitionProcessor {
         
         // Warnings
         if( defContainer.warning != null ){
-            String warnStr = this.eval.evaluateEL( defContainer.warning ); // EL
+            // EL. It must be here, to allow using parent's props, e.g. ${action.command.command}
+            String warnStr = this.eval.evaluateEL( defContainer.warning );
             this.getStack().addWarning( warnStr );
         }
             
@@ -239,14 +248,14 @@ public class MigratorDefinitionProcessor {
             // Subtypes
             if( actionDef instanceof ActionDefs.CopyActionDef ){
                 CopyActionDef def = (CopyActionDef) actionDef;
-                //action = new CopyFileAction( DefinitionBasedMigrator.class, new File(def.pathMask), new File(def.dest), ifExists ); 
-                action = new CopyFileAction( DefinitionBasedMigrator.class, def.pathMask, baseDir, dest, ifExists, false ); 
+                //action = new CopyFileAction( defBasedMig.getClass(), new File(def.pathMask), new File(def.dest), ifExists ); 
+                action = new CopyFileAction( defBasedMig.getClass(), def.pathMask, baseDir, dest, ifExists, false ); 
             } 
             else if( actionDef instanceof ActionDefs.XsltActionDef ){
                 XsltActionDef def = (XsltActionDef) actionDef;
                 File xslt  = new File( baseDir, def.xslt );
                 //boolean failIfExists = "true".equals( actionDef.attribs.get("failIfExists") );
-                action = new XsltAction( DefinitionBasedMigrator.class, def.pathMask, baseDir, xslt, dest, ifExists, false ); 
+                action = new XsltAction( defBasedMig.getClass(), def.pathMask, baseDir, xslt, dest, ifExists, false ); 
             }
             else throw new IllegalStateException("Unexpected subclass: " + actionDef.getClass() );
         }
@@ -258,7 +267,7 @@ public class MigratorDefinitionProcessor {
 
             //ModelNode modelNode = ModelNode.fromString( def.command );
             //action = new CliCommandAction( DefinitionBasedMigrator.class, def.command, modelNode ); 
-            action = new CliCommandAction( DefinitionBasedMigrator.class, def.command ); 
+            action = new CliCommandAction( defBasedMig.getClass(), def.command ); 
         }
         
         
@@ -276,7 +285,7 @@ public class MigratorDefinitionProcessor {
             Configuration.IfExists ifExists = def.ifExists == null 
                     ? Configuration.IfExists.FAIL
                     : Configuration.IfExists.valueOf( def.ifExists );
-            action = new ModuleCreationAction( DefinitionBasedMigrator.class, def.name, deps, jar, ifExists );
+            action = new ModuleCreationAction( defBasedMig.getClass(), def.name, deps, jar, ifExists );
         }
         
         

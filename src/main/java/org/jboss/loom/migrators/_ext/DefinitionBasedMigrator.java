@@ -129,7 +129,11 @@ public class DefinitionBasedMigrator extends AbstractMigrator implements IMigrat
         // File list queries
     }
 
-    
+
+    public Map<String, ConfigLoadResult> getQueryResults() {
+        return loads;
+    }
+
     public ConfigLoadResult getQueryResultByName( String name ){
         return this.loads.get( name );
     }

@@ -38,7 +38,7 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
         resolver.add( new BeanELDefaultStringResolver( "" ) );
         
         //de.odysseus.el.util.SimpleContext context = new de.odysseus.el.util.SimpleContext();
-        ELContext context = new ELContext() {
+        ELContext elCtx = new ELContext() {
             @Override public ELResolver getELResolver() { return resolver; }
 
             @Override public FunctionMapper getFunctionMapper() { return THROW_MAPPER; }
@@ -48,9 +48,9 @@ public class JuelCustomResolverEvaluator implements IExprLangEvaluator {
             }
         };
         
-        ValueExpression valueExpr = JUEL_FACTORY.createValueExpression( context, expr, String.class );
+        ValueExpression valueExpr = JUEL_FACTORY.createValueExpression( elCtx, expr, String.class );
         try {
-            return (String) valueExpr.getValue( context );
+            return (String) valueExpr.getValue( elCtx );
         } catch( javax.el.PropertyNotFoundException ex ) {
             throw new IllegalArgumentException( "Can't eval '" + expr + "':\n    " + ex.getMessage(), ex );
         }

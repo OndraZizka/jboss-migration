@@ -101,7 +101,7 @@ public class ExtElMigrationTest extends ExtMigrationTestBase {
         
         //command=BatchedCommandWithAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); action: CliCommandAction{/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest}); ifExists=WARN, todo=null}}
         for( String str : new String[]{
-            "command=" + "/system-property=foo:add(goo=fooValue, action=CliAction, userVarTest=userVarTest)"
+            "command=" + "/system-property=foo:add(goo=fooValue, userVarTest=userVarTest)"
         }){
             //Assert.assertTrue("Warning contains " + str, warn.contains(str));
             Assert.assertEquals("Warning equals ", str, warn);

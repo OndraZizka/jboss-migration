@@ -4,12 +4,12 @@
     <migrator name="ElInActionTest">
         
         <!-- Attribute - Groovy JAXB bean -->        
-        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="foo.xml" xpath="/a/foo[@name='foo1']"
+        <xmlQuery id="goo" subjectLabel="Config of foo's" pathMask="userVarTest.xml" xpath="/a/foo[@name='userVarTest']"
                   jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
         
         
         <!-- Dummy action to get the output. -->
-        <action type="cli" command="/system-property=foo:add(goo=${goo[0]}, action=${action.class.simpleName}, userVarTest=${userVarTest})">
+        <action type="cli" command="/system-property=foo:add(goo=${goo[0].value}, userVarTest=${userVarTest})">
             <warning>command=${action.command.command}</warning>
         </action>
         
