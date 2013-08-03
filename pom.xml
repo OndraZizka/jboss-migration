@@ -4,7 +4,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>AsMigrator</artifactId>
-    <version>0.11.1</version>
+    <version>0.11.2-SNAPSHOT</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -557,7 +557,7 @@
         <url>https://github.com/OndraZizka/jboss-migration</url>
         <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
         <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
-      <tag>AsMigrator-0.11.1</tag>
+      <tag>HEAD</tag>
   </scm>
     <developers>
         <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
