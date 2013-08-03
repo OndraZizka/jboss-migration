@@ -15,6 +15,7 @@ import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.hibernate.validator.constraints.NotBlank;
 import org.jboss.loom.migrators.Origin;
 import org.jboss.loom.migrators._ext.ActionDefs.*;
+import org.jboss.loom.utils.el.EL;
 
 /**
  *  JAXB class for *.mig.xml files.
@@ -68,9 +69,10 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     @XmlRootElement
     @XmlAccessorType( XmlAccessType.NONE )
     public static class JaxbClassDef {
+        
         @XmlAttribute(name = "file")
         //@XmlJavaTypeAdapter( StringToFileAdapter.class )
-        public String file;
+        @EL public String file;
         public File getFile() { return new File(file); }
 
         @Override public String toString() { return "JaxbClassDef{ " + file + " }"; }
@@ -111,7 +113,7 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
     
     @XmlRootElement
     public static class XmlFileQueryDef extends FileQueryBase {
-        @NotNull
+        @EL @NotNull
         @XmlAttribute(name = "jaxbBean") public String jaxbBeanAlias;
         @XmlAttribute public String xpath;
         
@@ -120,19 +122,19 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
 
     @XmlRootElement
     public static class PropFileQueryDef extends FileQueryBase {
-        @XmlAttribute public String propNameMask;
+        @EL @XmlAttribute public String propNameMask;
         
         @Override public String toString() { return "Property " + propNameMask + " from files " + this.pathMask; }
     }
     
     
     private static class FileQueryBase extends QueryBase {
-        @NotBlank @XmlAttribute public String pathMask;     // Path mask of the files to load.
+        @EL @NotBlank @XmlAttribute public String pathMask;     // Path mask of the files to load.
     }
     
     private static class QueryBase {
         @NotBlank @XmlAttribute public String id;           // Id under which the result will be stored.
-        @NotBlank @XmlAttribute public String subjectLabel; // What's being loaded - for exceptions and logging.
+        @EL @NotBlank @XmlAttribute public String subjectLabel; // What's being loaded - for exceptions and logging.
     }
     
 }// class

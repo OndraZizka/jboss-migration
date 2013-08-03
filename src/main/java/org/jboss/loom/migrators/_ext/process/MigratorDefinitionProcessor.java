@@ -24,6 +24,7 @@ import org.jboss.loom.migrators._ext.ContainerOfStackableDefs;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
+import org.jboss.loom.utils.el.ELUtils;
 import org.jboss.loom.utils.el.JuelCustomResolverEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,6 +163,11 @@ public class MigratorDefinitionProcessor {
         // TODO: Currently, actions processing is hard-coded. This needs to be brought to meta-data.
         if( defContainer.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : defContainer.getActionDefs() ) {
+            
+            // Evaluate the EL-enabled attributes.
+            ELUtils.evaulateObjectMembersEL( actionDef, this.eval );
+            
+            // Create the action.
             IMigrationAction action = createActionFromDef( actionDef );
             
             // Recurse

@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import org.jboss.loom.utils.el.EL;
 
 /**
  *  Built-in action definition JAXB bean classes.
@@ -13,7 +14,7 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
  */
 public class ActionDefs {
 
-    @XmlRootElement
+    @EL @XmlRootElement
     @XmlDiscriminatorValue("cli")
     public static class CliActionDef extends MigratorDefinition.ActionDef {
         /** CLI command. EL. */
@@ -32,28 +33,28 @@ public class ActionDefs {
     public static class ModuleActionDef extends MigratorDefinition.ActionDef {
         
         /** Module name, eg "com.mysql.jdbc.driver". EL. */
-        @XmlAttribute public String name;
+        @EL @XmlAttribute public String name;
         
         /** Path to a .jar file of the module. EL. */
-        @XmlAttribute(name = "jar") public String jarPath;
+        @EL @XmlAttribute(name = "jar") public String jarPath;
         
         /** List of dependencies. EL. */
-        @XmlAttribute @XmlList public List<String> deps;
+        @EL @XmlAttribute @XmlList public List<String> deps;
         
         /** What to do if the destination file already exists. */
-        @XmlAttribute public String ifExists;
+        @EL @XmlAttribute public String ifExists;
     }
 
     public static class FileBasedActionDef extends MigratorDefinition.ActionDef {
         
         /** Path mask. Ant-like wildcards, EL. */
-        @XmlAttribute(name = "src") public String pathMask;
+        @EL @XmlAttribute(name = "src") public String pathMask;
         
         /** Where to store the result. May be a dir or a file. EL. */
-        @XmlAttribute public String dest;
+        @EL @XmlAttribute public String dest;
         
         /** What to do if the destination file already exists. */
-        @XmlAttribute public String ifExists;
+        @EL @XmlAttribute public String ifExists;
     }
 
     
@@ -68,7 +69,7 @@ public class ActionDefs {
     @XmlDiscriminatorValue("xslt")
     public static class XsltActionDef extends FileBasedActionDef {
         /** XSLT template path. */
-        @XmlAttribute public String xslt;
+        @EL @XmlAttribute public String xslt;
         
         @Override public String toString() { return "XSLT from " + this.pathMask + " to " + this.dest + " using " + xslt; }
     }
