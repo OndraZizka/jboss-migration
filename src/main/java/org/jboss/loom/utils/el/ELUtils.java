@@ -30,10 +30,12 @@ public class ELUtils {
                 try {
                     fld.setAccessible( true );
                     String orig = (String) fld.get( obj );
+                    if( orig == null || orig.trim().isEmpty() )
+                        continue;
                     String res = eval.evaluateEL( orig );
                     fld.set( obj, res );
                 } catch( IllegalArgumentException | IllegalAccessException ex ) {
-                    throw new IllegalStateException("Failed resolving EL in " + obj + ": " + ex.getMessage(), ex);
+                    throw new IllegalStateException("Failed resolving EL in " + obj + "." + fld.getName() + ": " + ex.getMessage(), ex);
                 }
             }
             curClass = curClass.getSuperclass();
