@@ -43,7 +43,7 @@ public class ContextsStack  implements IExprLangEvaluator.IVariablesProvider {
      * 
      *  @throws IllegalArgumentException  If none of parent items can have warnings.
      */
-    void addWarning( String warnStr ) throws IllegalArgumentException {
+    private void addWarning( String warnStr ) throws IllegalArgumentException {
         
         for( int i = this.stack.size()-1; i >= 0; i-- ) {  // Could use Guava's Lists.reverse() view.
             ProcessingStackItem item = this.stack.get( i );
@@ -62,7 +62,7 @@ public class ContextsStack  implements IExprLangEvaluator.IVariablesProvider {
      * 
      *  @throws IllegalArgumentException  If none of parent items can have warnings.
      */
-    void addAction( IMigrationAction action ) throws IllegalArgumentException {
+    private void addAction( IMigrationAction action ) throws IllegalArgumentException {
         
         for( int i = this.stack.size()-1; i >= 0; i-- ) {  // Could use Guava's Lists.reverse() view.
             ProcessingStackItem item = this.stack.get( i );
@@ -128,8 +128,12 @@ public class ContextsStack  implements IExprLangEvaluator.IVariablesProvider {
      *  Currently only used for this IPropagable concept fake implementation, so leaving it here.
      *  In the future it should be somewhere in org.jboss.loom.actions or around.
      */
-    public static class Warning implements IPropagable {
+    static class Warning implements IPropagable {
         public String text;
+
+        public Warning( String text ) {
+            this.text = text;
+        }
     }
     
 }// class

@@ -207,7 +207,8 @@ public class MigratorDefinitionProcessor {
         if( defContainer.warning != null ){
             // EL. It must be here, to allow using parent's props, e.g. ${action.command.command}
             String warnStr = this.eval.evaluateEL( defContainer.warning );
-            this.getStack().addWarning( warnStr ); // Should be done like MIGR-153
+            //this.getStack().addWarning( warnStr ); // Should be done like MIGR-153
+            this.getStack().propagate( new ContextsStack.Warning(warnStr) );
         }
             
         return actions;
@@ -240,8 +241,6 @@ public class MigratorDefinitionProcessor {
         }*/
         // TBD: Create the built-in handlers.
 
-        
-        // TODO: EL
         
         // ManualAction
         if( actionDef instanceof ActionDefs.ManualActionDef ){
