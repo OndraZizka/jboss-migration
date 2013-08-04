@@ -16,6 +16,8 @@
                     <action type="manual">
                         <warning>
                             cf2.value=${cf2.value}
+                            srcServer.dir=${srcServer.dir}
+                            action.class.simpleName=${action.class.simpleName}
                             userVarTest=${userVarTest}
                         </warning>
                     </action>

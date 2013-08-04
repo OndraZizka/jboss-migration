@@ -66,7 +66,22 @@ public class ExtForEachMigrationTest extends ExtMigrationTestBase {
             Assert.assertTrue("Warning contains " + str, warn.contains(str));
         }
     }
+
     
+    /**
+            <forEach query="foo" var="cf1">
+                <forEach query="foo" var="cf2">
+                    <action type="manual">
+                        <warning>
+                            cf2.value=${cf2.value}
+                            srcServer.dir=${srcServer.dir}
+                            action.class.simpleName=${action.class.simpleName}
+                            userVarTest=${userVarTest}
+                        </warning>
+                    </action>
+                </forEach>
+            </forEach>
+     */
     @Test @RunAsClient
     public void testForEachWithForEachWithAction() throws Exception {
         TestUtils.printTestBanner();
@@ -84,9 +99,8 @@ public class ExtForEachMigrationTest extends ExtMigrationTestBase {
         System.out.println("The warning in action 1:\n    " + warn );
         
         for( String str : new String[]{
-            "configFragment=" + "fooValue",
+            "cf2.value=" + "fooValue",
             "srcServer.dir=" + migEngine.getConfig().getGlobal().getSourceServerDir(),
-            "destServer.dir=" + migEngine.getConfig().getGlobal().getTargetServerDir(),
             "action.class.simpleName=" + "ManualAction"
             //"userVarTest=userVarTest"
         }){
