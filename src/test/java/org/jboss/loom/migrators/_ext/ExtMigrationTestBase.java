@@ -96,6 +96,24 @@ public class ExtMigrationTestBase extends ExternalMigratorsTestEnv {
             @Override public void prepareDir( File dir ) { }
             @Override public void prepareConfig( Configuration conf ) { }
         };
+        
+        public static class CopyResourcesPreparation implements TestPreparation {
+            private final String[] paths;
+            private final Class cls;
+            
+            public CopyResourcesPreparation( Class cls, String[] paths ){
+                this.cls = cls;
+                this.paths = paths;
+            }
+
+            @Override public void prepareDir( File dir ) throws IOException {
+                for( String path : paths ) {
+                    ClassUtils.copyResourceToDir( this.cls, path, dir );
+                }
+            }
+            
+            @Override public void prepareConfig( Configuration conf ) { }
+        }
     }    
     
 }// class

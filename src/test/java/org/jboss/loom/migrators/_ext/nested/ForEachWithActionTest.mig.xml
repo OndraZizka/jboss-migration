@@ -3,7 +3,26 @@
     
     <migrator name="XsltTestMigrator">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+            <!-- Attribute - Groovy JAXB bean -->        
+            <xmlQuery id="foo" subjectLabel="Config of foo's"
+                      baseDir = "${migDefDir}"
+                      pathMask="foo.xml"
+                      xpath="/a/foo"
+                      jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
+
+
+            <forEach query="foo" var="configFragment">
+                <action type="manual">
+                    <warning>
+                        configFragment=${configFragment.value}
+                        workdir=${workdir} 
+                        srcServer.dir=${srcServer.dir}
+                        destServer.dir=${destServer.dir}
+                        action.class.name=${action.class.name}
+                        userVarTest=${userVarTest}
+                    </warning>
+                </action>
+            </forEach>
         
     </migrator>
     
