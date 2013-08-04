@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
+import org.jboss.loom.migrators._ext.process.ContextsStack;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
 
@@ -34,7 +35,7 @@ import org.jboss.loom.tools.report.adapters.ToHashCodeAdapter;
  */
 @XmlRootElement(name="action")
 @XmlAccessorType( XmlAccessType.NONE )
-public interface IMigrationAction {
+public interface IMigrationAction extends ContextsStack.IPropagable {
 
     /**
      * State management - basically, a helper state to check in case

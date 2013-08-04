@@ -34,7 +34,7 @@ public class ExtForEachMigrationTest extends ExtMigrationTestBase {
                         workdir=${workdir} 
                         srcServer.dir=${srcServer.dir}
                         destServer.dir=${destServer.dir}
-                        action.class.name=${action.class.name}
+                        action.class.simpleName=${action.class.simpleName}
                         userVarTest=${userVarTest}
                     </warning>
                 </action>
@@ -45,7 +45,7 @@ public class ExtForEachMigrationTest extends ExtMigrationTestBase {
         TestUtils.printTestBanner();
         
         MigrationEngine migEngine = 
-        doTest( "ForEachWithActionTest", null, new TestPreparation.CopyResourcesPreparation( this.getClass(), new String[]{"foo.xml"}) );
+        doTest("ForEachWithActionTest", null, new TestPreparation.CopyResourcesPreparation( this.getClass(), new String[]{"foo.xml"}) );
         
         final List<IMigrationAction> actions = migEngine.getContext().getActions();
         
@@ -60,8 +60,35 @@ public class ExtForEachMigrationTest extends ExtMigrationTestBase {
             "configFragment=" + "fooValue",
             "srcServer.dir=" + migEngine.getConfig().getGlobal().getSourceServerDir(),
             "destServer.dir=" + migEngine.getConfig().getGlobal().getTargetServerDir(),
-            "action.class.simpleName=" + "ManualAction",
-            "userVarTest=userVarTest"
+            "action.class.simpleName=" + "ManualAction"
+            //"userVarTest=userVarTest"
+        }){
+            Assert.assertTrue("Warning contains " + str, warn.contains(str));
+        }
+    }
+    
+    @Test @RunAsClient
+    public void testForEachWithForEachWithAction() throws Exception {
+        TestUtils.printTestBanner();
+        
+        MigrationEngine migEngine = 
+        doTest("ForEachWithForEachTest", null, new TestPreparation.CopyResourcesPreparation( this.getClass(), new String[]{"foo.xml"}) );
+        
+        final List<IMigrationAction> actions = migEngine.getContext().getActions();
+        
+        Assert.assertEquals("4 actions created", 4, actions.size());
+        final List<String> warnings = migEngine.getContext().getActions().get(0).getWarnings();
+        Assert.assertEquals("1 warning in action 1", 1, warnings.size());
+        
+        final String warn = warnings.get(0);
+        System.out.println("The warning in action 1:\n    " + warn );
+        
+        for( String str : new String[]{
+            "configFragment=" + "fooValue",
+            "srcServer.dir=" + migEngine.getConfig().getGlobal().getSourceServerDir(),
+            "destServer.dir=" + migEngine.getConfig().getGlobal().getTargetServerDir(),
+            "action.class.simpleName=" + "ManualAction"
+            //"userVarTest=userVarTest"
         }){
             Assert.assertTrue("Warning contains " + str, warn.contains(str));
         }

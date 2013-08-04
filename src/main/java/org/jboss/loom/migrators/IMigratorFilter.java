@@ -4,6 +4,7 @@ package org.jboss.loom.migrators;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IMigrator;
 
@@ -63,7 +64,11 @@ public interface IMigratorFilter {
         public boolean filterInstance( IMigrator def ) {
             return true;
         }
-        
+
+
+        @Override public String toString() {
+            return "Only migrators named: " + StringUtils.join( this.names, ", ");
+        }
     }
 
     // Wildcards?

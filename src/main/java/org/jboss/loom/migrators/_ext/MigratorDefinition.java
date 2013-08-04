@@ -94,6 +94,10 @@ public class MigratorDefinition extends ContainerOfStackableDefs implements Orig
         //public List<PropertyBean> properties;
         //@XmlAnyAttribute
         public Map<String, String> attribs = new HashMap();
+
+        @Override public String toString() {
+            return this.getClass().getSimpleName() + "{ type: " + typeVal + " var: " + varName + "}";
+        }
     }
     
     

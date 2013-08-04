@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ForEachWithForEachTest">
         
-        <action type="cli" command="/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)"/>
+            <!-- Attribute - Groovy JAXB bean -->        
+            <xmlQuery id="foo" subjectLabel="Config of foo's"
+                      baseDir = "${migDefDir}"
+                      pathMask="foo.xml"
+                      xpath="/a/foo"
+                      jaxbBean="org.jboss.loom.migrators._ext.queries.AttrBean"/>
+
+
+            <forEach query="foo" var="cf1">
+                <forEach query="foo" var="cf2">
+                    <action type="manual">
+                        <warning>
+                            cf2.value=${cf2.value}
+                            userVarTest=${userVarTest}
+                        </warning>
+                    </action>
+                </forEach>
+            </forEach>
+        
         
     </migrator>
     

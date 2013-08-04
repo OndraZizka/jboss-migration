@@ -1,8 +1,6 @@
 package org.jboss.loom.migrators._ext.process;
 
 import java.util.Iterator;
-import java.util.List;
-import org.jboss.loom.actions.IMigrationAction;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.spi.IConfigFragment;
@@ -10,9 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  ForEachContext passes most additions etc to the parent element.
+ *  ForEachContext provides the iteration over a collection of IConfigFragments (from a query result).
+ *  It does *not* accept actions nor warnings.
  */
-class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, Iterable<IConfigFragment> {
+class ForEachContext implements ProcessingStackItem, /*Has.Actions, Has.Warnings,*/ Iterable<IConfigFragment> {
     private static final Logger log = LoggerFactory.getLogger( ForEachContext.class );
     
     final MigratorDefinition.ForEachDef def;
@@ -59,6 +58,7 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
     }
 
 
+    /*
     @Override
     public void addAction( IMigrationAction action ) {
         ProcessingStackItem top = processor.getStack().peek();
@@ -97,5 +97,6 @@ class ForEachContext implements ProcessingStackItem, Has.Actions, Has.Warnings, 
         }
         return ((Has.Warnings) top).getWarnings();
     }
+    */
 
 }// class

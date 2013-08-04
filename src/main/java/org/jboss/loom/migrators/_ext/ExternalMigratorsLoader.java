@@ -61,6 +61,7 @@ public class ExternalMigratorsLoader {
             if( ! filter.filterDefinition( it.next() ) )
                 it.remove();
         }
+        log.debug("Filtering left " + descriptors.size() + " migrator definitions conforming to " + filter);
         
         
         // Load the Groovy classes referenced in these definitions.

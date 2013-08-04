@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration>
     
-    <migrator name="XsltTestMigrator">
+    <migrator name="ForEachWithActionTest">
         
             <!-- Attribute - Groovy JAXB bean -->        
             <xmlQuery id="foo" subjectLabel="Config of foo's"
@@ -18,7 +18,7 @@
                         workdir=${workdir} 
                         srcServer.dir=${srcServer.dir}
                         destServer.dir=${destServer.dir}
-                        action.class.name=${action.class.name}
+                        action.class.simpleName=${action.class.simpleName}
                         userVarTest=${userVarTest}
                     </warning>
                 </action>

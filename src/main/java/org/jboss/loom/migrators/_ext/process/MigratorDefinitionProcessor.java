@@ -130,7 +130,9 @@ public class MigratorDefinitionProcessor {
      *  Public method for the root class.
      */
     public List<IMigrationAction> process( MigratorDefinition migDef ) throws MigrationException {
-        return this.processChildren( migDef );
+        //return this.processChildren( migDef ); // Old way
+        this.processChildren( migDef );
+        return ((Has.Actions) this.getStack().peek()).getActions();
     }
 
     
@@ -151,7 +153,8 @@ public class MigratorDefinitionProcessor {
         // ForEach defs.
         if( defContainer.hasForEachDefs() )
         for( MigratorDefinition.ForEachDef forEachDef : defContainer.getForEachDefs() ) {
-            
+            log.debug("Performing forEach: " + forEachDef);
+                    
             DefinitionBasedMigrator.ConfigLoadResult queryResult = this.defBasedMig.getQueryResultByName( forEachDef.queryName ); 
             if( null == queryResult )
                 throw new MigrationException("Query '"+forEachDef.queryName+"' not found. "
@@ -163,6 +166,7 @@ public class MigratorDefinitionProcessor {
             // For each item in query result...
             //for( IConfigFragment configFragment : queryResult.configFragments ) {
             for( IConfigFragment configFragment : forEachContext ) {
+                log.debug("Iteration step - " + configFragment);
                 // A variable is set automatically in next().
                 
                 // Recurse.
@@ -175,6 +179,7 @@ public class MigratorDefinitionProcessor {
         // TODO: Currently, actions processing is hard-coded. This needs to be brought to meta-data.
         if( defContainer.hasActionDefs() )
         for( MigratorDefinition.ActionDef actionDef : defContainer.getActionDefs() ) {
+            log.debug("Processing action definition: " + actionDef);
             
             // Evaluate the EL-enabled attributes.
             ELUtils.evaluateObjectMembersEL( actionDef, this.eval, EL.ResolvingStage.CREATION );
@@ -184,9 +189,17 @@ public class MigratorDefinitionProcessor {
             
             // Recurse
             this.getStack().push( new ActionContext( action, actionDef.varName ) );
-            this.processChildren( actionDef );
+            List<IMigrationAction> childActions = this.processChildren( actionDef );
+            actions.addAll( childActions );
             this.getStack().pop();
             
+            // Propagate the action up the stack (something should "take" it). MIGR-153
+            // Maybe this should be in pop() ?
+            boolean accepted = this.getStack().propagate( action );
+            if( ! accepted )
+                log.warn("    Was not accepted by any context: " + action);
+            
+            // Old way
             actions.add( action );
         }
         
@@ -194,7 +207,7 @@ public class MigratorDefinitionProcessor {
         if( defContainer.warning != null ){
             // EL. It must be here, to allow using parent's props, e.g. ${action.command.command}
             String warnStr = this.eval.evaluateEL( defContainer.warning );
-            this.getStack().addWarning( warnStr );
+            this.getStack().addWarning( warnStr ); // Should be done like MIGR-153
         }
             
         return actions;
