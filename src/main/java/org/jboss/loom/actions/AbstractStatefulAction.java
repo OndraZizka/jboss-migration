@@ -37,18 +37,31 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
     
 
     public AbstractStatefulAction(){
-        this.originStacktrace = Thread.currentThread().getStackTrace()[3];
-        // 0 - Thread.getStackTrace().
-        // 1 - This constructor.
-        // 2 - *Action constructor.
-        // 3 - Whatever called new CliCommandAction.
-        // Could be better, e.g. first non-constructor after 2.
+        this.originStacktrace = getNonActionCallee( Thread.currentThread().getStackTrace() );
     }
 
     public AbstractStatefulAction( Class<? extends IMigrator> fromMigrator ) {
         this();
         this.fromMigrator = fromMigrator;
     }
+    
+    
+    private StackTraceElement getNonActionCallee( StackTraceElement[] stackTrace ) {
+        //return Thread.currentThread().getStackTrace()[4];
+        // 0 - Thread.getStackTrace().
+        // 1 - This method.
+        // 2 - This constructor.
+        // 3 - *Action constructor.
+        // 4 - Whatever called new CliCommandAction.
+        // Could be better, e.g. first non-constructor after 2.
+        
+        for( StackTraceElement elm : stackTrace ) {
+            if( IMigrationAction.class.isAssignableFrom( elm.getClass() ) )
+                return elm;
+        }
+        return stackTrace[4]; // Fallback; will not happen, unless we put main() to this class or so.
+    }
+    
 
     public AbstractStatefulAction addWarning(String text) {
         warnings.add(text);
@@ -137,6 +150,7 @@ public abstract class AbstractStatefulAction implements IMigrationAction {
         if( minDist == Integer.MAX_VALUE )  return -1;
         else return minDist + 1;
     }
+
     
     public static class CircularDependencyException extends MigrationException {
         public CircularDependencyException( IMigrationAction a, IMigrationAction b ) {
