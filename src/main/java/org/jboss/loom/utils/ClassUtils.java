@@ -119,6 +119,9 @@ public class ClassUtils {
                         return file;
                     }
                 }
+                catch( Throwable ex ){
+                    log.warn("    Can't scan {}: {}", file.getPath(), ex.getMessage());
+                }
             }
         }
         return null;
