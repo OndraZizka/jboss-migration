@@ -274,5 +274,16 @@ public class Utils {
             throw new MigrationException( sb.toString() );
         }
     }// validate()
+    
+    
+    public static Throwable getRootCause( Throwable ex ){
+        Throwable cause;
+        do{
+            cause = ex.getCause();
+            if( cause == null )
+                return ex;
+            ex = cause;
+        } while( true ); // Can exceptions ever create a loop?
+    }
 
 }// class

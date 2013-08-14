@@ -55,8 +55,13 @@ public class AS7CliUtils {
         query.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
         // Copy the address.
         query.get(ClientConstants.OP_ADDR).set( resource.get(ClientConstants.OP_ADDR) );
-        ModelNode res = client.execute( query );
-        return wasSuccess( res );
+        //try{
+            ModelNode res = client.execute( query );
+            return wasSuccess( res );
+        //}
+        //// This handling should rather be done in whatever provides the client.
+        //catch( IOException ex ){ throw ex; }
+        //finally { client.close(); }
     }
 
     /** Parses the command string into ModalNode and calls the sister method. */

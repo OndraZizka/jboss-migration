@@ -36,6 +36,7 @@ import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
 import org.jboss.loom.spi.IMigrator;
 import org.jboss.loom.tools.report.Reporter;
+import org.jboss.loom.utils.Utils;
 import org.jboss.loom.utils.XmlUtils;
 import org.jboss.loom.utils.as7.AS7CliUtils;
 import org.jboss.loom.utils.as7.BatchFailure;
@@ -92,7 +93,10 @@ public class MigrationEngine {
         log.debug("======== init() ========");
 
         // Migrators filter.
-        IMigratorFilter filter = new IMigratorFilter.ByNames( this.config.getGlobal().getOnlyMigrators() );
+        final List<String> onlyMig = this.config.getGlobal().getOnlyMigrators();
+        IMigratorFilter filter = onlyMig == null || onlyMig.isEmpty()
+                ? new IMigratorFilter.All()
+                : new IMigratorFilter.ByNames( onlyMig );
         
         
         // Initialize the static java migrators.
@@ -170,7 +174,8 @@ public class MigrationEngine {
             this.loadASourceServerConfig();
 
             // Open an AS 7 management client connection.
-            openManagementClient();
+            message = "Failed opening target server management client.";
+            this.openManagementClient();
             
             // Ask all the migrators to create the actions to be performed.
             message = "Failed preparing the migration actions.";
@@ -190,9 +195,6 @@ public class MigrationEngine {
                 message = "Verification of migration actions results failed.";
                 this.postValidateActions();
             }
-            
-            // Close the AS 7 management client connection.
-            closeManagementClient();
             
             // Inform the user about necessary manual actions
             this.announceManualActions();
@@ -218,6 +220,10 @@ public class MigrationEngine {
             } catch ( Exception ex2 ){
                 log.error("Cleaning backups of migration actions failed: " + ex2.getMessage(), ex2 );
             }
+        }
+        finally {
+            // Close the AS 7 management client connection.
+            this.closeManagementClient();
         }
         
         // Report
@@ -245,10 +251,11 @@ public class MigrationEngine {
         } catch( Exception ex ){
             throw new MigrationException(ex);
         }
-        
-        // Set migration context to all actions (don't rely on migrators to do that).
-        for( IMigrationAction action : this.ctx.getActions() ) {
-            action.setMigrationContext( ctx );
+        finally {
+            // Set migration context to all actions (don't rely on migrators to do that).
+            for( IMigrationAction action : this.ctx.getActions() ) {
+                action.setMigrationContext( this.ctx );
+            }
         }
     }
     
@@ -547,14 +554,23 @@ public class MigrationEngine {
     
     private void openManagementClient() throws MigrationException {
         ModelControllerClient as7Client = null;
-        AS7Config as7Config = config.getGlobal().getAS7Config();
+        AS7Config as7Config = this.config.getGlobal().getAS7Config();
         try {
             as7Client = ModelControllerClient.Factory.create( as7Config.getHost(), as7Config.getManagementPort() );
         }
         catch( UnknownHostException ex ){
             throw new MigrationException("Unknown AS 7 host: " + as7Config.getHost(), ex);
         }
-        ctx.setAS7ManagementClient( as7Client );
+        
+        try {
+            as7Client.execute( AS7CliUtils.parseCommand("/core-service=platform-mbean/type=runtime:read-attribute(name=system-properties)") );
+        }
+        catch( IOException ex ){
+            String rootMsg = Utils.getRootCause( ex ).getMessage();
+            throw new MigrationException("Failed connecting to AS 7 host, is it running?  " + as7Config.getHost() + "\n    " + rootMsg); //, ex
+        }
+        
+        this.ctx.setAS7ManagementClient( as7Client );
     }
 
     private void closeManagementClient(){
