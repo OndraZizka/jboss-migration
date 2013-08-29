@@ -109,6 +109,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
             for( Map.Entry<File, File> item : data.deployments.entrySet() ) {
                 File depl = item.getKey();
 
+                // TODO: Use WindUpAction instead.
                 File reportDir = new File(reportsTmpDir, depl.getName() );
                 windupEng.processArchive( depl, reportDir );
                 data.deployments.put( depl, reportDir );
