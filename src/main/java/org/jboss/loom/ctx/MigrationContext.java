@@ -79,14 +79,17 @@ public class MigrationContext {
     public ServerInfo getSourceServer() { return sourceServer; }
     public void setSourceServer( ServerInfo sourceServer ) { this.sourceServer = sourceServer; }
 
+    /**  Returns the deployments provided by the user. Not to be confused with source server deployments. */
     public List<DeploymentInfo> getDeployments() { return deploymentInfos; }
     public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
 
+    /**  Same as getDeployments(). */
     public List<DeploymentInfo> getDeploymentInfos() { return deploymentInfos; }
     public void setDeploymentInfos( List<DeploymentInfo> deploymentInfos ) { this.deploymentInfos = deploymentInfos; }
     
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public Map<Class<? extends IMigrator>, MigratorData> getMigrationData() { return migrationData; }
+    
     public List<IMigrationAction> getActions() { return actions; }
 
     public Batch getBatch() { return batch; }
