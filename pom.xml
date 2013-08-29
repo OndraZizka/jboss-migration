@@ -351,6 +351,20 @@
     </profiles>
 
     <dependencies>
+        
+        <!-- WindUp -->
+        <dependency>
+            <groupId>org.jboss.windup</groupId>
+            <artifactId>windup-engine</artifactId>
+            <version>0.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.windup</groupId>
+            <artifactId>windup-reporting</artifactId>
+            <version>0.7.0</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- JAXB impl -->
         <dependency>
