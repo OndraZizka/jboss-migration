@@ -12,7 +12,7 @@
         <version>10</version>
     </parent>
     
-    <name>JBoss EAP 5 to 6 Config Migration</name>
+    <name>WindRide - JBoss Config Migration</name>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
