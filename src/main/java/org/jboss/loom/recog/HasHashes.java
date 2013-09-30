@@ -14,8 +14,6 @@ public interface HasHashes {
 
     /**
      *  Compares hash files of distribution of given $version against files in $serverRootDir
-     * 
-     *  TODO: Move to interface HasHashes?
      */
     public ComparisonResult compareHashes( Version version, File serverRootDir ) throws MigrationException;
 
