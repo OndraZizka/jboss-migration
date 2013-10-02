@@ -16,7 +16,11 @@ import javax.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 
 /**
+ *  Holds the result of comparison of a list of hashes against a directory.
+ * 
+ *  This is used to compare the existing server directory against known releases.
  *
+ *  @see FileHashCoparer
  *  @author Ondrej Zizka, ozizka at redhat.com
  */
 @XmlRootElement(name="comparisonResult")

@@ -52,7 +52,13 @@ public class FileHashComparer {
         return new ComparisonResult( dir ).setMatches( results );
     }
     
-    public static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir, IOFileFilter filter ) throws IOException {
+    /**
+     *  This is the method which actually creates the map keys and values.
+     * 
+     *  @returns  A map with keys being paths in the server dir (not including path to that),
+     *            and values being MatchResult values (MISSING, MATCH, MISMATCH, EMPTY).
+     */
+    private static Map<Path, MatchResult> compareHashesAndDir( Map<String, Long> hashes, File dir, IOFileFilter filter ) throws IOException {
         Map<Path, MatchResult> matches = new HashMap();
         
         // Iterate through hashes and compare with files.
@@ -64,19 +70,20 @@ public class FileHashComparer {
                 continue;
             
             File file = new File(dir, path);
-            Path pathNorm = file.toPath().normalize();
+            //Path pathNormFull = file.toPath().normalize();
+            Path pathNormSub  = new File(".", path).toPath().normalize();
             
             if( ! file.exists() ){
-                matches.put( pathNorm, MatchResult.MISSING );
+                matches.put( pathNormSub, MatchResult.MISSING );
                 continue;
             }
             if( file.length() == 0 ){
-                matches.put( pathNorm, MatchResult.EMPTY );
+                matches.put( pathNormSub, MatchResult.EMPTY );
                 continue;
             }
             long hashReal = computeCrc32(file);
             Long hash     = entry.getValue();
-            matches.put( pathNorm, hash == hashReal ? MatchResult.MATCH : MatchResult.MISMATCH );
+            matches.put( pathNormSub, hash == hashReal ? MatchResult.MATCH : MatchResult.MISMATCH );
         }
         return matches;
     }

@@ -16,7 +16,6 @@ import org.jboss.loom.ex.InitMigratorsExceptions;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.ex.MigrationExceptions;
 import org.jboss.loom.migrators.IMigratorFilter;
-import org.jboss.loom.migrators._ext.MigratorDefinition;
 import org.jboss.loom.migrators.classloading.ClassloadingMigrator;
 import org.jboss.loom.migrators.connectionFactories.ResAdapterMigrator;
 import org.jboss.loom.migrators.dataSources.DatasourceMigrator;
@@ -28,6 +27,7 @@ import org.jboss.loom.migrators.messaging.MessagingMigrator;
 import org.jboss.loom.migrators.remoting.RemotingMigrator;
 import org.jboss.loom.migrators.security.SecurityMigrator;
 import org.jboss.loom.migrators.server.ServerMigrator;
+import org.jboss.loom.migrators.windup.WindUpMigrator;
 import org.jboss.loom.spi.IMigrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,6 +140,7 @@ public class MigratorsInstantiator {
         migratorClasses.add( RemotingMigrator.class );      // Warn-only impl.
         migratorClasses.add( Ejb3Migrator.class );          // Warn-only impl.
         migratorClasses.add( MessagingMigrator.class );     // Warn-only impl.
+        migratorClasses.add( WindUpMigrator.class );
     }
 
     
