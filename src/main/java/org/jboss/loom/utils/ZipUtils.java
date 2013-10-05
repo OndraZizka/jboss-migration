@@ -25,6 +25,9 @@ public class ZipUtils {
      *  Zip given directory into a file.
      */
     public static File zipDir( File dir ) throws ZipException, IOException {
+        if( ! dir.exists() )     throw new IOException("Directory to zip doesn't exist: " + dir);
+        if( ! dir.isDirectory()) throw new IOException("Not a dir, not zipping: " + dir);
+            
         // Get a temp path.
         Path tmp = Files.createTempFile( "WindRide-" + dir.getName(), "." + StringUtils.substringAfterLast( dir.getName(), ".") );
         log.debug("Created temp file " + tmp.toString());
@@ -38,6 +41,7 @@ public class ZipUtils {
         parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_FAST);
 
         // Add folder to the zip file
+        Files.delete( tmp );
         zipFile.addFolder( dir, parameters);
     
         return zipFile.getFile();
