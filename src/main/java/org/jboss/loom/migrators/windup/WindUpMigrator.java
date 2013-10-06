@@ -29,11 +29,7 @@ import org.jboss.loom.utils.ZipUtils;
 import org.jboss.loom.utils.compar.FileHashComparer;
 import org.jboss.windup.WindupEngine;
 import org.jboss.windup.WindupEnvironment;
-import org.jboss.windup.metadata.type.archive.ArchiveMetadata;
 import org.jboss.windup.reporting.ReportEngine;
-import org.jboss.windup.reporting.Reporter;
-import org.jboss.windup.reporting.html.StaticHtmlReporter;
-import org.jboss.windup.reporting.transformers.MetaResultTransformResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +108,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
                     log.info("Detected custom deployment: " + deplPath);
                     // Storing the whole path as key.
                     // The value will be a HTML report dir, added later.
-                    data.deployments.put( new Data.DeplDataItem( deplPath.toString() ), null );
+                    data.deployments.put( deplPath.getPath(), new Data.DeplDataItem( deplPath ) );
                 }
             }
             catch( Exception ex ) {
@@ -143,32 +139,39 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
 
             // For each deployment from source server...
             Data data = (Data) ctx.getMigrationData().get( WindUpMigrator.class );
-            for( Map.Entry<Data.DeplDataItem, File> item : data.deployments.entrySet() ) {
-                final Data.DeplDataItem deplOrig = item.getKey(); // A path - e.g. EAP-520/server/production/deploy/httpha-invoker.sar
+            for( Map.Entry<String, Data.DeplDataItem> item : data.deployments.entrySet() ) {
+                //final Data.DeplDataItem deplOrig = item.getKey(); // A path - e.g. EAP-520/server/production/deploy/httpha-invoker.sar
+                final Data.DeplDataItem deplOrig = item.getValue(); // A path - e.g. EAP-520/server/production/deploy/httpha-invoker.sar
                 
-                File depl = deplOrig;
+                File depl = deplOrig.deploymentPath;
                 
                 // If it's a directory, zip it first. WindUp can't process directories. https://github.com/windup/windup/issues/67
-                if( deplOrig.isDirectory() ){
-                    depl = ZipUtils.zipDir( deplOrig );
+                if( depl.isDirectory() ){
+                    depl = ZipUtils.zipDir( depl );
                     depl.deleteOnExit();
                 }
 
                 // TODO: Use WindUpAction instead.
-                File reportDir = new File(reportsTmpDir, deplOrig.getName() );
+                File reportDir = new File(reportsTmpDir, deplOrig.deploymentPath.getName() );
                 try {
                     //ArchiveMetadata meta = windupEng.processArchive( depl, reportDir );
                     //reporter.process( meta, reportDir );
                     windupReport.process( depl, reportDir );
                 }
                 catch( Exception ex ){
-                    problems.add( new MigrationException("Failed processing deployment with WindUp: " + deplOrig.getPath()
-                            + "\n    " + ex.getLocalizedMessage(), ex) );
+                    //problems.add( new MigrationException("Failed processing deployment with WindUp: " + deplOrig.deploymentPath.getPath()
+                    //        + "\n    " + ex.getLocalizedMessage(), ex) );
+                    deplOrig.exception = ex;
                 }
-                data.deployments.put( deplOrig, reportDir ); // Store the resulting report dir to the map.
+                
+                // Move the report dir.
+                //FileUtils.moveDirectoryToDirectory( depl, reportDir, true );
+                //data.deployments.put( item.getKey(),  ); // Store the resulting report dir to the map.
+                deplOrig.reportDir = reportDir;
             }
             if( ! problems.isEmpty() ){
-                throw new MigrationExceptions("Failed processing the source server deployments with WindUp", problems);
+                MigrationExceptions ex = new MigrationExceptions("Failed processing the source server deployments with WindUp", problems);
+                log.error( ex.getMessage() ); // Don't let Windup failure break the whole migration.
             }
         }
         catch( Exception ex ){
@@ -275,22 +278,21 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
      *  Contains deployment file -> report file map.
      */
     protected static class Data extends MigratorData {
-        public final Map<Data.DeplDataItem, File> deployments = new HashMap();
+        public final Map<String, Data.DeplDataItem> deployments = new HashMap();
 
         @Override public <T extends IConfigFragment> List<T> getConfigFragments() {
-            return new ArrayList( deployments.keySet() );
+            return new ArrayList( deployments.values());
         }
         
         /** Just overriding File. */
-        protected static class DeplDataItem extends File implements IConfigFragment {
-            public DeplDataItem( String pathname ) {
-                super( pathname );
+        protected static class DeplDataItem implements IConfigFragment {
+            File deploymentPath;
+            File reportDir;
+            Exception exception;
+
+            public DeplDataItem( File deploymentPath ) {
+                this.deploymentPath = deploymentPath;
             }
-            public DeplDataItem( File parent, String child ) {
-                super( parent, child );
-            }
-            //TBD: Make File a member, not base.
-            // File deploymentPath, File reportDir, Exception exception
         }
     }
     
