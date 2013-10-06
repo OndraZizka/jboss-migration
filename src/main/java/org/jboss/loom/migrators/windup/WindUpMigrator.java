@@ -29,6 +29,11 @@ import org.jboss.loom.utils.ZipUtils;
 import org.jboss.loom.utils.compar.FileHashComparer;
 import org.jboss.windup.WindupEngine;
 import org.jboss.windup.WindupEnvironment;
+import org.jboss.windup.metadata.type.archive.ArchiveMetadata;
+import org.jboss.windup.reporting.ReportEngine;
+import org.jboss.windup.reporting.Reporter;
+import org.jboss.windup.reporting.html.StaticHtmlReporter;
+import org.jboss.windup.reporting.transformers.MetaResultTransformResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,8 +131,9 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
 
         try {
             // WindUp
-            WindupEnvironment windupEnv = new WindupEnvironment();
-            WindupEngine windupEng = new WindupEngine( windupEnv );
+            final WindupEnvironment windupEnv = new WindupEnvironment();
+            final WindupEngine windupEng = new WindupEngine( windupEnv );
+            final ReportEngine windupReport = new ReportEngine( windupEnv );
 
             // Create a temp dir for the report dirs.
             File reportsTmpDir = Files.createTempDirectory("JBossMigration-WindUpReports-").toFile();
@@ -145,18 +151,21 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
                 // If it's a directory, zip it first. WindUp can't process directories. https://github.com/windup/windup/issues/67
                 if( deplOrig.isDirectory() ){
                     depl = ZipUtils.zipDir( deplOrig );
+                    depl.deleteOnExit();
                 }
 
                 // TODO: Use WindUpAction instead.
                 File reportDir = new File(reportsTmpDir, deplOrig.getName() );
                 try {
-                    windupEng.processArchive( depl, reportDir );
-                    data.deployments.put( deplOrig, reportDir ); // Store the resulting report dir to the map.
+                    //ArchiveMetadata meta = windupEng.processArchive( depl, reportDir );
+                    //reporter.process( meta, reportDir );
+                    windupReport.process( depl, reportDir );
                 }
                 catch( Exception ex ){
                     problems.add( new MigrationException("Failed processing deployment with WindUp: " + deplOrig.getPath()
                             + "\n    " + ex.getLocalizedMessage(), ex) );
                 }
+                data.deployments.put( deplOrig, reportDir ); // Store the resulting report dir to the map.
             }
             if( ! problems.isEmpty() ){
                 throw new MigrationExceptions("Failed processing the source server deployments with WindUp", problems);
@@ -272,7 +281,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
             return new ArrayList( deployments.keySet() );
         }
         
-        /** Just overriding File. TBD: Make File a member, not base. */
+        /** Just overriding File. */
         protected static class DeplDataItem extends File implements IConfigFragment {
             public DeplDataItem( String pathname ) {
                 super( pathname );
@@ -280,10 +289,12 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
             public DeplDataItem( File parent, String child ) {
                 super( parent, child );
             }
+            //TBD: Make File a member, not base.
+            // File deploymentPath, File reportDir, Exception exception
         }
     }
     
     private final static FileFilter DEPLOYMENT_SUFFIX_FILTER = 
-        new SuffixFileFilter(new String[]{"war","ear","jar","sar","har", "rar"});
+        new SuffixFileFilter(new String[]{"war","ear","jar","sar","har", "rar", "par", "esb"});
     
 }// class
