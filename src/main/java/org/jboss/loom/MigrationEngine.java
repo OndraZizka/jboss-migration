@@ -426,6 +426,26 @@ public class MigrationEngine {
         }
     }
     
+    
+    /**
+     *  Creates a migration report.
+     *  Can't throw.
+     */
+    private void createReport() {
+        try {
+            Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
+        }
+        catch( Throwable ex ){
+            log.error("Failed creating migration report:\n    " + ex.getMessage(), ex);
+            
+            // Only throw if it's a test run; Only log on normal run.
+            if( config.getGlobal().isTestRun() )
+                throw new RuntimeException(ex);
+        }
+    }
+
+    
+    
     private void announceManualActions(){
         log.debug("======== announceManualActions() ========");
         boolean bannerShown = false;
@@ -445,7 +465,7 @@ public class MigrationEngine {
                     + "\n  End of manual actions."
                     + "\n====================================================================\n");
         }
-    }
+    }    
     
     private boolean showBanner(){
         log.warn("\n"
@@ -600,22 +620,5 @@ public class MigrationEngine {
         }
     }
 
-
-    /**
-     *  Creates a migration report.
-     *  Can't throw.
-     */
-    private void createReport() {
-        try {
-            Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
-        }
-        catch( Throwable ex ){
-            log.error("Failed creating migration report:\n    " + ex.getMessage(), ex);
-            
-            // Only throw if it's a test run; Only log on normal run.
-            if( config.getGlobal().isTestRun() )
-                throw new RuntimeException(ex);
-        }
-    }
 
 }// class
