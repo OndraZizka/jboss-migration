@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -11,6 +12,37 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class PathUtils {
     //private static final Logger log = LoggerFactory.getLogger( PathUtils.class );
+    
+
+    
+    /**
+     *  Turns  ( foo/bar/baz , foo ) into bar/baz .
+     *  If file is not under superDir, null is returned.
+     */
+    public static File cutOffSuperDir( String superDir, String fileStr ) {
+        if( ! fileStr.startsWith( superDir ) )
+            return null;
+        
+        // Either both are absolute, or both relative.
+        //if( file.isAbsolute() )
+            
+        String subPath = StringUtils.removeStart( fileStr, superDir );
+        subPath = StringUtils.removeStart( subPath, "/" );
+        
+        return new File( subPath );
+    }
+    
+    public static File cutOffSuperDir( String superDir, File file ) {
+        String fileStr = file.toPath().normalize().toFile().toString();
+        return cutOffSuperDir( superDir, fileStr );
+    }    
+    
+    public static File cutOffSuperDir( File superDir, String fileStr ) {
+        String superDirStr = superDir.toPath().normalize().toFile().toString();
+        return cutOffSuperDir( superDirStr, fileStr );
+    }
+    
+    
     
 
     public static String relativize( File baseDir, File dir ) {

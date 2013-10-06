@@ -3,18 +3,18 @@ package org.jboss.loom.migrators.windup;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.lang.StringUtils;
 import org.jboss.loom.conf.AS5Config;
 import org.jboss.loom.conf.GlobalConfiguration;
 import org.jboss.loom.ctx.MigrationContext;
@@ -24,6 +24,7 @@ import org.jboss.loom.ex.MigrationExceptions;
 import org.jboss.loom.migrators.AbstractMigrator;
 import org.jboss.loom.spi.IConfigFragment;
 import org.jboss.loom.spi.IMigrator;
+import org.jboss.loom.utils.PathUtils;
 import org.jboss.loom.utils.ZipUtils;
 import org.jboss.loom.utils.compar.FileHashComparer;
 import org.jboss.windup.WindupEngine;
@@ -81,29 +82,32 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
                 if( ! dir.isDirectory())  throw new MigrationException("Not a directory: " + dir);
                 
                 // If the deploy dir is under the server root dir, get the sub-root path.
-                File deplDirSubPath = cutOffSuperDir( dir, serverDir );
+                File deplDirSubPath = PathUtils.cutOffSuperDir( serverDir, dir );
                 if( deplDirSubPath == null ){
                     log.debug("Deploy dir is outside server root: " + deplDirSubPath);
                 }
                 
                 //Collection<File> list = FileUtils.listFilesAndDirs( dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE );
-                List<String> list = Arrays.asList( dir.list() );
+                //List<String> list = Arrays.asList( dir.list() );
+                List<File> deployments = listDeploymentsInDir( dir );
                 
-                for( String deployment : list ){
+                for( File deplPath : deployments ){
                                         
                     if( deplDirSubPath != null ){
+                        // Subpath under the deployment dir.
+                        final File deplFileSubSubPath = PathUtils.cutOffSuperDir( dir, deplPath.getPath() );
+                        final File deplFileSubPath = new File( deplDirSubPath, deplFileSubSubPath.getPath() );
                         // Most of the files found are expected to be skipped by this.
-                        final File deplFile = new File( deplDirSubPath, deployment );
-                        if( matches.containsKey( deplFile.toPath() ) ){
-                            log.info("Deployment is known part of the source server, skipping: " + deplFile.getPath() );
+                        if( matches.containsKey( deplFileSubPath.toPath() ) ){
+                            log.info("Deployment is known part of the source server, skipping: " + deplFileSubSubPath.getPath() );
                             continue;
                         }
                     }
                     
-                    log.info("Detected custom deployment: " + deployment);
+                    log.info("Detected custom deployment: " + deplPath);
                     // Storing the whole path as key.
                     // The value will be a HTML report dir, added later.
-                    data.deployments.put( new Data.DeplDataItem( dir, deployment ), null );
+                    data.deployments.put( new Data.DeplDataItem( deplPath.toString() ), null );
                 }
             }
             catch( Exception ex ) {
@@ -134,7 +138,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
             // For each deployment from source server...
             Data data = (Data) ctx.getMigrationData().get( WindUpMigrator.class );
             for( Map.Entry<Data.DeplDataItem, File> item : data.deployments.entrySet() ) {
-                Data.DeplDataItem deplOrig = item.getKey(); // A path - e.g. EAP-520/server/production/deploy/httpha-invoker.sar
+                final Data.DeplDataItem deplOrig = item.getKey(); // A path - e.g. EAP-520/server/production/deploy/httpha-invoker.sar
                 
                 File depl = deplOrig;
                 
@@ -147,7 +151,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
                 File reportDir = new File(reportsTmpDir, deplOrig.getName() );
                 try {
                     windupEng.processArchive( depl, reportDir );
-                    data.deployments.put( deplOrig, reportDir ); // Store the resultring report dir to the map.
+                    data.deployments.put( deplOrig, reportDir ); // Store the resulting report dir to the map.
                 }
                 catch( Exception ex ){
                     problems.add( new MigrationException("Failed processing deployment with WindUp: " + deplOrig.getPath()
@@ -175,24 +179,35 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
     }
 
 
-    /**
-     *  Turns  ( foo/bar/baz , foo ) into bar/baz .
-     *  If file is not under superDir, null is returned.
-     */
-    private static File cutOffSuperDir( File file, String superDir ) {
-        String fileStr = file.toPath().normalize().toFile().toString();
-        if( ! fileStr.startsWith( superDir ) )
-            return null;
-        
-        // Either both are absolute, or both relative.
-        //if( file.isAbsolute() )
-            
-        String subPath = StringUtils.removeStart( fileStr, superDir );
-        subPath = StringUtils.removeStart( subPath, "/" );
-        
-        return new File( subPath );
+
+
+    private List<File> listDeploymentsInDir( File dir ) throws IOException {
+        return new DeploymentWalker().scan( dir );
     }
 
+    static class DeploymentWalker extends DirectoryWalker {
+        @Override protected boolean handleDirectory( File directory, int depth, Collection results ) throws IOException {
+            
+            // If not a deployment, recurse into this dir.
+            if( ! DEPLOYMENT_SUFFIX_FILTER.accept( directory ) )
+                return true;
+            // Else, add it to the found deployments and don't recurse.
+            results.add( directory );
+            return false;
+        }
+
+        @Override protected void handleFile( File file, int depth, Collection results ) throws IOException {
+            // If it's a  deployment, add it.
+            if( DEPLOYMENT_SUFFIX_FILTER.accept( file ) )
+                results.add( file );
+        }
+        
+        public List<File> scan( File dir ) throws IOException {
+            List<File> depls = new LinkedList();
+            this.walk( dir, depls );
+            return depls;
+        }
+    }
     
     
     /**
@@ -268,15 +283,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
         }
     }
     
-    private final static FileFilter filter = new SuffixFileFilter(new String[]{"war","ear","jar","sar","har"}){
-        
-    };
-    
-    
-    private final static FileFilter filter2 = new AbstractFileFilter() {
-        
-    };
-    
-    
+    private final static FileFilter DEPLOYMENT_SUFFIX_FILTER = 
+        new SuffixFileFilter(new String[]{"war","ear","jar","sar","har", "rar"});
     
 }// class
