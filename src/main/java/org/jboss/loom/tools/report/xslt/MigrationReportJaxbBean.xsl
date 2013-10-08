@@ -99,7 +99,7 @@
                         <td class="icon"><div/></td>
                         <td class="report">
                             <xsl:if test="@reportDir">
-                                <a href="{@reportDir}/index.html">WindUp</a>
+                                <a href="WindUp/{@reportDir}/index.html">WindUp</a>
                             </xsl:if>
                             <xsl:if test="not( @reportDir )">(none)</xsl:if>
                         </td>

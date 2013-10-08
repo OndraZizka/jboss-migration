@@ -48,7 +48,9 @@ public class Reporter {
             // Copy deployments reports to the $reportDir.
             for( DeploymentInfo depl : report.deployments ) {
                 if( depl.getReportDir() == null )  continue;
-                FileUtils.copyDirectoryToDirectory( depl.getReportDir(), reportDir );
+                // TODO: The /WindUp/ should not be here - rather somehow included in the incoming data.
+                //       This should deal with reports in a generic way.
+                FileUtils.copyDirectoryToDirectory( depl.getReportDir(), new File( reportDir, "WindUp") );
                 depl.setReportDir( new File( depl.getReportDir().getName()) );
             }
             
