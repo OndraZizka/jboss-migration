@@ -305,13 +305,4 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
     private final static FileFilter DEPLOYMENT_SUFFIX_FILTER = 
         new SuffixFileFilter(new String[]{"war","ear","jar","sar","har", "rar", "par", "esb"});
     
-    
-    @Deprecated // Will be moved to some IACtion#customReportParts or so.
-    public static void addWindupReports( MigrationContext ctx ) {
-        Data data = (Data) ctx.getMigrationData().get( WindUpMigrator.class );
-        for( Data.DeplDataItem depl : data.deployments.values() ) {
-            // TBD -------------
-        }
-    }
-    
 }// class

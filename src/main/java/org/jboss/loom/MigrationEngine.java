@@ -433,9 +433,6 @@ public class MigrationEngine {
      *  Can't throw.
      */
     private void createReport() {
-        // TODO: Generalize!
-        WindUpMigrator.addWindupReports( ctx );
-        
         try {
             Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
         }
