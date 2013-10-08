@@ -554,7 +554,7 @@
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
-            <version>1.9.1</version>
+            <version>1.9.2</version>
             <type>jar</type>
             <exclusions> <exclusion> <artifactId>ant-launcher</artifactId> <groupId>org.apache.ant</groupId> </exclusion> </exclusions>
         </dependency>
