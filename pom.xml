@@ -4,7 +4,7 @@
 
     <groupId>org.jboss.migr.as</groupId>
     <artifactId>WindRide</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <parent>
         <groupId>org.jboss</groupId>
@@ -577,7 +577,7 @@
         <url>https://github.com/OndraZizka/jboss-migration</url>
         <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
         <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>WindRide-1.1.0</tag>
     </scm>
     <developers>
         <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
