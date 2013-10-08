@@ -4,11 +4,13 @@ package org.jboss.loom.tools.report;
 import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
+import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.utils.XmlUtils;
@@ -40,6 +42,15 @@ public class Reporter {
             report.actions = ctx.getActions();
             report.finalException = ctx.getFinalException();
             report.sourceServer = ctx.getSourceServer();
+            report.deployments = new ArrayList( ctx.getDeploymentsFromUser() );
+            report.deployments.addAll( ctx.getDeploymentsFromSrcServer() );
+            
+            // Copy deployments reports to the $reportDir.
+            for( DeploymentInfo depl : report.deployments ) {
+                if( depl.getReportDir() == null )  continue;
+                FileUtils.copyDirectoryToDirectory( depl.getReportDir(), reportDir );
+                depl.setReportDir( new File( depl.getReportDir().getName()) );
+            }
             
             Marshaller mar = XmlUtils.createMarshaller( MigrationReportJaxbBean.class );
             

@@ -21,8 +21,6 @@ import org.w3c.dom.Document;
 
 /**
  * Context of migration. Stores all necessary objects and information for all Migrators.
- *
- * @author Roman Jakubco
  */
 public class MigrationContext {
 
@@ -45,6 +43,7 @@ public class MigrationContext {
     private final Configuration conf;
     
     private List<DeploymentInfo> deploymentInfos = new LinkedList();
+    private List<DeploymentInfo> sourceServerDeployments = new LinkedList();
     
     
     // Source server related
@@ -84,8 +83,14 @@ public class MigrationContext {
     public void setDeployments( List<DeploymentInfo> deploymentsDirs ) { this.deploymentInfos = deploymentsDirs; }
 
     /**  Same as getDeployments(). */
-    public List<DeploymentInfo> getDeploymentInfos() { return deploymentInfos; }
+    public List<DeploymentInfo> getDeploymentsFromUser() { return deploymentInfos; }
     public void setDeploymentInfos( List<DeploymentInfo> deploymentInfos ) { this.deploymentInfos = deploymentInfos; }
+
+    
+    /**  Deployments found deployed on the source server. */
+    public List<DeploymentInfo> getDeploymentsFromSrcServer() { return sourceServerDeployments; }
+    public void setSourceServerDeployments( List<DeploymentInfo> sourceServerDeployments ) { this.sourceServerDeployments = sourceServerDeployments; }
+
     
     public Map<Class<? extends IMigrator>, IMigrator> getMigrators() { return migrators; }
     public Map<Class<? extends IMigrator>, MigratorData> getMigrationData() { return migrationData; }

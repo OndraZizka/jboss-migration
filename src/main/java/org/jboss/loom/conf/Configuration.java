@@ -13,8 +13,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.apache.commons.collections.map.MultiValueMap;
-import org.jboss.loom.spi.IMigrator;
 
 /**
  *  Holds global configuration and plugin-specific configuration.

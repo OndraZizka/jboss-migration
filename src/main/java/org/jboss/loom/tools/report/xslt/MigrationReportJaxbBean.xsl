@@ -30,6 +30,10 @@
         <h3>Files comparison against distribution archive</h3>
         <xsl:call-template name="ComparisonResult"/>
 
+        <h2><div class="icon"/><span>Deployments</span></h2>
+        <h3>Reports and Analyses - WindUp, TattleTale etc.</h3>
+        <xsl:call-template name="Deployments"/>
+
         <h2><div class="icon"/><span>Source server configuration</span></h2>
         <xsl:call-template name="MigratorData"/>
 
@@ -78,6 +82,27 @@
                     <tr class="match {@result}">
                         <td class="icon"><div/></td>
                         <td class="result"> <xsl:value-of select="@result"/> </td>
+                        <td><xsl:value-of select="@path"/></td>
+                    </tr>
+                </xsl:for-each>
+            </table>
+        </div>
+    </xsl:template>
+
+    <!-- Deployments - WindUp reports etc. -->
+    <xsl:template name="Deployments">
+        <div class="box deployments">
+            <table class="flat data vertBorder fs90" id="deployments">
+                <tr> <th colspan="2">Report</th> <th>File</th> </tr>
+                <xsl:for-each select="/migrationReport/deployments/deployment">
+                    <tr class="deployment {@type}">
+                        <td class="icon"><div/></td>
+                        <td class="report">
+                            <xsl:if test="@reportDir">
+                                <a href="{@reportDir}/index.html">WindUp</a>
+                            </xsl:if>
+                            <xsl:if test="not( @reportDir )">(none)</xsl:if>
+                        </td>
                         <td><xsl:value-of select="@path"/></td>
                     </tr>
                 </xsl:for-each>

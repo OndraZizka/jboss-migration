@@ -14,14 +14,14 @@ import org.jboss.loom.ex.MigrationException;
  */
 public class DeploymentConfigUtils {
 
-    public static final String UNZIP_DIR_PREFIX = "JBossAS-MigrTmp-";
-    public static final String TMP_DIR_SUFFIX = "-unzip1~~";
+    public static final String UNZIP_DIR_PREFIX = "WindRide-";
+    public static final String TMP_DIR_SUFFIX = "-unzip~";
 
     
     
     public enum DeploymentType {
         
-        EAR("META-INF"), WAR("META-INF"), JAR("META-INF");
+        EAR("META-INF"), WAR("META-INF"), JAR("META-INF"), SAR("META-INF"); // Sar is proprietary.
         
         private final String infDir;
 

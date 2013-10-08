@@ -110,6 +110,13 @@ div.box.migratorData table.fragments div.properties table th:after { content: ":
 
 
 
+/* Small icons in deployments table. */
+div.box.deployments { border: none; }
+div.box.deployments .deployment .icon { width: 20px; background:  transparent url("iconsMed.png") no-repeat; 
+       background-position:  -202px -396px; } /* archive box */
+div.box.deployments .deployment.WAR .icon { background-position:  -202px -712px; } /* globe */
+div.box.deployments .deployment.EAR .icon { background-position:  -266px -396px; } /* boxes */
+
 /* Small icons in comparison table. */
 div.box.comparison { border: none; }
 div.box.comparison .match .icon { width: 20px; background:  transparent url("iconsMed.png") no-repeat; }

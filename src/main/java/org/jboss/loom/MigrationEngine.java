@@ -32,6 +32,7 @@ import org.jboss.loom.ex.MigrationException;
 import org.jboss.loom.migrators.IMigratorFilter;
 import org.jboss.loom.migrators._ext.DefinitionBasedMigrator;
 import org.jboss.loom.migrators._ext.ExternalMigratorsLoader;
+import org.jboss.loom.migrators.windup.WindUpMigrator;
 import org.jboss.loom.recog.ServerInfo;
 import org.jboss.loom.recog.ServerRecognizer;
 import org.jboss.loom.spi.IMigrator;
@@ -432,6 +433,9 @@ public class MigrationEngine {
      *  Can't throw.
      */
     private void createReport() {
+        // TODO: Generalize!
+        WindUpMigrator.addWindupReports( ctx );
+        
         try {
             Reporter.createReport( ctx, new File(config.getGlobal().getReportDir()) );
         }

@@ -17,6 +17,7 @@ import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.jboss.loom.conf.AS5Config;
 import org.jboss.loom.conf.GlobalConfiguration;
+import org.jboss.loom.ctx.DeploymentInfo;
 import org.jboss.loom.ctx.MigrationContext;
 import org.jboss.loom.ctx.MigratorData;
 import org.jboss.loom.ex.MigrationException;
@@ -45,10 +46,12 @@ import org.slf4j.LoggerFactory;
  * 
  *  @see  https://issues.jboss.org/browse/MIGR-154
  *  @author  Ondrej Zizka, ozizka at redhat.com
+ * 
+ *  TODO: Reuse DeploymentInfo?
  */
 public class WindUpMigrator extends AbstractMigrator implements IMigrator {
     private static final Logger log = LoggerFactory.getLogger( WindUpMigrator.class );
-    
+
     @Override protected String getConfigPropertyModuleName() { return "deployments"; }
 
     
@@ -122,6 +125,7 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
     
     /**
      *  Calls WindUp to process the deployments found in loadSourceServerConfig().
+     *  Adds the results to ctx.getSourceServerDeployments().
      */
     @Override public void createActions( MigrationContext ctx ) throws MigrationException {
 
@@ -152,22 +156,24 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
                 }
 
                 // TODO: Use WindUpAction instead.
-                File reportDir = new File(reportsTmpDir, deplOrig.deploymentPath.getName() );
+                File reportTmpDir = new File(reportsTmpDir, deplOrig.deploymentPath.getName() );
                 try {
-                    //ArchiveMetadata meta = windupEng.processArchive( depl, reportDir );
-                    //reporter.process( meta, reportDir );
-                    windupReport.process( depl, reportDir );
+                    windupReport.process( depl, reportTmpDir );
                 }
                 catch( Exception ex ){
                     //problems.add( new MigrationException("Failed processing deployment with WindUp: " + deplOrig.deploymentPath.getPath()
-                    //        + "\n    " + ex.getLocalizedMessage(), ex) );
+                    //        + "\n    " + ex.getMessage(), ex) );
                     deplOrig.exception = ex;
                 }
                 
                 // Move the report dir.
-                //FileUtils.moveDirectoryToDirectory( depl, reportDir, true );
-                //data.deployments.put( item.getKey(),  ); // Store the resulting report dir to the map.
-                deplOrig.reportDir = reportDir;
+                //FileUtils.moveDirectoryToDirectory( depl, reportDir, true ); // TODO ------
+                deplOrig.reportDir = reportTmpDir;
+                
+                // Put the deployments to context.
+                ctx.getDeploymentsFromSrcServer().add(
+                    new DeploymentInfo( deplOrig.deploymentPath ).setReportDir( reportTmpDir )
+                );
             }
             if( ! problems.isEmpty() ){
                 MigrationExceptions ex = new MigrationExceptions("Failed processing the source server deployments with WindUp", problems);
@@ -298,5 +304,14 @@ public class WindUpMigrator extends AbstractMigrator implements IMigrator {
     
     private final static FileFilter DEPLOYMENT_SUFFIX_FILTER = 
         new SuffixFileFilter(new String[]{"war","ear","jar","sar","har", "rar", "par", "esb"});
+    
+    
+    @Deprecated // Will be moved to some IACtion#customReportParts or so.
+    public static void addWindupReports( MigrationContext ctx ) {
+        Data data = (Data) ctx.getMigrationData().get( WindUpMigrator.class );
+        for( Data.DeplDataItem depl : data.deployments.values() ) {
+            // TBD -------------
+        }
+    }
     
 }// class

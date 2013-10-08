@@ -16,6 +16,7 @@ Any value defined here will override the pom.xml file value but is only applicab
         <netbeans.compile.on.save>test</netbeans.compile.on.save>
     </properties>
     <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+        <word>classloading</word>
         <word>config</word>
         <word>Datasource</word>
         <word>jdbc</word>
