@@ -577,8 +577,8 @@
         <url>https://github.com/OndraZizka/jboss-migration</url>
         <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
         <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <developers>
         <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
         <developer> <id>rsearls</id> <name>Rebecca Searls</name> <organization>Red Hat / JBoss</organization> </developer>
