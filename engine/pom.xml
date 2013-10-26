@@ -3,16 +3,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jboss.migr.as</groupId>
-    <artifactId>WindRide</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <artifactId>WindRide-engine</artifactId>
 
     <parent>
-        <groupId>org.jboss</groupId>
-        <artifactId>jboss-parent</artifactId>
-        <version>10</version>
+        <groupId>org.jboss.migr.as</groupId>
+        <artifactId>WindRide-root</artifactId>
+        <version>1.1.1-SNAPSHOT</version>
     </parent>
     
-    <name>WindRide - JBoss Config Migration</name>
+    <name>WindRide engine</name>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -172,7 +171,7 @@
                                 <goals> <goal>get</goal> </goals>
                                 <configuration>
                                     <artifact>org.jboss.as:jboss-as-dist:${as.download.version}:zip</artifact>
-                                    <destination>target</destination>
+                                    <destination>${project.build.directory}/jboss-as-dist-${as.download.version}.zip</destination>
                                 </configuration>
                             </execution>
                         </executions>

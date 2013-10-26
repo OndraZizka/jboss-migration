@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.jboss.migr.as</groupId>
+    <artifactId>WindRide-root</artifactId>
+    <version>1.1.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>10</version>
+    </parent>
+    
+    <name>WindRide - JBoss Config Migration</name>
+    
+    <modules>
+        <module>engine</module>
+        <module>rules</module>
+    </modules>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <!-- User input defaults -->
+        <download>eap6</download> <!-- "as7" or "eap6" -->
+        <surefire.debug.port />
+        <surefire.debug.args /> <!-- Not used now, kept for Arq-launched AS. -->
+        <surefire.system.args>${surefire.debug.args}</surefire.system.args>
+        
+        <!-- Build flow control -->
+        <as.jvm.args />
+        <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
+    </properties>
+    
+    <build>
+    </build>
+    
+    <repositories>
+        <repository>
+            <id>JBoss</id>
+            <url>http://repository.jboss.org/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+    
+    <profiles>
+    </profiles>
+
+    <dependencies>
+    </dependencies>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>1.0.4.Final</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>    
+
+    <licenses> <license> <name>GPL3</name> <url>http://www.gnu.org/licenses/gpl.html</url> </license> </licenses>
+    <scm>
+        <url>https://github.com/OndraZizka/jboss-migration</url>
+        <connection>scm:git:git://github.com/OndraZizka/jboss-migration.git</connection>
+        <developerConnection>scm:git:git@github.com:OndraZizka/jboss-migration.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <developers>
+        <developer> <id>ozizka</id> <name>Ondrej Zizka</name> <organization>Red Hat / JBoss</organization> </developer>
+        <developer> <id>rjakubco</id> <name>Roman Jakubco</name> <organization>FI MUNI.cz</organization> </developer>
+    </developers>
+</project>
