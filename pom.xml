@@ -18,6 +18,7 @@
     <modules>
         <module>engine</module>
         <module>rules</module>
+        <module>recognizers/EAP5</module>
     </modules>
     
     <properties>
@@ -25,25 +26,18 @@
         
         <!-- User input defaults -->
         <download>eap6</download> <!-- "as7" or "eap6" -->
-        <surefire.debug.port />
-        <surefire.debug.args /> <!-- Not used now, kept for Arq-launched AS. -->
+        <surefire.debug.port/>
+        <surefire.debug.args/> <!-- Not used now, kept for Arq-launched AS. -->
         <surefire.system.args>${surefire.debug.args}</surefire.system.args>
         
         <!-- Build flow control -->
-        <as.jvm.args />
+        <as.jvm.args/>
         <arq.asContainer.version>7.2.0.Final</arq.asContainer.version>
     </properties>
     
     <build>
     </build>
-    
-    <repositories>
-        <repository>
-            <id>JBoss</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public</url>
-        </repository>
-    </repositories>
-    
+        
     <profiles>
     </profiles>
 
