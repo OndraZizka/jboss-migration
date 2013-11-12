@@ -18,8 +18,10 @@
     <modules>
         <module>engine</module>
         <module>rules</module>
+        <module>recognizers</module>
         <module>recognizers/EAP5</module>
-    </modules>
+    <module>common</module>
+  </modules>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,12 +38,38 @@
     </properties>
     
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration combine.self="override"> <source>7</source> <target>7</target> </configuration>
+            </plugin>
+        </plugins>
     </build>
         
     <profiles>
     </profiles>
 
     <dependencies>
+        
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        
     </dependencies>
     
     <dependencyManagement>

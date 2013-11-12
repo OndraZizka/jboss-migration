@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jboss.migr.as</groupId>
-    <artifactId>WindRide-recog-EAP5</artifactId>
+    <artifactId>WindRide-recognizers</artifactId>
 
     <parent>
         <groupId>org.jboss.migr.as</groupId>
@@ -11,7 +11,7 @@
         <version>1.1.1-SNAPSHOT</version>
     </parent>
     
-    <name>WindRide recog AS/EAP 5</name>
+    <name>WindRide recognizers</name>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -46,11 +46,16 @@
 
     <dependencies>
         
-        <!-- For unzipping and CRC32 -->
+        <!-- Commons -->
         <dependency>
-            <groupId>org.jboss.migr.as</groupId>
-            <artifactId>WindRide-recognizers</artifactId>
-            <version>${project.version}</version>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
         </dependency>
         
         <!-- For unzipping and CRC32 -->
