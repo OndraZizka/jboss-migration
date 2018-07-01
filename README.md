@@ -1,3 +1,8 @@
+## Discontinued in favor of the Windup project.
+
+Hello migrators, this project was discontinued by Red Hat in 2015 in favor of a new more universal project, Windup.
+See [windup.jboss.org](https://windup.jboss.org) for more info.
+
 ## What's this?
 
 A program for migrating configuration of JBoss AS 5-based servers to JBoss AS 7-based servers.
